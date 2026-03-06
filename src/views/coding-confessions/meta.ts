@@ -2,7 +2,7 @@ import type { PageMeta } from '@/types/page'
 
 const meta: PageMeta = {
   name: 'Coding Confessions',
-  description: 'Tam su lap trinh vien - random nhung cau confession hai huoc ve coding',
+  description: 'Tâm sự lập trình viên - random những câu confession hài hước về coding',
   author: 'kienduong',
 }
 

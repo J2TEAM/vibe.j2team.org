@@ -5,99 +5,99 @@ export interface Confession {
 
 export const confessions: Confession[] = [
   {
-    text: 'Toi da tung debug 4 tieng lien... vi quen save file.',
+    text: 'Tôi đã từng debug 4 tiếng liền... vì quên save file.',
     tag: 'classic',
   },
   {
-    text: 'Toi copy code tu Stack Overflow ma khong hieu no lam gi. No chay. Toi khong dam dong vao.',
+    text: 'Tôi copy code từ Stack Overflow mà không hiểu nó làm gì. Nó chạy. Tôi không dám đụng vào.',
     tag: 'Stack Overflow',
   },
   {
-    text: 'Moi lan fix xong bug, toi deu tu hoi: "Lam sao no chay duoc truoc do?"',
+    text: 'Mỗi lần fix xong bug, tôi đều tự hỏi: "Làm sao nó chạy được trước đó?"',
     tag: 'bug',
   },
   {
-    text: 'Toi viet comment "// TODO: fix later" tu 2 nam truoc. Van chua fix.',
+    text: 'Tôi viết comment "// TODO: fix later" từ 2 năm trước. Vẫn chưa fix.',
     tag: 'TODO',
   },
   {
-    text: 'Toi da tung git push --force len main. Vao luc 2h sang. Mot minh.',
+    text: 'Tôi đã từng git push --force lên main. Vào lúc 2h sáng. Một mình.',
     tag: 'git',
   },
   {
-    text: 'Khach hang noi "chi can thay doi nho thoi" — toi biet ngay la se mat ca tuan.',
-    tag: 'khach hang',
+    text: 'Khách hàng nói "chỉ cần thay đổi nhỏ thôi" — tôi biết ngay là sẽ mất cả tuần.',
+    tag: 'khách hàng',
   },
   {
-    text: '"No chay tren may toi ma" la cau toi noi nhieu nhat trong doi dev.',
+    text: '"Nó chạy trên máy tôi mà" là câu tôi nói nhiều nhất trong đời dev.',
     tag: 'classic',
   },
   {
-    text: 'Toi dat ten bien la "temp" roi quen doi. Bay gio code day nhung "temp2", "temp3", "tempFinal".',
+    text: 'Tôi đặt tên biến là "temp" rồi quên đổi. Bây giờ code đầy những "temp2", "temp3", "tempFinal".',
     tag: 'naming',
   },
   {
-    text: 'Toi da tung console.log("here") o 47 cho khac nhau de tim 1 cai bug.',
+    text: 'Tôi đã từng console.log("here") ở 47 chỗ khác nhau để tìm 1 cái bug.',
     tag: 'debug',
   },
   {
-    text: 'Dong nghiep khen code toi sach. That ra toi vua refactor 5 phut truoc khi demo.',
+    text: 'Đồng nghiệp khen code tôi sạch. Thật ra tôi vừa refactor 5 phút trước khi demo.',
     tag: 'review',
   },
   {
-    text: 'Toi Google cach thoat Vim it nhat 1 lan moi thang.',
+    text: 'Tôi Google cách thoát Vim ít nhất 1 lần mỗi tháng.',
     tag: 'vim',
   },
   {
-    text: 'Fix 1 bug, sinh ra 3 bug moi. Day la quy luat bat bien cua vu tru.',
+    text: 'Fix 1 bug, sinh ra 3 bug mới. Đây là quy luật bất biến của vũ trụ.',
     tag: 'bug',
   },
   {
-    text: 'Toi doc lai code minh viet 6 thang truoc va tu hoi: "Ai viet cai nay?"',
+    text: 'Tôi đọc lại code mình viết 6 tháng trước và tự hỏi: "Ai viết cái này?"',
     tag: 'code quality',
   },
   {
-    text: 'Toi bao deadline la 2 tuan. That ra 3 ngay la xong. Nhung toi can thoi gian "buffer".',
+    text: 'Tôi báo deadline là 2 tuần. Thật ra 3 ngày là xong. Nhưng tôi cần thời gian "buffer".',
     tag: 'deadline',
   },
   {
-    text: 'Meeting nay co the gui email duoc ma. — Moi dev, moi ngay.',
+    text: 'Meeting này có thể gửi email được mà. — Mọi dev, mọi ngày.',
     tag: 'meeting',
   },
   {
-    text: 'Toi da tung viet if-else 15 tang. Roi tu nhu "se refactor sau". Chua bao gio refactor.',
+    text: 'Tôi đã từng viết if-else 15 tầng. Rồi tự nhủ "sẽ refactor sau". Chưa bao giờ refactor.',
     tag: 'code quality',
   },
   {
-    text: 'ChatGPT viet code cho toi. Toi chi ngoi sua bug cua no. Vay toi la dev hay la QA?',
+    text: 'ChatGPT viết code cho tôi. Tôi chỉ ngồi sửa bug của nó. Vậy tôi là dev hay là QA?',
     tag: 'AI',
   },
   {
-    text: 'Toi dat password la "123456" cho local database. Da 3 nam roi van chua doi.',
+    text: 'Tôi đặt password là "123456" cho local database. Đã 3 năm rồi vẫn chưa đổi.',
     tag: 'security',
   },
   {
-    text: 'Deploy xong toi F5 lien tuc 20 lan de chac chan no khong loi.',
+    text: 'Deploy xong tôi F5 liên tục 20 lần để chắc chắn nó không lỗi.',
     tag: 'deploy',
   },
   {
-    text: 'Toi noi "code nay chi la tam thoi" — 3 nam sau no van chay tren production.',
+    text: 'Tôi nói "code này chỉ là tạm thời" — 3 năm sau nó vẫn chạy trên production.',
     tag: 'technical debt',
   },
   {
-    text: 'README ghi "doc day du" nhung lan cuoi cap nhat la 2 nam truoc.',
+    text: 'README ghi "đọc đầy đủ" nhưng lần cuối cập nhật là 2 năm trước.',
     tag: 'docs',
   },
   {
-    text: 'Toi da tung xoa ca database production vi chay nhom script sai moi truong.',
+    text: 'Tôi đã từng xoá cả database production vì chạy nhầm script sai môi trường.',
     tag: 'production',
   },
   {
-    text: 'Moi khi ai do noi "don gian thoi" toi biet la se khong don gian chut nao.',
+    text: 'Mỗi khi ai đó nói "đơn giản thôi" tôi biết là sẽ không đơn giản chút nào.',
     tag: 'classic',
   },
   {
-    text: 'Toi hoc duoc nhieu nhat tu viec doc code loi cua nguoi khac. Va cua chinh minh.',
+    text: 'Tôi học được nhiều nhất từ việc đọc code lỗi của người khác. Và của chính mình.',
     tag: 'learning',
   },
 ]

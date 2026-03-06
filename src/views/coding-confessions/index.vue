@@ -35,7 +35,7 @@ function next() {
       Coding Confessions
     </h1>
     <p class="mt-3 text-text-secondary text-sm sm:text-base text-center animate-fade-up animate-delay-2">
-      Nhung tam su ma dev nao cung tung trai qua...
+      Những tâm sự mà dev nào cũng từng trải qua...
     </p>
 
     <div class="mt-10 w-full max-w-lg animate-fade-up animate-delay-3">
@@ -67,14 +67,14 @@ function next() {
       class="mt-8 inline-flex items-center gap-2 border border-accent-coral bg-accent-coral/10 px-6 py-3 text-sm text-accent-coral font-display font-bold transition hover:bg-accent-coral hover:text-bg-deep cursor-pointer animate-fade-up animate-delay-4"
       @click="next"
     >
-      Confession tiep theo &rarr;
+      Confession tiếp theo &rarr;
     </button>
 
     <RouterLink
       to="/"
       class="mt-6 inline-flex items-center gap-2 border border-border-default bg-bg-surface px-5 py-2.5 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary animate-fade-up animate-delay-5"
     >
-      &larr; Ve trang chu
+      &larr; Về trang chủ
     </RouterLink>
   </div>
 </template>
