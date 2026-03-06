@@ -15,4 +15,13 @@ export const pages: PageInfo[] = Object.entries(metaModules)
     path: extractPath(key),
   }))
   .filter((p) => p.path !== '')
-  .sort((a, b) => a.name.localeCompare(b.name))
+  .sort((a, b) => {
+    const orderA = a.order ?? Number.MAX_SAFE_INTEGER
+    const orderB = b.order ?? Number.MAX_SAFE_INTEGER
+
+    if (orderA !== orderB) {
+      return orderA - orderB
+    }
+
+    return a.name.localeCompare(b.name)
+  })
