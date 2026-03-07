@@ -64,9 +64,13 @@ let timerInterval: ReturnType<typeof setInterval>;
 let effectTimeout: ReturnType<typeof setTimeout>;
 let audioCtx: AudioContext | null = null;
 
+interface WindowWithWebkit extends Window {
+  webkitAudioContext?: typeof AudioContext;
+}
+
 const initAudio = () => {
   if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx = new (window.AudioContext || (window as WindowWithWebkit).webkitAudioContext)();
   }
 };
 
@@ -188,7 +192,7 @@ const playSound = (
 
 const spawnParticles = (x: number, y: number, color: string) => {
   const id = Date.now();
-  const text = codeSnippets[Math.floor(Math.random() * codeSnippets.length)];
+  const text = codeSnippets[Math.floor(Math.random() * codeSnippets.length)] || "";
   particles.value.push({ id, x, y, text, color });
   setTimeout(() => {
     particles.value = particles.value.filter((p) => p.id !== id);
@@ -205,7 +209,7 @@ const spawnFloater = (x: number, y: number, text: string, color: string) => {
 
 const triggerCheer = () => {
   const index = Math.min(Math.floor((combo.value - 3) / 2), cheers.length - 1);
-  cheerText.value = cheers[index];
+  cheerText.value = cheers[index] || "";
   showCheer.value = true;
   playSound("cheer");
   setTimeout(() => {
@@ -240,7 +244,7 @@ const spawnNext = () => {
 
   const rand = Math.random();
   let type: EntityType = "bug";
-  let emoji = bugEmojis[Math.floor(Math.random() * bugEmojis.length)];
+  let emoji = bugEmojis[Math.floor(Math.random() * bugEmojis.length)] || "🐛";
 
   if (rand > 0.96) {
     type = "freeze";
@@ -335,7 +339,7 @@ const whack = (index: number, event: MouseEvent) => {
       combo.value++;
       playSound("whack");
       spawnFloater(event.clientX, event.clientY, "+1", "#ffffff");
-      message.value = messages[Math.floor(Math.random() * messages.length)];
+      message.value = messages[Math.floor(Math.random() * messages.length)] || "";
       if (combo.value >= 3 && combo.value % 2 === 1) triggerCheer();
     } else if (type === "golden") {
       score.value += 5;
