@@ -3,14 +3,29 @@ import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 type CoinResult = 'HEADS' | 'TAILS'
+type CoinRestClass = 'rest-heads' | 'rest-tails'
+type CoinAnimationClass =
+  | ''
+  | 'animate-flip-h2h'
+  | 'animate-flip-h2t'
+  | 'animate-flip-t2h'
+  | 'animate-flip-t2t'
 
 const heads = ref(0)
 const tails = ref(0)
 const isFlipping = ref(false)
 const result = ref<CoinResult>('HEADS')
-const coinAnimationClass = ref('')
+const coinAnimationClass = ref<CoinAnimationClass>('')
+const coinRestClass = ref<CoinRestClass>('rest-heads')
 const resultHidden = ref(true)
 const flipDurationMs = 3000
+
+const getAnimationClass = (from: CoinResult, to: CoinResult): CoinAnimationClass => {
+  if (from === 'HEADS' && to === 'HEADS') return 'animate-flip-h2h'
+  if (from === 'HEADS' && to === 'TAILS') return 'animate-flip-h2t'
+  if (from === 'TAILS' && to === 'HEADS') return 'animate-flip-t2h'
+  return 'animate-flip-t2t'
+}
 
 const flipCoin = (): void => {
   if (isFlipping.value) return
@@ -18,17 +33,21 @@ const flipCoin = (): void => {
   isFlipping.value = true
   resultHidden.value = true
 
+  const fromResult = result.value
   const nextIsHeads = Math.random() < 0.5
+  const nextResult: CoinResult = nextIsHeads ? 'HEADS' : 'TAILS'
+
+  coinRestClass.value = fromResult === 'HEADS' ? 'rest-heads' : 'rest-tails'
   coinAnimationClass.value = ''
 
   window.requestAnimationFrame(() => {
     window.requestAnimationFrame(() => {
-      coinAnimationClass.value = nextIsHeads ? 'animate-flip-heads' : 'animate-flip-tails'
+      coinAnimationClass.value = getAnimationClass(fromResult, nextResult)
     })
   })
 
   window.setTimeout(() => {
-    if (nextIsHeads) {
+    if (nextResult === 'HEADS') {
       heads.value += 1
       result.value = 'HEADS'
     } else {
@@ -36,6 +55,8 @@ const flipCoin = (): void => {
       result.value = 'TAILS'
     }
 
+    coinRestClass.value = nextResult === 'HEADS' ? 'rest-heads' : 'rest-tails'
+    coinAnimationClass.value = ''
     resultHidden.value = false
     isFlipping.value = false
   }, flipDurationMs)
@@ -50,7 +71,7 @@ const flipCoin = (): void => {
       </h1>
 
       <div class="coin-container mt-10" role="button" tabindex="0" aria-label="Flip coin" @click="flipCoin">
-        <div class="coin" :class="coinAnimationClass">
+        <div class="coin" :class="[coinRestClass, coinAnimationClass]">
           <div class="coin-face heads">
             <img
               class="coin-image"
@@ -118,7 +139,6 @@ const flipCoin = (): void => {
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 1s ease-out;
 }
 
 .coin-face {
@@ -151,15 +171,31 @@ const flipCoin = (): void => {
   border-radius: 50%;
 }
 
-.animate-flip-heads {
-  animation: flip-heads 3s forwards;
+.rest-heads {
+  transform: rotateY(0deg);
 }
 
-.animate-flip-tails {
-  animation: flip-tails 3s forwards;
+.rest-tails {
+  transform: rotateY(180deg);
 }
 
-@keyframes flip-heads {
+.animate-flip-h2h {
+  animation: flip-h2h 3s forwards;
+}
+
+.animate-flip-h2t {
+  animation: flip-h2t 3s forwards;
+}
+
+.animate-flip-t2h {
+  animation: flip-t2h 3s forwards;
+}
+
+.animate-flip-t2t {
+  animation: flip-t2t 3s forwards;
+}
+
+@keyframes flip-h2h {
   from {
     transform: rotateY(0);
   }
@@ -168,9 +204,27 @@ const flipCoin = (): void => {
   }
 }
 
-@keyframes flip-tails {
+@keyframes flip-h2t {
   from {
     transform: rotateY(0);
+  }
+  to {
+    transform: rotateY(1980deg);
+  }
+}
+
+@keyframes flip-t2h {
+  from {
+    transform: rotateY(180deg);
+  }
+  to {
+    transform: rotateY(2160deg);
+  }
+}
+
+@keyframes flip-t2t {
+  from {
+    transform: rotateY(180deg);
   }
   to {
     transform: rotateY(1980deg);
@@ -200,8 +254,10 @@ const flipCoin = (): void => {
 
 @media (prefers-reduced-motion: reduce) {
   .coin,
-  .animate-flip-heads,
-  .animate-flip-tails {
+  .animate-flip-h2h,
+  .animate-flip-h2t,
+  .animate-flip-t2h,
+  .animate-flip-t2t {
     animation: none !important;
     transition: none !important;
   }
