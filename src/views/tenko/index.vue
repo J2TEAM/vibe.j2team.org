@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { RouterLink } from "vue-router";
 
 // --- Types ---
@@ -155,34 +155,7 @@ function calculateCost(tokenCount: number, model: string, type: "input" | "outpu
   return "$" + cost.toFixed(6);
 }
 
-function generateLorem(target: number) {
-  let result: string[] = [];
-  let currentTokens = 0;
-  const random = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
-
-  while (currentTokens < target) {
-    const sentenceLength = Math.floor(Math.random() * 11) + 5;
-    let sentence: string[] = [];
-    for (let i = 0; i < sentenceLength; i++) {
-      if (currentTokens >= target) break;
-      sentence.push(random(words));
-      currentTokens++;
-    }
-    if (sentence.length > 0) {
-      const first = sentence[0]!;
-      sentence[0] = first.charAt(0).toUpperCase() + first.slice(1);
-      const lastIdx = sentence.length - 1;
-      const punct = random(punctuation);
-      if (punct === "." || Math.random() > 0.3) {
-        sentence[lastIdx] += ".";
-      } else {
-        sentence[lastIdx] += punct;
-      }
-      result.push(sentence.join(" "));
-    }
-  }
-  generatedText.value = result.join(" ");
-}
+// (generateLorem removed - unused)
 
 // Fixed generator to work with ref
 const handleGenerate = () => {
@@ -191,13 +164,13 @@ const handleGenerate = () => {
   if (val > 100000) val = 100000;
   targetTokenCount.value = val;
 
-  let result: string[] = [];
+  const result: string[] = [];
   let currentTokens = 0;
-  const random = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
+  const random = (arr: string[]): string => arr[Math.floor(Math.random() * arr.length)]!;
 
   while (currentTokens < val) {
     const sentenceLength = Math.floor(Math.random() * 11) + 5;
-    let sentence: string[] = [];
+    const sentence: string[] = [];
     for (let i = 0; i < sentenceLength; i++) {
       if (currentTokens >= val) break;
       sentence.push(random(words));
