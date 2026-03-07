@@ -85,29 +85,42 @@ const words = [
   "id",
   "est",
   "laborum",
-  "the",
-  "quick",
-  "brown",
-  "fox",
-  "jumps",
-  "over",
-  "lazy",
-  "dog",
-  "hello",
-  "world",
-  "program",
-  "code",
-  "function",
-  "variable",
-  "data",
-  "system",
-  "computer",
+  "con",
+  "cáo",
+  "nâu",
+  "nhanh",
+  "nhẹn",
+  "nhảy",
+  "qua",
+  "con",
+  "chó",
+  "lười",
+  "xin",
+  "chào",
+  "thế",
+  "giới",
+  "chương",
+  "trình",
+  "mã",
+  "nguồn",
+  "hàm",
+  "biến",
+  "dữ",
+  "liệu",
+  "hệ",
+  "thống",
+  "máy",
+  "tính",
   "api",
   "web",
-  "application",
-  "development",
-  "software",
-  "technology",
+  "ứng",
+  "dụng",
+  "phát",
+  "triển",
+  "phần",
+  "mềm",
+  "công",
+  "nghệ",
 ];
 const punctuation = [".", ",", "!", "?", ";", ":"];
 
@@ -209,7 +222,7 @@ const generateCost = computed(() =>
 
 onMounted(() => {
   inputText.value =
-    "Hello world! This is a tokenization demo. OpenAI uses BPE (Byte Pair Encoding) for splitting text into tokens.";
+    "Xin chào thế giới! Đây là một bản demo token hóa. OpenAI sử dụng BPE (Byte Pair Encoding) để chia nhỏ văn bản thành các token.";
 });
 </script>
 
@@ -224,10 +237,10 @@ onMounted(() => {
       </div>
 
       <h1 class="font-display text-5xl md:text-6xl font-bold text-accent-coral animate-fade-up">
-        Token Visualizer
+        Trực quan hóa Token
       </h1>
       <p class="mt-4 text-text-secondary text-lg animate-fade-up animate-delay-1">
-        OpenAI Token Calculator & Lorem Ipsum Generator
+        Công cụ tính toán Token OpenAI & Tạo văn bản mẫu
       </p>
 
       <div class="mt-8 flex justify-center animate-fade-up animate-delay-2">
@@ -252,7 +265,7 @@ onMounted(() => {
               : 'border-border-default bg-bg-surface text-text-secondary hover:border-accent-coral/50',
           ]"
         >
-          <span class="text-xl"></span> Text → Tokenize
+          <span class="text-xl"></span> Văn bản → Tokenize
         </button>
         <button
           @click="activeTab = 'generate'"
@@ -263,7 +276,7 @@ onMounted(() => {
               : 'border-border-default bg-bg-surface text-text-secondary hover:border-accent-sky/50',
           ]"
         >
-          <span class="text-xl"></span> Token Count → Generate
+          <span class="text-xl"></span> Số lượng Token → Tạo
         </button>
       </nav>
 
@@ -275,12 +288,12 @@ onMounted(() => {
             <div class="bg-bg-surface border border-border-default p-6 space-y-4">
               <h2 class="font-display text-xl font-semibold flex items-center gap-2">
                 <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
-                Input Configuration
+                Cấu hình Đầu vào
               </h2>
 
               <div class="grid sm:grid-cols-2 gap-4 text-sm">
                 <div class="space-y-2">
-                  <label class="text-text-secondary">Select Model:</label>
+                  <label class="text-text-secondary">Chọn Mô hình:</label>
                   <select
                     v-model="modelTokenize"
                     class="w-full bg-bg-deep border border-border-default p-2 text-text-primary focus:border-accent-coral outline-none appearance-none cursor-pointer"
@@ -291,7 +304,7 @@ onMounted(() => {
                   </select>
                 </div>
                 <div class="space-y-2">
-                  <label class="text-text-secondary">Price Type:</label>
+                  <label class="text-text-secondary">Loại giá:</label>
                   <div class="flex border border-border-default">
                     <button
                       @click="priceTypeTokenize = 'input'"
@@ -302,7 +315,7 @@ onMounted(() => {
                           : 'hover:bg-bg-elevated text-text-secondary',
                       ]"
                     >
-                      Input
+                      Đầu vào
                     </button>
                     <button
                       @click="priceTypeTokenize = 'output'"
@@ -313,17 +326,17 @@ onMounted(() => {
                           : 'hover:bg-bg-elevated text-text-secondary',
                       ]"
                     >
-                      Output
+                      Đầu ra
                     </button>
                   </div>
                 </div>
               </div>
 
               <div class="space-y-2">
-                <label class="text-text-secondary">Enter your text:</label>
+                <label class="text-text-secondary">Nhập văn bản của bạn:</label>
                 <textarea
                   v-model="inputText"
-                  placeholder="Type or paste your text here..."
+                  placeholder="Nhập hoặc dán văn bản của bạn vào đây..."
                   class="w-full min-h-[160px] bg-bg-deep border border-border-default p-4 text-text-primary font-mono text-sm focus:border-accent-coral outline-none resize-y"
                 ></textarea>
               </div>
@@ -336,7 +349,7 @@ onMounted(() => {
               class="bg-bg-surface border border-border-default p-6 text-center hover:border-accent-coral transition-colors"
             >
               <div class="text-xs text-text-dim font-display uppercase tracking-widest mb-1">
-                Total Tokens
+                Tổng số Token
               </div>
               <div class="text-4xl font-bold font-mono text-accent-sky">
                 {{ tokenizeTokenCount.toLocaleString() }}
@@ -346,7 +359,7 @@ onMounted(() => {
               class="bg-bg-surface border border-border-default p-6 text-center hover:border-accent-amber transition-colors"
             >
               <div class="text-xs text-text-dim font-display uppercase tracking-widest mb-1">
-                Characters
+                Ký tự
               </div>
               <div class="text-4xl font-bold font-mono text-accent-amber">
                 {{ tokenizeCharCount.toLocaleString() }}
@@ -356,7 +369,7 @@ onMounted(() => {
               class="bg-bg-surface border border-border-default p-6 text-center hover:border-accent-coral transition-colors"
             >
               <div class="text-xs text-text-dim font-display uppercase tracking-widest mb-1">
-                Estimated Cost
+                Chi phí Ước tính
               </div>
               <div class="text-4xl font-bold font-mono text-text-primary">{{ tokenizeCost }}</div>
             </div>
@@ -368,7 +381,7 @@ onMounted(() => {
           <h2 class="font-display text-xl font-semibold flex items-center justify-between mb-6">
             <div class="flex items-center gap-2">
               <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
-              Token Visualization
+              Trực quan hóa Token
             </div>
             <span
               class="text-xs font-mono bg-bg-deep px-3 py-1 text-text-secondary border border-border-default"
@@ -403,17 +416,17 @@ onMounted(() => {
                   class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max bg-bg-elevated border border-border-default p-2 text-[10px] invisible group-hover:visible z-50 shadow-xl pointer-events-none"
                 >
                   <div class="text-text-dim">
-                    Index: <span class="text-text-primary">{{ token.index }}</span>
+                    Chỉ số: <span class="text-text-primary">{{ token.index }}</span>
                   </div>
                   <div class="text-text-dim">
-                    Length: <span class="text-text-primary">{{ token.length }}</span>
+                    Độ dài: <span class="text-text-primary">{{ token.length }}</span>
                   </div>
                 </div>
               </span>
             </template>
           </div>
           <div v-else class="text-center py-12 text-text-dim opacity-40 italic">
-            No tokens to display. Start typing above...
+            Không có token nào để hiển thị. Bắt đầu nhập ở trên...
           </div>
         </div>
 
@@ -423,7 +436,7 @@ onMounted(() => {
             class="font-display text-lg font-semibold bg-bg-elevated px-6 py-4 border-b border-border-default flex items-center gap-2"
           >
             <span class="text-accent-amber font-display text-sm tracking-widest">//</span>
-            Token Details
+            Chi tiết Token
           </h2>
           <div class="overflow-x-auto max-h-[400px]">
             <table class="w-full text-left font-mono text-sm">
@@ -437,12 +450,12 @@ onMounted(() => {
                   <th
                     class="px-6 py-4 text-text-dim font-display tracking-widest text-xs uppercase"
                   >
-                    Content
+                    Nội dung
                   </th>
                   <th
                     class="px-6 py-4 text-text-dim font-display tracking-widest text-xs uppercase"
                   >
-                    Length
+                    Độ dài
                   </th>
                 </tr>
               </thead>
@@ -473,7 +486,7 @@ onMounted(() => {
                 </template>
                 <tr v-if="!tokenizeTokenCount">
                   <td colspan="3" class="px-6 py-12 text-center text-text-dim italic">
-                    No data available
+                    Không có dữ liệu
                   </td>
                 </tr>
               </tbody>
@@ -490,12 +503,12 @@ onMounted(() => {
             <div class="bg-bg-surface border border-border-default p-6 space-y-4">
               <h2 class="font-display text-xl font-semibold flex items-center gap-2">
                 <span class="text-accent-sky font-display text-sm tracking-widest">//</span>
-                Generation Config
+                Cấu hình Tạo
               </h2>
 
               <div class="grid sm:grid-cols-2 gap-4 text-sm">
                 <div class="space-y-2">
-                  <label class="text-text-secondary">Select Model:</label>
+                  <label class="text-text-secondary">Chọn Mô hình:</label>
                   <select
                     v-model="modelGenerate"
                     class="w-full bg-bg-deep border border-border-default p-2 text-text-primary focus:border-accent-sky outline-none appearance-none cursor-pointer"
@@ -506,7 +519,7 @@ onMounted(() => {
                   </select>
                 </div>
                 <div class="space-y-2">
-                  <label class="text-text-secondary">Price Type:</label>
+                  <label class="text-text-secondary">Loại giá:</label>
                   <div class="flex border border-border-default">
                     <button
                       @click="priceTypeGenerate = 'input'"
@@ -517,7 +530,7 @@ onMounted(() => {
                           : 'hover:bg-bg-elevated text-text-secondary',
                       ]"
                     >
-                      Input
+                      Đầu vào
                     </button>
                     <button
                       @click="priceTypeGenerate = 'output'"
@@ -528,14 +541,14 @@ onMounted(() => {
                           : 'hover:bg-bg-elevated text-text-secondary',
                       ]"
                     >
-                      Output
+                      Đầu ra
                     </button>
                   </div>
                 </div>
               </div>
 
               <div class="space-y-2">
-                <label class="text-text-secondary">Desired token count (1 - 100,000):</label>
+                <label class="text-text-secondary">Số lượng token mong muốn (1 - 100,000):</label>
                 <div class="flex gap-2">
                   <input
                     type="number"
@@ -548,7 +561,7 @@ onMounted(() => {
                     @click="handleGenerate"
                     class="bg-accent-sky text-bg-deep px-6 font-display font-bold hover:brightness-110 active:scale-95 transition-all"
                   >
-                    GENERATE
+                    TẠO
                   </button>
                 </div>
               </div>
@@ -561,7 +574,7 @@ onMounted(() => {
               class="bg-bg-surface border border-border-default p-6 text-center hover:border-accent-sky transition-colors"
             >
               <div class="text-xs text-text-dim font-display uppercase tracking-widest mb-1">
-                Actual Tokens
+                Token Thực tế
               </div>
               <div class="text-4xl font-bold font-mono text-accent-sky">
                 {{ generateTokenCount.toLocaleString() }}
@@ -571,7 +584,7 @@ onMounted(() => {
               class="bg-bg-surface border border-border-default p-6 text-center hover:border-accent-amber transition-colors"
             >
               <div class="text-xs text-text-dim font-display uppercase tracking-widest mb-1">
-                Characters
+                Ký tự
               </div>
               <div class="text-4xl font-bold font-mono text-accent-amber">
                 {{ generateCharCount.toLocaleString() }}
@@ -581,7 +594,7 @@ onMounted(() => {
               class="bg-bg-surface border border-border-default p-6 text-center hover:border-accent-sky transition-colors"
             >
               <div class="text-xs text-text-dim font-display uppercase tracking-widest mb-1">
-                Estimated Cost
+                Chi phí Ước tính
               </div>
               <div class="text-4xl font-bold font-mono text-text-primary">{{ generateCost }}</div>
             </div>
@@ -593,7 +606,7 @@ onMounted(() => {
           <h2 class="font-display text-xl font-semibold flex items-center justify-between mb-6">
             <div class="flex items-center gap-2">
               <span class="text-accent-sky font-display text-sm tracking-widest">//</span>
-              Generated Text
+              Văn bản được tạo
             </div>
             <span
               class="text-xs font-mono bg-bg-deep px-3 py-1 text-text-secondary border border-border-default"
@@ -609,7 +622,7 @@ onMounted(() => {
             {{ generatedText }}
           </div>
           <div v-else class="text-center py-12 text-text-dim opacity-40 italic">
-            Click "GENERATE" to create tokenized text...
+            Nhấp "TẠO" để tạo văn bản...
           </div>
         </div>
       </section>
@@ -626,7 +639,7 @@ onMounted(() => {
           aria-label="GitHub - LTPPPP"
           title="GitHub - LTPPPP"
         >
-          VOL.01 / 2026 // TOKEN VISUALIZER // DEVELOPED BY LTPPPP
+          VOL.01 / 2026 // TRỰC QUAN HÓA TOKEN // PHÁT TRIỂN BỞI LTPPPP
         </a>
       </div>
       <p class="mt-4 text-text-secondary text-xs opacity-50 max-w-lg mx-auto leading-relaxed">
