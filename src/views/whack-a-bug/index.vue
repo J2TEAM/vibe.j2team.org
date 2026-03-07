@@ -477,13 +477,13 @@ const timerWidth = computed(() => Math.min((timeLeft.value / 30) * 100, 100));
           class="text-5xl font-black tracking-tighter italic text-transparent bg-clip-text bg-gradient-to-r from-accent-coral via-white to-accent-amber"
           :class="{ 'animate-pulse scale-105': isBulletTime || isFrozen }"
         >
-          WHACK-A-BUG
+          ĐẬP BUG GIẢI NGHIỆP
         </h1>
         <div class="flex items-center justify-center gap-4">
           <p class="text-slate-400 text-[10px] font-bold tracking-widest uppercase">
-            <span v-if="isFrozen" class="text-sky-300">❄️ TIME FROZEN ❄️</span>
-            <span v-else-if="isBulletTime" class="text-blue-400">☕ BULLET TIME ☕</span>
-            <span v-else>High Score: {{ highScore }}</span>
+            <span v-if="isFrozen" class="text-sky-300">❄️ THỜI GIAN NGƯNG ĐỌNG ❄️</span>
+            <span v-else-if="isBulletTime" class="text-blue-400">☕ SIÊU CHẬM ☕</span>
+            <span v-else>Điểm cao nhất: {{ highScore }}</span>
           </p>
           <button
             @click="isMuted = !isMuted"
@@ -503,7 +503,7 @@ const timerWidth = computed(() => Math.min((timeLeft.value / 30) * 100, 100));
           class="absolute inset-0 bg-gradient-to-t from-accent-coral/20 to-transparent pointer-events-none animate-pulse"
         ></div>
         <div class="text-center">
-          <p class="text-[10px] uppercase text-slate-500 font-bold">Points</p>
+          <p class="text-[10px] uppercase text-slate-500 font-bold">Điểm</p>
           <p class="text-3xl font-black text-accent-amber">{{ score }}</p>
         </div>
         <div class="flex flex-col justify-center items-center border-x border-slate-800 px-2">
@@ -521,7 +521,7 @@ const timerWidth = computed(() => Math.min((timeLeft.value / 30) * 100, 100));
           </p>
         </div>
         <div class="text-center">
-          <p class="text-[10px] uppercase text-slate-500 font-bold">Seconds</p>
+          <p class="text-[10px] uppercase text-slate-500 font-bold">Giây</p>
           <p
             class="text-3xl font-black"
             :class="
@@ -598,15 +598,15 @@ const timerWidth = computed(() => Math.min((timeLeft.value / 30) * 100, 100));
           class="absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 z-20 rounded-[1.5rem]"
         >
           <div v-if="isGameOver" class="mb-6 space-y-1 w-full text-center">
-            <h2 class="text-4xl font-black text-red-500 tracking-tighter">GAME OVER</h2>
+            <h2 class="text-4xl font-black text-red-500 tracking-tighter">KẾT THÚC</h2>
             <p class="text-slate-400 font-medium text-sm italic mb-2">{{ message }}</p>
             <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 grid grid-cols-2 gap-4">
               <div>
-                <p class="text-[10px] text-slate-500 uppercase">Score</p>
+                <p class="text-[10px] text-slate-500 uppercase">Điểm</p>
                 <p class="text-2xl font-black">{{ score }}</p>
               </div>
               <div>
-                <p class="text-[10px] text-slate-500 uppercase">Best</p>
+                <p class="text-[10px] text-slate-500 uppercase">Kỷ lục</p>
                 <p class="text-2xl font-black text-accent-amber">{{ highScore }}</p>
               </div>
             </div>
@@ -615,7 +615,7 @@ const timerWidth = computed(() => Math.min((timeLeft.value / 30) * 100, 100));
             @click="startGame"
             class="group relative px-8 py-4 w-full bg-white text-black font-black text-2xl rounded-2xl hover:bg-accent-coral hover:text-white transition-all active:scale-95"
           >
-            <span class="relative z-10">{{ isGameOver ? "RE-DEPLOY" : "START HACKING" }}</span>
+            <span class="relative z-10">{{ isGameOver ? "TRIỂN KHAI LẠI" : "BẮT ĐẦU FIX BUG" }}</span>
             <div
               class="absolute inset-0 bg-accent-amber blur-xl opacity-0 group-hover:opacity-40 transition-opacity"
             ></div>
@@ -623,9 +623,9 @@ const timerWidth = computed(() => Math.min((timeLeft.value / 30) * 100, 100));
           <div
             class="mt-4 flex flex-wrap justify-center gap-2 text-[10px] text-slate-400 uppercase tracking-widest font-bold"
           >
-            <span class="bg-slate-900 px-2 py-1 rounded">☕ Slow</span>
-            <span class="bg-slate-900 px-2 py-1 rounded">❄️ Freeze</span>
-            <span class="bg-slate-900 px-2 py-1 rounded">👾 Boss (3x)</span>
+            <span class="bg-slate-900 px-2 py-1 rounded">☕ Chậm</span>
+            <span class="bg-slate-900 px-2 py-1 rounded">❄️ Đóng băng</span>
+            <span class="bg-slate-900 px-2 py-1 rounded">👾 Trùm (3x)</span>
           </div>
         </div>
       </div>
@@ -635,7 +635,7 @@ const timerWidth = computed(() => Math.min((timeLeft.value / 30) * 100, 100));
         to="/"
         class="inline-flex items-center gap-2 text-slate-500 hover:text-white font-bold text-xs uppercase tracking-widest group mt-4"
       >
-        <span class="group-hover:-translate-x-1 transition-transform">←</span> Back to Dashboard
+        <span class="group-hover:-translate-x-1 transition-transform">←</span> Về trang chủ
       </router-link>
     </div>
   </div>
