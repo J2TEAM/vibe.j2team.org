@@ -1,6 +1,4 @@
-﻿/* eslint-disable no-irregular-whitespace */
-import { computed, ref } from 'vue'
-
+﻿import { computed, ref } from 'vue'
 import seedRecordsRaw from '../records.json'
 import { STORAGE_KEY, directions, difficultyOptions, iconSet, sizeOptions, storyLevels } from '../constants'
 import type {
