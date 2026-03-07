@@ -496,7 +496,8 @@ const formatDate = (ts: number) => {
         <!-- Typing Area -->
         <div 
           ref="wordsContainerRef"
-          class="text-3xl leading-relaxed tracking-wide select-none outline-none relative overflow-hidden h-[180px]"
+          class="text-3xl leading-relaxed tracking-wide select-none outline-none relative overflow-hidden"
+          :class="selectedDifficulty === 'hard' ? 'h-[300px]' : 'h-[180px]'"
         >
           <div 
             v-if="!isTimerActive" 
