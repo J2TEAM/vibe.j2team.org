@@ -1,0 +1,66 @@
+.wasm-editor {
+  flex: 1;
+  background: rgba(15, 15, 15, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: none;
+  color: #e2e8f0;
+  transition: all 0.3s ease;
+  min-height: 300px;
+}
+
+.wasm-editor:focus {
+  outline: none;
+  border-color: var(--color-accent-coral);
+  background: rgba(20, 20, 20, 0.9);
+}
+
+.wasm-console {
+  flex: 1;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+  color: #10b981; /* Emerald-500 */
+  min-height: 300px;
+}
+
+.wasm-btn {
+  background: var(--color-accent-coral);
+  color: var(--color-bg-deep);
+  font-weight: 800;
+  font-size: 11px;
+  padding: 4px 16px;
+  border-radius: 2px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.05em;
+}
+
+.wasm-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 111, 97, 0.3);
+}
+
+.wasm-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.wasm-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98) translateY(5px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
