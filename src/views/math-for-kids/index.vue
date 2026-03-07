@@ -61,7 +61,7 @@ function levelIcon(level: string): string {
 
 // ─── Roast Generator ────────────────────────────────────────
 function pickRandom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]
+  return arr[Math.floor(Math.random() * arr.length)]!
 }
 
 function generateRoast(userAge: number, level: string): string {
@@ -125,7 +125,7 @@ function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
+    ;[a[i], a[j]] = [a[j]!, a[i]!]
   }
   return a
 }
@@ -160,7 +160,7 @@ function rng(max: number): number {
 
 function generateQuestions(level: string): Question[] {
   const actualLevel = level === 'Ngẫu Nhiên'
-    ? levels[Math.floor(Math.random() * (levels.length - 1))]
+    ? levels[Math.floor(Math.random() * (levels.length - 1))]!
     : level
   const idx = levels.indexOf(actualLevel)
   const d = Math.max(idx, 0)
