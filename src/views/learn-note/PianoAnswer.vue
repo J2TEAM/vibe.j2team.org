@@ -17,17 +17,11 @@ const emit = defineEmits<{
 
 const ONE_OCTAVE = 4
 
-const octaveNotes = computed(() =>
-  ALL_NOTES_FOR_PIANO.filter((n) => n.octave === ONE_OCTAVE),
-)
+const octaveNotes = computed(() => ALL_NOTES_FOR_PIANO.filter((n) => n.octave === ONE_OCTAVE))
 
-const whiteKeys = computed(() =>
-  octaveNotes.value.filter((n) => n.accidental === ''),
-)
+const whiteKeys = computed(() => octaveNotes.value.filter((n) => n.accidental === ''))
 
-const blackKeys = computed(() =>
-  octaveNotes.value.filter((n) => n.accidental === '#'),
-)
+const blackKeys = computed(() => octaveNotes.value.filter((n) => n.accidental === '#'))
 
 function blackKeyStyle(note: NoteInfo): Record<string, string> {
   const notes = octaveNotes.value
@@ -84,10 +78,7 @@ function shortLabel(note: NoteInfo): string {
 
 <template>
   <div class="w-full select-none">
-    <div
-      class="relative"
-      style="height: 240px"
-    >
+    <div class="relative" style="height: 240px">
       <div class="flex h-full absolute inset-0 z-0">
         <button
           v-for="key in whiteKeys"
@@ -97,7 +88,9 @@ function shortLabel(note: NoteInfo): string {
           :disabled="disabled"
           @click="onAnswer(key)"
         >
-          <span class="text-[9px] sm:text-[11px] font-display font-semibold text-text-dim leading-none">
+          <span
+            class="text-[9px] sm:text-[11px] font-display font-semibold text-text-dim leading-none"
+          >
             {{ shortLabel(key) }}
           </span>
         </button>

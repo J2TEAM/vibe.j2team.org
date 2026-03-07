@@ -1,19 +1,19 @@
 <script setup lang="ts">
 defineProps<{
-  roundsCleared: number;
-  totalTimeSeconds: number;
-  playerName: string;
-}>();
+  roundsCleared: number
+  totalTimeSeconds: number
+  playerName: string
+}>()
 
 defineEmits<{
-  (e: "playAgain"): void;
-  (e: "goHome"): void;
-}>();
+  (e: 'playAgain'): void
+  (e: 'goHome'): void
+}>()
 
 function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 </script>
 

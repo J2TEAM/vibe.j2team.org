@@ -220,7 +220,10 @@ onUnmounted(() => {
     <!-- Vignette overlay -->
     <div
       class="absolute inset-0 pointer-events-none"
-      style="z-index: 5; background: radial-gradient(ellipse at center, transparent 50%, rgba(15, 25, 35, 0.7) 100%)"
+      style="
+        z-index: 5;
+        background: radial-gradient(ellipse at center, transparent 50%, rgba(15, 25, 35, 0.7) 100%);
+      "
     />
 
     <!-- Character sprites -->
@@ -252,13 +255,14 @@ onUnmounted(() => {
           class="border border-accent-coral bg-bg-deep/95 p-4 sm:p-8 text-center vn-ending-fade"
           @click.stop
         >
-          <p class="font-display text-xs tracking-widest text-accent-amber mb-2 sm:mb-3">// KẾT THÚC</p>
+          <p class="font-display text-xs tracking-widest text-accent-amber mb-2 sm:mb-3">
+            // KẾT THÚC
+          </p>
           <h2 class="font-display text-lg sm:text-2xl font-bold text-accent-coral mb-4 sm:mb-6">
             {{ currentScene.endingTitle }}
           </h2>
           <button
-            class="border border-border-default bg-bg-surface px-4 sm:px-6 py-2 sm:py-2.5 text-sm text-text-secondary
-                   transition hover:border-accent-coral hover:text-text-primary"
+            class="border border-border-default bg-bg-surface px-4 sm:px-6 py-2 sm:py-2.5 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
             @click.stop="restart"
           >
             Chơi lại
@@ -274,10 +278,7 @@ onUnmounted(() => {
           <button
             v-for="(choice, i) in currentScene.choices"
             :key="i"
-            class="border border-border-default bg-bg-deep/90 px-4 sm:px-6 py-2.5 sm:py-3 text-left
-                   text-sm sm:text-base text-text-primary font-body transition-all duration-300
-                   hover:border-accent-coral hover:bg-bg-elevated hover:-translate-y-0.5
-                   hover:shadow-lg hover:shadow-accent-coral/10"
+            class="border border-border-default bg-bg-deep/90 px-4 sm:px-6 py-2.5 sm:py-3 text-left text-sm sm:text-base text-text-primary font-body transition-all duration-300 hover:border-accent-coral hover:bg-bg-elevated hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-coral/10"
             :class="`vn-choice-appear-${i}`"
             @click.stop="chooseOption(choice.next)"
           >
@@ -291,19 +292,19 @@ onUnmounted(() => {
         <!-- Normal dialogue -->
         <div
           v-else
-          class="border border-border-default bg-bg-deep/90 p-3 sm:p-5 backdrop-blur-sm
-                 cursor-pointer min-h-[80px] sm:min-h-[120px]"
+          class="border border-border-default bg-bg-deep/90 p-3 sm:p-5 backdrop-blur-sm cursor-pointer min-h-[80px] sm:min-h-[120px]"
         >
-          <p v-if="speakerName" class="font-display text-xs sm:text-sm font-semibold mb-1 sm:mb-2" :class="speakerColor">
+          <p
+            v-if="speakerName"
+            class="font-display text-xs sm:text-sm font-semibold mb-1 sm:mb-2"
+            :class="speakerColor"
+          >
             {{ speakerName }}
           </p>
           <p class="font-body text-sm sm:text-base text-text-primary leading-relaxed">
             {{ displayedText }}<span v-if="isTyping" class="vn-cursor">|</span>
           </p>
-          <p
-            v-if="!isTyping"
-            class="text-right text-text-dim text-xs mt-1 sm:mt-2 vn-blink"
-          >
+          <p v-if="!isTyping" class="text-right text-text-dim text-xs mt-1 sm:mt-2 vn-blink">
             Nhấn để tiếp tục
           </p>
         </div>
@@ -318,14 +319,31 @@ onUnmounted(() => {
 }
 
 @keyframes vn-shake-anim {
-  0%, 100% { transform: translate(0); }
-  10% { transform: translate(-4px, 2px); }
-  20% { transform: translate(4px, -2px); }
-  30% { transform: translate(-3px, 1px); }
-  40% { transform: translate(3px, -1px); }
-  50% { transform: translate(-2px, 2px); }
-  60% { transform: translate(2px, -1px); }
-  70% { transform: translate(-1px, 1px); }
+  0%,
+  100% {
+    transform: translate(0);
+  }
+  10% {
+    transform: translate(-4px, 2px);
+  }
+  20% {
+    transform: translate(4px, -2px);
+  }
+  30% {
+    transform: translate(-3px, 1px);
+  }
+  40% {
+    transform: translate(3px, -1px);
+  }
+  50% {
+    transform: translate(-2px, 2px);
+  }
+  60% {
+    transform: translate(2px, -1px);
+  }
+  70% {
+    transform: translate(-1px, 1px);
+  }
 }
 
 .vn-shake {
@@ -333,8 +351,12 @@ onUnmounted(() => {
 }
 
 @keyframes vn-flash-anim {
-  0% { box-shadow: inset 0 0 0 2000px rgba(255, 255, 255, 0.8); }
-  100% { box-shadow: inset 0 0 0 2000px rgba(255, 255, 255, 0); }
+  0% {
+    box-shadow: inset 0 0 0 2000px rgba(255, 255, 255, 0.8);
+  }
+  100% {
+    box-shadow: inset 0 0 0 2000px rgba(255, 255, 255, 0);
+  }
 }
 
 .vn-flash {
@@ -342,8 +364,14 @@ onUnmounted(() => {
 }
 
 @keyframes vn-slide-in-anim {
-  from { transform: translateX(80px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(80px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .vn-slide-in {
@@ -351,8 +379,12 @@ onUnmounted(() => {
 }
 
 @keyframes vn-char-fade-in-anim {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .vn-char-fade-in {
@@ -360,8 +392,13 @@ onUnmounted(() => {
 }
 
 @keyframes vn-cursor-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 .vn-cursor {
@@ -370,8 +407,13 @@ onUnmounted(() => {
 }
 
 @keyframes vn-blink-anim {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .vn-blink {
@@ -379,8 +421,14 @@ onUnmounted(() => {
 }
 
 @keyframes vn-choice-appear {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .vn-choice-appear-0 {
@@ -392,8 +440,14 @@ onUnmounted(() => {
 }
 
 @keyframes vn-ending-fade {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .vn-ending-fade {

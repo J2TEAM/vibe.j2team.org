@@ -148,9 +148,7 @@ async function copyToClipboard(text: string) {
       <!-- Header -->
       <div class="mb-10 animate-fade-up">
         <div class="flex items-center gap-3 mb-2">
-          <h1 class="font-display text-4xl sm:text-5xl font-bold text-accent-coral">
-            Peer Call
-          </h1>
+          <h1 class="font-display text-4xl sm:text-5xl font-bold text-accent-coral">Peer Call</h1>
           <button
             class="border border-border-default bg-bg-surface px-3 py-1 text-xs font-display text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
             @click="showGuideline = true"
@@ -185,17 +183,17 @@ async function copyToClipboard(text: string) {
             @click="handleCreateOffer"
           >
             <p class="font-display text-lg font-semibold text-text-primary mb-2">Tạo phòng</p>
-            <p class="text-sm text-text-secondary">
-              Tạo mã kết nối và gửi cho người kia.
-            </p>
+            <p class="text-sm text-text-secondary">Tạo mã kết nối và gửi cho người kia.</p>
           </button>
 
           <!-- Join -->
           <div
             class="border bg-bg-surface p-6 transition-all duration-300"
-            :class="hasOfferFromUrl
-              ? 'border-accent-sky bg-bg-elevated'
-              : 'border-border-default hover:border-accent-sky hover:bg-bg-elevated'"
+            :class="
+              hasOfferFromUrl
+                ? 'border-accent-sky bg-bg-elevated'
+                : 'border-border-default hover:border-accent-sky hover:bg-bg-elevated'
+            "
           >
             <p class="font-display text-lg font-semibold text-text-primary mb-2">Tham gia</p>
             <p v-if="hasOfferFromUrl" class="text-sm text-accent-sky mb-3">
@@ -247,7 +245,9 @@ async function copyToClipboard(text: string) {
 
             <!-- Manual copy (fallback) -->
             <details class="mt-3">
-              <summary class="text-xs text-text-dim cursor-pointer hover:text-text-secondary transition">
+              <summary
+                class="text-xs text-text-dim cursor-pointer hover:text-text-secondary transition"
+              >
                 Hoặc copy mã thủ công
               </summary>
               <textarea
@@ -273,7 +273,8 @@ async function copyToClipboard(text: string) {
 
         <div class="border border-border-default bg-bg-surface p-4">
           <p class="text-xs text-text-dim mb-2">
-            Sau khi người kia dán mã mời của bạn, họ sẽ nhận được mã trả lời. Hãy dán mã trả lời đó vào đây.
+            Sau khi người kia dán mã mời của bạn, họ sẽ nhận được mã trả lời. Hãy dán mã trả lời đó
+            vào đây.
           </p>
           <textarea
             v-model="pastedAnswer"
@@ -336,14 +337,11 @@ async function copyToClipboard(text: string) {
         </h2>
 
         <!-- Video container -->
-        <div class="relative w-full aspect-video bg-bg-surface border border-border-default overflow-hidden">
+        <div
+          class="relative w-full aspect-video bg-bg-surface border border-border-default overflow-hidden"
+        >
           <!-- Remote video (full) -->
-          <video
-            ref="remoteVideo"
-            autoplay
-            playsinline
-            class="w-full h-full object-cover"
-          />
+          <video ref="remoteVideo" autoplay playsinline class="w-full h-full object-cover" />
           <!-- Local video (PiP corner) -->
           <video
             ref="localVideo"
@@ -358,18 +356,22 @@ async function copyToClipboard(text: string) {
         <div class="flex justify-center gap-4">
           <button
             class="border px-5 py-2.5 text-sm font-display transition"
-            :class="isMuted
-              ? 'border-accent-coral bg-accent-coral/20 text-accent-coral'
-              : 'border-border-default bg-bg-surface text-text-secondary hover:border-accent-coral hover:text-text-primary'"
+            :class="
+              isMuted
+                ? 'border-accent-coral bg-accent-coral/20 text-accent-coral'
+                : 'border-border-default bg-bg-surface text-text-secondary hover:border-accent-coral hover:text-text-primary'
+            "
             @click="toggleMute"
           >
             {{ isMuted ? 'Bật mic' : 'Tắt mic' }}
           </button>
           <button
             class="border px-5 py-2.5 text-sm font-display transition"
-            :class="isCameraOff
-              ? 'border-accent-amber bg-accent-amber/20 text-accent-amber'
-              : 'border-border-default bg-bg-surface text-text-secondary hover:border-accent-amber hover:text-text-primary'"
+            :class="
+              isCameraOff
+                ? 'border-accent-amber bg-accent-amber/20 text-accent-amber'
+                : 'border-border-default bg-bg-surface text-text-secondary hover:border-accent-amber hover:text-text-primary'
+            "
             @click="toggleCamera"
           >
             {{ isCameraOff ? 'Bật camera' : 'Tắt camera' }}
@@ -384,10 +386,7 @@ async function copyToClipboard(text: string) {
       </div>
 
       <!-- Local video preview (visible during setup states, not when connected) -->
-      <div
-        v-if="localStream && connectionState !== 'connected'"
-        class="mt-8 animate-fade-up"
-      >
+      <div v-if="localStream && connectionState !== 'connected'" class="mt-8 animate-fade-up">
         <p class="text-xs text-text-dim font-display tracking-wide mb-2">// Preview</p>
         <video
           ref="localVideo"

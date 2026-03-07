@@ -33,7 +33,8 @@ import { REPO_URL } from '@/data/constants'
         vibe code cùng nhau?
       </p>
       <p class="mt-2 text-sm text-text-dim">
-        Mỗi thành viên tạo một trang con — có thể là một ứng dụng nhỏ hoặc trò chơi nhỏ trên nền web, vibe code thoải mái, rồi thêm link vào đây.
+        Mỗi thành viên tạo một trang con — có thể là một ứng dụng nhỏ hoặc trò chơi nhỏ trên nền
+        web, vibe code thoải mái, rồi thêm link vào đây.
       </p>
     </div>
 
@@ -45,17 +46,13 @@ import { REPO_URL } from '@/data/constants'
       >
         Tham gia ngay
       </a>
-      <a
-        :href="REPO_URL"
-        target="_blank"
-        rel="noopener noreferrer nofollow"
-      >
+      <a :href="REPO_URL" target="_blank" rel="noopener noreferrer nofollow">
         <img
           alt="GitHub Repo stars"
           src="https://img.shields.io/github/stars/J2TEAM/vibe.j2team.org?style=for-the-badge&logo=github&label=Stars"
           loading="lazy"
           class="h-[46px]"
-        >
+        />
       </a>
     </div>
 

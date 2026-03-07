@@ -65,7 +65,9 @@ function createChicken(): Chicken {
     radius: isPenguin ? 30 : radius,
     hit: false,
     hitTimer: 0,
-    emoji: isPenguin ? '🐧' : (CHICKEN_EMOJIS[Math.floor(Math.random() * CHICKEN_EMOJIS.length)] ?? '🐔'),
+    emoji: isPenguin
+      ? '🐧'
+      : (CHICKEN_EMOJIS[Math.floor(Math.random() * CHICKEN_EMOJIS.length)] ?? '🐔'),
     bobOffset: Math.random() * Math.PI * 2,
     isPenguin,
   }
@@ -172,8 +174,8 @@ function draw(ctx: CanvasRenderingContext2D, timestamp: number) {
     ctx.font = '20px serif'
     ctx.textAlign = 'center'
     for (let i = 0; i < iceCount; i++) {
-      const ix = ((timestamp / 3 + i * 137) % canvasWidth)
-      const iy = ((timestamp / 5 + i * 89) % canvasHeight)
+      const ix = (timestamp / 3 + i * 137) % canvasWidth
+      const iy = (timestamp / 5 + i * 89) % canvasHeight
       ctx.globalAlpha = 0.4
       ctx.fillText('❄️', ix, iy)
     }
@@ -407,67 +409,96 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="bg-bg-deep text-text-primary font-body overflow-hidden"
-    style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 50;">
-    <canvas ref="canvasRef" class="cursor-crosshair block"
-      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" @click="handleCanvasClick"
-      @touchstart="handleCanvasTouch" />
+  <div
+    class="bg-bg-deep text-text-primary font-body overflow-hidden"
+    style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 50"
+  >
+    <canvas
+      ref="canvasRef"
+      class="cursor-crosshair block"
+      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%"
+      @click="handleCanvasClick"
+      @touchstart="handleCanvasTouch"
+    />
 
-    <button v-if="isGameStarted && !isGameOver && !isPaused"
+    <button
+      v-if="isGameStarted && !isGameOver && !isPaused"
       class="flex items-center gap-2 bg-bg-surface/80 backdrop-blur-sm border border-border-default px-4 py-2 font-display font-bold text-lg text-text-secondary transition hover:border-accent-coral hover:text-text-primary cursor-pointer"
-      style="position: fixed; top: 16px; right: 16px; z-index: 60;" @click.stop="togglePause">
+      style="position: fixed; top: 16px; right: 16px; z-index: 60"
+      @click.stop="togglePause"
+    >
       ⏸ Tạm dừng
     </button>
 
-    <div v-if="isGameStarted && !isPaused"
+    <div
+      v-if="isGameStarted && !isPaused"
       class="flex items-center gap-2 bg-bg-surface/80 backdrop-blur-sm border border-border-default px-4 py-2"
-      style="position: fixed; top: 16px; left: 16px; z-index: 60;">
+      style="position: fixed; top: 16px; left: 16px; z-index: 60"
+    >
       <span class="text-accent-amber font-display font-bold text-lg">🎯</span>
       <span class="font-display font-semibold text-lg text-text-primary">{{ score }}</span>
     </div>
 
-    <div v-if="isGameStarted && !isPaused"
+    <div
+      v-if="isGameStarted && !isPaused"
       class="flex items-center gap-2 bg-bg-surface/80 backdrop-blur-sm border px-5 py-2"
       :class="timeLeft <= 10 ? 'border-accent-coral' : 'border-border-default'"
-      style="position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 60;">
+      style="position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 60"
+    >
       <span class="text-accent-coral font-display font-bold text-lg">⏱</span>
-      <span class="font-display font-semibold text-lg"
-        :class="timeLeft <= 10 ? 'text-accent-coral' : 'text-text-primary'">
+      <span
+        class="font-display font-semibold text-lg"
+        :class="timeLeft <= 10 ? 'text-accent-coral' : 'text-text-primary'"
+      >
         {{ formatTime(timeLeft) }}
       </span>
     </div>
 
-    <div v-if="isFrozen && isGameStarted && !isPaused && !isGameOver"
+    <div
+      v-if="isFrozen && isGameStarted && !isPaused && !isGameOver"
       class="flex items-center gap-2 bg-accent-sky/20 backdrop-blur-sm border border-accent-sky px-5 py-2"
-      style="position: fixed; top: 60px; left: 50%; transform: translateX(-50%); z-index: 60;">
+      style="position: fixed; top: 60px; left: 50%; transform: translateX(-50%); z-index: 60"
+    >
       <span class="font-display font-bold text-lg text-accent-sky">❄️ ĐÓNG BĂNG!</span>
     </div>
 
-    <div v-if="!isGameStarted" class="flex flex-col items-center justify-center bg-bg-deep/90 backdrop-blur-sm px-4"
-      style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 70;">
+    <div
+      v-if="!isGameStarted"
+      class="flex flex-col items-center justify-center bg-bg-deep/90 backdrop-blur-sm px-4"
+      style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 70"
+    >
       <button
         class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-4 py-2 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary animate-fade-up"
-        style="position: absolute; top: 16px; left: 16px;" @click="quitGame">
+        style="position: absolute; top: 16px; left: 16px"
+        @click="quitGame"
+      >
         &larr; Về trang chủ
       </button>
 
       <h1
-        class="font-display text-5xl sm:text-6xl md:text-7xl font-bold text-accent-coral mb-3 text-center animate-fade-up">
+        class="font-display text-5xl sm:text-6xl md:text-7xl font-bold text-accent-coral mb-3 text-center animate-fade-up"
+      >
         Chicken 🐔 Shooter
       </h1>
-      <p class="text-text-secondary text-base sm:text-lg mb-8 text-center animate-fade-up animate-delay-1">
+      <p
+        class="text-text-secondary text-base sm:text-lg mb-8 text-center animate-fade-up animate-delay-1"
+      >
         Bắn gà để ghi điểm! Bạn có 60 giây.
       </p>
 
       <button
         class="px-10 py-4 bg-accent-coral text-bg-deep font-display font-bold text-xl tracking-wide transition hover:scale-105 hover:shadow-lg hover:shadow-accent-coral/30 animate-fade-up animate-delay-2 cursor-pointer"
-        @click="startGame">
+        @click="startGame"
+      >
         🎮 Bắt đầu chơi
       </button>
 
       <div
-        class="mt-8 max-w-[500px] w-full bg-bg-surface border border-border-default p-5 animate-fade-up animate-delay-3">
-        <h2 class="font-display text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
+        class="mt-8 max-w-[500px] w-full bg-bg-surface border border-border-default p-5 animate-fade-up animate-delay-3"
+      >
+        <h2
+          class="font-display text-lg font-semibold text-text-primary mb-3 flex items-center gap-2"
+        >
           <span class="text-accent-amber font-display text-sm tracking-widest">//</span>
           Hướng dẫn
         </h2>
@@ -486,8 +517,11 @@ onUnmounted(() => {
           </li>
           <li class="flex items-start gap-2">
             <span class="text-accent-coral">▸</span>
-            Nhấn <kbd class="bg-bg-elevated px-1.5 py-0.5 text-xs border border-border-default">Esc</kbd> hoặc
-            <kbd class="bg-bg-elevated px-1.5 py-0.5 text-xs border border-border-default">P</kbd> để tạm dừng
+            Nhấn
+            <kbd class="bg-bg-elevated px-1.5 py-0.5 text-xs border border-border-default">Esc</kbd>
+            hoặc
+            <kbd class="bg-bg-elevated px-1.5 py-0.5 text-xs border border-border-default">P</kbd>
+            để tạm dừng
           </li>
           <li class="flex items-start gap-2 uppercase">
             <span class="text-accent-coral">▸</span>
@@ -496,15 +530,28 @@ onUnmounted(() => {
         </ul>
       </div>
 
-      <p class="mt-6 text-text-dim text-xs font-display tracking-wide animate-fade-up animate-delay-4">
-        Made with ❤️ by <a href="https://github.com/pkucpkam" target="_blank" rel="noopener noreferrer"
-          class="hover:text-accent-coral transition-colors">pkucpkam</a>
+      <p
+        class="mt-6 text-text-dim text-xs font-display tracking-wide animate-fade-up animate-delay-4"
+      >
+        Made with ❤️ by
+        <a
+          href="https://github.com/pkucpkam"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:text-accent-coral transition-colors"
+          >pkucpkam</a
+        >
       </p>
     </div>
 
-    <div v-if="isPaused && !isGameOver" class="flex flex-col items-center justify-center bg-bg-deep/85 backdrop-blur-sm"
-      style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 70;">
-      <h2 class="font-display text-4xl sm:text-5xl font-bold text-accent-amber mb-2 animate-fade-up">
+    <div
+      v-if="isPaused && !isGameOver"
+      class="flex flex-col items-center justify-center bg-bg-deep/85 backdrop-blur-sm"
+      style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 70"
+    >
+      <h2
+        class="font-display text-4xl sm:text-5xl font-bold text-accent-amber mb-2 animate-fade-up"
+      >
         ⏸ Tạm dừng
       </h2>
       <p class="text-text-secondary text-base mb-8 animate-fade-up animate-delay-1">
@@ -514,25 +561,34 @@ onUnmounted(() => {
       <div class="flex flex-col sm:flex-row gap-4 animate-fade-up animate-delay-2">
         <button
           class="px-8 py-3 bg-accent-coral text-bg-deep font-display font-bold text-lg tracking-wide transition hover:scale-105 hover:shadow-lg hover:shadow-accent-coral/30 cursor-pointer"
-          @click="togglePause">
+          @click="togglePause"
+        >
           ▶ Tiếp tục
         </button>
 
         <button
           class="px-8 py-3 border border-border-default bg-bg-surface text-text-secondary font-display font-bold text-lg tracking-wide transition hover:border-accent-coral hover:text-text-primary cursor-pointer"
-          @click="quitGame">
+          @click="quitGame"
+        >
           🏠 Về trang chủ
         </button>
       </div>
     </div>
 
-    <div v-if="isGameOver" class="flex flex-col items-center justify-center bg-bg-deep/85 backdrop-blur-sm"
-      style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 70;">
-      <h2 class="font-display text-5xl sm:text-6xl font-bold text-accent-coral mb-4 animate-fade-up">
+    <div
+      v-if="isGameOver"
+      class="flex flex-col items-center justify-center bg-bg-deep/85 backdrop-blur-sm"
+      style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 70"
+    >
+      <h2
+        class="font-display text-5xl sm:text-6xl font-bold text-accent-coral mb-4 animate-fade-up"
+      >
         GAME OVER
       </h2>
 
-      <div class="bg-bg-surface border border-accent-coral p-6 sm:p-8 text-center mb-6 animate-fade-up animate-delay-1">
+      <div
+        class="bg-bg-surface border border-accent-coral p-6 sm:p-8 text-center mb-6 animate-fade-up animate-delay-1"
+      >
         <p class="text-text-secondary text-sm mb-1">Kết quả</p>
         <p class="font-display text-5xl sm:text-6xl font-bold text-accent-amber">{{ score }}</p>
         <p class="text-text-secondary text-sm mt-1">điểm</p>
@@ -541,13 +597,15 @@ onUnmounted(() => {
       <div class="flex flex-col sm:flex-row gap-4 animate-fade-up animate-delay-2">
         <button
           class="px-8 py-3 bg-accent-coral text-bg-deep font-display font-bold text-lg tracking-wide transition hover:scale-105 hover:shadow-lg hover:shadow-accent-coral/30"
-          @click="startGame">
+          @click="startGame"
+        >
           🔄 Chơi lại
         </button>
 
         <button
           class="px-8 py-3 border border-border-default bg-bg-surface text-text-secondary font-display font-bold text-lg tracking-wide transition hover:border-accent-coral hover:text-text-primary"
-          @click="quitGame">
+          @click="quitGame"
+        >
           🏠 Về trang chủ
         </button>
       </div>

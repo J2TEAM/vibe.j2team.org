@@ -5,15 +5,17 @@ import { RouterLink } from 'vue-router'
 <template>
   <div class="min-h-screen bg-bg-deep text-text-primary font-body">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
-      <h1 class="font-display text-3xl sm:text-4xl font-bold text-text-primary flex items-center gap-3">
+      <h1
+        class="font-display text-3xl sm:text-4xl font-bold text-text-primary flex items-center gap-3"
+      >
         <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
         Chính sách nội dung
       </h1>
 
       <p class="mt-6 text-text-secondary leading-relaxed">
-        Dự án vibe.j2team.org là nơi các thành viên cộng đồng J2TEAM cùng nhau sáng tạo.
-        Để giữ cho không gian này lành mạnh và hữu ích, tất cả trang con đóng góp vào dự án
-        cần tuân thủ các quy định dưới đây.
+        Dự án vibe.j2team.org là nơi các thành viên cộng đồng J2TEAM cùng nhau sáng tạo. Để giữ cho
+        không gian này lành mạnh và hữu ích, tất cả trang con đóng góp vào dự án cần tuân thủ các
+        quy định dưới đây.
       </p>
 
       <!-- Nội dung được phép -->
@@ -57,7 +59,8 @@ import { RouterLink } from 'vue-router'
           </li>
           <li class="flex gap-3">
             <span class="text-accent-coral shrink-0">&times;</span>
-            Vi phạm bản quyền — không sao chép nội dung, hình ảnh, hoặc mã nguồn của người khác mà không có quyền sử dụng
+            Vi phạm bản quyền — không sao chép nội dung, hình ảnh, hoặc mã nguồn của người khác mà
+            không có quyền sử dụng
           </li>
           <li class="flex gap-3">
             <span class="text-accent-coral shrink-0">&times;</span>
@@ -111,14 +114,16 @@ import { RouterLink } from 'vue-router'
             target="_blank"
             rel="noopener noreferrer nofollow"
             class="text-accent-coral link-underline"
-          >issue trên GitHub</a>
+            >issue trên GitHub</a
+          >
           hoặc liên hệ qua
           <a
             href="https://www.facebook.com/groups/j2team.community/"
             target="_blank"
             rel="noopener noreferrer nofollow"
             class="text-accent-coral link-underline"
-          >J2TEAM Community</a>.
+            >J2TEAM Community</a
+          >.
         </p>
       </section>
 

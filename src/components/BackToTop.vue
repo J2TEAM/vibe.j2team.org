@@ -25,12 +25,7 @@ onUnmounted(() => {
   <Transition name="back-to-top">
     <button
       v-show="visible"
-      class="fixed bottom-6 right-6 z-40 flex h-10 w-10 items-center justify-center
-             border border-border-default bg-accent-coral text-bg-deep
-             font-display text-lg font-bold
-             transition-colors duration-300
-             hover:bg-accent-amber hover:border-accent-amber
-             cursor-pointer"
+      class="fixed bottom-6 right-6 z-40 flex h-10 w-10 items-center justify-center border border-border-default bg-accent-coral text-bg-deep font-display text-lg font-bold transition-colors duration-300 hover:bg-accent-amber hover:border-accent-amber cursor-pointer"
       aria-label="Về đầu trang"
       @click="scrollToTop"
     >
@@ -42,7 +37,9 @@ onUnmounted(() => {
 <style scoped>
 .back-to-top-enter-active,
 .back-to-top-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 .back-to-top-enter-from,

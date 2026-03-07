@@ -15,17 +15,46 @@ const emit = defineEmits<{
 }>()
 
 const CUNG_NGU_HANH: Record<number, string> = {
-  1: 'thuy', 2: 'tho', 3: 'moc', 4: 'moc', 5: 'tho', 6: 'hoa',
-  7: 'hoa', 8: 'tho', 9: 'kim', 10: 'kim', 11: 'tho', 12: 'thuy',
+  1: 'thuy',
+  2: 'tho',
+  3: 'moc',
+  4: 'moc',
+  5: 'tho',
+  6: 'hoa',
+  7: 'hoa',
+  8: 'tho',
+  9: 'kim',
+  10: 'kim',
+  11: 'tho',
+  12: 'thuy',
 }
 
 const SAO_PHU_QUAN_TRONG = new Set([
-  "Tả Phù", "Hữu Bật", "Văn Xương", "Văn Khúc",
-  "Thiên Khôi", "Thiên Việt", "Lộc Tồn", "Thiên Mã",
-  "Kình Dương", "Đà La", "Hỏa Tinh", "Linh Tinh",
-  "Địa Không", "Địa Kiếp", "Hồng Loan", "Thiên Hỷ",
-  "Thiên Không", "Thiên Hình", "Cô Thần", "Quả Tú", "Thiên Diêu",
-  "Hóa Lộc", "Hóa Quyền", "Hóa Khoa", "Hóa Kỵ"
+  'Tả Phù',
+  'Hữu Bật',
+  'Văn Xương',
+  'Văn Khúc',
+  'Thiên Khôi',
+  'Thiên Việt',
+  'Lộc Tồn',
+  'Thiên Mã',
+  'Kình Dương',
+  'Đà La',
+  'Hỏa Tinh',
+  'Linh Tinh',
+  'Địa Không',
+  'Địa Kiếp',
+  'Hồng Loan',
+  'Thiên Hỷ',
+  'Thiên Không',
+  'Thiên Hình',
+  'Cô Thần',
+  'Quả Tú',
+  'Thiên Diêu',
+  'Hóa Lộc',
+  'Hóa Quyền',
+  'Hóa Khoa',
+  'Hóa Kỵ',
 ])
 
 const nguHanhColorClass: Record<string, string> = {
@@ -57,12 +86,26 @@ function sortByImportance(a: Sao, b: Sao) {
 }
 
 const NGU_HANH_LABEL: Record<string, string> = {
-  kim: 'Kim', moc: 'Mộc', thuy: 'Thủy', hoa: 'Hỏa', tho: 'Thổ',
+  kim: 'Kim',
+  moc: 'Mộc',
+  thuy: 'Thủy',
+  hoa: 'Hỏa',
+  tho: 'Thổ',
 }
 
 const CUNG_NGU_HANH_MAP: Record<number, string> = {
-  1: 'thuy', 2: 'tho', 3: 'moc', 4: 'moc', 5: 'tho', 6: 'hoa',
-  7: 'hoa', 8: 'tho', 9: 'kim', 10: 'kim', 11: 'tho', 12: 'thuy',
+  1: 'thuy',
+  2: 'tho',
+  3: 'moc',
+  4: 'moc',
+  5: 'tho',
+  6: 'hoa',
+  7: 'hoa',
+  8: 'tho',
+  9: 'kim',
+  10: 'kim',
+  11: 'tho',
+  12: 'thuy',
 }
 
 function getNguHanhCung(viTri: number): string {
@@ -71,7 +114,7 @@ function getNguHanhCung(viTri: number): string {
 }
 
 const CUNG_MENH_DESC: Record<string, string> = {
-  'Mệnh': 'Bản mệnh — tính cách, ngoại hình, tư chất, vận mệnh tổng quát cả đời.',
+  Mệnh: 'Bản mệnh — tính cách, ngoại hình, tư chất, vận mệnh tổng quát cả đời.',
   'Phụ mẫu': 'Cha mẹ — quan hệ với song thân, sự giáo dục, gia phong.',
   'Phúc đức': 'Phúc đức — phúc phần tổ tiên để lại, đời sống tinh thần, tâm linh.',
   'Điền trạch': 'Điền trạch — nhà cửa, bất động sản, tài sản cố định.',
@@ -91,13 +134,13 @@ const TRANG_SINH_DESC: Record<string, string> = {
   'Quan đới': 'Đội mũ áo, bắt đầu ra đời, trưởng thành.',
   'Lâm quan': 'Gần ngưỡng thành tựu, vững vàng.',
   'Đế vượng': 'Cực thịnh, đỉnh cao năng lượng.',
-  'Suy': 'Bắt đầu suy giảm, cần cẩn trọng.',
-  'Bệnh': 'Sức lực yếu, dễ gặp trở ngại.',
-  'Tử': 'Ngưng trệ, khó tiến triển.',
-  'Mộ': 'Cất giấu, tiềm ẩn, tích lũy.',
-  'Tuyệt': 'Kết thúc một chu kỳ, cạn kiệt.',
-  'Thai': 'Manh nha, bắt đầu hình thành mới.',
-  'Dưỡng': 'Nuôi dưỡng, chuẩn bị cho chu kỳ mới.',
+  Suy: 'Bắt đầu suy giảm, cần cẩn trọng.',
+  Bệnh: 'Sức lực yếu, dễ gặp trở ngại.',
+  Tử: 'Ngưng trệ, khó tiến triển.',
+  Mộ: 'Cất giấu, tiềm ẩn, tích lũy.',
+  Tuyệt: 'Kết thúc một chu kỳ, cạn kiệt.',
+  Thai: 'Manh nha, bắt đầu hình thành mới.',
+  Dưỡng: 'Nuôi dưỡng, chuẩn bị cho chu kỳ mới.',
 }
 </script>
 
@@ -112,21 +155,28 @@ const TRANG_SINH_DESC: Record<string, string> = {
     <div class="cung-header">
       <CungTooltip :label="`${cung.canCung} ${cung.chiCung}`">
         <template #content>
-          <p>Thiên can: <b>{{ cung.canCung }}</b></p>
-          <p>Địa chi: <b>{{ cung.chiCung }}</b></p>
-          <p>Ngũ hành cung: <b>{{ getNguHanhCung(cung.viTri) }}</b></p>
+          <p>
+            Thiên can: <b>{{ cung.canCung }}</b>
+          </p>
+          <p>
+            Địa chi: <b>{{ cung.chiCung }}</b>
+          </p>
+          <p>
+            Ngũ hành cung: <b>{{ getNguHanhCung(cung.viTri) }}</b>
+          </p>
         </template>
-        <span
-          class="font-semibold"
-          :class="nguHanhColorClass[CUNG_NGU_HANH[cung.viTri] || 'thuy']"
-        >{{ cung.canCung.charAt(0) }}.{{ cung.chiCung }}</span>
+        <span class="font-semibold" :class="nguHanhColorClass[CUNG_NGU_HANH[cung.viTri] || 'thuy']"
+          >{{ cung.canCung.charAt(0) }}.{{ cung.chiCung }}</span
+        >
       </CungTooltip>
 
       <div class="flex items-center gap-1">
         <CungTooltip :label="cung.tenCungMenh">
           <template #content>
             <p>{{ CUNG_MENH_DESC[cung.tenCungMenh] || '' }}</p>
-            <p v-if="cung.isThan" class="mt-1 font-semibold text-text-primary">☆ Cung này an Thân — ảnh hưởng lớn đến hậu vận.</p>
+            <p v-if="cung.isThan" class="mt-1 font-semibold text-text-primary">
+              ☆ Cung này an Thân — ảnh hưởng lớn đến hậu vận.
+            </p>
           </template>
           <span class="cung-name">{{ cung.tenCungMenh }}</span>
         </CungTooltip>
@@ -140,17 +190,29 @@ const TRANG_SINH_DESC: Record<string, string> = {
 
       <CungTooltip label="Đại hạn">
         <template #content>
-          <p>Tuổi bắt đầu đại hạn tại cung này: <b class="text-accent-coral">{{ cung.daiHan }} tuổi</b>. Mỗi đại hạn kéo dài 10 năm.</p>
+          <p>
+            Tuổi bắt đầu đại hạn tại cung này:
+            <b class="text-accent-coral">{{ cung.daiHan }} tuổi</b>. Mỗi đại hạn kéo dài 10 năm.
+          </p>
         </template>
         <span class="font-semibold text-text-secondary">{{ cung.daiHan }}</span>
       </CungTooltip>
     </div>
 
     <!-- Chính tinh -->
-    <div class="flex flex-col items-center justify-center gap-0.5" style="height: 3rem; overflow: visible">
+    <div
+      class="flex flex-col items-center justify-center gap-0.5"
+      style="height: 3rem; overflow: visible"
+    >
       <template v-if="cung.saoChinhTinh.length > 0">
         <SaoTooltip v-for="sao in cung.saoChinhTinh" :key="sao.id" :sao="sao">
-          <p :class="['text-lg text-center cursor-help', getSaoColorClass(sao), getSaoWeightClass(sao, true)]">
+          <p
+            :class="[
+              'text-lg text-center cursor-help',
+              getSaoColorClass(sao),
+              getSaoWeightClass(sao, true),
+            ]"
+          >
             {{ sao.ten }}{{ getDacTinhText(sao) }}
           </p>
         </SaoTooltip>
@@ -162,22 +224,34 @@ const TRANG_SINH_DESC: Record<string, string> = {
     <div class="flex flex-1 justify-between gap-2 px-1">
       <div class="flex flex-col items-start min-h-52">
         <SaoTooltip
-          v-for="sao in cung.saoPhu.filter(s => s.isTot !== false).sort(sortByImportance)"
+          v-for="sao in cung.saoPhu.filter((s) => s.isTot !== false).sort(sortByImportance)"
           :key="sao.id"
           :sao="sao"
         >
-          <p :class="['text-[15px] capitalize cursor-help', getSaoColorClass(sao), getSaoWeightClass(sao, false)]">
+          <p
+            :class="[
+              'text-[15px] capitalize cursor-help',
+              getSaoColorClass(sao),
+              getSaoWeightClass(sao, false),
+            ]"
+          >
             {{ sao.ten }}{{ getDacTinhText(sao) }}
           </p>
         </SaoTooltip>
       </div>
       <div class="flex flex-col items-start min-h-52">
         <SaoTooltip
-          v-for="sao in cung.saoPhu.filter(s => s.isTot === false).sort(sortByImportance)"
+          v-for="sao in cung.saoPhu.filter((s) => s.isTot === false).sort(sortByImportance)"
           :key="sao.id"
           :sao="sao"
         >
-          <p :class="['text-[15px] capitalize cursor-help', getSaoColorClass(sao), getSaoWeightClass(sao, false)]">
+          <p
+            :class="[
+              'text-[15px] capitalize cursor-help',
+              getSaoColorClass(sao),
+              getSaoWeightClass(sao, false),
+            ]"
+          >
             {{ sao.ten }}{{ getDacTinhText(sao) }}
           </p>
         </SaoTooltip>
@@ -188,7 +262,11 @@ const TRANG_SINH_DESC: Record<string, string> = {
     <div class="cung-footer">
       <CungTooltip label="Tiểu hạn">
         <template #content>
-          <p>Tiểu hạn lưu niên tại cung <b>{{ cung.chiCung }}</b> ({{ cung.tieuHan || cung.tenCung }}).</p>
+          <p>
+            Tiểu hạn lưu niên tại cung <b>{{ cung.chiCung }}</b> ({{
+              cung.tieuHan || cung.tenCung
+            }}).
+          </p>
         </template>
         <span>{{ cung.tieuHan || cung.tenCung }}</span>
       </CungTooltip>
@@ -197,14 +275,19 @@ const TRANG_SINH_DESC: Record<string, string> = {
         <template #content>
           <p class="font-semibold text-text-primary">{{ cung.trangSinh }}</p>
           <p class="mt-0.5">{{ TRANG_SINH_DESC[cung.trangSinh] || '' }}</p>
-          <p class="mt-1 text-[10px] text-text-dim">Vòng Tràng Sinh — 12 giai đoạn sinh vượng suy tuyệt của ngũ hành Cục.</p>
+          <p class="mt-1 text-[10px] text-text-dim">
+            Vòng Tràng Sinh — 12 giai đoạn sinh vượng suy tuyệt của ngũ hành Cục.
+          </p>
         </template>
         <span class="font-semibold text-center">{{ cung.trangSinh }}</span>
       </CungTooltip>
 
       <CungTooltip label="Nguyệt hạn">
         <template #content>
-          <p>Cung này ứng với <b>tháng {{ cung.nguyetHan || '-' }}</b> (âm lịch) trong lưu nguyệt hạn.</p>
+          <p>
+            Cung này ứng với <b>tháng {{ cung.nguyetHan || '-' }}</b> (âm lịch) trong lưu nguyệt
+            hạn.
+          </p>
         </template>
         <span class="font-semibold">T.{{ cung.nguyetHan || '-' }}</span>
       </CungTooltip>

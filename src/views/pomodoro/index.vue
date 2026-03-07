@@ -121,7 +121,9 @@ watch(mode, () => {
     <header
       class="flex items-center justify-between px-4 sm:px-6 py-4 max-w-2xl w-full mx-auto animate-fade-up"
     >
-      <h1 class="font-display text-lg sm:text-xl font-bold text-accent-coral flex items-center gap-2">
+      <h1
+        class="font-display text-lg sm:text-xl font-bold text-accent-coral flex items-center gap-2"
+      >
         🍅 Pomodoro Focus
       </h1>
       <div class="flex items-center gap-3">
@@ -148,7 +150,7 @@ watch(mode, () => {
         class="flex gap-1 p-1 border border-border-default bg-bg-surface mb-8 animate-fade-up animate-delay-1"
       >
         <button
-          v-for="m in (['focus', 'short-break', 'long-break'] as const)"
+          v-for="m in ['focus', 'short-break', 'long-break'] as const"
           :key="m"
           class="px-4 py-2 text-sm font-display font-semibold transition-all duration-200"
           :class="

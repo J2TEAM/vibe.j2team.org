@@ -3,27 +3,33 @@ import { ref, onUnmounted, type Ref } from 'vue'
 /** STUN + TURN servers for NAT traversal (TURN needed for 3G/4G/5G mobile networks) */
 const ICE_SERVERS: RTCConfiguration = {
   iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:openrelay.metered.ca:80" },
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:openrelay.metered.ca:80' },
     {
-      urls: "turn:openrelay.metered.ca:80",
-      username: "openrelayproject",
-      credential: "openrelayproject",
+      urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
     },
     {
-      urls: "turn:openrelay.metered.ca:443",
-      username: "openrelayproject",
-      credential: "openrelayproject",
+      urls: 'turn:openrelay.metered.ca:443',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
     },
     {
-      urls: "turn:openrelay.metered.ca:443?transport=tcp",
-      username: "openrelayproject",
-      credential: "openrelayproject",
+      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
     },
   ],
 }
 
-export type ConnectionState = 'idle' | 'creating-offer' | 'waiting-answer' | 'joining' | 'connected' | 'error'
+export type ConnectionState =
+  | 'idle'
+  | 'creating-offer'
+  | 'waiting-answer'
+  | 'joining'
+  | 'connected'
+  | 'error'
 
 /** Encode SDP JSON to base64 for safe copy/paste across messaging apps */
 function sdpToBase64(sdpJson: string): string {
@@ -169,9 +175,10 @@ export function useWebrtcPeerConnection() {
       const parsed = JSON.parse(decoded)
       await conn.setRemoteDescription(parsed)
     } catch (err) {
-      const msg = err instanceof SyntaxError
-        ? 'Mã mời không đúng định dạng. Vui lòng kiểm tra đã copy đủ chưa.'
-        : 'Mã mời không hợp lệ. Vui lòng thử lại.'
+      const msg =
+        err instanceof SyntaxError
+          ? 'Mã mời không đúng định dạng. Vui lòng kiểm tra đã copy đủ chưa.'
+          : 'Mã mời không hợp lệ. Vui lòng thử lại.'
       errorMessage.value = msg
       connectionState.value = 'error'
       isLoading.value = false
@@ -200,9 +207,10 @@ export function useWebrtcPeerConnection() {
       const parsed = JSON.parse(decoded)
       await pc.setRemoteDescription(parsed)
     } catch (err) {
-      const msg = err instanceof SyntaxError
-        ? 'Mã trả lời không đúng định dạng. Vui lòng kiểm tra đã copy đủ chưa.'
-        : 'Mã trả lời không hợp lệ. Vui lòng thử lại.'
+      const msg =
+        err instanceof SyntaxError
+          ? 'Mã trả lời không đúng định dạng. Vui lòng kiểm tra đã copy đủ chưa.'
+          : 'Mã trả lời không hợp lệ. Vui lòng thử lại.'
       errorMessage.value = msg
       connectionState.value = 'error'
     }

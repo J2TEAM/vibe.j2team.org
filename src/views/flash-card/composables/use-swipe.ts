@@ -6,10 +6,7 @@ interface SwipeOptions {
   threshold?: number
 }
 
-export function useSwipe(
-  elementRef: Ref<HTMLElement | null>,
-  options: SwipeOptions,
-) {
+export function useSwipe(elementRef: Ref<HTMLElement | null>, options: SwipeOptions) {
   const threshold = options.threshold ?? 80
   const offsetX = ref(0)
   const isDragging = ref(false)
@@ -160,11 +157,15 @@ export function useSwipe(
   }
 
   // Watch for element appearing/disappearing (handles v-if)
-  watch(elementRef, (newEl, oldEl) => {
-    if (oldEl) detachListeners(oldEl)
-    if (newEl) attachListeners(newEl)
-    currentEl = newEl
-  }, { immediate: true })
+  watch(
+    elementRef,
+    (newEl, oldEl) => {
+      if (oldEl) detachListeners(oldEl)
+      if (newEl) attachListeners(newEl)
+      currentEl = newEl
+    },
+    { immediate: true },
+  )
 
   onUnmounted(() => {
     if (currentEl) detachListeners(currentEl)
