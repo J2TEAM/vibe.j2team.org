@@ -45,7 +45,6 @@ const rings: Ring[] = []
 
 let starBitmap: ImageBitmap | null = null
 let isDragging = false
-let dragLastX = 0; let dragLastY = 0
 let diskAngle = 0; let time = 0
 let lastFrameTime = 0; let frameCount = 0; let fpsTimer = 0
 let gravWaveTimer = 0
@@ -198,7 +197,7 @@ function simulate(speed: number) {
 
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i]
-    if (p.dead) { particles.splice(i, 1); continue }
+    if (!p || p.dead) { particles.splice(i, 1); continue }
 
     const dx = blackHole.x - p.x, dy = blackHole.y - p.y
     const distSq = dx * dx + dy * dy
@@ -230,9 +229,11 @@ function simulate(speed: number) {
   }
 
   for (let i = rings.length - 1; i >= 0; i--) {
-    rings[i].life -= 0.04 * speed
-    rings[i].radius += rings[i].speed * speed
-    if (rings[i].life <= 0) rings.splice(i, 1)
+    const ring = rings[i]
+    if (!ring) continue
+    ring.life -= 0.04 * speed
+    ring.radius += ring.speed * speed
+    if (ring.life <= 0) rings.splice(i, 1)
   }
 
   gravWaveTimer += speed
@@ -407,7 +408,9 @@ function drawParticles() {
     const trailAlpha = p.isJet ? 0.3 : 0.12 + proximity * 0.45
 
     for (let t = 1; t < p.trail.length; t++) {
-      const a = p.trail[t - 1], b = p.trail[t]
+      const a = p.trail[t - 1]
+      const b = p.trail[t]
+      if (!a || !b) continue
       const tFade = t / p.trail.length
       const opacity = tFade * p.opacity * trailAlpha
       if (opacity < 0.015) continue
@@ -476,30 +479,32 @@ function onMouseMove(e: MouseEvent) {
   const r = canvasRef.value!.getBoundingClientRect()
   blackHole.x = e.clientX - r.left
   blackHole.y = e.clientY - r.top
-  dragLastX = blackHole.x; dragLastY = blackHole.y
 }
 
 function onMouseDown(e: MouseEvent) {
   isDragging = true
   const r = canvasRef.value!.getBoundingClientRect()
-  dragLastX = e.clientX - r.left; dragLastY = e.clientY - r.top
-  blackHole.x = dragLastX; blackHole.y = dragLastY
+  blackHole.x = e.clientX - r.left
+  blackHole.y = e.clientY - r.top
 }
 
 function onMouseUp() { isDragging = false }
 
 function onTouchStart(e: TouchEvent) {
-  const r = canvasRef.value!.getBoundingClientRect()
   const t = e.touches[0]
-  dragLastX = t.clientX - r.left; dragLastY = t.clientY - r.top
+  if (!t) return
   isDragging = true
+  const r = canvasRef.value!.getBoundingClientRect()
+  blackHole.x = t.clientX - r.left
+  blackHole.y = t.clientY - r.top
 }
 
 function onTouchMove(e: TouchEvent) {
-  const r = canvasRef.value!.getBoundingClientRect()
   const t = e.touches[0]
-  blackHole.x = t.clientX - r.left; blackHole.y = t.clientY - r.top
-  dragLastX = blackHole.x; dragLastY = blackHole.y
+  if (!t) return
+  const r = canvasRef.value!.getBoundingClientRect()
+  blackHole.x = t.clientX - r.left
+  blackHole.y = t.clientY - r.top
 }
 
 function onTouchEnd() { isDragging = false }
