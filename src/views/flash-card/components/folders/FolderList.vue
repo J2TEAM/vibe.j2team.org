@@ -2,8 +2,8 @@
 import { ref, onMounted } from 'vue'
 import type { Folder, CardSet } from '../../types'
 import { getAllFolders, getFolderById, createFolder, updateFolder, removeFolder, getFolderSetCount } from '../../services/folder-service'
-import { getSetById } from '../../services/set-service'
-import { getCardsBySet } from '../../services/card-service'
+import { getSetById, getSetsByFolder, createSet } from '../../services/set-service'
+import { getCardsBySet, bulkCreateCards } from '../../services/card-service'
 import { getAllSessions } from '../../services/session-service'
 import { useNavigation } from '../../composables/use-navigation'
 import { formatDate } from '../../composables/format'
@@ -120,6 +120,92 @@ async function handleDelete() {
   deletingFolder.value = undefined
   await loadFolders()
 }
+
+// --- Folder export/import ---
+const importFileInput = ref<HTMLInputElement | null>(null)
+
+async function handleExportFolder(folder: Folder) {
+  const sets = await getSetsByFolder(folder.id)
+  const setsWithCards = await Promise.all(
+    sets.map(async (s) => {
+      const cards = await getCardsBySet(s.id)
+      return {
+        name: s.name,
+        description: s.description,
+        cards: cards.map((c) => ({ front: c.front, back: c.back, order: c.order })),
+      }
+    }),
+  )
+  const data = {
+    folder: { name: folder.name, description: folder.description, color: folder.color, icon: folder.icon },
+    sets: setsWithCards,
+    exportedAt: new Date().toISOString(),
+  }
+  const json = JSON.stringify(data, null, 2)
+  const blob = new Blob([json], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${folder.name.replace(/[^a-zA-Z0-9\u00C0-\u1EF9]/g, '_')}.json`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+interface FolderExportData {
+  folder: { name?: string; description?: string; color?: string; icon?: string }
+  sets?: {
+    name?: string
+    description?: string
+    cards?: { front?: string; back?: string; order?: number }[]
+  }[]
+}
+
+async function handleImportFolder(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.onload = async () => {
+    try {
+      const data = JSON.parse(reader.result as string) as FolderExportData
+      if (!data.folder?.name) return
+
+      const folder = await createFolder({
+        name: data.folder.name,
+        description: data.folder.description ?? '',
+        color: data.folder.color ?? '#FF6B6B',
+        icon: data.folder.icon ?? '📁',
+      })
+
+      if (Array.isArray(data.sets)) {
+        for (const setData of data.sets) {
+          if (!setData.name) continue
+          const set = await createSet({
+            folderId: folder.id,
+            name: setData.name,
+            description: setData.description ?? '',
+          })
+          const validCards = (setData.cards ?? [])
+            .filter(
+              (c): c is { front: string; back: string; order?: number } =>
+                typeof c.front === 'string' && typeof c.back === 'string' && c.front.trim() !== '' && c.back.trim() !== '',
+            )
+            .map((c) => ({ front: c.front.trim(), back: c.back.trim() }))
+          if (validCards.length > 0) {
+            await bulkCreateCards(set.id, validCards)
+          }
+        }
+      }
+
+      await Promise.all([loadFolders(), loadRecentSets()])
+    } catch {
+      // Invalid JSON — silently ignore
+    }
+    input.value = ''
+  }
+  reader.readAsText(file)
+}
 </script>
 
 <template>
@@ -181,12 +267,27 @@ async function handleDelete() {
         <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
         Thư mục
       </h2>
-      <button
-        class="inline-flex items-center gap-2 border border-accent-coral bg-accent-coral/10 px-4 py-2 text-sm text-accent-coral font-semibold transition hover:bg-accent-coral hover:text-bg-deep"
-        @click="openCreate"
-      >
-        + Tạo thư mục
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          class="px-3 py-2 text-sm border border-border-default text-text-secondary hover:text-accent-sky hover:border-accent-sky transition"
+          @click="importFileInput?.click()"
+        >
+          Nhập thư mục
+        </button>
+        <button
+          class="inline-flex items-center gap-2 border border-accent-coral bg-accent-coral/10 px-4 py-2 text-sm text-accent-coral font-semibold transition hover:bg-accent-coral hover:text-bg-deep"
+          @click="openCreate"
+        >
+          + Tạo thư mục
+        </button>
+      </div>
+      <input
+        ref="importFileInput"
+        type="file"
+        accept=".json"
+        class="hidden"
+        @change="handleImportFolder"
+      />
     </div>
 
     <!-- Empty state -->
@@ -207,6 +308,7 @@ async function handleDelete() {
         :folder="folder"
         :set-count="setCounts[folder.id] ?? 0"
         @click="goToSets(folder.id, folder.name)"
+        @export="handleExportFolder(folder)"
         @edit="openEdit(folder)"
         @delete="openDelete(folder)"
       />
