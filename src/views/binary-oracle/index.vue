@@ -92,7 +92,7 @@ async function castOracle() {
       await sleep(1000)
 
       // derive line from coinResults: majority heads => 1 (Dương), else 0 (Âm)
-      const sum = coinResults.value.reduce((s, v) => s + (v ?? 0), 0)
+      const sum = coinResults.value.reduce<number>((s, v) => s + (v ?? 0), 0)
       const line = sum >= 2 ? 1 : 0
       lines.value = [...lines.value, line]
   }
