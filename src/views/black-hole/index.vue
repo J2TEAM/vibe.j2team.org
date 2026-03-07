@@ -76,6 +76,7 @@ onMounted(async () => {
 onUnmounted(() => {
   if (animId !== null) cancelAnimationFrame(animId)
   window.removeEventListener('resize', resize)
+  if (ctx) { ctx.clearRect(0, 0, W, H); ctx = null }
 })
 
 function resize() {
