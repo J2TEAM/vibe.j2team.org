@@ -33,6 +33,18 @@ export default defineConfigWithVueTs(
     },
   },
 
+  {
+    rules: {
+      'vue/no-template-target-blank': [
+        'error',
+        {
+          allowReferrer: true,
+          enforceDynamicLinks: 'always',
+        },
+      ],
+    },
+  },
+
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
 
   skipFormatting,
