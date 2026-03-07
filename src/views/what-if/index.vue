@@ -658,7 +658,9 @@ onMounted(() => {
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
 }
 
 .flip-inner.flipped {
@@ -670,6 +672,17 @@ onMounted(() => {
   inset: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  transition: visibility 0s linear 0.35s;
+}
+
+/* Hide back face when flipped */
+.flip-inner.flipped .flip-back {
+  visibility: hidden;
+}
+
+/* Hide front face when not flipped */
+.flip-inner:not(.flipped) .flip-front {
+  visibility: hidden;
 }
 
 .flip-front {
