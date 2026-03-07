@@ -1,7 +1,6 @@
 ﻿<script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
-import seedRecordsRaw from './records.json'
 import pageMeta from './meta'
 import bgmTrack from './res/BGM/BGM.mp3'
 
@@ -66,6 +65,18 @@ interface GridPreset {
 
 const STORAGE_KEY = 'pikachu-records-v2'
 const EASTER_EGG_STORAGE_KEY = 'pikachu-easter-egg-finders-v1'
+const DEFAULT_RECORDS: ReadonlyArray<RecordItem> = [
+  { name: 'Starter A', score: 40, difficulty: 0, mode: 'classic', timeSpent: 0, createdAt: '2026-01-01T00:00:00.000Z' },
+  { name: 'Starter B', score: 55, difficulty: 1, mode: 'classic', timeSpent: 0, createdAt: '2026-01-02T00:00:00.000Z' },
+  { name: 'Starter C', score: 65, difficulty: 1, mode: 'timed', timeSpent: 120, createdAt: '2026-01-03T00:00:00.000Z' },
+  { name: 'Starter D', score: 80, difficulty: 2, mode: 'timed', timeSpent: 140, createdAt: '2026-01-04T00:00:00.000Z' },
+  { name: 'Story Runner', score: 0, difficulty: 8, mode: 'story', timeSpent: 3300, createdAt: '2026-01-05T00:00:00.000Z' },
+  { name: 'Story Explorer', score: 0, difficulty: 8, mode: 'story', timeSpent: 2700, createdAt: '2026-01-06T00:00:00.000Z' },
+  { name: 'Story Sprinter', score: 0, difficulty: 8, mode: 'story', timeSpent: 2280, createdAt: '2026-01-07T00:00:00.000Z' },
+]
+const DEFAULT_EASTER_EGG_FINDERS: ReadonlyArray<EasterEggFinder> = [
+  { name: 'Easter Egg Man', createdAt: '2026-01-01T00:00:00.000Z' },
+]
 const STORY_TOTAL_LEVELS = 10
 const STORY_GRID_SIZE: GridSize = '10x20'
 const iconSet = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵'] as const
@@ -291,17 +302,17 @@ const displayCells = computed<DisplayCell[]>(() => {
 })
 
 function loadRecords(): void {
+  let cachedRecords: RecordItem[] = []
   try {
     const cached = localStorage.getItem(STORAGE_KEY)
     if (cached) {
-      records.value = JSON.parse(cached) as RecordItem[]
-      return
+      cachedRecords = sanitizeRecordList(JSON.parse(cached))
     }
   } catch {
     // fallback
   }
-
-  records.value = seedRecordsRaw as RecordItem[]
+  records.value = mergeRecordSeeds(cachedRecords)
+  persistRecords()
 }
 
 function persistRecords(): void {
@@ -309,17 +320,17 @@ function persistRecords(): void {
 }
 
 function loadEasterEggFinders(): void {
+  let cachedFinders: EasterEggFinder[] = []
   try {
     const cached = localStorage.getItem(EASTER_EGG_STORAGE_KEY)
     if (cached) {
-      easterEggFinders.value = JSON.parse(cached) as EasterEggFinder[]
-      return
+      cachedFinders = sanitizeEasterEggFinderList(JSON.parse(cached))
     }
   } catch {
     // fallback
   }
-
-  easterEggFinders.value = []
+  easterEggFinders.value = mergeEasterEggFinderSeeds(cachedFinders)
+  persistEasterEggFinders()
 }
 
 function persistEasterEggFinders(): void {
@@ -331,6 +342,102 @@ function leaderboardBy(difficulty: number, mode: GameMode): RecordItem[] {
     .filter((item) => item.difficulty === difficulty && item.mode === mode)
     .sort((a, b) => b.score - a.score || a.timeSpent - b.timeSpent)
     .slice(0, 10)
+}
+
+function isGameMode(value: unknown): value is GameMode {
+  return value === 'classic' || value === 'timed' || value === 'story'
+}
+
+function sanitizeRecordList(raw: unknown): RecordItem[] {
+  if (!Array.isArray(raw)) {
+    return []
+  }
+
+  const next: RecordItem[] = []
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') {
+      continue
+    }
+    const candidate = item as Partial<RecordItem>
+    if (
+      typeof candidate.name !== 'string' ||
+      typeof candidate.score !== 'number' ||
+      typeof candidate.difficulty !== 'number' ||
+      !isGameMode(candidate.mode) ||
+      typeof candidate.timeSpent !== 'number' ||
+      typeof candidate.createdAt !== 'string'
+    ) {
+      continue
+    }
+    next.push({
+      name: candidate.name.trim().slice(0, 24) || 'Anonymous',
+      score: Math.max(0, Math.floor(candidate.score)),
+      difficulty: Math.max(0, Math.floor(candidate.difficulty)),
+      mode: candidate.mode,
+      timeSpent: Math.max(0, Math.floor(candidate.timeSpent)),
+      createdAt: candidate.createdAt,
+    })
+  }
+  return next
+}
+
+function mergeRecordSeeds(existing: RecordItem[]): RecordItem[] {
+  const merged = [...existing]
+  const existingKeys = new Set(
+    existing.map(
+      (item) => `${item.name}|${item.mode}|${item.difficulty}|${item.score}|${item.timeSpent}|${item.createdAt}`,
+    ),
+  )
+
+  for (const seed of DEFAULT_RECORDS) {
+    const key = `${seed.name}|${seed.mode}|${seed.difficulty}|${seed.score}|${seed.timeSpent}|${seed.createdAt}`
+    if (!existingKeys.has(key)) {
+      merged.push({ ...seed })
+    }
+  }
+
+  return merged
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    .slice(-400)
+}
+
+function sanitizeEasterEggFinderList(raw: unknown): EasterEggFinder[] {
+  if (!Array.isArray(raw)) {
+    return []
+  }
+
+  const next: EasterEggFinder[] = []
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') {
+      continue
+    }
+    const candidate = item as Partial<EasterEggFinder>
+    if (typeof candidate.name !== 'string' || typeof candidate.createdAt !== 'string') {
+      continue
+    }
+    const name = candidate.name.trim().slice(0, 24)
+    if (!name) {
+      continue
+    }
+    next.push({ name, createdAt: candidate.createdAt })
+  }
+  return next
+}
+
+function mergeEasterEggFinderSeeds(existing: EasterEggFinder[]): EasterEggFinder[] {
+  const merged = [...existing]
+  const existingKeys = new Set(existing.map((item) => `${item.name}|${item.createdAt}`))
+
+  for (const seed of DEFAULT_EASTER_EGG_FINDERS) {
+    const key = `${seed.name}|${seed.createdAt}`
+    if (!existingKeys.has(key)) {
+      merged.push({ ...seed })
+    }
+  }
+
+  return merged
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    .slice(-100)
 }
 
 function initBgm(): void {

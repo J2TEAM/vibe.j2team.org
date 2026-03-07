@@ -1,5 +1,4 @@
 import { computed, ref } from 'vue'
-import seedRecordsRaw from '../records.json'
 import { STORAGE_KEY, directions, difficultyOptions, iconSet, sizeOptions, storyLevels } from '../constants'
 import type {
   Direction,
@@ -24,6 +23,12 @@ interface PackedTile {
   type: number
   icon: string
 }
+
+const DEFAULT_RECORDS: ReadonlyArray<RecordItem> = [
+  { name: 'Starter A', score: 40, difficulty: 0, mode: 'classic', timeSpent: 0, createdAt: '2026-01-01T00:00:00.000Z' },
+  { name: 'Starter B', score: 55, difficulty: 1, mode: 'classic', timeSpent: 0, createdAt: '2026-01-02T00:00:00.000Z' },
+  { name: 'Starter C', score: 65, difficulty: 1, mode: 'timed', timeSpent: 120, createdAt: '2026-01-03T00:00:00.000Z' },
+]
 
 export function usePikachuGame() {
   const appliedSize = ref<GridSize>(10)
@@ -136,7 +141,7 @@ export function usePikachuGame() {
     } catch {
       // fallback to seed data
     }
-    records.value = seedRecordsRaw as RecordItem[]
+    records.value = [...DEFAULT_RECORDS]
   }
 
   function persistRecords(): void {
@@ -757,4 +762,3 @@ export function usePikachuGame() {
     closeAllModals,
   }
 }
-
