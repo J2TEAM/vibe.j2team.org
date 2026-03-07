@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { confessions } from './confessions'
 
@@ -13,19 +13,12 @@ function getRandomIndex(excludeIndex: number): number {
 }
 
 const currentIndex = ref(getRandomIndex(-1))
-const animating = ref(false)
-
-const current = ref(confessions[currentIndex.value]!)
+const current = computed(() => confessions[currentIndex.value]!)
+const transitionKey = ref(0)
 
 function next() {
-  if (animating.value) return
-  animating.value = true
-
-  setTimeout(() => {
-    currentIndex.value = getRandomIndex(currentIndex.value)
-    current.value = confessions[currentIndex.value]!
-    animating.value = false
-  }, 300)
+  currentIndex.value = getRandomIndex(currentIndex.value)
+  transitionKey.value++
 }
 </script>
 
@@ -39,16 +32,18 @@ function next() {
     </p>
 
     <div class="mt-10 w-full max-w-lg animate-fade-up animate-delay-3">
-      <div
-        class="relative border border-border-default bg-bg-surface p-6 sm:p-8 transition-all duration-300"
-        :class="animating ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'"
-      >
-        <span class="absolute -top-3 -left-3 font-display text-5xl text-accent-coral leading-none select-none">"</span>
-        <p class="text-text-primary text-lg sm:text-xl leading-relaxed pl-4">
-          {{ current.text }}
-        </p>
-        <span class="absolute -bottom-3 -right-3 font-display text-5xl text-accent-coral leading-none select-none rotate-180">"</span>
-      </div>
+      <Transition name="confession" mode="out-in">
+        <div
+          :key="transitionKey"
+          class="relative border border-border-default bg-bg-surface p-6 sm:p-8"
+        >
+          <span class="absolute -top-3 -left-3 font-display text-5xl text-accent-coral leading-none select-none">"</span>
+          <p class="text-text-primary text-lg sm:text-xl leading-relaxed pl-4">
+            {{ current.text }}
+          </p>
+          <span class="absolute -bottom-3 -right-3 font-display text-5xl text-accent-coral leading-none select-none rotate-180">"</span>
+        </div>
+      </Transition>
 
       <div class="mt-4 flex items-center justify-between">
         <span class="text-text-dim text-xs">
@@ -78,3 +73,20 @@ function next() {
     </RouterLink>
   </div>
 </template>
+
+<style scoped>
+.confession-enter-active,
+.confession-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.confession-enter-from {
+  opacity: 0;
+  transform: translateY(1rem);
+}
+
+.confession-leave-to {
+  opacity: 0;
+  transform: translateY(-1rem);
+}
+</style>

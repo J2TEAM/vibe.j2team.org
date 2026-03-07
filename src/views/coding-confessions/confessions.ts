@@ -1,9 +1,4 @@
-export interface Confession {
-  text: string
-  tag?: string
-}
-
-export const confessions: Confession[] = [
+export const confessions = [
   {
     text: 'Tôi đã từng debug 4 tiếng liền... vì quên save file.',
     tag: 'classic',
@@ -100,4 +95,4 @@ export const confessions: Confession[] = [
     text: 'Tôi học được nhiều nhất từ việc đọc code lỗi của người khác. Và của chính mình.',
     tag: 'learning',
   },
-]
+] as const
