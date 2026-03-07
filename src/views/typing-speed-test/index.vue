@@ -26,7 +26,6 @@ const currentWordIndex = ref(0);
 // Stats Tracking
 const totalKeystrokes = ref(0); // Only counts printable chars
 const totalCorrectChars = ref(0); // Exact correct chars for CPM/WPM tracking
-const startTime = ref<number | null>(null);
 const timerDuration = ref(60);
 const timeLeft = ref(60);
 const isTimerActive = ref(false);
@@ -68,8 +67,10 @@ function startSetup() {
     alert("Vui lòng nhập tên người chơi!");
     return;
   }
-  saveProfile(profileNameInput.value);
-  savedProfile.value = profileNameInput.value;
+  const trimmedName = profileNameInput.value.trim();
+  saveProfile(trimmedName);
+  savedProfile.value = trimmedName;
+  profileNameInput.value = trimmedName;
   currentScreen.value = 'setup';
 }
 
@@ -111,7 +112,6 @@ function startGame() {
   
   timerDuration.value = selectedDuration.value;
   timeLeft.value = selectedDuration.value;
-  startTime.value = null;
   
   currentScreen.value = 'play';
   nextTick(() => focusInput());
@@ -138,7 +138,6 @@ function handleGlobalKeydown(e: KeyboardEvent) {
 function startTimer() {
   if (isTimerActive.value) return;
   isTimerActive.value = true;
-  startTime.value = Date.now();
   
   timerInterval = setInterval(() => {
     timeLeft.value--;
@@ -169,6 +168,13 @@ function handleInput(e: Event) {
   // Check completion logic
   if (val.endsWith(' ')) {
     const wordTyped = val.substring(0, val.length - 1); // remove space
+    
+    // Guard against empty input (e.g. accidental double-space)
+    if (!wordTyped) {
+      typedInput.value = '';
+      return;
+    }
+    
     const targetWord = wordsList.value[currentWordIndex.value];
     
     pastTypedWords.value.push(wordTyped);
@@ -210,11 +216,13 @@ function scrollToActiveWord() {
   if (!wordsContainerRef.value) return;
   const activeWordNode = wordsContainerRef.value.children[currentWordIndex.value] as HTMLElement;
   if (activeWordNode) {
-    const containerTop = wordsContainerRef.value.offsetTop;
-    const activeTop = activeWordNode.offsetTop;
-    // Scroll if went past second line
-    if (activeTop - containerTop > 50) {
-       wordsContainerRef.value.scrollTop = activeTop - containerTop - 10;
+    // Use getBoundingClientRect for reliable cross-layout positioning
+    const containerRect = wordsContainerRef.value.getBoundingClientRect();
+    const wordRect = activeWordNode.getBoundingClientRect();
+    const relativeTop = wordRect.top - containerRect.top + wordsContainerRef.value.scrollTop;
+    // Scroll if word has moved past 2nd line (~50px)
+    if (relativeTop > 50) {
+      wordsContainerRef.value.scrollTop = relativeTop - 10;
     }
   }
 }

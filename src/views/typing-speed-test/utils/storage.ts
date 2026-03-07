@@ -10,6 +10,7 @@ export interface TypingRecord {
 
 const PROFILE_KEY = 'typing_speed_profile';
 const HISTORY_PREFIX = 'typing_speed_history_';
+const HISTORY_MAX = 100;
 
 /**
  * Get the current profile name from LocalStorage
@@ -40,20 +41,24 @@ export function getHistory(profileName: string): TypingRecord[] {
 }
 
 /**
- * Add a new record to the profile's history
+ * Add a new record to the profile's history (capped at HISTORY_MAX entries)
  */
 export function addHistoryRecord(profileName: string, record: Omit<TypingRecord, 'id' | 'date'>): void {
     if (!profileName) return;
     const history = getHistory(profileName);
     const newRecord: TypingRecord = {
         ...record,
-        id: Math.random().toString(36).substring(2, 9),
+        id: (typeof crypto !== 'undefined' && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : Math.random().toString(36).substring(2, 9),
         date: Date.now()
     };
 
     history.unshift(newRecord); // Add to beginning
+    // Cap history to prevent LocalStorage quota exhaustion
+    const trimmed = history.slice(0, HISTORY_MAX);
     const key = `${HISTORY_PREFIX}${profileName.trim()}`;
-    localStorage.setItem(key, JSON.stringify(history));
+    localStorage.setItem(key, JSON.stringify(trimmed));
 }
 
 /**

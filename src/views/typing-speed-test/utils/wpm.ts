@@ -3,7 +3,7 @@
  * Dựa trên tiêu chuẩn quốc tế: 1 từ = 5 ký tự gõ đúng (bao gồm khoảng trắng)
  * @param correctChars Tổng số ký tự gõ chính xác
  * @param timeInSeconds Thời gian đã sử dụng tính bằng giây
- * @returns WPM (làm tròn lên)
+ * @returns WPM (làm tròn đến số nguyên gần nhất)
  */
 export function calculateWPM(correctChars: number, timeInSeconds: number): number {
     if (timeInSeconds === 0) return 0;
