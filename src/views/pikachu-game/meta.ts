@@ -1,4 +1,4 @@
-﻿import type { PageMeta } from '@/types/page'
+import type { PageMeta } from '@/types/page'
 
 const meta: PageMeta = {
   name: 'Pikachu Puzzle',

@@ -1,4 +1,4 @@
-﻿export type GameMode = 'classic' | 'timed' | 'story'
+export type GameMode = 'classic' | 'timed' | 'story'
 
 export type RankedMode = 'classic' | 'timed'
 export type Direction = 0 | 1 | 2 | 3

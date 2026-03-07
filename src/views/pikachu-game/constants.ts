@@ -1,4 +1,4 @@
-﻿import type { GameMode, GridSize } from './types'
+import type { GameMode, GridSize } from './types'
 export const STORAGE_KEY = 'pikachu-records-v3'
 
 export const iconSet = [
