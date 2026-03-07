@@ -3,6 +3,8 @@
 // Trung bình: 6-10 câu
 // Dài: 11-20 câu
 
+export type TextDifficulty = 'easy' | 'medium' | 'hard';
+
 export const SHORT_TEXTS = [
   "Thức lâu mới biết đêm dài. Ở hiền gặp lành. Điếc không sợ súng. Ở hiền gặp lành. Uống nước nhớ nguồn.",
   "Chim khôn kêu tiếng rảnh rang. Có kiêng có lành. Rừng vàng biển bạc. Một nụ cười bằng mười thang thuốc bổ. Kiến tha lâu cũng đầy tổ.",
@@ -322,13 +324,25 @@ export const VIETNAMESE_TEXTS = [
  * Lấy một đoạn văn bản ngẫu nhiên.
  */
 export function getRandomText(): string {
-    const randomIndex = Math.floor(Math.random() * VIETNAMESE_TEXTS.length);
-    return (VIETNAMESE_TEXTS[randomIndex] || SHORT_TEXTS[0]) as string;
+  const randomIndex = Math.floor(Math.random() * VIETNAMESE_TEXTS.length);
+  return (VIETNAMESE_TEXTS[randomIndex] || SHORT_TEXTS[0]) as string;
+}
+
+/**
+ * Lấy văn bản ngẫu nhiên theo độ khó
+ */
+export function getTextByDifficulty(difficulty: TextDifficulty): string {
+  const pool = difficulty === 'easy' ? SHORT_TEXTS
+    : difficulty === 'medium' ? MEDIUM_TEXTS
+      : LONG_TEXTS;
+  const idx = Math.floor(Math.random() * pool.length);
+  return (pool[idx] || pool[0]) as string;
 }
 
 /**
  * Tách đoạn văn thành mảng các từ
  */
 export function getWordsFromText(text: string): string[] {
-    return text.split(' ');
+  return text.split(' ');
 }
+

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
-import { getRandomText, getWordsFromText } from './data/texts';
+import { getTextByDifficulty, getWordsFromText, type TextDifficulty } from './data/texts';
 import { calculateWPM, calculateAccuracy } from './utils/wpm';
 import { getSavedProfile, saveProfile, getHistory, addHistoryRecord, removeHistoryRecord, clearHistory, type TypingRecord } from './utils/storage';
 
@@ -16,6 +16,12 @@ const historyRecords = ref<TypingRecord[]>([]);
 // --- Setup Options ---
 const selectedDuration = ref(60);
 const durations = [15, 30, 60, 120];
+const selectedDifficulty = ref<TextDifficulty>('medium');
+const difficulties: { key: TextDifficulty; label: string; desc: string }[] = [
+  { key: 'easy', label: 'Đơn Giản', desc: '5 câu' },
+  { key: 'medium', label: 'Vừa', desc: '6-10 câu' },
+  { key: 'hard', label: 'Thử Thách', desc: '11-20 câu' },
+];
 
 // --- Game Tracking ---
 const wordsList = ref<string[]>([]);
@@ -26,11 +32,17 @@ const currentWordIndex = ref(0);
 // Stats Tracking
 const totalKeystrokes = ref(0); // Only counts printable chars
 const totalCorrectChars = ref(0); // Exact correct chars for CPM/WPM tracking
+const errorWordCount = ref(0); // Live count of incorrect words submitted
 const timerDuration = ref(60);
 const timeLeft = ref(60);
 const isTimerActive = ref(false);
 let timerInterval: ReturnType<typeof setInterval> | null = null;
 const isFinished = ref(false);
+
+// Animated result display values
+const displayWPM = ref(0);
+const displayCPM = ref(0);
+const displayAcc = ref(0);
 
 // --- Element Refs ---
 const hiddenInputRef = ref<HTMLInputElement | null>(null);
@@ -99,7 +111,7 @@ function removeSingleHistory(id: string) {
 function startGame() {
   stopTimer();
   
-  const rawText = getRandomText();
+  const rawText = getTextByDifficulty(selectedDifficulty.value);
   wordsList.value = getWordsFromText(rawText);
   
   // Reset states
@@ -108,10 +120,16 @@ function startGame() {
   currentWordIndex.value = 0;
   totalKeystrokes.value = 0;
   totalCorrectChars.value = 0;
+  errorWordCount.value = 0;
   isFinished.value = false;
   
   timerDuration.value = selectedDuration.value;
   timeLeft.value = selectedDuration.value;
+  
+  // Reset animated display
+  displayWPM.value = 0;
+  displayCPM.value = 0;
+  displayAcc.value = 0;
   
   currentScreen.value = 'play';
   nextTick(() => focusInput());
@@ -178,6 +196,9 @@ function handleInput(e: Event) {
     const targetWord = wordsList.value[currentWordIndex.value];
     
     pastTypedWords.value.push(wordTyped);
+    
+    // Track errors
+    trackWordError(wordTyped, targetWord as string | undefined);
     
     // Add space as a correct char if word is correct
     if (targetWord && wordTyped === targetWord) {
@@ -248,10 +269,32 @@ function endTest() {
     cpm: finalCPM.value,
     accuracy: finalAccuracy.value,
     duration: timeUsedInSeconds.value,
-    mode: `Cá nhân ${timerDuration.value}s`
+    mode: `${selectedDifficulty.value === 'easy' ? 'Đơn Giản' : selectedDifficulty.value === 'medium' ? 'Vừa' : 'Khó'} ${timerDuration.value}s`
   });
   
   currentScreen.value = 'result';
+  
+  // Trigger count-up animation after transition
+  nextTick(() => {
+    animateCount(displayWPM, 0, finalWPM.value, 900);
+    animateCount(displayCPM, 0, finalCPM.value, 1100);
+    animateCount(displayAcc, 0, finalAccuracy.value, 700);
+  });
+}
+
+function animateCount(target: { value: number }, from: number, to: number, durationMs: number) {
+  const start = performance.now();
+  function step(now: number) {
+    const progress = Math.min(1, (now - start) / durationMs);
+    const ease = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    target.value = Math.round(from + (to - from) * ease);
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function trackWordError(wordTyped: string, targetWord: string | undefined) {
+  if (targetWord && wordTyped !== targetWord) errorWordCount.value++;
 }
 
 // =======================
@@ -399,6 +442,20 @@ const formatDate = (ts: number) => {
                 {{ d }}s
               </button>
            </div>
+
+           <h3 class="text-sm uppercase tracking-widest mt-6 mb-4 font-bold text-[#e2b714]">Độ Khó</h3>
+           <div class="flex bg-[#323437] rounded-lg p-1 w-full justify-between border border-[#646669]/30">
+              <button 
+                v-for="d in difficulties" :key="d.key"
+                @click="selectedDifficulty = d.key"
+                class="flex-1 py-2 text-sm font-bold rounded-md transition-all flex flex-col items-center"
+                :class="selectedDifficulty === d.key ? 'bg-[#d1d0c5] text-[#323437] shadow-sm' : 'text-[#646669] hover:text-[#d1d0c5]'"
+              >
+                <span>{{ d.label }}</span>
+                <span class="text-xs opacity-60">{{ d.desc }}</span>
+              </button>
+           </div>
+
            <button @click="startGame()" class="mt-6 w-full bg-[#323437] hover:bg-[#d1d0c5] text-[#e2b714] hover:text-[#323437] border-2 border-[#e2b714] font-bold py-3 rounded-xl transition-all active:scale-95">
              Bắt Đầu Ngay
            </button>
@@ -411,7 +468,7 @@ const formatDate = (ts: number) => {
         <!-- Stats Top Bar -->
         <div class="flex justify-between items-end mb-4">
           <div class="text-3xl font-bold text-[#e2b714]">{{ timeLeft }}</div>
-          <div class="flex gap-6 text-sm">
+          <div class="flex gap-6 text-sm items-center">
             <div>
               <span class="uppercase tracking-widest text-[#646669] text-xs">WPM</span>
               <span class="ml-2 font-bold text-xl text-[#d1d0c5]">{{ finalWPM }}</span>
@@ -423,6 +480,10 @@ const formatDate = (ts: number) => {
             <div>
               <span class="uppercase tracking-widest text-[#646669] text-xs">Acc</span>
               <span class="ml-2 font-bold text-xl text-[#d1d0c5]">{{ finalAccuracy }}%</span>
+            </div>
+            <div v-if="errorWordCount > 0" class="flex items-center gap-1 bg-[#ca4754]/20 border border-[#ca4754]/40 text-[#ca4754] rounded-lg px-2 py-1 text-sm font-bold">
+              <span>❌</span>
+              <span>{{ errorWordCount }} lỗi</span>
             </div>
           </div>
         </div>
@@ -500,19 +561,19 @@ const formatDate = (ts: number) => {
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10 text-center">
           <div>
             <div class="text-[#646669] uppercase tracking-widest text-xs mb-2">Tốc độ WPM</div>
-            <div class="text-5xl font-bold text-[#e2b714]">{{ finalWPM }}</div>
+            <div class="text-5xl font-bold text-[#e2b714] tabular-nums">{{ displayWPM }}</div>
           </div>
           <div>
             <div class="text-[#646669] uppercase tracking-widest text-xs mb-2">Tốc độ CPM</div>
-            <div class="text-5xl font-bold text-[#d1d0c5]">{{ finalCPM }}</div>
+            <div class="text-5xl font-bold text-[#d1d0c5] tabular-nums">{{ displayCPM }}</div>
           </div>
           <div>
             <div class="text-[#646669] uppercase tracking-widest text-xs mb-2">Chính xác</div>
-            <div class="text-5xl font-bold text-[#d1d0c5]">{{ finalAccuracy }}%</div>
+            <div class="text-5xl font-bold text-[#d1d0c5] tabular-nums">{{ displayAcc }}%</div>
           </div>
           <div>
-            <div class="text-[#646669] uppercase tracking-widest text-xs mb-2">Ký tự hợp lệ</div>
-            <div class="text-5xl font-bold text-[#d1d0c5]">{{ totalCorrectChars }}</div>
+            <div class="text-[#646669] uppercase tracking-widest text-xs mb-2">Lỗi từ</div>
+            <div class="text-5xl font-bold" :class="errorWordCount > 0 ? 'text-[#ca4754]' : 'text-[#d1d0c5]'">{{ errorWordCount }}</div>
           </div>
         </div>
 
@@ -536,6 +597,43 @@ const formatDate = (ts: number) => {
                Xóa Tất Cả
              </button>
           </div>
+        </div>
+
+        <!-- Sparkline WPM Chart -->
+        <div v-if="historyRecords.length >= 2" class="bg-[#2c2e31] rounded-2xl border border-[#646669]/20 p-6">
+          <div class="text-xs uppercase tracking-widest text-[#e2b714] mb-3 font-bold">Xu hướng WPM</div>
+          <svg :viewBox="`0 0 ${Math.max(200, historyRecords.length * 20)} 60`" class="w-full h-16" preserveAspectRatio="none">
+            <polyline
+              :points="historyRecords.slice().reverse().map((r, i) => {
+                const maxWPM = Math.max(...historyRecords.map(x => x.wpm), 1);
+                const x = (i / (historyRecords.length - 1)) * (Math.max(200, historyRecords.length * 20) - 10) + 5;
+                const y = 55 - (r.wpm / maxWPM) * 50;
+                return `${x},${y}`;
+              }).join(' ')"
+              fill="none"
+              stroke="#e2b714"
+              stroke-width="2"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+            />
+            <polyline
+              :points="historyRecords.slice().reverse().map((r, i) => {
+                const maxWPM = Math.max(...historyRecords.map(x => x.wpm), 1);
+                const x = (i / (historyRecords.length - 1)) * (Math.max(200, historyRecords.length * 20) - 10) + 5;
+                const y = 55 - (r.wpm / maxWPM) * 50;
+                return `${x},${y}`;
+              }).join(' ') + ` ${(Math.max(200, historyRecords.length * 20) - 5)},60 5,60`"
+              fill="url(#sparkGrad)"
+              stroke="none"
+              opacity="0.2"
+            />
+            <defs>
+              <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#e2b714"/>
+                <stop offset="100%" stop-color="#e2b71400"/>
+              </linearGradient>
+            </defs>
+          </svg>
         </div>
 
         <div v-if="historyRecords.length === 0" class="text-center bg-[#2c2e31] p-10 rounded-2xl border border-[#646669]/20 text-[#646669] italic">
