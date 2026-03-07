@@ -86,7 +86,8 @@ const initializeHorses = (): void => {
 };
 
 const getRandomText = (): string => {
-  return sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+  const text = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+  return text ?? sampleTexts[0] ?? "";
 };
 
 const selectMode = (mode: GameMode): void => {
@@ -192,11 +193,9 @@ const handleInput = (): void => {
 
   updatePlayerProgress();
 
-  // Khi gõ xong văn bản hiện tại, chuyển sang văn bản mới
-  if (typed.length >= target.length && correct === target.length) {
+  // Khi gõ xong văn bản hiện tại, chuyển sang văn bản mới ngay lập tức
+  if (correct === target.length && typed.length === target.length) {
     textCompletedCount.value++;
-    typedText.value = "";
-    correctChars.value = 0;
 
     // Chuyển sang văn bản mới để tiếp tục gõ
     if (customText.value.trim()) {
@@ -204,6 +203,10 @@ const handleInput = (): void => {
     } else {
       targetText.value = getRandomText();
     }
+
+    // Reset sau khi đã set văn bản mới
+    typedText.value = "";
+    correctChars.value = 0;
   }
 };
 
@@ -216,7 +219,7 @@ const handleFocus = (): void => {
 };
 
 const updatePlayerProgress = (): void => {
-  if (elapsedTime.value === 0) return;
+  if (elapsedTime.value === 0 || !horses.value[0]) return;
 
   // Tính progress dựa trên tốc độ gõ thực tế so với mục tiêu
   // Để thắng bot, cần gõ ~55 WPM (275 ký tự/phút = 4.58 ký tự/giây)
@@ -255,7 +258,7 @@ const startBotMovement = (): void => {
         horse.progress = 100;
         clearInterval(interval);
 
-        if (horses.value[0].progress < 100) {
+        if (horses.value[0] && horses.value[0].progress < 100) {
           setTimeout(() => {
             if (gameState.value === "playing") {
               finishGame();
@@ -343,7 +346,7 @@ const playerRank = computed(() => {
 watch(
   () => horses.value[0]?.progress,
   (newProgress) => {
-    if (gameState.value === "playing" && newProgress >= 100) {
+    if (gameState.value === "playing" && newProgress !== undefined && newProgress >= 100) {
       finishGame();
     }
   },
