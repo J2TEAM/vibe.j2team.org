@@ -1,0 +1,27 @@
+﻿[
+  {
+    "name": "J2TEAM",
+    "score": 120,
+    "difficulty": 2,
+    "mode": "classic",
+    "timeSpent": 0,
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  },
+  {
+    "name": "Coders",
+    "score": 160,
+    "difficulty": 2,
+    "mode": "timed",
+    "timeSpent": 48,
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  },
+  {
+    "name": "Guest",
+    "score": 220,
+    "difficulty": 5,
+    "mode": "timed",
+    "timeSpent": 71,
+    "createdAt": "2026-01-02T00:00:00.000Z"
+  }
+]
+
