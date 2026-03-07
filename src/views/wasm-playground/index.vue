@@ -21,10 +21,10 @@ const tools = [
   { id: 'duckdb', label: 'DUCKDB', component: DuckDbTool, version: 'DUCKDB-WASM', cdn: 'cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm', description: 'Cơ sở dữ liệu phân tích (OLAP) tốc độ cực cao cho Big Data.' },
   { id: 'python', label: 'PYTHON', component: PythonTool, version: 'PYODIDE', cdn: 'cdn.jsdelivr.net/pyodide', description: 'Môi trường Python 3 đầy đủ với thư viện chuẩn (Standard Library).' },
   { id: 'ocr', label: 'OCR', component: OcrTool, version: 'TESSERACT', cdn: 'unpkg.com/tesseract.js', description: 'Nhận diện và trích xuất văn bản từ hình ảnh 100% offline.' },
-  { id: 'photon', label: 'IMAGE', component: ImageFilterTool, version: 'PHOTON/RUST', cdn: 'cdn.jsdelivr.net/npm/@silvia-odwyer/photon', description: 'Xử lý ảnh bằng Rust: Áp dụng các bộ lọc màu ở tốc độ native.' },
-  { id: 'ai-vision', label: 'VISION', component: ObjectDetectionTool, version: 'TF.JS WASM', cdn: 'cdn.jsdelivr.net/npm/@tensorflow/tfjs', description: 'AI nhận diện vật thể qua Webcam sử dụng TensorFlow.js.' },
-  { id: 'face-mesh', label: 'FACE', component: FaceMeshTool, version: 'MEDIAPIPE', cdn: 'cdn.jsdelivr.net/npm/@mediapipe/tasks-vision', description: 'Theo dõi 478 điểm trên khuôn mặt realtime bằng WebGPU/WASM.' },
-  { id: 'ai-nlp', label: 'NLP', component: TransformersTool, version: 'TRANSFORMERS.JS', cdn: 'cdn.jsdelivr.net/npm/@huggingface/transformers', description: 'Xử lý ngôn ngữ tự nhiên: Phân tích cảm xúc bằng mô hình DistilBERT.' },
+  { id: 'photon', label: 'ẢNH', component: ImageFilterTool, version: 'PHOTON/RUST', cdn: 'cdn.jsdelivr.net/npm/@silvia-odwyer/photon', description: 'Xử lý ảnh bằng Rust: Áp dụng các bộ lọc màu ở tốc độ native.' },
+  { id: 'ai-vision', label: 'THỊ GIÁC', component: ObjectDetectionTool, version: 'TF.JS WASM', cdn: 'cdn.jsdelivr.net/npm/@tensorflow/tfjs', description: 'AI nhận diện vật thể qua Webcam sử dụng TensorFlow.js.' },
+  { id: 'face-mesh', label: 'KHUÔN MẶT', component: FaceMeshTool, version: 'MEDIAPIPE', cdn: 'cdn.jsdelivr.net/npm/@mediapipe/tasks-vision', description: 'Theo dõi 478 điểm trên khuôn mặt realtime bằng WebGPU/WASM.' },
+  { id: 'ai-nlp', label: 'NGÔN NGỮ', component: TransformersTool, version: 'TRANSFORMERS.JS', cdn: 'cdn.jsdelivr.net/npm/@huggingface/transformers', description: 'Xử lý ngôn ngữ tự nhiên: Phân tích cảm xúc bằng mô hình DistilBERT.' },
 ] as const
 </script>
 
@@ -34,7 +34,7 @@ const tools = [
       <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 class="text-3xl font-display font-bold text-accent-coral animate-fade-in">
-            Anything with WASM 🚀
+            Mọi thứ với WASM 🚀
           </h1>
           <p class="text-text-secondary mt-1 italic opacity-80 text-sm">Sức mạnh Native bên trong Browser.</p>
         </div>
@@ -66,7 +66,7 @@ const tools = [
           &rsaquo; {{ tools.find(t => t.id === activeTool)?.description }}
         </p>
         <p class="text-[10px] text-text-secondary/50 font-mono animate-fade-in whitespace-nowrap" :key="activeTool + 'cdn'">
-          [SRC: {{ tools.find(t => t.id === activeTool)?.cdn }}]
+          [NGUỒN: {{ tools.find(t => t.id === activeTool)?.cdn }}]
         </p>
       </div>
 
@@ -81,33 +81,9 @@ const tools = [
       </footer>
 
       <!-- About WASM Section -->
-      <section class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-white/5 pt-12 text-sm leading-relaxed">
-        <!-- English Version -->
+      <section class="mt-12 border-t border-white/5 pt-12 text-sm leading-relaxed max-w-2xl mx-auto">
         <div class="flex flex-col gap-4 text-text-secondary">
-          <h2 class="text-xl font-display font-bold text-white uppercase tracking-wider">Why WebAssembly (WASM)?</h2>
-          <p>
-            <strong class="text-accent-coral">WebAssembly</strong> is a binary instruction format for a stack-based virtual machine. It is designed as a portable compilation target for programming languages, enabling deployment on the web for client and server applications.
-          </p>
-          <div class="flex flex-col gap-2">
-            <h3 class="text-white font-bold underline decoration-accent-coral/30">What is WASM best for?</h3>
-            <ul class="list-disc list-inside flex flex-col gap-1 opacity-80">
-              <li>High-performance logic (Video editing, Gaming, Cryptography)</li>
-              <li>Running non-JS code (C++, Rust, Python, Go) in browsers</li>
-              <li>Local-first tools (Processing data without a server)</li>
-              <li>Low-latency applications (Audio processing, AI inference)</li>
-            </ul>
-          </div>
-          <div class="flex flex-col gap-2">
-            <h3 class="text-white font-bold underline decoration-accent-coral/30">Trending in 2026</h3>
-            <p class="opacity-80">
-              The "Edge AI" revolution is moving heavy LLMs and image generation from expensive servers directly into the user's browser via WASM + WebGPU.
-            </p>
-          </div>
-        </div>
-
-        <!-- Vietnamese Version -->
-        <div class="flex flex-col gap-4 text-text-secondary">
-          <h2 class="text-xl font-display font-bold text-white uppercase tracking-wider">Tại sao chọn WebAssembly?</h2>
+          <h2 class="text-xl font-display font-bold text-white uppercase tracking-wider">Tại sao chọn WebAssembly (WASM)?</h2>
           <p>
             <strong class="text-accent-coral">WebAssembly</strong> là định dạng chỉ thị nhị phân giúp trình duyệt chạy các tác vụ nặng với tốc độ gần như ứng dụng native. Nó cho phép mang sức mạnh của các ngôn ngữ như Rust, C++, hay Python lên web.
           </p>

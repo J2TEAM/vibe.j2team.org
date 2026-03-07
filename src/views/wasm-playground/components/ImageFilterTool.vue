@@ -82,17 +82,17 @@ const applyFilter = (filterName: string) => {
   <div class="h-full flex flex-col gap-6 animate-fade-in">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
       <div class="flex flex-col gap-3">
-        <span class="text-[10px] font-mono uppercase text-text-secondary">Rust Image Processor (Photon)</span>
+        <span class="text-[10px] font-mono uppercase text-text-secondary">Trình xử lý ảnh Rust (Photon)</span>
         <div class="flex-1 bg-[rgba(15,15,15,0.7)] border border-[rgba(255,255,255,0.1)] p-4 flex flex-col items-center gap-4 overflow-auto">
           <input type="file" @change="handleImageUpload" class="text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-bold file:bg-accent-coral file:text-bg-deep cursor-pointer w-full" />
           <canvas ref="canvasRef" class="max-w-full h-auto border border-white/10 rounded shadow-2xl"></canvas>
         </div>
       </div>
       <div class="flex flex-col gap-3">
-        <span class="text-[10px] font-mono uppercase text-text-secondary">WASM Filters</span>
+        <span class="text-[10px] font-mono uppercase text-text-secondary">Bộ lọc WASM</span>
         <div class="grid grid-cols-2 gap-3">
           <button v-for="f in ['grayscale', 'sepia', 'solarize', 'oceanic', 'incandescent']" :key="f" @click="applyFilter(f)" :disabled="isLoading || isProcessing || !imageSrc" class="wasm-btn py-4 uppercase">
-            {{ f }}
+            {{ f === 'grayscale' ? 'Màu xám' : f }}
           </button>
         </div>
         <p class="mt-auto text-[10px] text-text-secondary/50 italic leading-relaxed">

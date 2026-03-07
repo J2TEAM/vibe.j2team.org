@@ -51,10 +51,10 @@ onMounted(async () => {
     // Initialize with default mode (CGB)
     gb = new GameBoy(GameBoyMode.Cgb)
     isLoading.value = false
-    status.value = 'Ready. Upload a .gb or .gbc ROM to play!'
+    status.value = 'Sẵn sàng. Tải lên ROM .gb hoặc .gbc để chơi!'
   } catch (err) {
     console.error('Failed to initialize Boytacean:', err)
-    status.value = 'Failed to load Emulator. Please check your connection.'
+    status.value = 'Tải trình giả lập thất bại. Vui lòng kiểm tra kết nối.'
   }
 
   window.addEventListener('keydown', handleKeyDown)
@@ -77,16 +77,16 @@ const handleFileUpload = async (event: Event) => {
 }
 
 const loadDemo = async () => {
-  status.value = 'Fetching demo ROM...'
+  status.value = 'Đang lấy ROM demo...'
   try {
     const response = await fetch('https://cdn.jsdelivr.net/gh/m1el/2048-gb@master/2048.gb')
     if (!response.ok) throw new Error('Network response was not ok')
     const buffer = await response.arrayBuffer()
     loadRom(new Uint8Array(buffer))
-    status.value = 'Playing Demo: 2048 (Open Source)'
+    status.value = 'Đang chơi Demo: 2048 (Mã nguồn mở)'
   } catch (err) {
     console.error('Demo load error:', err)
-    status.value = 'Failed to load demo ROM. Try uploading your own!'
+    status.value = 'Tải ROM demo thất bại. Hãy thử tải lên ROM của riêng bạn!'
   }
 }
 
@@ -112,7 +112,7 @@ const startLoop = () => {
     } catch (err) {
       console.error('Emulator execution error:', err)
       isRunning.value = false
-      status.value = 'Emulator crashed. This ROM might not be supported.'
+      status.value = 'Trình giả lập bị lỗi. ROM này có thể không được hỗ trợ.'
     }
   }
   
@@ -141,7 +141,7 @@ const loadRom = (romData: Uint8Array) => {
     startLoop()
   } catch (err) {
     console.error('Failed to load ROM:', err)
-    status.value = 'Error loading ROM. Check console for details.'
+    status.value = 'Lỗi khi tải ROM. Kiểm tra console để biết chi tiết.'
   }
 }
 
@@ -181,11 +181,11 @@ const sendKey = (keyIndex: number, isDown: boolean) => {
           ></canvas>
           <div v-if="!romLoaded" class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm gap-4">
              <label class="wasm-btn cursor-pointer px-10 py-3 text-center min-w-[160px]">
-               UPLOAD ROM
+               TẢI LÊN ROM
                <input type="file" accept=".gb,.gbc" class="hidden" @change="handleFileUpload" />
              </label>
              <button @click="loadDemo" class="wasm-btn bg-white/10 text-white border-white/20 px-10 py-3 min-w-[160px]">
-               TRY DEMO
+               CHƠI THỬ DEMO
              </button>
           </div>
         </div>
@@ -197,13 +197,13 @@ const sendKey = (keyIndex: number, isDown: boolean) => {
       <!-- Controls -->
       <div class="flex flex-col gap-8 bg-black/20 p-6 rounded-xl border border-white/5">
         <div class="flex flex-col gap-2">
-          <span class="text-[10px] font-mono uppercase text-accent-coral">Keyboard Controls</span>
+          <span class="text-[10px] font-mono uppercase text-accent-coral">Phím điều khiển</span>
           <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-text-secondary font-mono">
-            <span>D-Pad: Arrows</span>
-            <span>A: Z Key</span>
-            <span>B: X Key</span>
-            <span>Start: Enter</span>
-            <span>Select: Shift</span>
+            <span>D-Pad: Phím mũi tên</span>
+            <span>Phím A: Phím Z</span>
+            <span>Phím B: Phím X</span>
+            <span>Start: Phím Enter</span>
+            <span>Select: Phím Shift</span>
           </div>
         </div>
 

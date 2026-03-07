@@ -33,7 +33,7 @@ onMounted(async () => {
       isLoading.value = false
     } catch (err) {
       console.error("Failed to load Pyodide", err)
-      output.value = "Failed to load Pyodide. Check console."
+      output.value = "Tải Pyodide thất bại. Hãy kiểm tra console."
     }
   }
   document.head.appendChild(script)
@@ -47,7 +47,7 @@ const runCode = async () => {
   try {
     await pyodide.runPythonAsync(code.value)
   } catch (err: any) {
-    output.value += `\nError: ${err.message}`
+    output.value += `\nLỗi: ${err.message}`
   } finally {
     isRunning.value = false
   }
@@ -59,18 +59,18 @@ const runCode = async () => {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
       <div class="flex flex-col gap-3">
         <div class="flex justify-between items-center">
-          <span class="text-[10px] font-mono uppercase text-text-secondary">Python Editor (Pyodide)</span>
+          <span class="text-[10px] font-mono uppercase text-text-secondary">Trình soạn thảo Python (Pyodide)</span>
           <button @click="runCode" :disabled="isLoading || isRunning" class="wasm-btn">
-            {{ isRunning ? 'RUNNING...' : 'RUN PYTHON' }}
+            {{ isRunning ? 'ĐANG CHẠY...' : 'CHẠY PYTHON' }}
           </button>
         </div>
         <textarea v-model="code" spellcheck="false" class="wasm-editor"></textarea>
       </div>
       <div class="flex flex-col gap-3">
-        <span class="text-[10px] font-mono uppercase text-text-secondary">Console Output</span>
+        <span class="text-[10px] font-mono uppercase text-text-secondary">Kết quả Console</span>
         <div class="wasm-console">
-          <div v-if="isLoading" class="animate-pulse">Downloading Python Runtime (~10MB)...</div>
-          <div v-else-if="!output" class="opacity-30 italic">Ready.</div>
+          <div v-if="isLoading" class="animate-pulse">Đang tải môi trường Python (~10MB)...</div>
+          <div v-else-if="!output" class="opacity-30 italic">Sẵn sàng.</div>
           <div v-else>{{ output }}</div>
         </div>
       </div>

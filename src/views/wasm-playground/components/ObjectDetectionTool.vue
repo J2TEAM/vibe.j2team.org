@@ -81,13 +81,13 @@ const renderPredictions = (predictions: any[]) => {
   <div class="h-full flex flex-col gap-6 animate-fade-in">
     <div class="grid grid-cols-1 gap-6 flex-1">
       <div class="flex flex-col gap-3 items-center">
-        <span class="text-[10px] font-mono uppercase text-text-secondary">TensorFlow.js Object Detection (WASM Backend)</span>
+        <span class="text-[10px] font-mono uppercase text-text-secondary">Nhận diện vật thể TensorFlow.js (WASM Backend)</span>
         <div class="relative bg-black rounded-lg border border-white/10 overflow-hidden shadow-2xl">
           <video ref="videoRef" autoplay muted playsinline class="w-full max-w-2xl h-auto"></video>
           <canvas ref="canvasRef" width="640" height="480" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
           <div v-if="!isDetecting" class="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
              <button @click="startCamera" :disabled="isLoading" class="wasm-btn px-12 py-4 text-lg">
-               {{ isLoading ? 'LOADING AI MODELS...' : 'START CAMERA' }}
+               {{ isLoading ? 'ĐANG TẢI MÔ HÌNH AI...' : 'MỞ CAMERA' }}
              </button>
           </div>
         </div>

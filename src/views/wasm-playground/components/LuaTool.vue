@@ -76,13 +76,13 @@ const runCode = () => {
       <!-- Editor Section -->
       <div class="flex flex-col gap-3">
         <div class="flex justify-between items-center">
-          <span class="text-[10px] font-mono uppercase text-text-secondary">Lua Editor</span>
+          <span class="text-[10px] font-mono uppercase text-text-secondary">Trình soạn thảo Lua</span>
           <button 
             @click="runCode" 
             :disabled="isLoading || isRunning"
             class="wasm-btn"
           >
-            {{ isRunning ? 'EXECUTING...' : 'RUN LUA' }}
+            {{ isRunning ? 'ĐANG CHẠY...' : 'CHẠY LUA' }}
           </button>
         </div>
         <textarea
@@ -95,15 +95,15 @@ const runCode = () => {
 
       <!-- Output Section -->
       <div class="flex flex-col gap-3">
-        <span class="text-[10px] font-mono uppercase text-text-secondary">Lua Output</span>
+        <span class="text-[10px] font-mono uppercase text-text-secondary">Kết quả Lua</span>
         <div 
           class="wasm-console"
         >
           <div v-if="isLoading" class="animate-pulse">
-            Loading Lua VM (WASM)...
+            Đang tải Lua VM (WASM)...
           </div>
           <div v-else-if="!output" class="opacity-30 italic text-center">
-            Nhấn "RUN" để thực thi code.
+            Nhấn "CHẠY LUA" để thực thi mã.
           </div>
           <div v-else>
             {{ output }}

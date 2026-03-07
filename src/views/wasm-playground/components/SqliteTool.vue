@@ -60,19 +60,19 @@ const runSql = () => {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
       <div class="flex flex-col gap-3">
         <div class="flex justify-between items-center">
-          <span class="text-[10px] font-mono uppercase text-text-secondary">SQL Editor (In-Memory)</span>
+          <span class="text-[10px] font-mono uppercase text-text-secondary">Trình soạn thảo SQL (Trong bộ nhớ)</span>
           <button @click="runSql" :disabled="isLoading || isSqlRunning" class="wasm-btn">
-            {{ isSqlRunning ? 'QUERYING...' : 'RUN SQL' }}
+            {{ isSqlRunning ? 'ĐANG TRUY VẤN...' : 'CHẠY SQL' }}
           </button>
         </div>
         <textarea v-model="sqlCode" spellcheck="false" class="wasm-editor"></textarea>
       </div>
       <div class="flex flex-col gap-3 overflow-hidden">
-        <span class="text-[10px] font-mono uppercase text-text-secondary">Query Results</span>
+        <span class="text-[10px] font-mono uppercase text-text-secondary">Kết quả truy vấn</span>
         <div class="wasm-console flex flex-col gap-4 overflow-auto">
-          <div v-if="isLoading" class="animate-pulse">Loading SQLite WASM...</div>
-          <div v-else-if="sqlError" class="text-red-400 font-bold underline">Error: {{ sqlError }}</div>
-          <div v-else-if="sqlResults.length === 0" class="opacity-30 italic">No results. Try running a SELECT query.</div>
+          <div v-if="isLoading" class="animate-pulse">Đang tải SQLite WASM...</div>
+          <div v-else-if="sqlError" class="text-red-400 font-bold underline">Lỗi: {{ sqlError }}</div>
+          <div v-else-if="sqlResults.length === 0" class="opacity-30 italic">Không có kết quả. Hãy thử chạy một truy vấn SELECT.</div>
           <div v-for="(res, idx) in sqlResults" :key="idx" class="border border-white/5 rounded">
             <table class="w-full text-xs text-left border-collapse">
               <thead class="bg-white/5 text-accent-coral uppercase font-bold">

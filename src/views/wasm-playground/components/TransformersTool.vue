@@ -14,7 +14,7 @@ const runSentimentAnalysis = async () => {
   isRunning.value = true
   errorMsg.value = ''
   outputData.value = null
-  progressMsg.value = 'Initializing Transformers.js...'
+  progressMsg.value = 'Đang khởi tạo Transformers.js...'
   
   try {
     // Dynamic import to keep the initial page load light
@@ -22,23 +22,23 @@ const runSentimentAnalysis = async () => {
     const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.1.1/+esm')
     env.allowLocalModels = false
     
-    progressMsg.value = 'Loading DistilBERT Model (~65MB, cached after first run)...'
+    progressMsg.value = 'Đang tải mô hình DistilBERT (~65MB, đã cache sau lần chạy đầu)...'
     
     const classifier = await pipeline('sentiment-analysis', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english', {
       progress_callback: (info: any) => {
         if (info.status === 'downloading') {
-          progressMsg.value = `Downloading ${info.file}: ${Math.round((info.loaded / info.total) * 100)}%`
+          progressMsg.value = `Đang tải ${info.file}: ${Math.round((info.loaded / info.total) * 100)}%`
         } else if (info.status === 'ready') {
-          progressMsg.value = 'Model ready. Analyzing...'
+          progressMsg.value = 'Mô hình đã sẵn sàng. Đang phân tích...'
         }
       }
     })
     
-    progressMsg.value = 'Analyzing text...'
+    progressMsg.value = 'Đang phân tích văn bản...'
     const results = await classifier(inputText.value)
     outputData.value = results
   } catch (err: any) {
-    errorMsg.value = `Error: ${err.message}`
+    errorMsg.value = `Lỗi: ${err.message}`
     console.error(err)
   } finally {
     isRunning.value = false
@@ -52,15 +52,15 @@ const runSentimentAnalysis = async () => {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
       <div class="flex flex-col gap-3">
         <div class="flex justify-between items-center">
-          <span class="text-[10px] font-mono uppercase text-text-secondary">Local AI (Transformers.js)</span>
+          <span class="text-[10px] font-mono uppercase text-text-secondary">AI Nội bộ (Transformers.js)</span>
           <button @click="runSentimentAnalysis" :disabled="isRunning || !inputText" class="wasm-btn">
-            {{ isRunning ? 'WORKING...' : 'RUN AI' }}
+            {{ isRunning ? 'ĐANG XỬ LÝ...' : 'CHẠY AI' }}
           </button>
         </div>
         <textarea v-model="inputText" spellcheck="false" class="wasm-editor" placeholder="Nhập văn bản tiếng Anh để phân tích cảm xúc (Sentiment Analysis)..."></textarea>
       </div>
       <div class="flex flex-col gap-3">
-        <span class="text-[10px] font-mono uppercase text-text-secondary">Model Inference Output</span>
+        <span class="text-[10px] font-mono uppercase text-text-secondary">Kết quả suy luận mô hình</span>
         <div class="wasm-console flex flex-col justify-center">
           <div v-if="isRunning" class="text-accent-coral text-center flex flex-col items-center gap-4 animate-pulse">
             <div>{{ progressMsg }}</div>
@@ -70,14 +70,14 @@ const runSentimentAnalysis = async () => {
           </div>
           <div v-else-if="errorMsg" class="text-red-400 font-bold">{{ errorMsg }}</div>
           <div v-else-if="!outputData" class="opacity-30 italic text-center">
-            The model runs entirely in your browser using WASM. Data never leaves your device.
+            Mô hình chạy hoàn toàn trong trình duyệt của bạn bằng WASM. Dữ liệu không bao giờ rời khỏi thiết bị.
           </div>
           <div v-else class="flex flex-col items-center justify-center gap-2 h-full text-lg">
              <div class="font-bold text-white text-2xl uppercase">
                {{ outputData[0].label }}
              </div>
              <div class="text-accent-coral">
-               Confidence: {{ (outputData[0].score * 100).toFixed(2) }}%
+               Độ tin cậy: {{ (outputData[0].score * 100).toFixed(2) }}%
              </div>
              <pre class="mt-4 text-xs text-text-secondary opacity-50">{{ JSON.stringify(outputData, null, 2) }}</pre>
           </div>

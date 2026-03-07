@@ -6,7 +6,7 @@ const videoRef = ref<HTMLVideoElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const isLoading = ref(true)
 const isDetecting = ref(false)
-const status = ref('Initializing...')
+const status = ref('Đang khởi tạo...')
 let faceLandmarker: any = null
 let animationFrameId: number
 
@@ -16,12 +16,12 @@ onMounted(async () => {
     const vision = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/+esm')
     const { FaceLandmarker, FilesetResolver } = vision
 
-    status.value = 'Downloading WASM bundle...'
+    status.value = 'Đang tải gói WASM...'
     const filesetResolver = await FilesetResolver.forVisionTasks(
       "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
     )
     
-    status.value = 'Loading AI Model...'
+    status.value = 'Đang tải mô hình AI...'
     faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
       baseOptions: {
         modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
@@ -33,10 +33,10 @@ onMounted(async () => {
     })
     
     isLoading.value = false
-    status.value = 'Ready'
+    status.value = 'Sẵn sàng'
   } catch (err) {
     console.error(err)
-    status.value = 'Failed to load MediaPipe'
+    status.value = 'Tải MediaPipe thất bại'
   }
 })
 
@@ -61,7 +61,7 @@ const startCamera = async () => {
     }
   } catch (err) {
     console.error("Camera access failed", err)
-    status.value = "Camera access denied"
+    status.value = "Truy cập camera bị từ chối"
   }
 }
 
@@ -112,14 +112,14 @@ const detectFrame = () => {
   <div class="h-full flex flex-col gap-6 animate-fade-in">
     <div class="grid grid-cols-1 gap-6 flex-1">
       <div class="flex flex-col gap-3 items-center">
-        <span class="text-[10px] font-mono uppercase text-text-secondary">Face Mesh Tracking (MediaPipe WebGPU/WASM)</span>
+        <span class="text-[10px] font-mono uppercase text-text-secondary">Theo dõi khuôn mặt (MediaPipe WebGPU/WASM)</span>
         <div class="relative bg-black rounded-lg border border-white/10 overflow-hidden shadow-2xl">
           <video ref="videoRef" autoplay muted playsinline class="w-full max-w-2xl h-auto" style="transform: scaleX(-1);"></video>
           <canvas ref="canvasRef" class="absolute top-0 left-0 w-full h-full pointer-events-none" style="transform: scaleX(-1);"></canvas>
           <div v-if="!isDetecting" class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm gap-4">
              <div v-if="isLoading" class="text-accent-coral animate-pulse">{{ status }}</div>
              <button v-else @click="startCamera" class="wasm-btn px-12 py-4 text-lg">
-               START CAMERA
+               MỞ CAMERA
              </button>
           </div>
         </div>

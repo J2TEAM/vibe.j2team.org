@@ -74,7 +74,7 @@ const runSql = async () => {
     sqlResults.value = [{ columns, values }]
     
     // Optional: Add execution time info to error/log space
-    sqlError.value = `Executed in ${(endTime - startTime).toFixed(2)}ms (Local OLAP)`
+    sqlError.value = `Thực thi trong ${(endTime - startTime).toFixed(2)}ms (OLAP nội bộ)`
   } catch (err: any) {
     sqlError.value = err.message
   } finally {
@@ -88,19 +88,19 @@ const runSql = async () => {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
       <div class="flex flex-col gap-3">
         <div class="flex justify-between items-center">
-          <span class="text-[10px] font-mono uppercase text-text-secondary">OLAP Database (DuckDB-Wasm)</span>
+          <span class="text-[10px] font-mono uppercase text-text-secondary">Cơ sở dữ liệu OLAP (DuckDB-Wasm)</span>
           <button @click="runSql" :disabled="isLoading || isSqlRunning" class="wasm-btn">
-            {{ isSqlRunning ? 'QUERYING...' : 'RUN ANALYTICS' }}
+            {{ isSqlRunning ? 'ĐANG TRUY VẤN...' : 'CHẠY PHÂN TÍCH' }}
           </button>
         </div>
         <textarea v-model="sqlCode" spellcheck="false" class="wasm-editor"></textarea>
       </div>
       <div class="flex flex-col gap-3 overflow-hidden">
-        <span class="text-[10px] font-mono uppercase text-text-secondary">Analytical Results</span>
+        <span class="text-[10px] font-mono uppercase text-text-secondary">Kết quả phân tích</span>
         <div class="wasm-console flex flex-col gap-4 overflow-auto">
-          <div v-if="isLoading" class="animate-pulse">Loading DuckDB-Wasm (Analytics Engine)...</div>
-          <div v-else-if="sqlError && sqlResults.length === 0" class="text-red-400 font-bold underline">Error: {{ sqlError }}</div>
-          <div v-else-if="sqlResults.length === 0" class="opacity-30 italic">No results yet. Try running an aggregate query.</div>
+          <div v-if="isLoading" class="animate-pulse">Đang tải DuckDB-Wasm (Engine phân tích)...</div>
+          <div v-else-if="sqlError && sqlResults.length === 0" class="text-red-400 font-bold underline">Lỗi: {{ sqlError }}</div>
+          <div v-else-if="sqlResults.length === 0" class="opacity-30 italic">Chưa có kết quả. Hãy thử chạy một truy vấn tổng hợp.</div>
           
           <div v-if="sqlResults.length > 0 && sqlError" class="text-accent-coral text-xs italic">{{ sqlError }}</div>
           <div v-for="(res, idx) in sqlResults" :key="idx" class="border border-white/5 rounded">
