@@ -88,6 +88,6 @@ body::after {
   .scroll-reveal {
     animation: fade-up 0.6s ease-out both;
     animation-timeline: view();
-    animation-range: entry 10% cover 35%;
+    animation-range: entry 0% entry 25%;
   }
 }
