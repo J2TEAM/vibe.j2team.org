@@ -1,16 +1,17 @@
 import { ref, onMounted } from 'vue'
 import type { GachBongModule } from './types'
 
+// Load asm.js engine từ render-engine (bundled locally, không cần .wasm)
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import gachBongJsUrl from '../render-engine/gach_bong.js?url'
+
 declare global {
     interface Window {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         GachBongEngine: (moduleArg?: any) => Promise<GachBongModule>
     }
 }
-
-// Load WASM files từ server gachbong.yellowstudio.vn
-const gachBongJsUrl = 'https://gachbong.yellowstudio.vn/gach_bong.js'
-const wasmUrl = 'https://gachbong.yellowstudio.vn/gach_bong.wasm'
 
 export function useWasmEngine() {
     const engine = ref<GachBongModule | null>(null)
@@ -25,20 +26,13 @@ export function useWasmEngine() {
                     script.src = gachBongJsUrl
                     script.async = true
                     script.onload = () => resolve()
-                    script.onerror = () => reject(new Error('Không thể tải WASM script'))
+                    script.onerror = () => reject(new Error('Không thể tải engine script'))
                     document.head.appendChild(script)
                 })
             }
 
-            // Nạp WebAssembly với locateFile trỏ đến url được Vite resolve
-            engine.value = await window.GachBongEngine({
-                locateFile: (path: string) => {
-                    if (path.endsWith('.wasm')) {
-                        return wasmUrl
-                    }
-                    return path
-                }
-            })
+            // Nạp engine (asm.js - tất cả đều nằm trong file .js, không cần locateFile)
+            engine.value = await window.GachBongEngine()
             loading.value = false
         } catch (e) {
             error.value = e instanceof Error ? e.message : 'Không thể tải engine'
