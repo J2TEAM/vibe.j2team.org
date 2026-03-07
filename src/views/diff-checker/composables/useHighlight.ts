@@ -3,6 +3,8 @@
  * Pattern: diff-then-highlight (apply per line after diff).
  */
 
+import { escapeHtml } from '../utils/escapeHtml'
+
 const JS_RULES: Array<{ pattern: RegExp; cls: string }> = [
   { pattern: /\/\/.*$/, cls: 'hl-comment' },
   { pattern: /\/\*[\s\S]*?\*\//, cls: 'hl-comment' },
@@ -16,14 +18,6 @@ const JS_RULES: Array<{ pattern: RegExp; cls: string }> = [
   { pattern: /\b(?:true|false|null|undefined)\b/, cls: 'hl-constant' },
   { pattern: /\b[A-Z][a-zA-Z0-9]*\b/, cls: 'hl-type' },
 ]
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
 
 /** Get first matching rule at position. Rules ordered by priority. */
 function matchAt(line: string, pos: number, rules: Array<{ pattern: RegExp; cls: string }>): { end: number; cls: string } | null {

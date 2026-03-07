@@ -1,4 +1,5 @@
 import { computed, type Ref } from 'vue'
+import { escapeHtml } from '../utils/escapeHtml'
 
 export interface DiffResult {
   type: 'equal' | 'delete' | 'insert'
@@ -33,18 +34,13 @@ export interface CharDiffPart {
   removed?: boolean
 }
 
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
+const MAX_DP_CELLS = 10_000_000
 
 /**
  * Line-level diff using LCS-based edit distance. O(N*M) time.
  * Each delete/insert result is a single line.
  * Adjacent equal results are merged (multi-line value with \n).
+ * Falls back to simple delete-all + insert-all when N*M exceeds threshold.
  */
 export function diffLines(oldText: string, newText: string): DiffResult[] {
   const oldLines = splitLines(oldText)
@@ -55,6 +51,10 @@ export function diffLines(oldText: string, newText: string): DiffResult[] {
   if (N === 0 && M === 0) return []
   if (N === 0) return newLines.map((line) => ({ type: 'insert' as const, value: line }))
   if (M === 0) return oldLines.map((line) => ({ type: 'delete' as const, value: line }))
+
+  if (N * M > MAX_DP_CELLS) {
+    return simpleDiffLines(oldLines, newLines)
+  }
 
   const dp: number[][] = Array.from({ length: N + 1 }, () => Array(M + 1).fill(0))
 
@@ -99,6 +99,33 @@ export function diffLines(oldText: string, newText: string): DiffResult[] {
 function splitLines(text: string): string[] {
   if (text === '') return []
   return text.split(/\r\n|\r|\n/)
+}
+
+/**
+ * O(N+M) fallback for large inputs: line-by-line comparison,
+ * then all remaining lines as delete/insert.
+ */
+function simpleDiffLines(oldLines: string[], newLines: string[]): DiffResult[] {
+  const result: DiffResult[] = []
+  const minLen = Math.min(oldLines.length, newLines.length)
+
+  for (let i = 0; i < minLen; i++) {
+    if (oldLines[i] === newLines[i]) {
+      result.push({ type: 'equal', value: oldLines[i]! })
+    } else {
+      result.push({ type: 'delete', value: oldLines[i]! })
+      result.push({ type: 'insert', value: newLines[i]! })
+    }
+  }
+
+  for (let i = minLen; i < oldLines.length; i++) {
+    result.push({ type: 'delete', value: oldLines[i]! })
+  }
+  for (let i = minLen; i < newLines.length; i++) {
+    result.push({ type: 'insert', value: newLines[i]! })
+  }
+
+  return mergeAdjacentEqual(result)
 }
 
 function mergeAdjacentEqual(diffs: DiffResult[]): DiffResult[] {
@@ -282,6 +309,7 @@ export function toUnified(diffs: DiffResult[]): UnifiedLine[] {
 /**
  * Character-level diff using LCS edit distance.
  * Used within modified lines for inline highlighting.
+ * Falls back to full remove+add when N*M exceeds threshold.
  */
 export function diffChars(oldLine: string, newLine: string): CharDiffPart[] {
   const a = [...oldLine]
@@ -292,6 +320,13 @@ export function diffChars(oldLine: string, newLine: string): CharDiffPart[] {
   if (N === 0 && M === 0) return []
   if (N === 0) return [{ value: newLine, added: true }]
   if (M === 0) return [{ value: oldLine, removed: true }]
+
+  if (N * M > MAX_DP_CELLS) {
+    return [
+      { value: oldLine, removed: true },
+      { value: newLine, added: true },
+    ]
+  }
 
   const dp: number[][] = Array.from({ length: N + 1 }, () => Array(M + 1).fill(0))
 

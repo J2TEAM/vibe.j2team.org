@@ -14,7 +14,7 @@ const emit = defineEmits<{
 }>()
 
 function copyToClipboard(text: string) {
-  navigator.clipboard.writeText(text)
+  void navigator.clipboard.writeText(text).catch(() => {})
 }
 
 function leftTotalLines(): number {

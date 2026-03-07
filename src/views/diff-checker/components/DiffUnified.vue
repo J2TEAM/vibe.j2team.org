@@ -65,22 +65,22 @@ defineProps<{
 </template>
 
 <style scoped>
-.hl-comment {
+:deep(.hl-comment) {
   color: var(--color-text-dim);
 }
-.hl-string {
+:deep(.hl-string) {
   color: var(--color-accent-amber);
 }
-.hl-number {
+:deep(.hl-number) {
   color: var(--color-accent-amber);
 }
-.hl-keyword {
+:deep(.hl-keyword) {
   color: var(--color-accent-sky);
 }
-.hl-constant {
+:deep(.hl-constant) {
   color: var(--color-accent-amber);
 }
-.hl-type {
+:deep(.hl-type) {
   color: var(--color-accent-coral);
 }
 </style>
