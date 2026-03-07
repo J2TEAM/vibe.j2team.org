@@ -38,7 +38,6 @@ const styles = [
 const seed = ref("j2team");
 const selectedStyle = ref("adventurer");
 const copied = ref(false);
-const inputSeed = ref("j2team");
 
 const avatarUrl = computed(
   () =>
@@ -52,11 +51,6 @@ function randomSeed() {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   seed.value = result;
-  inputSeed.value = result;
-}
-
-function applySeed() {
-  seed.value = inputSeed.value.trim() || "j2team";
 }
 
 function copySeed() {
@@ -66,11 +60,23 @@ function copySeed() {
   });
 }
 
-function downloadAvatar() {
+async function downloadAvatar(format: "png" | "svg") {
+  const url = `https://api.dicebear.com/9.x/${selectedStyle.value}/${format}?seed=${encodeURIComponent(seed.value)}`;
+
+  const res = await fetch(url);
+  const blob = await res.blob();
+
   const link = document.createElement("a");
-  link.href = avatarUrl.value;
-  link.download = `avatar-${selectedStyle.value}-${seed.value}.svg`;
+  const objectUrl = URL.createObjectURL(blob);
+
+  link.href = objectUrl;
+  link.download = `avatar-${selectedStyle.value}-${seed.value}.${format}`;
+
+  document.body.appendChild(link);
   link.click();
+
+  document.body.removeChild(link);
+  URL.revokeObjectURL(objectUrl);
 }
 </script>
 
@@ -153,24 +159,13 @@ function downloadAvatar() {
               >
                 Seed
               </label>
-              <div class="flex gap-2">
-                <input
-                  v-model="inputSeed"
-                  type="text"
-                  placeholder="Nhập seed..."
-                  class="flex-1 border border-border-default bg-bg-deep text-text-primary text-sm px-4 py-2.5 font-body placeholder:text-text-dim focus:outline-none focus:border-accent-coral transition"
-                  @keydown.enter="applySeed"
-                />
-                <button
-                  class="border border-border-default bg-bg-elevated px-4 py-2.5 text-sm font-display text-text-secondary transition hover:border-accent-coral hover:text-text-primary active:scale-95"
-                  @click="applySeed"
-                >
-                  Áp dụng
-                </button>
-              </div>
-              <p class="mt-1.5 text-xs text-text-dim">
-                Nhấn Enter hoặc "Áp dụng" để tạo avatar với seed này.
-              </p>
+              <input
+                v-model="seed"
+                type="text"
+                placeholder="Nhập seed..."
+                class="w-full border border-border-default bg-bg-deep text-text-primary text-sm px-4 py-2.5 font-body placeholder:text-text-dim focus:outline-none focus:border-accent-coral transition"
+              />
+              <p class="mt-1.5 text-xs text-text-dim">Avatar cập nhật ngay khi bạn gõ.</p>
             </div>
 
             <!-- Random button -->
@@ -254,13 +249,21 @@ function downloadAvatar() {
               </span>
             </div>
 
-            <!-- Download button -->
-            <button
-              class="w-full border border-border-default bg-bg-elevated px-5 py-3 font-display text-sm tracking-widest text-text-secondary transition hover:border-accent-amber hover:text-accent-amber active:scale-95"
-              @click="downloadAvatar"
-            >
-              &#x2193; TẢI XUỐNG SVG
-            </button>
+            <!-- Download buttons -->
+            <div class="flex w-full gap-4">
+              <button
+                class="flex-1 border border-border-default bg-bg-elevated px-4 py-3 font-display text-sm tracking-widest text-text-secondary transition hover:border-accent-amber hover:text-accent-amber active:scale-95"
+                @click="downloadAvatar('png')"
+              >
+                &#x2193; PNG
+              </button>
+              <button
+                class="flex-1 border border-border-default bg-bg-elevated px-4 py-3 font-display text-sm tracking-widest text-text-secondary transition hover:border-accent-sky hover:text-accent-sky active:scale-95"
+                @click="downloadAvatar('svg')"
+              >
+                &#x2193; SVG
+              </button>
+            </div>
           </div>
         </div>
       </div>
