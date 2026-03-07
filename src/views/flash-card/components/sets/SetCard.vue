@@ -24,55 +24,11 @@ const emit = defineEmits<{
     class="border border-border-default bg-bg-surface p-5 transition-all duration-300 hover:-translate-y-1 hover:border-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5 cursor-pointer group"
     @click="emit('click')"
   >
-    <div class="flex items-start justify-between gap-4">
-      <div class="flex-1 min-w-0">
-        <h3 class="font-display text-lg font-semibold text-text-primary group-hover:text-accent-coral transition-colors truncate">
-          {{ set.name }}
-        </h3>
-        <p v-if="set.description" class="text-text-secondary text-sm mt-1 line-clamp-1">
-          {{ set.description }}
-        </p>
-
-        <!-- Segmented progress bar -->
-        <div class="mt-3 flex items-center gap-3">
-          <div class="flex-1 h-2 bg-bg-elevated overflow-hidden flex">
-            <div
-              class="h-full bg-accent-sky transition-all"
-              :style="{ width: cardCount > 0 ? `${(masteredCount / cardCount) * 100}%` : '0%' }"
-            />
-            <div
-              class="h-full bg-accent-amber transition-all"
-              :style="{ width: cardCount > 0 ? `${(inProgressCount / cardCount) * 100}%` : '0%' }"
-            />
-            <div
-              class="h-full bg-text-dim/30 transition-all"
-              :style="{ width: cardCount > 0 ? `${(newCount / cardCount) * 100}%` : '0%' }"
-            />
-          </div>
-          <span class="text-text-dim text-xs font-display whitespace-nowrap">
-            {{ cardCount > 0 ? Math.round((masteredCount / cardCount) * 100) : 0 }}%
-          </span>
-        </div>
-
-        <!-- Stats row -->
-        <div class="mt-2 flex items-center gap-4 text-xs">
-          <span class="flex items-center gap-1">
-            <span class="w-2 h-2 bg-accent-sky inline-block" />
-            <span class="text-text-secondary">Thuộc: {{ masteredCount }}</span>
-          </span>
-          <span class="flex items-center gap-1">
-            <span class="w-2 h-2 bg-accent-amber inline-block" />
-            <span class="text-text-secondary">Đang học: {{ inProgressCount }}</span>
-          </span>
-          <span class="flex items-center gap-1">
-            <span class="w-2 h-2 bg-text-dim/30 inline-block" />
-            <span class="text-text-secondary">Mới: {{ newCount }}</span>
-          </span>
-          <span v-if="lastStudied" class="ml-auto text-text-dim">{{ formatDate(lastStudied) }}</span>
-        </div>
-      </div>
-
-      <!-- Actions -->
+    <!-- Title + Actions -->
+    <div class="flex items-center justify-between gap-3">
+      <h3 class="font-display text-lg font-semibold text-text-primary group-hover:text-accent-coral transition-colors truncate">
+        {{ set.name }}
+      </h3>
       <div class="flex items-center gap-1 shrink-0">
         <button
           v-if="cardCount > 0"
@@ -97,6 +53,48 @@ const emit = defineEmits<{
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
         </button>
       </div>
+    </div>
+
+    <p v-if="set.description" class="text-text-secondary text-sm mt-1 line-clamp-1">
+      {{ set.description }}
+    </p>
+
+    <!-- Segmented progress bar -->
+    <div class="mt-3 flex items-center gap-3">
+      <div class="flex-1 h-2 bg-bg-elevated overflow-hidden flex">
+        <div
+          class="h-full bg-accent-sky transition-all"
+          :style="{ width: cardCount > 0 ? `${(masteredCount / cardCount) * 100}%` : '0%' }"
+        />
+        <div
+          class="h-full bg-accent-amber transition-all"
+          :style="{ width: cardCount > 0 ? `${(inProgressCount / cardCount) * 100}%` : '0%' }"
+        />
+        <div
+          class="h-full bg-text-dim/30 transition-all"
+          :style="{ width: cardCount > 0 ? `${(newCount / cardCount) * 100}%` : '0%' }"
+        />
+      </div>
+      <span class="text-text-dim text-xs font-display whitespace-nowrap">
+        {{ cardCount > 0 ? Math.round((masteredCount / cardCount) * 100) : 0 }}%
+      </span>
+    </div>
+
+    <!-- Stats row -->
+    <div class="mt-2 flex items-center gap-4 text-xs">
+      <span class="flex items-center gap-1">
+        <span class="w-2 h-2 bg-accent-sky inline-block shrink-0" />
+        <span class="text-text-secondary">Thuộc: {{ masteredCount }}</span>
+      </span>
+      <span class="flex items-center gap-1">
+        <span class="w-2 h-2 bg-accent-amber inline-block shrink-0" />
+        <span class="text-text-secondary">Đang học: {{ inProgressCount }}</span>
+      </span>
+      <span class="flex items-center gap-1">
+        <span class="w-2 h-2 bg-text-dim/30 inline-block shrink-0" />
+        <span class="text-text-secondary">Mới: {{ newCount }}</span>
+      </span>
+      <span v-if="lastStudied" class="ml-auto text-text-dim">{{ formatDate(lastStudied) }}</span>
     </div>
   </div>
 </template>
