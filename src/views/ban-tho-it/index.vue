@@ -101,11 +101,11 @@ const syncScoreToBin = async () => {
     }
 
     // 2. Cập nhật điểm của người dùng hiện tại
-    const existingPlayerIndex = currentBoard.findIndex(p => p.name === playerName.value)
-    if (existingPlayerIndex > -1) {
+    const existingPlayer = currentBoard.find(p => p.name === playerName.value)
+    if (existingPlayer) {
       // Chỉ cập nhật nếu điểm mới cao hơn điểm cũ
-      if (karma.value > currentBoard[existingPlayerIndex].score) {
-        currentBoard[existingPlayerIndex].score = karma.value
+      if (karma.value > existingPlayer.score) {
+        existingPlayer.score = karma.value
       }
     } else {
       currentBoard.push({ name: playerName.value, score: karma.value })
