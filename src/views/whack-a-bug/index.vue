@@ -36,27 +36,27 @@ const particles = ref<Particle[]>([]);
 const floaters = ref<Particle[]>([]);
 
 const bugEmojis = ["🐛", "🐞", "🦟", "🦗", "🕷️"];
-const codeSnippets = ["FIXED", "404", "{ }", "0101", "BUG", "DONE", "MERGED"];
+const codeSnippets = ["ĐÃ FIX", "404", "{ }", "0101", "BUG", "XONG", "ĐÃ MERGE"];
 const messages = [
   "Đập nó!",
   "Sạch sẽ!",
-  "Fixed!",
+  "Đã sửa!",
   "Lỗi này lạ quá!",
   "Bug này cứng đầu thế!",
   "Vibe up!",
   "J2TEAM Security!",
-  "Clean code!",
+  "Code sạch!",
   "Cẩn thận bom!",
   "Nhanh tay lên!",
   "Comboooo!",
 ];
 const cheers = [
-  "AWESOME!",
-  "UNSTOPPABLE!",
-  "GODLIKE!",
-  "MONSTER KILL!",
-  "HOLY SHIT!",
-  "LEGENDARY!",
+  "QUÁ ĐỈNH!",
+  "KHÔNG THỂ CẢN PHÁ!",
+  "NHƯ MỘT VỊ THẦN!",
+  "KẺ DIỆT BUG!",
+  "VÃI CHƯỞNG!",
+  "HUYỀN THOẠI!",
 ];
 
 let gameTimeout: ReturnType<typeof setTimeout>;
@@ -311,7 +311,7 @@ const whack = (index: number, event: MouseEvent) => {
         playSound("bossKill");
         spawnFloater(event.clientX, event.clientY, "+10", "#fbbf24");
         spawnFloater(event.clientX, event.clientY - 30, "+3s", "#34d399");
-        message.value = "BOSS DEFEATED! 👾";
+        message.value = "ĐÃ DIỆT TRÙM! 👾";
         if (combo.value >= 3) triggerCheer();
         spawnNext();
         return;
@@ -359,8 +359,8 @@ const whack = (index: number, event: MouseEvent) => {
     } else if (type === "coffee") {
       isBulletTime.value = true;
       playSound("coffee");
-      spawnFloater(event.clientX, event.clientY, "SLOW-MO", "#60a5fa");
-      message.value = "COFFEE TIME! ☕";
+      spawnFloater(event.clientX, event.clientY, "SIÊU CHẬM", "#60a5fa");
+      message.value = "ĐẾN GIỜ CAFE! ☕";
       clearTimeout(effectTimeout);
       effectTimeout = setTimeout(() => {
         isBulletTime.value = false;
@@ -368,8 +368,8 @@ const whack = (index: number, event: MouseEvent) => {
     } else if (type === "freeze") {
       isFrozen.value = true;
       playSound("freeze");
-      spawnFloater(event.clientX, event.clientY, "FROZEN!", "#38bdf8");
-      message.value = "TIME FROZEN! ❄️";
+      spawnFloater(event.clientX, event.clientY, "BĂNG GIÁ!", "#38bdf8");
+      message.value = "NGƯNG ĐỌNG! ❄️";
       clearTimeout(effectTimeout);
       effectTimeout = setTimeout(() => {
         isFrozen.value = false;
@@ -394,9 +394,9 @@ const endGame = () => {
     localStorage.setItem("whack-a-bug-highscore", score.value.toString());
   }
 
-  if (score.value > 80) message.value = "CTO LEVEL! 👑";
-  else if (score.value > 50) message.value = "Legendary Developer! 🏆";
-  else if (score.value > 30) message.value = "Senior Developer! 😎";
+  if (score.value > 80) message.value = "CẤP ĐỘ CTO! 👑";
+  else if (score.value > 50) message.value = "HUYỀN THOẠI LẬP TRÌNH! 🏆";
+  else if (score.value > 30) message.value = "LẬP TRÌNH VIÊN CẤP CAO! 😎";
   else message.value = "Cố gắng thêm nhé! 💪";
 };
 
