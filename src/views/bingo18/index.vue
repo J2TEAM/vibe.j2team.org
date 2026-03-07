@@ -268,7 +268,9 @@ onUnmounted(() => {
   <div class="min-h-screen bg-[#068603] text-white font-sans pb-32">
     <!-- Header -->
     <div class="bg-[#068603] px-4 py-3 flex items-center justify-between">
-      <a href="/" class="text-sm text-green-300 hover:text-white transition-colors">← Trang chủ</a>
+      <RouterLink to="/" class="text-sm text-green-300 hover:text-white transition-colors">
+        ← Trang chủ
+      </RouterLink>
       <h1 class="text-lg font-bold text-yellow-400">🎱 Bingo 18</h1>
       <div class="text-sm font-semibold text-yellow-300">
         💎 {{ points.toLocaleString('vi-VN') }} J2-Point

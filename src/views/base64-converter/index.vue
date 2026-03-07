@@ -361,9 +361,9 @@ onMounted(() => {
     </div>
   </div>
 
-  <a href="/" class="btn secondary fixed bottom-4 left-4 z-50 blink">
+  <RouterLink  to="/" class="btn secondary fixed bottom-4 left-4 z-50 blink">
     🏠 Trang chủ
-  </a>
+  </RouterLink>
 
   <a href="https://guns.lol/vubinh127" target="_blank" rel="noopener noreferrer" class="btn secondary fixed bottom-16 right-4 z-50 blink">
     🔗 Profile
