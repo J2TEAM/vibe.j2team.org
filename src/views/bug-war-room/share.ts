@@ -13,9 +13,12 @@ export function buildShareText(payload: SharePayload, missionBonus: number): str
   return [
     `Bug War Room - ${payload.player}`,
     `Mode: ${payload.mode}`,
+    `Rank: ${payload.rank}`,
+    `Daily Seed: ${payload.dailySeed}`,
     `Campaign Score: ${payload.campaignScore}`,
     `Base Score: ${payload.rawScore} (+${missionBonus} contract bonus)`,
     `Best Score: ${payload.bestScore}`,
+    `Daily Best Score: ${payload.dailyBestScore}`,
     `Chaos: ${payload.chaos}`,
     `Time Left: ${payload.timeLeft}m`,
     `Rounds Cleared: ${payload.rounds}`,
@@ -81,6 +84,13 @@ export function openShareCard(options: OpenShareCardOptions): boolean {
       .k { font-size: 10px; color: var(--muted); letter-spacing: 0.12em; }
       .v { margin-top: 4px; font-size: 20px; font-weight: 700; }
       .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+      .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
+      select {
+        border: 1px solid var(--line);
+        background: rgba(15, 25, 35, 0.8);
+        color: var(--text);
+        padding: 9px 12px;
+      }
       .card-stage {
         border: 1px solid var(--line);
         background: linear-gradient(160deg, rgba(255, 107, 74, 0.12), rgba(56, 189, 248, 0.08) 52%, rgba(15, 25, 35, 0.8));
@@ -95,6 +105,15 @@ export function openShareCard(options: OpenShareCardOptions): boolean {
       }
       .render-title { margin: 0; font-size: 18px; }
       .render-meta { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+      .render-badges { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+      .render-badge {
+        border: 1px solid rgba(149, 166, 184, 0.3);
+        background: rgba(22, 34, 50, 0.78);
+        padding: 4px 8px;
+        font-size: 10px;
+        color: #d6e2ef;
+        letter-spacing: 0.08em;
+      }
       .render-grid {
         margin-top: 12px;
         display: grid;
@@ -157,6 +176,7 @@ export function openShareCard(options: OpenShareCardOptions): boolean {
           <div class="render-card" id="renderCard">
             <h2 class="render-title">Bug War Room - Mission Report</h2>
             <p class="render-meta" id="renderMeta"></p>
+            <div class="render-badges" id="renderBadges"></div>
             <div class="render-grid" id="renderGrid"></div>
             <div class="render-footer" id="renderVerdict"></div>
           </div>
@@ -165,10 +185,10 @@ export function openShareCard(options: OpenShareCardOptions): boolean {
 
       <section class="panel">
         <div class="actions">
-          <button class="primary" id="downloadPngBtn">Download PNG</button>
+          <button class="primary" id="downloadPngBtn">Download Full PNG</button>
           <button id="closeBtn">Close</button>
         </div>
-        <p class="sub" style="margin-top: 8px;">Ảnh PNG sẽ chứa đầy đủ nội dung report để bạn dùng trực tiếp khi chia sẻ.</p>
+        <p class="sub" style="margin-top: 8px;">Ảnh PNG full sẽ dùng bố cục report mới để đăng trực tiếp mà không cần chỉnh sửa thêm.</p>
         <div id="state"></div>
       </section>
     </div>
@@ -202,6 +222,7 @@ export function openShareCard(options: OpenShareCardOptions): boolean {
         const summary = byId('summary');
         const state = byId('state');
         const renderMeta = byId('renderMeta');
+        const renderBadges = byId('renderBadges');
         const renderGrid = byId('renderGrid');
         const renderVerdict = byId('renderVerdict');
 
@@ -212,9 +233,12 @@ export function openShareCard(options: OpenShareCardOptions): boolean {
           const cards = [
             ['Player', player],
             ['Mode', String(payload.mode || '-')],
+            ['Rank', String(payload.rank || '-')],
+            ['Daily Seed', String(payload.dailySeed || '-')],
             ['Campaign Score', String(payload.campaignScore ?? '-')],
             ['Base Score', String(payload.rawScore ?? '-')],
             ['Best Score', String(payload.bestScore ?? '-')],
+            ['Daily Best', String(payload.dailyBestScore ?? '-')],
             ['Chaos', String(payload.chaos ?? '-')],
             ['Time Left', String(payload.timeLeft ?? '-') + 'm'],
             ['Rounds', String(payload.rounds || '-')],
@@ -225,6 +249,11 @@ export function openShareCard(options: OpenShareCardOptions): boolean {
           statsContainer.innerHTML = cards.map(([k, v]) => '<div class="cell"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>').join('');
           summary.textContent = String(payload.verdict || '');
           renderMeta.textContent = 'Play: ${PUBLIC_SHARE_URL}';
+          renderBadges.innerHTML = [
+            '<span class="render-badge">RANK: ' + String(payload.rank || '-') + '</span>',
+            '<span class="render-badge">SEED: ' + String(payload.dailySeed || '-') + '</span>',
+            '<span class="render-badge">MODE: ' + String(payload.mode || '-') + '</span>',
+          ].join('');
           renderGrid.innerHTML = cards.map(([k, v]) => '<div class="render-cell"><div class="render-k">' + k + '</div><div class="render-v">' + v + '</div></div>').join('');
           renderVerdict.textContent = String(payload.verdict || '');
 
@@ -251,10 +280,12 @@ export function openShareCard(options: OpenShareCardOptions): boolean {
 
         byId('downloadPngBtn').addEventListener('click', async () => {
           try {
-            const width = 1200;
+            const width = 1400;
             const statCards = [
+              ['Campaign Score', String(payload.campaignScore ?? '-')],
               ['Base Score', String(payload.rawScore ?? '-')],
               ['Best Score', String(payload.bestScore ?? '-')],
+              ['Daily Best', String(payload.dailyBestScore ?? '-')],
               ['Chaos', String(payload.chaos ?? '-')],
               ['Time Left', String(payload.timeLeft ?? '-') + 'm'],
               ['Rounds', String(payload.rounds || '-')],
@@ -288,12 +319,8 @@ export function openShareCard(options: OpenShareCardOptions): boolean {
                 lines.push(current);
               }
 
-              return lines
+              return lines;
             };
-
-            const verdictText = 'Verdict: ' + String(payload.verdict || '');
-            measureCtx.font = '600 20px Segoe UI';
-            const verdictLines = wrapTextByContext(measureCtx, verdictText, width - 144);
 
             const shareText = toShareText();
             const shareLinesRaw = shareText.split('\\n').filter(Boolean);
@@ -304,17 +331,23 @@ export function openShareCard(options: OpenShareCardOptions): boolean {
               wrapped.forEach((w) => normalizedLines.push(w));
             });
 
-            const headerEndY = 252;
-            const statsBlockHeight = (80 * 2) + 14;
-            const verdictStartY = headerEndY + statsBlockHeight + 40;
-            const verdictBlockHeight = Math.max(44, verdictLines.length * 28);
-            const reportTopY = verdictStartY + verdictBlockHeight + 18;
-            const reportHeaderHeight = 30;
-            const reportLinesHeight = normalizedLines.length * 18;
-            const reportBlockHeight = reportHeaderHeight + reportLinesHeight + 22;
-            const footerGap = 48;
-            const minHeight = 760;
-            const height = Math.max(minHeight, reportTopY + reportBlockHeight + footerGap);
+            const missionSummary = [
+              'Rank: ' + String(payload.rank || '-'),
+              'Mode: ' + String(payload.mode || '-'),
+              'Seed: ' + String(payload.dailySeed || '-'),
+              'Generated: ' + String(payload.generatedAt || '-'),
+            ];
+
+            const framePadding = 52;
+            const innerWidth = width - (framePadding * 2);
+            const heroHeight = 326;
+            const reportTopGap = 26;
+            const reportHeaderHeight = 42;
+            const reportLineHeight = 22;
+            const reportBottomPadding = 34;
+            const reportBlockHeight = Math.max(240, reportHeaderHeight + (normalizedLines.length * reportLineHeight) + reportBottomPadding);
+            const footerHeight = 68;
+            const height = framePadding + heroHeight + reportTopGap + reportBlockHeight + footerHeight + 28;
 
             const canvas = document.createElement('canvas');
             canvas.width = width;
@@ -325,91 +358,137 @@ export function openShareCard(options: OpenShareCardOptions): boolean {
               throw new Error('canvas_ctx');
             }
 
-            const wrapText = (text, maxWidth) => wrapTextByContext(ctx, text, maxWidth)
+            const drawRect = (x, y, w, h, fill, stroke, lineWidth = 1) => {
+              ctx.fillStyle = fill;
+              ctx.fillRect(x, y, w, h);
+              if (stroke) {
+                ctx.strokeStyle = stroke;
+                ctx.lineWidth = lineWidth;
+                ctx.strokeRect(x, y, w, h);
+              }
+            };
 
             const grad = ctx.createLinearGradient(0, 0, width, height);
-            grad.addColorStop(0, '#0f1923');
-            grad.addColorStop(0.55, '#162232');
-            grad.addColorStop(1, '#112033');
+            grad.addColorStop(0, '#0b1621');
+            grad.addColorStop(0.55, '#122537');
+            grad.addColorStop(1, '#0a141e');
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, width, height);
 
-            ctx.fillStyle = 'rgba(255, 107, 74, 0.14)';
+            ctx.fillStyle = 'rgba(255, 107, 74, 0.13)';
             ctx.beginPath();
-            ctx.arc(180, 90, 170, 0, Math.PI * 2);
+            ctx.arc(220, 130, 230, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillStyle = 'rgba(56, 189, 248, 0.14)';
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.12)';
             ctx.beginPath();
-            ctx.arc(1040, 120, 180, 0, Math.PI * 2);
+            ctx.arc(1220, 180, 280, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.strokeStyle = 'rgba(149, 166, 184, 0.4)';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(40, 40, width - 80, height - 80);
+            drawRect(28, 28, width - 56, height - 56, 'rgba(8, 14, 21, 0.15)', 'rgba(149, 166, 184, 0.36)', 2);
+
+            const heroX = framePadding;
+            const heroY = framePadding;
+            const heroW = innerWidth;
+            const heroH = heroHeight;
+            const heroLeftW = Math.floor(heroW * 0.58);
+            const heroGap = 24;
+            const heroRightW = heroW - heroLeftW - heroGap;
+            const heroRightX = heroX + heroLeftW + heroGap;
+
+            drawRect(heroX, heroY, heroLeftW, heroH, 'rgba(11, 20, 30, 0.76)', 'rgba(149, 166, 184, 0.26)', 1.5);
+            drawRect(heroRightX, heroY, heroRightW, heroH, 'rgba(11, 20, 30, 0.82)', 'rgba(149, 166, 184, 0.26)', 1.5);
 
             ctx.fillStyle = '#ffb830';
-            ctx.font = '700 20px Segoe UI';
-            ctx.fillText('// BUG WAR ROOM MISSION REPORT', 72, 94);
+            ctx.font = '700 22px Segoe UI';
+            ctx.fillText('// BUG WAR ROOM / MISSION DOSSIER', heroX + 24, heroY + 40);
 
+            const playerName = String(payload.player || 'Anonymous Commander');
+            measureCtx.font = '700 56px Segoe UI';
+            const playerLines = wrapTextByContext(measureCtx, playerName, heroLeftW - 48);
             ctx.fillStyle = '#f3f6fa';
-            ctx.font = '700 52px Segoe UI';
-            ctx.fillText(String(payload.player || 'Anonymous Commander'), 72, 154);
+            ctx.font = '700 56px Segoe UI';
+            playerLines.slice(0, 2).forEach((line, idx) => {
+              ctx.fillText(line, heroX + 24, heroY + 108 + (idx * 62));
+            });
 
-            ctx.fillStyle = '#95a6b8';
-            ctx.font = '500 22px Segoe UI';
-            ctx.fillText('Mode: ' + String(payload.mode || '-') + '   |   Campaign Score: ' + String(payload.campaignScore ?? '-'), 72, 198);
+            const badges = [
+              'RANK ' + String(payload.rank || '-'),
+              'SEED ' + String(payload.dailySeed || '-'),
+              'MODE ' + String(payload.mode || '-'),
+            ];
 
+            let badgeX = heroX + 24;
+            let badgeY = heroY + 206;
+            const badgeRightLimit = heroX + heroLeftW - 24;
+            badges.forEach((badge) => {
+              const badgeWidth = Math.max(120, (badge.length * 9) + 24);
+              if (badgeX + badgeWidth > badgeRightLimit) {
+                badgeX = heroX + 24;
+                badgeY += 42;
+              }
+              ctx.fillStyle = 'rgba(22, 34, 50, 0.86)';
+              ctx.fillRect(badgeX, badgeY, badgeWidth, 30);
+              ctx.strokeStyle = 'rgba(149, 166, 184, 0.32)';
+              ctx.strokeRect(badgeX, badgeY, badgeWidth, 30);
+              ctx.fillStyle = '#d6e2ef';
+              ctx.font = '600 13px Segoe UI';
+              ctx.fillText(badge, badgeX + 10, badgeY + 20);
+              badgeX += badgeWidth + 10;
+            });
+
+            measureCtx.font = '600 23px Segoe UI';
+            const verdictLines = wrapTextByContext(measureCtx, String(payload.verdict || '-'), heroLeftW - 56);
             ctx.fillStyle = '#95a6b8';
             ctx.font = '500 18px Segoe UI';
-            ctx.fillText('Generated: ' + String(payload.generatedAt || '-'), 72, 224);
-
-            const gridStartX = 72;
-            const gridStartY = 252;
-            const cellW = 340;
-            const cellH = 80;
-            const gapX = 24;
-            const gapY = 14;
-
-            statCards.forEach(([k, v], i) => {
-              const col = i % 3;
-              const row = Math.floor(i / 3);
-              const x = gridStartX + col * (cellW + gapX);
-              const y = gridStartY + row * (cellH + gapY);
-
-              ctx.fillStyle = 'rgba(15, 25, 35, 0.66)';
-              ctx.fillRect(x, y, cellW, cellH);
-              ctx.strokeStyle = 'rgba(149, 166, 184, 0.28)';
-              ctx.strokeRect(x, y, cellW, cellH);
-
-              ctx.fillStyle = '#95a6b8';
-              ctx.font = '600 15px Segoe UI';
-              ctx.fillText(k, x + 16, y + 30);
-
-              ctx.fillStyle = '#f3f6fa';
-              ctx.font = '700 28px Segoe UI';
-              ctx.fillText(v, x + 16, y + 66);
+            missionSummary.forEach((line, idx) => {
+              ctx.fillText(line, heroX + 24, heroY + 262 + (idx * 24));
             });
 
+            const verdictBoxY = heroY + heroH - 92;
+            drawRect(heroX + 18, verdictBoxY, heroLeftW - 36, 62, 'rgba(255, 184, 48, 0.1)', 'rgba(255, 184, 48, 0.4)', 1);
             ctx.fillStyle = '#ffb830';
+            ctx.font = '700 12px Segoe UI';
+            ctx.fillText('MISSION VERDICT', heroX + 34, verdictBoxY + 18);
+            ctx.fillStyle = '#f3f6fa';
             ctx.font = '600 20px Segoe UI';
-            verdictLines.forEach((line, idx) => {
-              ctx.fillText(line, 72, verdictStartY + (idx * 28));
+            verdictLines.slice(0, 1).forEach((line, idx) => {
+              ctx.fillText(line, heroX + 34, verdictBoxY + 46 + (idx * 24));
             });
 
-            ctx.fillStyle = 'rgba(15, 25, 35, 0.72)';
-            ctx.fillRect(72, reportTopY, width - 144, reportBlockHeight);
-            ctx.strokeStyle = 'rgba(149, 166, 184, 0.26)';
-            ctx.strokeRect(72, reportTopY, width - 144, reportBlockHeight);
+            const rightTitleY = heroY + 40;
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = '700 22px Segoe UI';
+            ctx.fillText('TACTICAL METRICS', heroRightX + 20, rightTitleY);
 
+            const rightGridY = heroY + 64;
+            const rightGridGap = 14;
+            const rightCardW = Math.floor((heroRightW - 20 - 20 - rightGridGap) / 2);
+            const rightCardH = 58;
+            statCards.forEach(([k, v], i) => {
+              const col = i % 2;
+              const row = Math.floor(i / 2);
+              const cardX = heroRightX + 20 + (col * (rightCardW + rightGridGap));
+              const cardY = rightGridY + (row * (rightCardH + 12));
+              drawRect(cardX, cardY, rightCardW, rightCardH, 'rgba(15, 25, 35, 0.7)', 'rgba(149, 166, 184, 0.26)', 1);
+              ctx.fillStyle = '#95a6b8';
+              ctx.font = '600 12px Segoe UI';
+              ctx.fillText(k, cardX + 12, cardY + 20);
+              ctx.fillStyle = '#f3f6fa';
+              ctx.font = '700 22px Segoe UI';
+              ctx.fillText(v, cardX + 12, cardY + 46);
+            });
+
+            const reportTopY = heroY + heroH + reportTopGap;
+            drawRect(heroX, reportTopY, innerWidth, reportBlockHeight, 'rgba(11, 20, 30, 0.82)', 'rgba(149, 166, 184, 0.25)', 1.5);
             ctx.fillStyle = '#ffb830';
-            ctx.font = '700 14px Segoe UI';
-            ctx.fillText('FULL SHARE REPORT', 88, reportTopY + 24);
+            ctx.font = '700 16px Segoe UI';
+            ctx.fillText('FULL INCIDENT TRANSCRIPT', heroX + 20, reportTopY + 28);
 
             ctx.fillStyle = '#d6e2ef';
-            ctx.font = '500 14px Segoe UI';
+            ctx.font = '500 15px Segoe UI';
             normalizedLines.forEach((line, idx) => {
-              ctx.fillText(line, 88, reportTopY + 52 + (idx * 18));
+              ctx.fillText(line, heroX + 20, reportTopY + 58 + (idx * reportLineHeight));
             });
 
             ctx.fillStyle = '#38bdf8';
@@ -419,9 +498,9 @@ export function openShareCard(options: OpenShareCardOptions): boolean {
             const link = document.createElement('a');
             const safeName = String(payload.player || 'commander').replace(/[^a-zA-Z0-9-_]/g, '-').slice(0, 30) || 'commander';
             link.href = canvas.toDataURL('image/png');
-            link.download = 'bug-war-room-' + safeName + '.png';
+            link.download = 'bug-war-room-full-' + safeName + '.png';
             link.click();
-            state.textContent = 'Đã tải xuống PNG share card.';
+            state.textContent = 'Đã tải xuống PNG Full Report (layout mới).';
           } catch {
             state.textContent = 'Không thể tạo PNG trên trình duyệt này.';
           }

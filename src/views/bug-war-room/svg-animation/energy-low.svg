@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="320" height="320" style="overflow: visible;">
+    <style>
+        /* Nhịp thở rất chậm và nặng nề (4s/chu kỳ) */
+        .energy-low-body {
+            transform-origin: 100px 165px;
+            animation: slow-heavy-breathe 4s ease-in-out infinite;
+        }
+
+        @keyframes slow-heavy-breathe {
+            /* Hít vào nhẹ - Dáng xẹp sẵn do mệt */
+            0%, 100% { transform: scale(1.08, 0.85) translateY(8px); }
+            /* Thở hắt ra - Cơ thể chảy nhão / xẹp lép xuống đất */
+            50% { transform: scale(1.22, 0.72) translateY(18px); }
+        }
+
+        /* Bóng đổ giãn rộng ra khi cơ thể chảy xẹp xuống */
+        .energy-low-shadow {
+            transform-origin: 100px 165px;
+            animation: slow-shadow 4s ease-in-out infinite;
+        }
+
+        @keyframes slow-shadow {
+            0%, 100% { transform: scale(1.1); opacity: 0.3; }
+            50% { transform: scale(1.3); opacity: 0.45; }
+        }
+
+        /* Mắt nhắm chậm chạp (Nặng mí) */
+        .tired-blink {
+            transform-origin: 100px 100px;
+            animation: heavy-blink 4s infinite;
+        }
+
+        @keyframes heavy-blink {
+            0%, 40%, 60%, 100% { transform: scaleY(1); }
+            48%, 52% { transform: scaleY(0.1); } /* Chớp mắt chậm ngay lúc xẹp nhất */
+        }
+
+        /* Giọt mồ hôi trượt chậm rãi trên má */
+        .tired-sweat {
+            animation: sweat-slide 4s ease-in-out infinite;
+        }
+
+        @keyframes sweat-slide {
+            0% { transform: translateY(-5px); opacity: 0; }
+            20% { transform: translateY(0); opacity: 0.8; }
+            80% { transform: translateY(18px); opacity: 0.8; }
+            95%, 100% { transform: translateY(22px); opacity: 0; }
+        }
+        
+        /* Điểm bắt sáng mờ hơn bình thường một chút để bớt độ "căng bóng" */
+        .dim-highlight {
+            opacity: 0.25;
+        }
+    </style>
+
+    <!-- Bóng dưới mặt đất -->
+    <ellipse class="energy-low-shadow" cx="100" cy="165" rx="55" ry="12" fill="#000000" />
+
+    <!-- NHÓM CƠ THỂ SLIME (Áp dụng nhịp thở chậm, chảy xẹp) -->
+    <g class="energy-low-body">
+        
+        <!-- Thân hình Slime màu xanh lá -->
+        <path d="M 50 145 C 50 85, 70 50, 100 50 C 130 50, 150 85, 150 145 C 160 145, 160 165, 100 165 C 40 165, 40 145, 50 145 Z" fill="#34d399" />
+
+        <!-- Điểm nhấn bắt sáng (Highlight bị mờ đi cho thấy sự kém sức sống) -->
+        <path class="dim-highlight" d="M 70 75 Q 100 55 130 75" stroke="#ffffff" stroke-width="6" stroke-linecap="round" fill="none" />
+
+        <!-- KHUÔN MẶT LỜ ĐỜ MỆT MỎI -->
+        <g>
+            <!-- Nhóm Mắt chớp chậm -->
+            <g class="tired-blink">
+                <!-- Mắt trái (Mí sụp hơi ngang) -->
+                <path d="M 72 98 Q 80 94 88 98" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" fill="none" />
+                <circle cx="80" cy="102" r="2.5" fill="#0f172a" /> <!-- Con ngươi lờ đờ ở dưới -->
+
+                <!-- Mắt phải -->
+                <path d="M 112 98 Q 120 94 128 98" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" fill="none" />
+                <circle cx="120" cy="102" r="2.5" fill="#0f172a" /> <!-- Con ngươi lờ đờ ở dưới -->
+            </g>
+
+            <!-- Quầng thâm mắt (Mệt mỏi) -->
+            <path d="M 72 108 Q 80 112 88 108" stroke="#064e3b" stroke-width="2.5" fill="none" opacity="0.3" stroke-linecap="round" />
+            <path d="M 112 108 Q 120 112 128 108" stroke="#064e3b" stroke-width="2.5" fill="none" opacity="0.3" stroke-linecap="round" />
+
+            <!-- Má hồng mờ nhạt -->
+            <ellipse cx="65" cy="112" rx="8" ry="4" fill="#ef4444" opacity="0.15" />
+            <ellipse cx="135" cy="112" rx="8" ry="4" fill="#ef4444" opacity="0.15" />
+
+            <!-- Miệng mếu xệch thở dốc nhẹ -->
+            <path d="M 88 120 Q 100 114 112 120" stroke="#0f172a" stroke-width="3.5" fill="none" stroke-linecap="round" />
+        </g>
+
+        <!-- GIỌT MỒ HÔI LẠNH TRƯỢT XUỐNG -->
+        <path class="tired-sweat" d="M 132 85 C 138 95, 138 100, 132 100 C 126 100, 126 95, 132 85 Z" fill="#93c5fd" />
+    </g>
+</svg>

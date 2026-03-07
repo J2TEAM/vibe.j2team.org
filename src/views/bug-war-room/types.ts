@@ -37,6 +37,8 @@ export interface RoundLog {
   action: string
   note: string
   impact: string
+  deltaScore?: number
+  chaosDelta?: number
 }
 
 export interface TacticalNode {
@@ -70,9 +72,12 @@ export interface RandomEvent {
 export interface SharePayload {
   player: string
   mode: string
+  rank: string
+  dailySeed: string
   campaignScore: number
   rawScore: number
   bestScore: number
+  dailyBestScore: number
   chaos: number
   timeLeft: number
   rounds: string

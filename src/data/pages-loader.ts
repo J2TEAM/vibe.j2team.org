@@ -16,12 +16,7 @@ export const pages: PageInfo[] = Object.entries(metaModules)
   }))
   .filter((p) => p.path !== '')
   .sort((a, b) => {
-    const orderA = a.order ?? Number.MAX_SAFE_INTEGER
-    const orderB = b.order ?? Number.MAX_SAFE_INTEGER
-
-    if (orderA !== orderB) {
-      return orderA - orderB
-    }
-
+    if (a.path === '/hello-world') return 1
+    if (b.path === '/hello-world') return -1
     return a.name.localeCompare(b.name)
   })

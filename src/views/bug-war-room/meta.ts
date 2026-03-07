@@ -5,7 +5,6 @@ const meta: PageMeta = {
   description: 'Mini game mô phỏng xử lý sự cố production: chọn chiến thuật và giữ hệ thống sống sót.',
   author: 'TranQui004',
   facebook: 'https://github.com/TranQui004',
-  order: 2,
 }
 
 export default meta

@@ -1,8 +1,8 @@
 import type { GameMode, Incident, RandomEvent, Severity, TacticalEdge, TacticalNode } from './types'
 
 export const maxRoundsByMode: Record<GameMode, number> = {
-  normal: 6,
-  hardcore: 8,
+  normal: 12,
+  hardcore: 16,
 }
 
 export const randomEventChanceByMode: Record<GameMode, number> = {

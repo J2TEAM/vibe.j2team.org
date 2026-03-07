@@ -5,7 +5,6 @@ const meta: PageMeta = {
   description: 'Trang mẫu đầu tiên - bắt đầu từ đây!',
   author: 'J2TEAM',
   facebook: 'https://www.facebook.com/groups/j2team.community',
-  order: 1,
 }
 
 export default meta
