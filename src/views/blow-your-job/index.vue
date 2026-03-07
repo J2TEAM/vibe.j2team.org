@@ -1,24 +1,23 @@
 <template>
   <div class="blow-page" :class="`state-${gameState}`">
-    <!-- Sky background with animated clouds -->
-    <div class="sky-bg">
-      <div class="cloud cloud-1">☁️</div>
-      <div class="cloud cloud-2">☁️</div>
-      <div class="cloud cloud-3">☁️</div>
-      <div class="sun">☀️</div>
-      <div class="ground"></div>
+    <!-- Dark editorial background -->
+    <div class="editorial-bg">
+      <div class="bg-grid"></div>
+      <div class="bg-noise"></div>
+      <span class="bg-number">💨</span>
+      <div class="vol-badge">VOL.01 / 2026</div>
     </div>
 
     <!-- Home link -->
     <router-link to="/" class="home-link">
-      <span>🏠</span> Home
+      &larr; Home
     </router-link>
 
     <!-- ===== INTRO STATE ===== -->
     <div v-if="gameState === 'intro'" class="screen intro-screen">
       <div class="title-block">
-        <div class="title-emoji">💨</div>
-        <h1 class="game-title">BLOW<br /><span class="title-accent-2">YOUR</span><span class="title-accent">JOB</span></h1>
+        <div class="section-marker">// GAME</div>
+        <h1 class="game-title">BLOW<br /><span class="title-accent-2">YOUR</span><span class="title-accent"> JOB</span></h1>
         <p class="subtitle">Phổi bạn có khoẻ và lâu không?</p>
       </div>
 
@@ -113,7 +112,6 @@
       >
         <span v-if="!customObjectUrl" class="fly-emoji">{{ selectedObject.emoji }}</span>
         <img v-else :src="customObjectUrl" alt="object" class="fly-img" />
-        <!-- wind trails -->
         <div class="trails" v-if="currentVolume > 0.1">
           <span class="trail t1">~</span>
           <span class="trail t2">~</span>
@@ -132,14 +130,15 @@
 
       <!-- Volume bars decoration -->
       <div class="vol-bars">
-        <div v-for="i in 12" :key="i" class="vol-bar" :style="{ height: `${Math.random() * currentVolume * 60 + 8}px`, opacity: currentVolume > 0.05 ? 1 : 0.3 }"></div>
+        <div v-for="i in 12" :key="i" class="vol-bar"
+             :style="{ height: `${Math.random() * currentVolume * 60 + 8}px`, opacity: currentVolume > 0.05 ? 1 : 0.3 }">
+        </div>
       </div>
     </div>
 
     <!-- ===== RESULT STATE ===== -->
     <div v-if="gameState === 'result'" class="screen result-screen">
       <div class="result-card" :class="`tier-${resultTier}`">
-        <!-- Object at final height (smaller preview) -->
         <div class="result-object">
           <span v-if="!customObjectUrl" class="result-emoji">{{ selectedObject.emoji }}</span>
           <img v-else :src="customObjectUrl" alt="object" class="result-img" />
@@ -157,7 +156,6 @@
 
           <p class="tier-desc">{{ tierData[resultTier].desc }}</p>
 
-          <!-- Stats row: peak dB + duration -->
           <div class="stats-row">
             <div class="stat-badge">
               <span class="stat-icon">🎙️</span>
@@ -174,7 +172,6 @@
             </div>
           </div>
 
-          <!-- Stars -->
           <div class="stars">
             <span v-for="i in 3" :key="i" class="star" :class="{ lit: i <= tierData[resultTier].stars }">⭐</span>
           </div>
@@ -182,12 +179,8 @@
       </div>
 
       <div class="result-actions">
-        <button class="retry-btn" @click="resetGame">
-          🔄 Thử lại
-        </button>
-        <button class="change-btn" @click="goToIntro">
-          🎯 Đổi đối tượng
-        </button>
+        <button class="retry-btn" @click="resetGame">🔄 Thử lại</button>
+        <button class="change-btn" @click="goToIntro">🎯 Đổi đối tượng</button>
       </div>
     </div>
   </div>
@@ -209,10 +202,10 @@ interface DefaultObject {
 // ---- State ----
 const gameState = ref<GameState>('intro')
 const currentVolume = ref(0)
-const objectPosition = ref(5)   // bottom %
-const objectX = ref(50)         // left % (center of object)
+const objectPosition = ref(5)
+const objectX = ref(50)
 const objectScale = ref(1)
-const rotationAngle = ref(0)    // degrees, driven by physics each frame
+const rotationAngle = ref(0)
 const finalScore = ref(0)
 const peakDb = ref(-60)
 const blowDurationSec = ref(0)
@@ -229,7 +222,7 @@ const defaultObjects: DefaultObject[] = [
   { id: 'star', emoji: '🐍', name: 'Đồng nghiệp' },
 ]
 
-const selectedObject = ref<DefaultObject>(defaultObjects[0])
+const selectedObject = ref<DefaultObject>(defaultObjects[0]!)
 
 const tierData = {
   noob: {
@@ -260,8 +253,8 @@ let stream: MediaStream | null = null
 let animFrame: number | null = null
 let maxReached = 0
 let maxDb = -60
-let totalDbSum = 0      // sum of normalised dB values while blowing
-let totalBlowFrames = 0 // frame count while blowing, for avg dB
+let totalDbSum = 0
+let totalBlowFrames = 0
 let silenceTimer = 0
 let noBlowFrames = 0
 let blowDetected = false
@@ -270,16 +263,14 @@ let totalBlowMs = 0
 let gameTimer: ReturnType<typeof setTimeout> | null = null
 let countdownTimer: ReturnType<typeof setTimeout> | null = null
 
-// Physics (non-reactive, updated every rAF frame)
-let velX = 0        // horizontal velocity % per frame
-let velY = 0        // vertical velocity % per frame
-let spinSpeed = 0   // rotation degrees per frame
+let velX = 0
+let velY = 0
+let spinSpeed = 0
 
-// dB helpers
 const DB_MIN = -60
 const DB_MAX = -5
 const DB_BLOW_THRESHOLD = -35
-const NO_BLOW_TIMEOUT_FRAMES = 130  // ~2.2s at 60fps
+const NO_BLOW_TIMEOUT_FRAMES = 130
 
 function computeDb(analyserNode: AnalyserNode): number {
   const buf = new Float32Array(analyserNode.fftSize)
@@ -293,7 +284,6 @@ function dbToNorm(db: number): number {
   return Math.max(0, Math.min(1, (db - DB_MIN) / (DB_MAX - DB_MIN)))
 }
 
-// ---- Methods ----
 function selectDefaultObject(obj: DefaultObject) {
   selectedObject.value = obj
   customObjectUrl.value = null
@@ -346,7 +336,6 @@ function startCountdown() {
 
 function startGame() {
   gameState.value = 'playing'
-  // Reset position & physics
   objectPosition.value = 5
   objectX.value = 50
   objectScale.value = 1
@@ -354,7 +343,6 @@ function startGame() {
   velX = 0
   velY = 0
   spinSpeed = 0
-  // Reset tracking
   maxReached = 0
   maxDb = DB_MIN
   totalDbSum = 0
@@ -383,7 +371,6 @@ function tickAudio() {
   const now = performance.now()
 
   if (isBlow) {
-    // Kick horizontal randomly at start of each new blow streak
     if (!blowDetected || silenceTimer > 0) {
       blowStartTs = now
       velX += (Math.random() - 0.5) * 1.6
@@ -397,21 +384,14 @@ function tickAudio() {
       peakDb.value = db
     }
 
-    // Accumulate for average dB score
     totalDbSum += vol
     totalBlowFrames++
 
-    // Live duration
     blowDurationSec.value = (totalBlowMs + (now - blowStartTs)) / 1000
 
-    // Upward push proportional to volume
     velY = vol * 2.2
-
-    // Gentle continuous horizontal drift while blowing — makes it wobble
     velX += (Math.random() - 0.5) * 0.18
     velX = Math.max(-3.0, Math.min(3.0, velX))
-
-    // Spin speed tracks horizontal direction & power
     spinSpeed = velX * 4 + (Math.random() - 0.5) * vol * 8
 
     maxReached = Math.max(maxReached, objectPosition.value)
@@ -423,16 +403,13 @@ function tickAudio() {
         return
       }
     } else {
-      // Finalise streak timing on first silent frame
       if (silenceTimer === 0 && blowStartTs > 0) {
         totalBlowMs += now - blowStartTs
         blowStartTs = 0
       }
       silenceTimer++
 
-      // Gravity pulls object back down
       velY = Math.max(velY - 0.14, -2.0)
-      // Air resistance bleeds off horizontal & spin
       velX *= 0.96
       spinSpeed *= 0.94
 
@@ -443,25 +420,21 @@ function tickAudio() {
     }
   }
 
-  // ---- Apply physics ----
   objectPosition.value = Math.max(4, Math.min(92, objectPosition.value + velY))
   objectX.value = objectX.value + velX
   rotationAngle.value = rotationAngle.value + spinSpeed
 
-  // Bounce off left wall
   if (objectX.value < 6) {
     objectX.value = 6
-    velX = Math.abs(velX) * 0.7        // reverse & lose a bit of energy
-    spinSpeed = Math.abs(spinSpeed)     // spin feels natural after bounce
+    velX = Math.abs(velX) * 0.7
+    spinSpeed = Math.abs(spinSpeed)
   }
-  // Bounce off right wall
   if (objectX.value > 94) {
     objectX.value = 94
     velX = -Math.abs(velX) * 0.7
     spinSpeed = -Math.abs(spinSpeed)
   }
 
-  // Scale grows with height
   objectScale.value = 1 + (objectPosition.value / 100) * 2.5
 
   animFrame = requestAnimationFrame(tickAudio)
@@ -471,7 +444,6 @@ function endGame() {
   if (animFrame) cancelAnimationFrame(animFrame)
   if (gameTimer) clearTimeout(gameTimer)
 
-  // Finalise duration if still mid-blow when timer fires
   if (blowStartTs > 0) {
     totalBlowMs += performance.now() - blowStartTs
     blowStartTs = 0
@@ -479,12 +451,9 @@ function endGame() {
   blowDurationSec.value = totalBlowMs / 1000
   currentVolume.value = 0
 
-  // Score = average normalised dB × duration (seconds) × 1000
-  // Max possible ≈ 20000 (perfect 8s blast at peak volume)
   const avgDbNorm = totalBlowFrames > 0 ? totalDbSum / totalBlowFrames : 0
   finalScore.value = Math.round(avgDbNorm * blowDurationSec.value * 1000)
 
-  // Combined tier: 60% peak dB power + 40% endurance (max 8s)
   const powerScore = dbToNorm(maxDb)
   const enduranceScore = Math.min(blowDurationSec.value / 12, 1)
   const combined = powerScore * 0.6 + enduranceScore * 0.4
@@ -536,76 +505,100 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* ---- Base ---- */
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Baloo+2:wght@400;600;700;800&display=swap');
+/* ---- Design tokens (from project main.css) ---- */
+/* bg-deep: #0F1923 | bg-surface: #162232 | bg-elevated: #1E2F42  */
+/* coral: #FF6B4A | amber: #FFB830 | sky: #38BDF8                  */
+/* text-primary: #F0EDE6 | text-secondary: #8B9DB5 | dim: #4A6180  */
+/* border-default: #253549                                          */
+/* Fonts: Anybody (display) | Be Vietnam Pro (body)                 */
 
+/* ---- Base ---- */
 .blow-page {
-  font-family: 'Baloo 2', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   min-height: 100vh;
   width: 100%;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg, #bde4ff 0%, #e8f7ff 60%, #d4f5c0 100%);
+  background: #0F1923;
+  color: #F0EDE6;
 }
 
-/* ---- Sky BG ---- */
-.sky-bg {
+/* ---- Editorial background ---- */
+.editorial-bg {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-}
-.sun {
-  position: absolute;
-  top: 40px;
-  right: 60px;
-  font-size: 64px;
-  animation: sunSpin 20s linear infinite;
-  filter: drop-shadow(0 0 20px #ffd60055);
-}
-@keyframes sunSpin { to { transform: rotate(360deg); } }
-
-.cloud {
-  position: absolute;
-  font-size: 48px;
-  opacity: 0.75;
-  animation: drift linear infinite;
-}
-.cloud-1 { top: 12%; left: -80px; animation-duration: 30s; animation-delay: 0s; font-size: 36px; }
-.cloud-2 { top: 28%; left: -80px; animation-duration: 45s; animation-delay: -15s; }
-.cloud-3 { top: 18%; left: -80px; animation-duration: 38s; animation-delay: -7s; font-size: 56px; }
-@keyframes drift { from { transform: translateX(-100px); } to { transform: translateX(110vw); } }
-
-.ground {
-  position: absolute;
-  bottom: 0;
-  left: 0; right: 0;
-  height: 60px;
-  background: linear-gradient(180deg, #86efac, #4ade80);
-  border-radius: 50% 50% 0 0 / 20px 20px 0 0;
+  overflow: hidden;
 }
 
-/* ---- Home link ---- */
+/* Subtle dot grid */
+.bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, #253549 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.6;
+}
+
+/* Noise overlay */
+.bg-noise {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.025;
+}
+
+/* Large faded background emoji */
+.bg-number {
+  position: absolute;
+  bottom: -60px;
+  right: -40px;
+  font-size: 340px;
+  opacity: 0.03;
+  line-height: 1;
+  user-select: none;
+  filter: grayscale(1);
+}
+
+/* VOL badge */
+.vol-badge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: #FF6B4A;
+  color: #0F1923;
+  font-family: 'Anybody', cursive;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 2px;
+  padding: 6px 12px;
+  transform: rotate(3deg);
+}
+
+/* ---- Home link (design system pattern) ---- */
 .home-link {
   position: fixed;
   top: 16px;
   left: 16px;
   z-index: 100;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: white;
-  color: #374151;
+  gap: 8px;
+  border: 1px solid #253549;
+  background: #162232;
+  color: #8B9DB5;
   text-decoration: none;
-  padding: 8px 16px;
-  border-radius: 999px;
+  padding: 8px 20px;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 14px;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-  border: 2px solid #e5e7eb;
-  transition: transform 0.15s, box-shadow 0.15s;
+  font-weight: 500;
+  transition: border-color 0.2s, color 0.2s;
 }
-.home-link:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+.home-link:hover {
+  border-color: #FF6B4A;
+  color: #F0EDE6;
+}
 
 /* ---- Screen base ---- */
 .screen {
@@ -620,206 +613,259 @@ onUnmounted(() => {
 }
 
 /* ---- INTRO ---- */
-.intro-screen { gap: 24px; }
+.intro-screen { gap: 28px; }
 
 .title-block { text-align: center; }
-.title-emoji { font-size: 72px; line-height: 1; margin-bottom: 8px; animation: titleBounce 1.5s ease-in-out infinite; }
-@keyframes titleBounce {
-  0%, 100% { transform: translateY(0) rotate(-5deg); }
-  50% { transform: translateY(-12px) rotate(5deg); }
-}
-.game-title {
-  font-family: 'Fredoka One', cursive;
-  font-size: clamp(48px, 10vw, 80px);
-  line-height: 0.95;
-  color: #1e3a5f;
-  margin: 0;
-  letter-spacing: -1px;
-}
-.title-accent {
-  color: #f97316;
-  -webkit-text-stroke: 2px #1e3a5f;
-  paint-order: stroke fill;
-}
-.title-accent-2 {
-  color: #ffffff;
-  -webkit-text-stroke: 2px #1e3a5f;
-  paint-order: stroke fill;
-}
-.subtitle {
-  margin-top: 12px;
-  font-size: 18px;
-  font-weight: 700;
-  color: #475569;
+
+.section-marker {
+  font-family: 'Anybody', cursive;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: #FF6B4A;
+  margin-bottom: 12px;
 }
 
-/* Object chooser */
+.game-title {
+  font-family: 'Anybody', cursive;
+  font-size: clamp(52px, 11vw, 88px);
+  font-weight: 800;
+  line-height: 0.92;
+  color: #F0EDE6;
+  margin: 0;
+  letter-spacing: -2px;
+}
+.title-accent {
+  color: #FF6B4A;
+}
+.title-accent-2 {
+  color: #FFB830;
+}
+
+.subtitle {
+  margin-top: 16px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #8B9DB5;
+}
+
+/* Object chooser card */
 .object-chooser {
-  background: white;
-  border-radius: 24px;
+  background: #162232;
+  border: 1px solid #253549;
   padding: 24px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-  border: 3px solid #e0f2fe;
   width: 100%;
   max-width: 480px;
+  transition: border-color 0.2s;
 }
-.chooser-label, .upload-label {
-  font-size: 15px;
-  font-weight: 800;
-  color: #374151;
-  margin: 0 0 12px;
+.object-chooser:hover { border-color: #FF6B4A; }
+
+.chooser-label {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #8B9DB5;
+  margin: 0 0 14px;
   text-align: center;
+  letter-spacing: 0.5px;
 }
+
 .object-options {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 20px;
 }
+
 .obj-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
   padding: 12px 8px;
-  border: 2.5px solid #e5e7eb;
-  border-radius: 16px;
-  background: #f9fafb;
+  border: 1px solid #253549;
+  background: #0F1923;
   cursor: pointer;
   transition: all 0.15s;
-  font-family: 'Baloo 2', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  color: #F0EDE6;
 }
-.obj-btn:hover { border-color: #60a5fa; background: #eff6ff; transform: scale(1.04); }
-.obj-btn.selected { border-color: #3b82f6; background: #dbeafe; box-shadow: 0 0 0 3px #93c5fd44; }
-.obj-emoji { font-size: 32px; }
-.obj-name { font-size: 11px; font-weight: 700; color: #6b7280; }
+.obj-btn:hover {
+  border-color: #38BDF8;
+  background: #162232;
+  transform: translateY(-2px);
+}
+.obj-btn.selected {
+  border-color: #FF6B4A;
+  background: rgba(255, 107, 74, 0.08);
+}
+
+.obj-emoji { font-size: 28px; }
+.obj-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: #8B9DB5;
+  text-align: center;
+  line-height: 1.2;
+}
 
 .upload-section { text-align: center; }
-.upload-label { color: #9ca3af; font-weight: 600; font-size: 13px; margin-bottom: 10px; }
+.upload-label {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  color: #4A6180;
+  font-weight: 500;
+  font-size: 12px;
+  margin-bottom: 10px;
+  display: block;
+}
+
 .upload-btn {
   display: inline-block;
-  background: linear-gradient(135deg, #fde68a, #fbbf24);
-  color: #92400e;
+  border: 1px solid #FFB830;
+  background: rgba(255, 184, 48, 0.08);
+  color: #FFB830;
   padding: 10px 24px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 800;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  border: 2px solid #f59e0b;
-  transition: transform 0.15s, box-shadow 0.15s;
-  box-shadow: 0 4px 12px rgba(251,191,36,0.3);
+  transition: background 0.15s, transform 0.15s;
+  letter-spacing: 0.5px;
 }
-.upload-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(251,191,36,0.4); }
+.upload-btn:hover {
+  background: rgba(255, 184, 48, 0.15);
+  transform: translateY(-2px);
+}
 .hidden-input { display: none; }
+
 .custom-preview {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   margin-top: 12px;
   padding: 8px 12px;
-  background: #f0fdf4;
-  border: 2px solid #86efac;
-  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid #38BDF8;
 }
-.custom-img { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; }
+.custom-img { width: 40px; height: 40px; object-fit: contain; }
 .remove-btn {
-  background: #fecaca;
-  border: none;
-  border-radius: 999px;
+  background: rgba(255, 107, 74, 0.15);
+  border: 1px solid #FF6B4A;
   width: 24px;
   height: 24px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
-  color: #dc2626;
+  color: #FF6B4A;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.15s;
 }
+.remove-btn:hover { background: rgba(255, 107, 74, 0.3); }
 
 .start-btn {
-  font-family: 'Fredoka One', cursive;
-  font-size: 26px;
-  padding: 18px 48px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
-  color: white;
-  border: 4px solid #1d4ed8;
+  font-family: 'Anybody', cursive;
+  font-size: 22px;
+  font-weight: 700;
+  padding: 16px 48px;
+  background: #FF6B4A;
+  color: #0F1923;
+  border: none;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(59,130,246,0.4), 0 4px 0 #1d4ed8;
-  transition: transform 0.15s, box-shadow 0.15s;
   letter-spacing: 1px;
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+  box-shadow: 4px 4px 0 #9a3412;
 }
 .start-btn:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 28px rgba(59,130,246,0.5), 0 4px 0 #1d4ed8;
+  background: #ff835e;
+  transform: translateY(-3px);
+  box-shadow: 4px 7px 0 #9a3412;
 }
-.start-btn:active { transform: translateY(0); box-shadow: 0 4px 12px rgba(59,130,246,0.3), 0 2px 0 #1d4ed8; }
+.start-btn:active {
+  transform: translateY(0);
+  box-shadow: 2px 2px 0 #9a3412;
+}
 
 /* ---- PERMISSION ---- */
 .permission-card {
-  background: white;
-  border-radius: 32px;
+  background: #162232;
+  border: 1px solid #253549;
   padding: 48px 40px;
   text-align: center;
-  box-shadow: 0 16px 48px rgba(0,0,0,0.12);
-  border: 3px solid #e0f2fe;
   max-width: 360px;
+  width: 100%;
 }
-.perm-icon { font-size: 72px; animation: pulse 1s ease-in-out infinite; }
-@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
-/* Vietnamese → Baloo 2 */
+.perm-icon {
+  font-size: 64px;
+  animation: pulse 1s ease-in-out infinite;
+  display: block;
+  margin-bottom: 16px;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
 .perm-title {
-  font-family: 'Baloo 2', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 800;
-  font-size: 28px;
-  color: #1e3a5f;
-  margin: 12px 0 8px;
+  font-size: 24px;
+  color: #F0EDE6;
+  margin: 0 0 10px;
 }
-.perm-text { color: #6b7280; font-size: 16px; font-weight: 600; margin-bottom: 24px; }
+.perm-text {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  color: #8B9DB5;
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
 .perm-dots { display: flex; gap: 10px; justify-content: center; }
 .dot {
-  width: 12px; height: 12px;
-  background: #93c5fd;
+  width: 10px; height: 10px;
+  background: #253549;
   border-radius: 50%;
   animation: dotBounce 1s ease-in-out infinite;
 }
 .dot-2 { animation-delay: 0.2s; }
 .dot-3 { animation-delay: 0.4s; }
-@keyframes dotBounce { 0%, 100% { transform: translateY(0); background: #93c5fd; } 50% { transform: translateY(-8px); background: #3b82f6; } }
+@keyframes dotBounce {
+  0%, 100% { transform: translateY(0); background: #253549; }
+  50% { transform: translateY(-8px); background: #FF6B4A; }
+}
 
 /* ---- READY ---- */
 .countdown-wrap { text-align: center; }
-/* Vietnamese → Baloo 2 */
 .get-ready-text {
-  font-family: 'Baloo 2', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 800;
-  font-size: 32px;
-  color: #1e3a5f;
+  font-size: 28px;
+  color: #8B9DB5;
   margin-bottom: 16px;
-  letter-spacing: 3px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
 }
 .countdown-num {
-  font-family: 'Fredoka One', cursive;
-  font-size: 120px;
-  color: #f97316;
+  font-family: 'Anybody', cursive;
+  font-size: 140px;
+  font-weight: 800;
+  color: #FF6B4A;
   line-height: 1;
   animation: countPop 1s ease-in-out;
-  text-shadow: 4px 4px 0 #9a3412;
-  -webkit-text-stroke: 3px #9a3412;
+  text-shadow: 6px 6px 0 rgba(255, 107, 74, 0.25);
 }
 @keyframes countPop {
-  0% { transform: scale(0.5); opacity: 0; }
-  60% { transform: scale(1.2); }
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.15); }
   100% { transform: scale(1); opacity: 1; }
 }
-/* Vietnamese → Baloo 2 */
 .position-text {
-  font-family: 'Baloo 2', sans-serif;
-  font-weight: 800;
-  color: #475569;
-  font-size: 18px;
-  margin-top: 16px;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-weight: 700;
+  color: #8B9DB5;
+  font-size: 17px;
+  margin-top: 20px;
 }
 
 /* ---- PLAYING ---- */
@@ -842,13 +888,11 @@ onUnmounted(() => {
   z-index: 20;
 }
 .meter-track {
-  width: 20px;
+  width: 18px;
   height: 200px;
-  background: rgba(255,255,255,0.5);
-  border-radius: 999px;
+  background: #162232;
+  border: 1px solid #253549;
   overflow: hidden;
-  border: 3px solid white;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -856,21 +900,26 @@ onUnmounted(() => {
 }
 .meter-fill {
   width: 100%;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #f97316 0%, #fbbf24 50%, #86efac 100%);
+  background: linear-gradient(180deg, #FF6B4A 0%, #FFB830 60%, #38BDF8 100%);
   transition: height 0.05s linear;
-  min-height: 4px;
+  min-height: 3px;
 }
 .meter-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, rgba(249,115,22,0.5), transparent);
+  background: radial-gradient(circle at center, rgba(255,107,74,0.35), transparent);
   pointer-events: none;
   transition: opacity 0.1s;
 }
-.meter-label { font-size: 10px; font-weight: 900; color: #374151; letter-spacing: 1.5px; }
+.meter-label {
+  font-family: 'Anybody', cursive;
+  font-size: 9px;
+  font-weight: 700;
+  color: #4A6180;
+  letter-spacing: 2px;
+}
 
-/* Flying object — no CSS transition, physics drives every frame */
+/* Flying object */
 .flying-object {
   position: fixed;
   transform-origin: center center;
@@ -881,17 +930,17 @@ onUnmounted(() => {
 .fly-emoji {
   font-size: 56px;
   display: block;
-  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.15));
+  filter: drop-shadow(0 8px 20px rgba(255,107,74,0.3));
 }
 .fly-img {
   width: 80px;
   height: 80px;
   object-fit: contain;
-  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.2));
+  filter: drop-shadow(0 8px 20px rgba(255,107,74,0.3));
 }
 .trails { position: absolute; top: 50%; right: -20px; display: flex; flex-direction: column; gap: 2px; }
 .trail {
-  color: #93c5fd;
+  color: #FF6B4A;
   font-size: 18px;
   font-weight: 900;
   opacity: 0;
@@ -899,7 +948,10 @@ onUnmounted(() => {
 }
 .t2 { animation-delay: 0.15s; }
 .t3 { animation-delay: 0.3s; }
-@keyframes trailFade { 0%, 100% { opacity: 0; transform: translateX(0); } 50% { opacity: 0.7; transform: translateX(8px); } }
+@keyframes trailFade {
+  0%, 100% { opacity: 0; transform: translateX(0); }
+  50% { opacity: 0.7; transform: translateX(8px); }
+}
 
 .blow-hint {
   position: fixed;
@@ -908,20 +960,21 @@ onUnmounted(() => {
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(8px);
+  gap: 10px;
+  background: #162232;
+  border: 1px solid #253549;
   padding: 12px 24px;
-  border-radius: 999px;
-  font-size: 16px;
-  font-weight: 800;
-  color: #1e3a5f;
-  border: 2px solid rgba(255,255,255,0.9);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #F0EDE6;
   white-space: nowrap;
 }
 .hint-icon { animation: hintBlow 1s ease-in-out infinite; display: inline-block; }
-@keyframes hintBlow { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(6px); } }
+@keyframes hintBlow {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(6px); }
+}
 
 .vol-bars {
   position: fixed;
@@ -935,38 +988,47 @@ onUnmounted(() => {
   padding-bottom: 4px;
 }
 .vol-bar {
-  width: 6px;
-  min-height: 8px;
-  background: linear-gradient(180deg, #60a5fa, #93c5fd);
-  border-radius: 3px 3px 0 0;
+  width: 5px;
+  min-height: 6px;
+  background: linear-gradient(180deg, #FF6B4A, #FFB830);
   transition: height 0.1s ease, opacity 0.3s;
 }
+
+/* Live timer */
+.hint-timer {
+  font-family: 'Anybody', cursive;
+  font-size: 18px;
+  font-weight: 700;
+  color: #4A6180;
+  min-width: 44px;
+  transition: color 0.15s;
+}
+.hint-timer.active { color: #FF6B4A; }
 
 /* ---- GO FLASH ---- */
 .go-screen { background: transparent; }
 .go-wrap { text-align: center; animation: goFlash 0.9s ease-in-out; }
-/* "START" is English — Fredoka One fine */
 .go-text {
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Anybody', cursive;
   font-size: clamp(96px, 22vw, 160px);
-  color: #f97316;
+  font-weight: 800;
+  color: #FF6B4A;
   line-height: 1;
-  -webkit-text-stroke: 4px #9a3412;
-  text-shadow: 6px 6px 0 #9a3412;
+  text-shadow: 6px 6px 0 rgba(255,107,74,0.25);
   animation: goScale 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-/* Vietnamese → Baloo 2 */
 .go-sub {
-  font-family: 'Baloo 2', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 800;
-  font-size: clamp(24px, 6vw, 40px);
-  color: #1e3a5f;
+  font-size: clamp(22px, 5.5vw, 38px);
+  color: #FFB830;
   margin-top: 8px;
   animation: goFadeIn 0.3s ease-in 0.15s both;
+  letter-spacing: 1px;
 }
 @keyframes goScale {
   0%   { transform: scale(0.3) rotate(-10deg); opacity: 0; }
-  60%  { transform: scale(1.15) rotate(3deg); opacity: 1; }
+  60%  { transform: scale(1.15) rotate(2deg); opacity: 1; }
   100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 @keyframes goFadeIn {
@@ -975,17 +1037,100 @@ onUnmounted(() => {
 }
 @keyframes goFlash {
   0%, 100% { filter: brightness(1); }
-  30%       { filter: brightness(1.3); }
+  30%       { filter: brightness(1.2); }
 }
 
-/* ---- Stats row ---- */
+/* ---- RESULT ---- */
+.result-screen { gap: 24px; }
+
+.result-card {
+  background: #162232;
+  border: 1px solid #253549;
+  padding: 32px 28px;
+  text-align: center;
+  width: 100%;
+  max-width: 420px;
+  animation: resultPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+.result-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+}
+.tier-noob::before { background: #FFB830; }
+.tier-soso::before { background: #38BDF8; }
+.tier-god::before  { background: #FF6B4A; }
+
+@keyframes resultPop {
+  0% { transform: scale(0.75); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.result-object { margin-bottom: 8px; }
+.result-emoji { font-size: 72px; display: block; animation: resultFloat 2s ease-in-out infinite; }
+.result-img { width: 90px; height: 90px; object-fit: contain; animation: resultFloat 2s ease-in-out infinite; }
+@keyframes resultFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.result-height-label {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  color: #4A6180;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.result-height {
+  font-family: 'Anybody', cursive;
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 1;
+  color: #F0EDE6;
+  margin: 4px 0;
+}
+
+.result-tier-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 16px 0 8px;
+  padding: 14px 24px;
+  background: #1E2F42;
+  border: 1px solid #253549;
+}
+.tier-icon { font-size: 36px; }
+.tier-title {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-weight: 800;
+  font-size: clamp(18px, 5vw, 26px);
+  margin: 0;
+  color: #F0EDE6;
+  letter-spacing: 1px;
+}
+
+.tier-desc {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  color: #8B9DB5;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 16px;
+  line-height: 1.6;
+}
+
+/* Stats row */
 .stats-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f1f5f9;
-  border: 2px solid #e2e8f0;
-  border-radius: 16px;
+  background: #1E2F42;
+  border: 1px solid #253549;
   padding: 12px 8px;
   margin: 10px 0 14px;
 }
@@ -993,140 +1138,91 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
+  gap: 2px;
   flex: 1;
 }
-.stat-icon { font-size: 20px; }
+.stat-icon { font-size: 18px; }
 .stat-value {
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Anybody', cursive;
   font-size: 28px;
-  color: #1e3a5f;
+  font-weight: 700;
+  color: #F0EDE6;
   line-height: 1;
 }
 .stat-unit {
-  font-size: 13px;
-  font-weight: 800;
-  color: #64748b;
-  margin-top: -2px;
+  font-family: 'Anybody', cursive;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8B9DB5;
 }
 .stat-label {
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 10px;
-  font-weight: 700;
-  color: #9ca3af;
-  text-transform: uppercase;
+  font-weight: 600;
+  color: #4A6180;
   letter-spacing: 0.5px;
 }
 .stats-divider {
-  width: 2px;
-  height: 48px;
-  background: #e2e8f0;
-  border-radius: 1px;
+  width: 1px;
+  height: 44px;
+  background: #253549;
   flex-shrink: 0;
   margin: 0 8px;
 }
 
-/* Live timer in hint */
-.hint-timer {
-  font-family: 'Fredoka One', cursive;
-  font-size: 18px;
-  color: #94a3b8;
-  min-width: 44px;
-  transition: color 0.15s;
+.stars { font-size: 28px; letter-spacing: 4px; margin-top: 4px; }
+.star { filter: grayscale(1); opacity: 0.2; transition: all 0.3s; }
+.star.lit {
+  filter: grayscale(0);
+  opacity: 1;
+  animation: starPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
-.hint-timer.active { color: #f97316; }
-
-/* ---- RESULT ---- */
-.result-screen { gap: 24px; }
-
-.result-card {
-  background: white;
-  border-radius: 32px;
-  padding: 32px 28px;
-  text-align: center;
-  box-shadow: 0 16px 48px rgba(0,0,0,0.13);
-  width: 100%;
-  max-width: 420px;
-  animation: resultPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+@keyframes starPop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.3); }
+  100% { transform: scale(1); }
 }
-@keyframes resultPop {
-  0% { transform: scale(0.7); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-.tier-noob { border: 4px solid #fbbf24; }
-.tier-soso { border: 4px solid #60a5fa; }
-.tier-god  { border: 4px solid #34d399; }
 
-.result-object { margin-bottom: 8px; }
-.result-emoji { font-size: 80px; display: block; animation: resultFloat 2s ease-in-out infinite; }
-.result-img { width: 100px; height: 100px; object-fit: contain; animation: resultFloat 2s ease-in-out infinite; }
-@keyframes resultFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-.result-height-label { color: #9ca3af; font-size: 14px; font-weight: 700; margin: 0; }
-.result-height {
-  font-family: 'Fredoka One', cursive;
-  font-size: 72px;
-  line-height: 1;
-  color: #1e3a5f;
-  margin: 4px 0;
-}
-.result-tier-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin: 16px 0 8px;
-  padding: 12px 24px;
-  border-radius: 16px;
-  background: #f8fafc;
-}
-.tier-icon { font-size: 40px; }
-.tier-title {
-  font-family: 'Baloo 2', sans-serif;
-  font-weight: 800;
-  font-size: clamp(20px, 5vw, 28px);
-  margin: 0;
-  color: #1e3a5f;
-}
-.tier-desc { color: #6b7280; font-size: 15px; font-weight: 600; margin: 0 0 16px; }
-
-.stars { font-size: 32px; letter-spacing: 4px; }
-.star { filter: grayscale(1); opacity: 0.3; transition: all 0.3s; }
-.star.lit { filter: grayscale(0); opacity: 1; animation: starPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-@keyframes starPop { 0% { transform: scale(0); } 70% { transform: scale(1.3); } 100% { transform: scale(1); } }
-
+/* Result actions */
 .result-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .retry-btn, .change-btn {
-  font-family: 'Baloo 2', sans-serif;
-  font-size: 16px;
-  font-weight: 800;
-  padding: 14px 28px;
-  border-radius: 999px;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 13px 28px;
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s;
-  border: 3px solid;
+  border: none;
+  letter-spacing: 0.5px;
 }
 .retry-btn {
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
-  color: white;
-  border-color: #1d4ed8;
-  box-shadow: 0 6px 20px rgba(59,130,246,0.35);
+  background: #FF6B4A;
+  color: #0F1923;
+  box-shadow: 3px 3px 0 #9a3412;
+}
+.retry-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 3px 6px 0 #9a3412;
 }
 .change-btn {
-  background: white;
-  color: #374151;
-  border-color: #d1d5db;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  background: transparent;
+  color: #8B9DB5;
+  border: 1px solid #253549;
 }
-.retry-btn:hover, .change-btn:hover { transform: translateY(-3px); }
+.change-btn:hover {
+  border-color: #FF6B4A;
+  color: #F0EDE6;
+  transform: translateY(-2px);
+}
 
 /* ---- Responsive ---- */
 @media (max-width: 480px) {
-  .object-options { grid-template-columns: repeat(3, 1fr); }
-  .game-title { font-size: 48px; }
-  .start-btn { font-size: 20px; padding: 14px 32px; }
+  .game-title { font-size: 52px; }
+  .start-btn { font-size: 18px; padding: 14px 32px; }
   .meter-wrap { right: 8px; }
-  .meter-track { height: 140px; width: 16px; }
+  .meter-track { height: 140px; width: 14px; }
   .result-card { padding: 24px 16px; }
   .result-height { font-size: 56px; }
+  .object-options { grid-template-columns: repeat(3, 1fr); }
 }
 </style>
