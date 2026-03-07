@@ -618,6 +618,85 @@ function obstacleCountByDifficulty(totalCells: number, level: number): number {
   return Math.floor(totalCells * density)
 }
 
+function linearIndex(x: number, y: number, cols: number): number {
+  return y * cols + x
+}
+
+function isOpenAreaConnected(rows: number, cols: number, walls: Set<number>): boolean {
+  const totalCells = rows * cols
+  const openCells = totalCells - walls.size
+  if (openCells <= 1) {
+    return false
+  }
+
+  let start = -1
+  for (let i = 0; i < totalCells; i++) {
+    if (!walls.has(i)) {
+      start = i
+      break
+    }
+  }
+
+  if (start < 0) {
+    return false
+  }
+
+  const stack: number[] = [start]
+  const visited = new Set<number>([start])
+
+  while (stack.length > 0) {
+    const current = stack.pop()
+    if (current === undefined) {
+      break
+    }
+    const y = Math.floor(current / cols)
+    const x = current % cols
+
+    const neighbors: Array<readonly [number, number]> = [
+      [x + 1, y],
+      [x - 1, y],
+      [x, y + 1],
+      [x, y - 1],
+    ]
+    for (const [nx, ny] of neighbors) {
+      if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) {
+        continue
+      }
+      const idx = linearIndex(nx, ny, cols)
+      if (walls.has(idx) || visited.has(idx)) {
+        continue
+      }
+      visited.add(idx)
+      stack.push(idx)
+    }
+  }
+
+  return visited.size === openCells
+}
+
+function generateConnectedWalls(rows: number, cols: number, targetWalls: number): Set<number> {
+  const walls = new Set<number>()
+  const candidates = shuffle(
+    Array.from({ length: rows * cols }, (_, index) => ({
+      x: index % cols,
+      y: Math.floor(index / cols),
+      index,
+    })),
+  )
+
+  for (const candidate of candidates) {
+    if (walls.size >= targetWalls) {
+      break
+    }
+    walls.add(candidate.index)
+    if (!isOpenAreaConnected(rows, cols, walls)) {
+      walls.delete(candidate.index)
+    }
+  }
+
+  return walls
+}
+
 function buildBoard(): void {
   const rows = boardRows.value
   const cols = boardCols.value
@@ -634,39 +713,47 @@ function buildBoard(): void {
     obstacles = totalCells - playableCells
   }
 
+  const walls = generateConnectedWalls(rows, cols, obstacles)
+  if ((totalCells - walls.size) % 2 !== 0) {
+    const removable = Array.from(walls)
+    const removed = removable[removable.length - 1]
+    if (removed !== undefined) {
+      walls.delete(removed)
+    }
+  }
+
+  playableCells = totalCells - walls.size
   const pairs = playableCells / 2
   const iconTypes: number[] = []
   for (let i = 0; i < pairs; i++) {
     const type = Math.floor(Math.random() * iconSet.length)
     iconTypes.push(type, type)
   }
+  const shuffledIcons = shuffle(iconTypes)
 
-  const pool: Array<{ kind: 'icon' | 'wall'; type: number; icon: string }> = []
-  for (let i = 0; i < obstacles; i++) {
-    pool.push({ kind: 'wall', type: -1, icon: '' })
-  }
-  iconTypes.forEach((type) => {
-    pool.push({ kind: 'icon', type, icon: iconSet[type] as string })
-  })
-
-  const shuffled = shuffle(pool)
   const next: Tile[][] = []
-  let index = 0
+  let id = 0
+  let iconCursor = 0
 
   for (let y = 0; y < rows; y++) {
     const row: Tile[] = []
     for (let x = 0; x < cols; x++) {
-      const item = shuffled[index]
+      const index = linearIndex(x, y, cols)
+      const isWall = walls.has(index)
+      const iconType = isWall ? -1 : (shuffledIcons[iconCursor] ?? 0)
+      if (!isWall) {
+        iconCursor += 1
+      }
       row.push({
-        id: index,
-        kind: item?.kind ?? 'icon',
-        type: item?.type ?? -1,
-        icon: item?.icon ?? '',
+        id,
+        kind: isWall ? 'wall' : 'icon',
+        type: iconType,
+        icon: isWall ? '' : (iconSet[iconType] ?? ''),
         x,
         y,
         isVisible: true,
       })
-      index++
+      id++
     }
     next.push(row)
   }
