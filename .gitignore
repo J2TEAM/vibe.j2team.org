@@ -35,5 +35,8 @@ coverage
 # Vitest
 __screenshots__/
 
+# Do Nothing: file tiếng chim lớn (dùng birds.mp3 nhẹ hoặc tiếng tổng hợp)
+public/sounds/*.flac
+
 # Vite
 *.timestamp-*-*.mjs
