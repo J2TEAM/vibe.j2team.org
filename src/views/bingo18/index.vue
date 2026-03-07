@@ -219,6 +219,49 @@ function manualDraw(): void {
   draw()
   timeLeft.value = ROUND_SECONDS
 }
+
+const showMusicPopup = ref<boolean>(true)
+const musicEnabled = ref<boolean>(false)
+
+function enableMusic(): void {
+  showMusicPopup.value = false
+  musicEnabled.value = true
+  loadYouTubePlayer()
+}
+
+function loadYouTubePlayer(): void {
+  // Inject YouTube IFrame API script
+  if (document.getElementById('yt-api-script')) return
+  const tag = document.createElement('script')
+  tag.id = 'yt-api-script'
+  tag.src = 'https://www.youtube.com/iframe_api'
+  document.head.appendChild(tag)
+
+  // YT.Player sẽ được khởi tạo khi API load xong
+  ;(window as Window & { onYouTubeIframeAPIReady?: () => void }).onYouTubeIframeAPIReady = () => {
+    new (window as unknown as { YT: { Player: new (id: string, opts: object) => void } }).YT.Player('yt-player', {
+      videoId: 'u6DMfRoX9-M',
+      playerVars: {
+        autoplay: 1,
+        loop: 1,
+        playlist: 'u6DMfRoX9-M',
+      },
+      events: {
+        onReady: (e: { target: { setVolume: (v: number) => void; playVideo: () => void } }) => {
+          e.target.setVolume(50)
+          e.target.playVideo()
+        },
+      },
+    })
+  }
+}
+
+// Dừng nhạc khi rời trang
+onUnmounted(() => {
+  clearInterval(timer)
+  const script = document.getElementById('yt-api-script')
+  if (script) script.remove()
+})
 </script>
 
 <template>
@@ -437,6 +480,40 @@ function manualDraw(): void {
       </div>
     </Transition>
   </div>
+
+  <!-- Popup nhạc -->
+  <Transition name="fade">
+    <div
+      v-if="showMusicPopup"
+      class="fixed inset-0 z-50 flex items-center justify-center"
+      style="background: rgba(0,0,0,0.7)"
+    >
+      <div class="rounded-2xl p-6 text-center max-w-xs w-full mx-4" style="background:#14491f; border: 2px solid #facc15">
+        <div class="text-3xl mb-3">🎵</div>
+        <h2 class="text-lg font-bold text-yellow-400 mb-2">Thêm nhạc nền?</h2>
+        <p class="text-sm text-gray-300 mb-4">Bật nhạc để tăng thêm cảm giác hồi hộp!</p>
+        <div class="flex gap-3 justify-center">
+          <button
+            class="px-5 py-2 rounded-xl font-bold text-sm"
+            style="background:#374151; color:white"
+            @click="showMusicPopup = false"
+          >
+            Không
+          </button>
+          <button
+            class="px-5 py-2 rounded-xl font-bold text-sm"
+            style="background:#facc15; color:#000"
+            @click="enableMusic"
+          >
+            Có! 🎶
+          </button>
+        </div>
+      </div>
+    </div>
+  </Transition>
+
+  <!-- YouTube player ẩn -->
+  <div id="yt-player" style="position:fixed; bottom:-9999px; left:-9999px; width:1px; height:1px;"></div>
 </template>
 
 <style scoped>
