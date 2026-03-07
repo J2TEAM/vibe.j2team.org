@@ -1,21 +1,33 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 
+// ===== Types =====
+interface BuildResult {
+  blob: Blob
+  url: string
+  mime: string
+}
+
+interface NormalizedInput {
+  mime: string | null
+  b64: string
+}
+
 // ===== Base64 → Image =====
-const base64input = ref('')
-const forceMime = ref('')
-const filename = ref('image.png')
-const errorMsg = ref('')
-const previewUrl = ref('')
-const previewMime = ref('')
-const previewSize = ref(0)
-const showControls = ref(false)
-const isDragging = ref(false)
+const base64input = ref<string>('')
+const forceMime = ref<string>('')
+const filename = ref<string>('image.png')
+const errorMsg = ref<string>('')
+const previewUrl = ref<string>('')
+const previewMime = ref<string>('')
+const previewSize = ref<number>(0)
+const showControls = ref<boolean>(false)
+const isDragging = ref<boolean>(false)
 
-function showError(msg) { errorMsg.value = msg }
-function clearError() { errorMsg.value = '' }
+function showError(msg: string): void { errorMsg.value = msg }
+function clearError(): void { errorMsg.value = '' }
 
-function base64ToUint8Array(b64) {
+function base64ToUint8Array(b64: string): Uint8Array | null {
   try {
     const binary = atob(b64)
     const bytes = new Uint8Array(binary.length)
@@ -24,7 +36,7 @@ function base64ToUint8Array(b64) {
   } catch { return null }
 }
 
-function detectMime(u8arr) {
+function detectMime(u8arr: Uint8Array): string | null {
   if (!u8arr || u8arr.length < 12) return null
   if (u8arr[0] === 0x89 && u8arr[1] === 0x50 && u8arr[2] === 0x4E && u8arr[3] === 0x47) return 'image/png'
   if (u8arr[0] === 0xFF && u8arr[1] === 0xD8 && u8arr[2] === 0xFF) return 'image/jpeg'
@@ -34,57 +46,63 @@ function detectMime(u8arr) {
   return null
 }
 
-function normalizeInput(text) {
+function normalizeInput(text: string): NormalizedInput | null {
   if (!text) return null
   text = text.trim()
-  const match = text.match(/^data:([\w/\-+.]+);base64,(.+)$/i)
-  if (match) return { mime: match[1], b64: match[2] }
+  const match = text.match(/^data:([\w\\/\-+.]+);base64,(.+)$/i)
+  if (match) return { mime: match[1] ?? null, b64: match[2] ?? '' }
   return { mime: null, b64: text.replace(/\s+/g, '') }
 }
 
-function buildImageFromBase64(text) {
+function buildImageFromBase64(text: string): BuildResult | null {
   clearError()
   const norm = normalizeInput(text)
   if (!norm?.b64) { showError('Base64 data not found'); return null }
   const u8 = base64ToUint8Array(norm.b64)
   if (!u8) { showError('Base64 data is invalid or too large to process'); return null }
   const mime = forceMime.value || norm.mime || detectMime(u8) || 'image/png'
-  const blob = new Blob([u8], { type: mime })
+  const blob = new Blob([u8.buffer as ArrayBuffer], { type: mime })
   const url = URL.createObjectURL(blob)
   return { blob, url, mime }
 }
 
-function formatBytes(bytes) {
+function formatBytes(bytes: number): string {
   if (bytes < 1024) return bytes + ' B'
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
   return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
 }
 
-function sanitizeFilename(name) {
+function sanitizeFilename(name: string): string {
   if (!name) return ''
   return name.replace(/[^a-z0-9_\-.]/ig, '_')
 }
 
-function defaultFilenameForMime(mime) {
-  const map = { 'image/png': 'image.png', 'image/jpeg': 'image.jpg', 'image/gif': 'image.gif', 'image/webp': 'image.webp' }
-  return map[mime] || 'image.bin'
+const mimeExtMap: Record<string, string> = {
+  'image/png': 'image.png',
+  'image/jpeg': 'image.jpg',
+  'image/gif': 'image.gif',
+  'image/webp': 'image.webp',
 }
 
-function setPreview(result) {
+function defaultFilenameForMime(mime: string): string {
+  return mimeExtMap[mime] ?? 'image.bin'
+}
+
+function setPreview(result: BuildResult): void {
   previewUrl.value = result.url
   previewMime.value = result.mime
   previewSize.value = result.blob.size
   showControls.value = true
 }
 
-function doConvert() {
+function doConvert(): void {
   const text = base64input.value.trim()
   if (!text) { showError('Please paste base64 or select a .txt file containing base64'); return }
   const result = buildImageFromBase64(text)
   if (result) setPreview(result)
 }
 
-function onPaste() {
+function onPaste(): void {
   setTimeout(() => {
     const text = base64input.value.trim()
     if (!text) return
@@ -93,8 +111,7 @@ function onPaste() {
   }, 50)
 }
 
-function processFile(f) {
-  if (!f) return
+function processFile(f: File): void {
   clearError()
   if (f.type?.startsWith('image/')) {
     previewUrl.value = URL.createObjectURL(f)
@@ -104,8 +121,8 @@ function processFile(f) {
     return
   }
   const reader = new FileReader()
-  reader.onload = ev => {
-    const text = (ev.target.result || '').trim()
+  reader.onload = (ev: ProgressEvent<FileReader>) => {
+    const text = ((ev.target?.result as string) || '').trim()
     if (!text) { showError('File is empty or does not contain base64'); return }
     base64input.value = text
     const result = buildImageFromBase64(text)
@@ -115,24 +132,28 @@ function processFile(f) {
   reader.readAsText(f)
 }
 
-function onFileInput(e) { processFile(e.target.files?.[0]) }
-
-function onDrop(e) {
-  e.preventDefault()
-  isDragging.value = false
-  processFile(e.dataTransfer?.files?.[0])
+function onFileInput(e: Event): void {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (file) processFile(file)
 }
 
-function doDownload() {
+function onDrop(e: DragEvent): void {
+  e.preventDefault()
+  isDragging.value = false
+  const file = e.dataTransfer?.files?.[0]
+  if (file) processFile(file)
+}
+
+function doDownload(): void {
   const a = document.createElement('a')
   a.href = previewUrl.value
   a.download = sanitizeFilename(filename.value) || defaultFilenameForMime(previewMime.value)
   a.click()
 }
 
-function doOpenTab() { window.open(previewUrl.value, '_blank') }
+function doOpenTab(): void { window.open(previewUrl.value, '_blank') }
 
-function doClear() {
+function doClear(): void {
   base64input.value = ''
   previewUrl.value = ''
   previewMime.value = ''
@@ -142,40 +163,44 @@ function doClear() {
 }
 
 // ===== Image → Base64 =====
-const previewImage2 = ref('')
-const base64output = ref('')
-const isDragging2 = ref(false)
+const previewImage2 = ref<string>('')
+const base64output = ref<string>('')
+const isDragging2 = ref<boolean>(false)
 
-function fileToBase64(file) {
+function fileToBase64(file: File): Promise<string> {
   return new Promise(resolve => {
     const reader = new FileReader()
-    reader.onload = e => resolve(e.target.result)
+    reader.onload = (e: ProgressEvent<FileReader>) => resolve(e.target?.result as string)
     reader.readAsDataURL(file)
   })
 }
 
-async function handleImage(file) {
+async function handleImage(file: File): Promise<void> {
   if (!file || !file.type.startsWith('image/')) return
   const base64 = await fileToBase64(file)
   previewImage2.value = base64
   base64output.value = base64
 }
 
-function onImgInput(e) { handleImage(e.target.files?.[0]) }
-
-function onDrop2(e) {
-  e.preventDefault()
-  isDragging2.value = false
-  handleImage(e.dataTransfer?.files?.[0])
+function onImgInput(e: Event): void {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (file) handleImage(file)
 }
 
-function copyBase64() {
+function onDrop2(e: DragEvent): void {
+  e.preventDefault()
+  isDragging2.value = false
+  const file = e.dataTransfer?.files?.[0]
+  if (file) handleImage(file)
+}
+
+function copyBase64(): void {
   if (!base64output.value.trim()) { alert('No Base64 to copy!'); return }
   navigator.clipboard.writeText(base64output.value)
   alert('Copied ✅')
 }
 
-function downloadTxt() {
+function downloadTxt(): void {
   const base64 = base64output.value.trim()
   if (!base64) { alert('No data to download!'); return }
   const blob = new Blob([base64], { type: 'text/plain' })
@@ -185,23 +210,23 @@ function downloadTxt() {
   a.click()
 }
 
-function clearImg() {
+function clearImg(): void {
   previewImage2.value = ''
   base64output.value = ''
 }
 
 // ===== Theme =====
-const darkMode = ref(false)
-function toggleTheme() {
+const darkMode = ref<boolean>(false)
+function toggleTheme(): void {
   darkMode.value = !darkMode.value
   document.body.classList.toggle('dark-theme', darkMode.value)
 }
 
 // ===== Global paste for image→base64 =====
 onMounted(() => {
-  document.addEventListener('paste', e => {
-    const item = [...(e.clipboardData?.items || [])].find(i => i.type.includes('image'))
-    if (item) handleImage(item.getAsFile())
+  document.addEventListener('paste', (e: ClipboardEvent) => {
+    const item = [...(e.clipboardData?.items ?? [])].find(i => i.type.includes('image'))
+    if (item) handleImage(item.getAsFile() as File)
   })
 })
 </script>
