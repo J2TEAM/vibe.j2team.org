@@ -26,7 +26,9 @@ const emit = defineEmits<{
   >
     <!-- Title + Actions -->
     <div class="flex items-center justify-between gap-3">
-      <h3 class="font-display text-lg font-semibold text-text-primary group-hover:text-accent-coral transition-colors truncate">
+      <h3
+        class="font-display text-lg font-semibold text-text-primary group-hover:text-accent-coral transition-colors truncate"
+      >
         {{ set.name }}
       </h3>
       <div class="flex items-center gap-1 shrink-0">
@@ -43,14 +45,40 @@ const emit = defineEmits<{
           aria-label="Sửa bộ thẻ"
           @click.stop="emit('edit')"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+          </svg>
         </button>
         <button
           class="p-1.5 text-text-dim hover:text-accent-coral transition-colors"
           aria-label="Xóa bộ thẻ"
           @click.stop="emit('delete')"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M3 6h18" />
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+          </svg>
         </button>
       </div>
     </div>

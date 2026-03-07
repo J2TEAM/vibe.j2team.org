@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { useGameLogic } from "./composables/useGameLogic";
-import HomeScreen from "./components/HomeScreen.vue";
-import GameScreen from "./components/GameScreen.vue";
-import GameOverScreen from "./components/GameOverScreen.vue";
+import { ref, watch } from 'vue'
+import { useGameLogic } from './composables/useGameLogic'
+import HomeScreen from './components/HomeScreen.vue'
+import GameScreen from './components/GameScreen.vue'
+import GameOverScreen from './components/GameOverScreen.vue'
 
-type View = "home" | "game" | "gameOver";
+type View = 'home' | 'game' | 'gameOver'
 
-const view = ref<View>("home");
-const showRoundOverlay = ref(false);
+const view = ref<View>('home')
+const showRoundOverlay = ref(false)
 
 const {
   gameState,
@@ -31,36 +31,36 @@ const {
   gameOver,
   submitWord,
   resetGame,
-} = useGameLogic();
+} = useGameLogic()
 
 function handleStart(name: string) {
-  startGame(name);
-  view.value = "game";
+  startGame(name)
+  view.value = 'game'
 }
 
 function handlePlayAgain() {
-  resetGame();
-  view.value = "home";
+  resetGame()
+  view.value = 'home'
 }
 
 // Handle round end transitions
 watch(gameState, (state) => {
-  if (state === "roundEnd") {
-    showRoundOverlay.value = true;
+  if (state === 'roundEnd') {
+    showRoundOverlay.value = true
     if (roundPassed.value) {
       setTimeout(() => {
-        showRoundOverlay.value = false;
-        nextRound();
-      }, 1500);
+        showRoundOverlay.value = false
+        nextRound()
+      }, 1500)
     } else {
       setTimeout(() => {
-        showRoundOverlay.value = false;
-        gameOver();
-        view.value = "gameOver";
-      }, 1500);
+        showRoundOverlay.value = false
+        gameOver()
+        view.value = 'gameOver'
+      }, 1500)
     }
   }
-});
+})
 </script>
 
 <template>

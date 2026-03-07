@@ -16,7 +16,7 @@ const selectedDaiHan = ref<number | null>(null)
 const lastSelected = ref<number | null>(null)
 
 function mod12(n: number): number {
-  return ((n - 1) % 12 + 12) % 12 + 1
+  return ((((n - 1) % 12) + 12) % 12) + 1
 }
 
 function calcTieuHanInDaiHan(cungDH: number, numYears: number, isNghich: boolean): number[] {
@@ -34,7 +34,7 @@ function calcTieuHanInDaiHan(cungDH: number, numYears: number, isNghich: boolean
 }
 
 const daiHanList = props.laso.cung
-  .map(c => ({
+  .map((c) => ({
     viTri: c.viTri,
     tenCung: c.tenCungMenh,
     chiCung: c.chiCung,
@@ -89,7 +89,9 @@ function handleTieuHanClick(viTri: number) {
 <template>
   <div class="dai-han-timeline">
     <div class="flex items-center gap-2 mb-2">
-      <span class="text-xs font-display font-bold text-text-secondary uppercase tracking-wider">Đại Hạn</span>
+      <span class="text-xs font-display font-bold text-text-secondary uppercase tracking-wider"
+        >Đại Hạn</span
+      >
       <span class="text-[10px] text-text-dim">( Click để xem tiểu hạn )</span>
     </div>
     <div class="dai-han-scroll">
@@ -120,9 +122,12 @@ function handleTieuHanClick(viTri: number) {
         <template v-if="displayIdx !== null && daiHanList[displayIdx]">
           <div class="tieu-han-sub mt-2">
             <div class="flex items-center gap-2 mb-1.5">
-              <span class="text-[10px] font-display font-bold text-text-secondary uppercase tracking-wider">
-                Tiểu Hạn — {{ daiHanList[displayIdx]!.tenCung }}
-                ({{ daiHanList[displayIdx]!.daiHan }}–{{ getEndAge(displayIdx) }})
+              <span
+                class="text-[10px] font-display font-bold text-text-secondary uppercase tracking-wider"
+              >
+                Tiểu Hạn — {{ daiHanList[displayIdx]!.tenCung }} ({{
+                  daiHanList[displayIdx]!.daiHan
+                }}–{{ getEndAge(displayIdx) }})
               </span>
               <span class="text-[10px] text-text-dim">({{ isNghich ? 'Nghịch' : 'Thuận' }})</span>
             </div>
@@ -132,7 +137,7 @@ function handleTieuHanClick(viTri: number) {
                   v-for="th in getTieuHanForDaiHan(
                     daiHanList[displayIdx]!.viTri,
                     daiHanList[displayIdx]!.daiHan,
-                    getEndAge(displayIdx)
+                    getEndAge(displayIdx),
                   )"
                   :key="th.tuoi"
                   class="tieu-han-item"
@@ -154,7 +159,9 @@ function handleTieuHanClick(viTri: number) {
     <!-- Indicator -->
     <div class="flex items-center gap-2 mt-1.5">
       <div class="flex items-center gap-1 text-[10px] text-text-dim">
-        <span class="w-2 h-2 rounded-sm bg-accent-amber/20 border border-accent-amber inline-block" />
+        <span
+          class="w-2 h-2 rounded-sm bg-accent-amber/20 border border-accent-amber inline-block"
+        />
         <span>Đại hạn hiện tại ({{ tuoiHienTai }} tuổi)</span>
       </div>
       <div class="flex items-center gap-1 text-[10px] text-text-dim">

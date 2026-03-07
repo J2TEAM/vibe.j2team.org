@@ -41,15 +41,23 @@ const hasDragStyle = computed(() => (props.offsetX ?? 0) !== 0)
       @click="emit('flip')"
     >
       <!-- First side -->
-      <div class="flip-face flip-front border border-border-default bg-bg-surface flex items-center justify-center p-8">
-        <p class="font-display text-2xl sm:text-3xl font-semibold text-text-primary break-words text-center">
+      <div
+        class="flip-face flip-front border border-border-default bg-bg-surface flex items-center justify-center p-8"
+      >
+        <p
+          class="font-display text-2xl sm:text-3xl font-semibold text-text-primary break-words text-center"
+        >
           {{ showFrontFirst ? front : back }}
         </p>
       </div>
 
       <!-- Second side -->
-      <div class="flip-face flip-back border-2 border-accent-coral/40 bg-bg-deep flex items-center justify-center p-8">
-        <p class="font-display text-2xl sm:text-3xl font-semibold text-accent-coral break-words text-center">
+      <div
+        class="flip-face flip-back border-2 border-accent-coral/40 bg-bg-deep flex items-center justify-center p-8"
+      >
+        <p
+          class="font-display text-2xl sm:text-3xl font-semibold text-accent-coral break-words text-center"
+        >
           {{ showFrontFirst ? back : front }}
         </p>
       </div>

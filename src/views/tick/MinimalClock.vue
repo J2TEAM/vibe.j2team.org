@@ -10,7 +10,9 @@ defineProps<{
 <template>
   <div class="text-center flex flex-col items-center justify-center">
     <div class="font-display font-bold tracking-tighter leading-none text-text-primary">
-      <span class="text-[6rem] min-[375px]:text-[7rem] sm:text-[9rem] md:text-[12rem] lg:text-[16rem]">
+      <span
+        class="text-[6rem] min-[375px]:text-[7rem] sm:text-[9rem] md:text-[12rem] lg:text-[16rem]"
+      >
         {{ hours }}:{{ minutes }}
       </span>
     </div>

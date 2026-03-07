@@ -2,19 +2,35 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 
 interface Particle {
-  x: number; y: number; vx: number; vy: number
-  radius: number; opacity: number; hue: number
+  x: number
+  y: number
+  vx: number
+  vy: number
+  radius: number
+  opacity: number
+  hue: number
   trail: { x: number; y: number }[]
-  dead: boolean; isJet: boolean
+  dead: boolean
+  isJet: boolean
 }
 
 interface BlackHole {
-  x: number; y: number; mass: number; radius: number; accretionRadius: number
+  x: number
+  y: number
+  mass: number
+  radius: number
+  accretionRadius: number
 }
 
 interface Ring {
-  x: number; y: number; radius: number; life: number
-  r: number; g: number; b: number; speed: number
+  x: number
+  y: number
+  radius: number
+  life: number
+  r: number
+  g: number
+  b: number
+  speed: number
 }
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -34,7 +50,8 @@ const pFill = () => `${((maxParticlesSlider.value - 50) / 450) * 100}%`
 
 let ctx: CanvasRenderingContext2D | null = null
 let animId: number | null = null
-let W = 0; let H = 0
+let W = 0
+let H = 0
 
 const G = 6000
 const TRAIL_LENGTH = 22
@@ -45,8 +62,11 @@ const rings: Ring[] = []
 
 let starBitmap: ImageBitmap | null = null
 let isDragging = false
-let diskAngle = 0; let time = 0
-let lastFrameTime = 0; let frameCount = 0; let fpsTimer = 0
+let diskAngle = 0
+let time = 0
+let lastFrameTime = 0
+let frameCount = 0
+let fpsTimer = 0
 let gravWaveTimer = 0
 let simFrameSkip = 0
 
@@ -76,7 +96,10 @@ onMounted(async () => {
 onUnmounted(() => {
   if (animId !== null) cancelAnimationFrame(animId)
   window.removeEventListener('resize', resize)
-  if (ctx) { ctx.clearRect(0, 0, W, H); ctx = null }
+  if (ctx) {
+    ctx.clearRect(0, 0, W, H)
+    ctx = null
+  }
 })
 
 function resize() {
@@ -96,10 +119,10 @@ async function buildBackground() {
   octx.fillRect(0, 0, W, H)
 
   const nebulae = [
-    { x: W * 0.15, y: H * 0.2,  r: W * 0.45, cr: 80,  cg: 30,  cb: 15,  a: 0.22 },
-    { x: W * 0.85, y: H * 0.75, r: W * 0.40, cr: 20,  cg: 60,  cb: 100, a: 0.18 },
-    { x: W * 0.5,  y: H * 0.9,  r: W * 0.35, cr: 100, cg: 55,  cb: 10,  a: 0.14 },
-    { x: W * 0.7,  y: H * 0.15, r: W * 0.3,  cr: 15,  cg: 70,  cb: 120, a: 0.12 },
+    { x: W * 0.15, y: H * 0.2, r: W * 0.45, cr: 80, cg: 30, cb: 15, a: 0.22 },
+    { x: W * 0.85, y: H * 0.75, r: W * 0.4, cr: 20, cg: 60, cb: 100, a: 0.18 },
+    { x: W * 0.5, y: H * 0.9, r: W * 0.35, cr: 100, cg: 55, cb: 10, a: 0.14 },
+    { x: W * 0.7, y: H * 0.15, r: W * 0.3, cr: 15, cg: 70, cb: 120, a: 0.12 },
   ]
   for (const n of nebulae) {
     const g = octx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r)
@@ -117,7 +140,12 @@ async function buildBackground() {
     const r = big ? 1.2 + Math.random() * 0.8 : 0.4 + Math.random() * 0.4
     const a = big ? 0.5 + Math.random() * 0.5 : 0.1 + Math.random() * 0.5
     const warm = Math.random()
-    const c = warm < 0.35 ? `rgba(248,240,220,${a})` : warm < 0.65 ? `rgba(180,215,255,${a})` : `rgba(255,210,170,${a})`
+    const c =
+      warm < 0.35
+        ? `rgba(248,240,220,${a})`
+        : warm < 0.65
+          ? `rgba(180,215,255,${a})`
+          : `rgba(255,210,170,${a})`
     octx.beginPath()
     octx.arc(x, y, r, 0, Math.PI * 2)
     octx.fillStyle = c
@@ -138,26 +166,47 @@ async function buildBackground() {
 function spawnParticle() {
   if (particles.length >= maxParticlesSlider.value) return
   const edge = Math.floor(Math.random() * 4)
-  let x = 0, y = 0
-  if (edge === 0) { x = Math.random() * W; y = -10 }
-  else if (edge === 1) { x = W + 10; y = Math.random() * H }
-  else if (edge === 2) { x = Math.random() * W; y = H + 10 }
-  else { x = -10; y = Math.random() * H }
+  let x = 0,
+    y = 0
+  if (edge === 0) {
+    x = Math.random() * W
+    y = -10
+  } else if (edge === 1) {
+    x = W + 10
+    y = Math.random() * H
+  } else if (edge === 2) {
+    x = Math.random() * W
+    y = H + 10
+  } else {
+    x = -10
+    y = Math.random() * H
+  }
 
-  const dx = blackHole.x - x, dy = blackHole.y - y
+  const dx = blackHole.x - x,
+    dy = blackHole.y - y
   const dist = Math.sqrt(dx * dx + dy * dy)
-  const tx = -dy / dist, ty = dx / dist
+  const tx = -dy / dist,
+    ty = dx / dist
   const speed = 0.4 + Math.random() * 1.2
   const tang = 0.4 + Math.random() * 0.8
-  const hue = Math.random() < 0.55 ? 10 + Math.random() * 30 : Math.random() < 0.5 ? 35 + Math.random() * 25 : 195 + Math.random() * 30
+  const hue =
+    Math.random() < 0.55
+      ? 10 + Math.random() * 30
+      : Math.random() < 0.5
+        ? 35 + Math.random() * 25
+        : 195 + Math.random() * 30
 
   particles.push({
-    x, y,
+    x,
+    y,
     vx: (dx / dist) * speed + tx * tang,
     vy: (dy / dist) * speed + ty * tang,
     radius: 0.8 + Math.random() * 2,
     opacity: 0.65 + Math.random() * 0.35,
-    hue, trail: [], dead: false, isJet: false,
+    hue,
+    trail: [],
+    dead: false,
+    isJet: false,
   })
 }
 
@@ -172,7 +221,9 @@ function spawnJetParticle() {
     radius: 0.4 + Math.random() * 0.9,
     opacity: 0.45 + Math.random() * 0.4,
     hue: 185 + Math.random() * 30,
-    trail: [], dead: false, isJet: true,
+    trail: [],
+    dead: false,
+    isJet: true,
   })
 }
 
@@ -189,7 +240,9 @@ function spawnHawkingParticle() {
     radius: 0.35 + Math.random() * 0.55,
     opacity: 0.35 + Math.random() * 0.3,
     hue: 45 + Math.random() * 40,
-    trail: [], dead: false, isJet: false,
+    trail: [],
+    dead: false,
+    isJet: false,
   })
 }
 
@@ -198,16 +251,29 @@ function simulate(speed: number) {
 
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i]
-    if (!p || p.dead) { particles.splice(i, 1); continue }
+    if (!p || p.dead) {
+      particles.splice(i, 1)
+      continue
+    }
 
-    const dx = blackHole.x - p.x, dy = blackHole.y - p.y
+    const dx = blackHole.x - p.x,
+      dy = blackHole.y - p.y
     const distSq = dx * dx + dy * dy
     const dist = Math.sqrt(distSq)
 
     if (!isVortex.value && dist < blackHole.radius - 4) {
       p.dead = true
       if (rings.length < 16) {
-        rings.push({ x: p.x, y: p.y, radius: blackHole.radius * 0.8, life: 1, r: 255, g: 120, b: 60, speed: 2.5 })
+        rings.push({
+          x: p.x,
+          y: p.y,
+          radius: blackHole.radius * 0.8,
+          life: 1,
+          r: 255,
+          g: 120,
+          b: 60,
+          speed: 2.5,
+        })
       }
       continue
     }
@@ -241,7 +307,16 @@ function simulate(speed: number) {
   if (gravWaveTimer > 160) {
     gravWaveTimer = 0
     if (rings.length < 16)
-      rings.push({ x: blackHole.x, y: blackHole.y, radius: blackHole.radius * 1.2, life: 1, r: 255, g: 184, b: 48, speed: 1.8 })
+      rings.push({
+        x: blackHole.x,
+        y: blackHole.y,
+        radius: blackHole.radius * 1.2,
+        life: 1,
+        r: 255,
+        g: 184,
+        b: 48,
+        speed: 1.8,
+      })
   }
 }
 
@@ -253,11 +328,17 @@ function draw(now: number) {
   lastFrameTime = now
   if (fpsTimer >= 600) {
     fpsDisplay.value = Math.round(frameCount / (fpsTimer / 1000))
-    frameCount = 0; fpsTimer = 0
+    frameCount = 0
+    fpsTimer = 0
   }
 
-  if (starBitmap) { ctx.globalAlpha = 1; ctx.drawImage(starBitmap, 0, 0) }
-  else { ctx.fillStyle = '#0F1923'; ctx.fillRect(0, 0, W, H) }
+  if (starBitmap) {
+    ctx.globalAlpha = 1
+    ctx.drawImage(starBitmap, 0, 0)
+  } else {
+    ctx.fillStyle = '#0F1923'
+    ctx.fillRect(0, 0, W, H)
+  }
 
   ctx.fillStyle = 'rgba(15,25,35,0.72)'
   ctx.fillRect(0, 0, W, H)
@@ -287,11 +368,18 @@ function drawBlackHole() {
   const bh = blackHole
   const pulse = 1 + 0.06 * Math.sin(time * 1.5)
 
-  const outerGlow = ctx.createRadialGradient(bh.x, bh.y, bh.radius, bh.x, bh.y, bh.accretionRadius * 3 * pulse)
-  outerGlow.addColorStop(0,   'rgba(255,107,74,0.18)')
-  outerGlow.addColorStop(0.35,'rgba(255,184,48,0.09)')
+  const outerGlow = ctx.createRadialGradient(
+    bh.x,
+    bh.y,
+    bh.radius,
+    bh.x,
+    bh.y,
+    bh.accretionRadius * 3 * pulse,
+  )
+  outerGlow.addColorStop(0, 'rgba(255,107,74,0.18)')
+  outerGlow.addColorStop(0.35, 'rgba(255,184,48,0.09)')
   outerGlow.addColorStop(0.7, 'rgba(56,189,248,0.05)')
-  outerGlow.addColorStop(1,   'rgba(0,0,0,0)')
+  outerGlow.addColorStop(1, 'rgba(0,0,0,0)')
   ctx.beginPath()
   ctx.arc(bh.x, bh.y, bh.accretionRadius * 3 * pulse, 0, Math.PI * 2)
   ctx.fillStyle = outerGlow
@@ -302,7 +390,7 @@ function drawBlackHole() {
 
   const lensR = bh.radius * 2.1
   for (let arc = 0; arc < 4; arc++) {
-    const alpha = (0.40 - arc * 0.08) * pulse
+    const alpha = (0.4 - arc * 0.08) * pulse
     const gr = lensR + arc * 5
     const lg = ctx.createRadialGradient(bh.x, bh.y, gr - 2.5, bh.x, bh.y, gr + 2.5)
     lg.addColorStop(0, 'rgba(255,107,74,0)')
@@ -315,7 +403,14 @@ function drawBlackHole() {
     ctx.stroke()
   }
 
-  const sg = ctx.createRadialGradient(bh.x - bh.radius * 0.28, bh.y - bh.radius * 0.28, 0, bh.x, bh.y, bh.radius)
+  const sg = ctx.createRadialGradient(
+    bh.x - bh.radius * 0.28,
+    bh.y - bh.radius * 0.28,
+    0,
+    bh.x,
+    bh.y,
+    bh.radius,
+  )
   sg.addColorStop(0, '#0b1018')
   sg.addColorStop(1, '#000000')
   ctx.beginPath()
@@ -342,14 +437,14 @@ function drawOuterDisk(bh: BlackHole, pulse: number) {
   for (let pass = 0; pass < 2; pass++) {
     const flip = pass === 0 ? 1 : -1
     ctx.save()
-    ctx.scale(1, flip * ry / rx)
+    ctx.scale(1, (flip * ry) / rx)
     ctx.beginPath()
     const g = ctx.createLinearGradient(-rx, 0, rx, 0)
-    g.addColorStop(0,    'rgba(255,107,74,0)')
+    g.addColorStop(0, 'rgba(255,107,74,0)')
     g.addColorStop(0.25, 'rgba(255,184,48,0.88)')
-    g.addColorStop(0.5,  'rgba(255,242,200,0.96)')
+    g.addColorStop(0.5, 'rgba(255,242,200,0.96)')
     g.addColorStop(0.75, 'rgba(255,107,74,0.82)')
-    g.addColorStop(1,    'rgba(255,107,74,0)')
+    g.addColorStop(1, 'rgba(255,107,74,0)')
     ctx.arc(0, 0, rx, 0, Math.PI)
     ctx.strokeStyle = g
     ctx.lineWidth = 11 + 4 * Math.sin(time * 2.3 + pass)
@@ -372,14 +467,14 @@ function drawInnerDisk(bh: BlackHole, pulse: number) {
   for (let pass = 0; pass < 2; pass++) {
     const flip = pass === 0 ? 1 : -1
     ctx.save()
-    ctx.scale(1, flip * ry / rx)
+    ctx.scale(1, (flip * ry) / rx)
     ctx.beginPath()
     const g = ctx.createLinearGradient(-rx, 0, rx, 0)
-    g.addColorStop(0,   'rgba(80,200,255,0)')
+    g.addColorStop(0, 'rgba(80,200,255,0)')
     g.addColorStop(0.3, 'rgba(180,230,255,0.75)')
     g.addColorStop(0.5, 'rgba(255,255,255,0.95)')
     g.addColorStop(0.7, 'rgba(180,230,255,0.75)')
-    g.addColorStop(1,   'rgba(80,200,255,0)')
+    g.addColorStop(1, 'rgba(80,200,255,0)')
     ctx.arc(0, 0, rx, 0, Math.PI)
     ctx.strokeStyle = g
     ctx.lineWidth = 5 + 2 * Math.sin(time * 4 + pass * 1.5)
@@ -397,7 +492,8 @@ function drawParticles() {
   let minDist = Infinity
 
   for (const p of particles) {
-    const dx = blackHole.x - p.x, dy = blackHole.y - p.y
+    const dx = blackHole.x - p.x,
+      dy = blackHole.y - p.y
     const dist = Math.sqrt(dx * dx + dy * dy)
     if (dist < minDist) minDist = dist
 
@@ -454,7 +550,8 @@ function loop(now: number) {
       simFrameSkip++
       if (simFrameSkip >= 2) {
         simFrameSkip = 0
-        spawnParticle(); spawnParticle()
+        spawnParticle()
+        spawnParticle()
         if (Math.random() < 0.2) spawnJetParticle()
         if (Math.random() < 0.03) spawnHawkingParticle()
         simulate(ss)
@@ -462,7 +559,8 @@ function loop(now: number) {
     } else {
       const steps = Math.round(ss)
       for (let s = 0; s < steps; s++) {
-        spawnParticle(); spawnParticle()
+        spawnParticle()
+        spawnParticle()
         if (Math.random() < 0.2) spawnJetParticle()
         if (Math.random() < 0.03) spawnHawkingParticle()
         simulate(1)
@@ -489,7 +587,9 @@ function onMouseDown(e: MouseEvent) {
   blackHole.y = e.clientY - r.top
 }
 
-function onMouseUp() { isDragging = false }
+function onMouseUp() {
+  isDragging = false
+}
 
 function onTouchStart(e: TouchEvent) {
   const t = e.touches[0]
@@ -508,10 +608,19 @@ function onTouchMove(e: TouchEvent) {
   blackHole.y = t.clientY - r.top
 }
 
-function onTouchEnd() { isDragging = false }
-function togglePause() { isPaused.value = !isPaused.value }
-function clearParticles() { particles.length = 0; rings.length = 0 }
-function toggleVortex() { isVortex.value = !isVortex.value }
+function onTouchEnd() {
+  isDragging = false
+}
+function togglePause() {
+  isPaused.value = !isPaused.value
+}
+function clearParticles() {
+  particles.length = 0
+  rings.length = 0
+}
+function toggleVortex() {
+  isVortex.value = !isVortex.value
+}
 
 function tidalFlare() {
   const angle = Math.random() * Math.PI * 2
@@ -520,7 +629,8 @@ function tidalFlare() {
   const cy = blackHole.y + Math.sin(angle) * dist
   for (let i = 0; i < 55; i++) {
     if (particles.length >= maxParticlesSlider.value) break
-    const dx = blackHole.x - cx, dy = blackHole.y - cy
+    const dx = blackHole.x - cx,
+      dy = blackHole.y - cy
     const d = Math.sqrt(dx * dx + dy * dy)
     const speed = 0.6 + Math.random() * 1.8
     particles.push({
@@ -531,7 +641,9 @@ function tidalFlare() {
       radius: 1.2 + Math.random() * 2.8,
       opacity: 0.75 + Math.random() * 0.25,
       hue: Math.random() < 0.6 ? 15 + Math.random() * 25 : 50 + Math.random() * 30,
-      trail: [], dead: false, isJet: false,
+      trail: [],
+      dead: false,
+      isJet: false,
     })
   }
   if (rings.length < 16)
@@ -539,11 +651,13 @@ function tidalFlare() {
 }
 
 function saveScreenshot() {
-  canvasRef.value!.toBlob(blob => {
+  canvasRef.value!.toBlob((blob) => {
     if (!blob) return
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url; a.download = 'blackhole.png'; a.click()
+    a.href = url
+    a.download = 'blackhole.png'
+    a.click()
     URL.revokeObjectURL(url)
   })
 }
@@ -551,13 +665,14 @@ function saveScreenshot() {
 
 <template>
   <div class="relative min-h-screen bg-bg-deep overflow-hidden font-body select-none">
-
     <canvas ref="canvasRef" class="absolute inset-0 w-full h-full cursor-crosshair" />
 
     <div class="absolute top-4 left-4 z-10 flex flex-col gap-2 animate-fade-up">
       <div class="hud-panel px-4 py-3">
         <span class="font-display text-xs tracking-widest text-accent-coral">// VŨ TRỤ</span>
-        <h1 class="font-display text-2xl font-bold text-text-primary leading-tight mt-0.5">Hố Đen</h1>
+        <h1 class="font-display text-2xl font-bold text-text-primary leading-tight mt-0.5">
+          Hố Đen
+        </h1>
         <p class="text-text-dim text-xs font-display tracking-wide">GRAVITY SIMULATOR</p>
       </div>
 
@@ -574,8 +689,16 @@ function saveScreenshot() {
           <div class="stat-label">FPS</div>
           <div
             class="stat-value tabular-nums w-12"
-            :class="fpsDisplay >= 50 ? 'text-accent-coral' : fpsDisplay >= 30 ? 'text-accent-amber' : 'text-red-400'"
-          >{{ fpsDisplay }}</div>
+            :class="
+              fpsDisplay >= 50
+                ? 'text-accent-coral'
+                : fpsDisplay >= 30
+                  ? 'text-accent-amber'
+                  : 'text-red-400'
+            "
+          >
+            {{ fpsDisplay }}
+          </div>
         </div>
       </div>
 
@@ -585,25 +708,56 @@ function saveScreenshot() {
     </div>
 
     <div class="absolute top-4 right-4 z-10 animate-fade-up animate-delay-2">
-      <div class="bg-accent-coral text-bg-deep font-display font-bold text-xs tracking-widest px-3 py-1.5 rotate-3 inline-block shadow-lg shadow-accent-coral/30">
+      <div
+        class="bg-accent-coral text-bg-deep font-display font-bold text-xs tracking-widest px-3 py-1.5 rotate-3 inline-block shadow-lg shadow-accent-coral/30"
+      >
         INTERACTIVE
       </div>
     </div>
 
-    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 animate-fade-up animate-delay-3 w-max">
+    <div
+      class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 animate-fade-up animate-delay-3 w-max"
+    >
       <div class="control-panel">
-        <div class="flex gap-1.5 items-center flex-wrap justify-center pb-3 border-b border-border-default mb-3">
-          <button class="ctrl-btn" :class="isPaused ? 'ctrl-btn--coral active' : 'ctrl-btn--ghost'" @click="togglePause">
+        <div
+          class="flex gap-1.5 items-center flex-wrap justify-center pb-3 border-b border-border-default mb-3"
+        >
+          <button
+            class="ctrl-btn"
+            :class="isPaused ? 'ctrl-btn--coral active' : 'ctrl-btn--ghost'"
+            @click="togglePause"
+          >
             {{ isPaused ? '▶ TIẾP TỤC' : '⏸ DỪNG' }}
           </button>
-          <button class="ctrl-btn ctrl-btn--ghost hover:border-accent-amber hover:text-accent-amber" @click="tidalFlare">
+          <button
+            class="ctrl-btn ctrl-btn--ghost hover:border-accent-amber hover:text-accent-amber"
+            @click="tidalFlare"
+          >
             ✦ TIDAL FLARE
           </button>
-          <button class="ctrl-btn" :class="isVortex ? 'ctrl-btn--sky active' : 'ctrl-btn--ghost hover:border-accent-sky hover:text-accent-sky'" @click="toggleVortex">
+          <button
+            class="ctrl-btn"
+            :class="
+              isVortex
+                ? 'ctrl-btn--sky active'
+                : 'ctrl-btn--ghost hover:border-accent-sky hover:text-accent-sky'
+            "
+            @click="toggleVortex"
+          >
             ⟲ VORTEX
           </button>
-          <button class="ctrl-btn ctrl-btn--ghost hover:border-accent-sky hover:text-accent-sky" @click="clearParticles">✕ XÓA</button>
-          <button class="ctrl-btn ctrl-btn--ghost hover:border-accent-coral hover:text-accent-coral" @click="saveScreenshot">⬇ LƯU</button>
+          <button
+            class="ctrl-btn ctrl-btn--ghost hover:border-accent-sky hover:text-accent-sky"
+            @click="clearParticles"
+          >
+            ✕ XÓA
+          </button>
+          <button
+            class="ctrl-btn ctrl-btn--ghost hover:border-accent-coral hover:text-accent-coral"
+            @click="saveScreenshot"
+          >
+            ⬇ LƯU
+          </button>
         </div>
 
         <div class="flex flex-col gap-3 min-w-80">
@@ -611,7 +765,10 @@ function saveScreenshot() {
             <span class="slider-label">KÍCH THƯỚC</span>
             <input
               v-model.number="massSlider"
-              type="range" min="1" max="8" step="1"
+              type="range"
+              min="1"
+              max="8"
+              step="1"
               class="slider slider--coral"
               :style="{ '--fill': massFill() }"
             />
@@ -622,7 +779,10 @@ function saveScreenshot() {
             <span class="slider-label">SỐ HẠT TỐI ĐA</span>
             <input
               v-model.number="maxParticlesSlider"
-              type="range" min="50" max="500" step="50"
+              type="range"
+              min="50"
+              max="500"
+              step="50"
               class="slider slider--amber"
               :style="{ '--fill': pFill() }"
             />
@@ -633,7 +793,10 @@ function saveScreenshot() {
             <span class="slider-label">TỐC ĐỘ</span>
             <input
               v-model.number="speedSlider"
-              type="range" min="0.25" max="3" step="0.25"
+              type="range"
+              min="0.25"
+              max="3"
+              step="0.25"
               class="slider slider--sky"
               :style="{ '--fill': speedFill() }"
             />
@@ -643,7 +806,9 @@ function saveScreenshot() {
       </div>
     </div>
 
-    <div class="absolute bottom-28 left-1/2 -translate-x-1/2 z-10 text-center pointer-events-none animate-fade-up animate-delay-4">
+    <div
+      class="absolute bottom-28 left-1/2 -translate-x-1/2 z-10 text-center pointer-events-none animate-fade-up animate-delay-4"
+    >
       <p class="text-text-dim text-xs font-display tracking-wide">
         CLICK &amp; KÉO để di chuyển hố đen
       </p>
@@ -653,10 +818,13 @@ function saveScreenshot() {
       <RouterLink
         to="/"
         class="inline-flex items-center gap-2 border border-border-default bg-bg-surface/80 backdrop-blur-sm px-4 py-2 text-xs text-text-secondary font-display tracking-widest transition-all duration-200 hover:border-accent-coral hover:text-text-primary"
-      >← TRANG CHỦ</RouterLink>
+        >← TRANG CHỦ</RouterLink
+      >
     </div>
 
-    <div class="hidden lg:block absolute top-1/2 -translate-y-1/2 right-4 z-10 w-52 animate-fade-up animate-delay-3">
+    <div
+      class="hidden lg:block absolute top-1/2 -translate-y-1/2 right-4 z-10 w-52 animate-fade-up animate-delay-3"
+    >
       <div class="hud-panel p-4 flex flex-col gap-3">
         <h2 class="font-display text-xs tracking-widest text-accent-coral flex items-center gap-2">
           <span>//</span> VẬT LÝ
@@ -668,20 +836,25 @@ function saveScreenshot() {
           </div>
           <div class="border-l-2 border-accent-amber pl-2">
             <div class="stat-label mb-0.5">ĐĨA BỒI TỤ KÉP</div>
-            <div class="text-text-secondary text-xs leading-snug">Đĩa ngoài (amber) + đĩa trong nóng hơn (cyan)</div>
+            <div class="text-text-secondary text-xs leading-snug">
+              Đĩa ngoài (amber) + đĩa trong nóng hơn (cyan)
+            </div>
           </div>
           <div class="border-l-2 border-accent-sky pl-2">
             <div class="stat-label mb-0.5">TIA JET + HAWKING</div>
-            <div class="text-text-secondary text-xs leading-snug">Plasma phun ra & hạt lượng tử thoát khỏi chân trời</div>
+            <div class="text-text-secondary text-xs leading-snug">
+              Plasma phun ra & hạt lượng tử thoát khỏi chân trời
+            </div>
           </div>
           <div class="border-l-2 border-border-default pl-2">
             <div class="stat-label mb-0.5">SÓNG HẤP DẪN</div>
-            <div class="text-text-secondary text-xs leading-snug">Gợn không-thời gian lan tỏa ra ngoài</div>
+            <div class="text-text-secondary text-xs leading-snug">
+              Gợn không-thời gian lan tỏa ra ngoài
+            </div>
           </div>
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -697,7 +870,9 @@ function saveScreenshot() {
   background: rgba(22, 34, 50, 0.92);
   backdrop-filter: blur(14px);
   padding: 1rem 1.25rem;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow:
+    0 0 40px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .stat-label {
@@ -737,20 +912,22 @@ function saveScreenshot() {
 .ctrl-btn--coral {
   border-color: var(--color-accent-coral);
   color: var(--color-accent-coral);
-  background: rgba(255, 107, 74, 0.10);
+  background: rgba(255, 107, 74, 0.1);
 }
 
-.ctrl-btn--coral:hover, .ctrl-btn--coral.active {
+.ctrl-btn--coral:hover,
+.ctrl-btn--coral.active {
   background: rgba(255, 107, 74, 0.18);
 }
 
 .ctrl-btn--sky {
   border-color: var(--color-accent-sky);
   color: var(--color-accent-sky);
-  background: rgba(56, 189, 248, 0.10);
+  background: rgba(56, 189, 248, 0.1);
 }
 
-.ctrl-btn--sky:hover, .ctrl-btn--sky.active {
+.ctrl-btn--sky:hover,
+.ctrl-btn--sky.active {
   background: rgba(56, 189, 248, 0.18);
 }
 
@@ -782,7 +959,11 @@ function saveScreenshot() {
   appearance: none;
   flex: 1;
   height: 3px;
-  background: linear-gradient(to right, var(--thumb-color) var(--fill), var(--color-border-default) var(--fill));
+  background: linear-gradient(
+    to right,
+    var(--thumb-color) var(--fill),
+    var(--color-border-default) var(--fill)
+  );
   outline: none;
   cursor: pointer;
   transition: height 0.15s ease;
@@ -792,18 +973,26 @@ function saveScreenshot() {
   height: 4px;
 }
 
-.slider--coral { --thumb-color: #FF6B4A; }
-.slider--amber { --thumb-color: #FFB830; }
-.slider--sky   { --thumb-color: #38BDF8; }
+.slider--coral {
+  --thumb-color: #ff6b4a;
+}
+.slider--amber {
+  --thumb-color: #ffb830;
+}
+.slider--sky {
+  --thumb-color: #38bdf8;
+}
 
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
   background: var(--thumb-color);
-  border: 2px solid #0F1923;
+  border: 2px solid #0f1923;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
   box-shadow: 0 0 8px color-mix(in srgb, var(--thumb-color) 60%, transparent);
 }
 
@@ -816,7 +1005,7 @@ function saveScreenshot() {
   width: 14px;
   height: 14px;
   background: var(--thumb-color);
-  border: 2px solid #0F1923;
+  border: 2px solid #0f1923;
   border-radius: 0;
   cursor: pointer;
   box-shadow: 0 0 8px color-mix(in srgb, var(--thumb-color) 60%, transparent);

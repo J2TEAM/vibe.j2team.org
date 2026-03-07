@@ -34,9 +34,8 @@ const parsedCards = computed(() => {
   const cardDelim = getCardDelimiter()
   const termDelim = getTermDelimiter()
 
-  const lines = typeof cardDelim === 'string'
-    ? rawText.value.split(cardDelim)
-    : rawText.value.split(cardDelim)
+  const lines =
+    typeof cardDelim === 'string' ? rawText.value.split(cardDelim) : rawText.value.split(cardDelim)
 
   return lines
     .map((line) => {
@@ -74,7 +73,9 @@ function handleImport() {
         aria-label="Nhập dữ liệu hàng loạt"
       >
         <h3 class="font-display text-xl font-semibold text-text-primary mb-2">Nhập dữ liệu</h3>
-        <p class="text-text-secondary text-sm mb-4">Chép và dán dữ liệu ở đây (từ Word, Excel, Google Docs, v.v.)</p>
+        <p class="text-text-secondary text-sm mb-4">
+          Chép và dán dữ liệu ở đây (từ Word, Excel, Google Docs, v.v.)
+        </p>
 
         <!-- Textarea -->
         <textarea
@@ -89,7 +90,9 @@ function handleImport() {
         <div class="mt-4 grid grid-cols-2 gap-6">
           <!-- Term separator -->
           <div>
-            <p class="font-display text-sm font-semibold text-text-primary mb-2">Giữa thuật ngữ và định nghĩa</p>
+            <p class="font-display text-sm font-semibold text-text-primary mb-2">
+              Giữa thuật ngữ và định nghĩa
+            </p>
             <div class="space-y-2">
               <label class="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
                 <input v-model="termSep" type="radio" value="tab" class="accent-accent-coral" />
@@ -121,7 +124,12 @@ function handleImport() {
                 Dòng mới
               </label>
               <label class="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
-                <input v-model="cardSep" type="radio" value="semicolon" class="accent-accent-coral" />
+                <input
+                  v-model="cardSep"
+                  type="radio"
+                  value="semicolon"
+                  class="accent-accent-coral"
+                />
                 Chấm phẩy
               </label>
               <label class="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
