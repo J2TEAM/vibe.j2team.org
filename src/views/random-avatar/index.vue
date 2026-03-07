@@ -38,6 +38,7 @@ const styles = [
 const seed = ref("j2team");
 const selectedStyle = ref("adventurer");
 const copied = ref(false);
+const inputSeed = ref("j2team");
 
 const avatarUrl = computed(
   () =>
@@ -51,6 +52,11 @@ function randomSeed() {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   seed.value = result;
+  inputSeed.value = result;
+}
+
+function applySeed() {
+  seed.value = inputSeed.value.trim() || "j2team";
 }
 
 function copySeed() {
@@ -159,13 +165,24 @@ async function downloadAvatar(format: "png" | "svg") {
               >
                 Seed
               </label>
-              <input
-                v-model="seed"
-                type="text"
-                placeholder="Nhập seed..."
-                class="w-full border border-border-default bg-bg-deep text-text-primary text-sm px-4 py-2.5 font-body placeholder:text-text-dim focus:outline-none focus:border-accent-coral transition"
-              />
-              <p class="mt-1.5 text-xs text-text-dim">Avatar cập nhật ngay khi bạn gõ.</p>
+              <div class="flex gap-2">
+                <input
+                  v-model="inputSeed"
+                  type="text"
+                  placeholder="Nhập seed..."
+                  class="flex-1 border border-border-default bg-bg-deep text-text-primary text-sm px-4 py-2.5 font-body placeholder:text-text-dim focus:outline-none focus:border-accent-coral transition"
+                  @keydown.enter="applySeed"
+                />
+                <button
+                  class="border border-border-default bg-bg-elevated px-4 py-2.5 text-sm font-display text-text-secondary transition hover:border-accent-coral hover:text-text-primary active:scale-95"
+                  @click="applySeed"
+                >
+                  Áp dụng
+                </button>
+              </div>
+              <p class="mt-1.5 text-xs text-text-dim">
+                Nhấn Enter hoặc "Áp dụng" để tạo avatar với seed này.
+              </p>
             </div>
 
             <!-- Random button -->
