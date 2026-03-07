@@ -6,9 +6,9 @@ const sqlCode = ref(`-- Tạo bảng mẫu
 CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, role TEXT);
 
 -- Chèn dữ liệu
-INSERT INTO users (name, role) VALUES ('Admin', 'Moderator');
-INSERT INTO users (name, role) VALUES ('Viber', 'Member');
-INSERT INTO users (name, role) VALUES ('Coder', 'WASM Enthusiast');
+INSERT INTO users (name, role) VALUES ('Admin', 'Quản trị viên');
+INSERT INTO users (name, role) VALUES ('Viber', 'Thành viên');
+INSERT INTO users (name, role) VALUES ('Coder', 'Người yêu WASM');
 
 -- Truy vấn dữ liệu
 SELECT * FROM users;`)

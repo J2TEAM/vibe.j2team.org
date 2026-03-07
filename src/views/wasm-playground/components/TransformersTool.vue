@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref } from 'vue'
 
-const inputText = ref('I just tried out the new WebAssembly tools on J2TEAM and my mind is blown! The performance is absolutely incredible.')
+const inputText = ref('Tôi vừa dùng thử các công cụ WebAssembly mới trên J2TEAM và thực sự kinh ngạc! Hiệu năng quá tuyệt vời.')
 const outputData = ref<any>(null)
 const isRunning = ref(false)
 const errorMsg = ref('')

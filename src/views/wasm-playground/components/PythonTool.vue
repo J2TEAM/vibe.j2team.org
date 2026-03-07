@@ -3,7 +3,7 @@
 import { ref, onMounted } from 'vue'
 
 const code = ref(`import sys
-print("Python version:", sys.version)
+print("Phiên bản Python:", sys.version)
 
 def calculate_primes(n):
     primes = []
@@ -12,7 +12,7 @@ def calculate_primes(n):
             primes.append(num)
     return primes
 
-print(f"Primes up to 50: {calculate_primes(50)}")
+print(f"Các số nguyên tố đến 50: {calculate_primes(50)}")
 `)
 
 const output = ref('')

@@ -2,13 +2,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref, onMounted } from 'vue'
 
-const sqlCode = ref(`-- DuckDB-Wasm: Analytical SQL Database
+const sqlCode = ref(`-- DuckDB-Wasm: Cơ sở dữ liệu SQL phân tích
 -- Hãy thử query 100,000 dòng dữ liệu trực tiếp trên trình duyệt!
 
 SELECT 
-    sum(random()) AS total_sum,
-    count(*) AS row_count,
-    avg(random()) AS average_val
+    sum(random()) AS tong_ngau_nhien,
+    count(*) AS so_luong_dong,
+    avg(random()) AS trung_binh_ngau_nhien
 FROM generate_series(1, 100000);
 `)
 
@@ -43,7 +43,7 @@ onMounted(async () => {
     isLoading.value = false
   } catch (err) {
     console.error('DuckDB init failed:', err)
-    sqlError.value = 'Failed to load DuckDB-Wasm. Please check your connection.'
+    sqlError.value = 'Tải DuckDB-Wasm thất bại. Vui lòng kiểm tra kết nối.'
   }
 })
 
