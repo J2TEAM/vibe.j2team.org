@@ -399,6 +399,12 @@ function mergeCharParts(parts: CharDiffPart[]): CharDiffPart[] {
 }
 
 export function useDiff(oldText: Ref<string>, newText: Ref<string>) {
+  const isLargeInput = computed(() => {
+    const oldCount = oldText.value === '' ? 0 : splitLines(oldText.value).length
+    const newCount = newText.value === '' ? 0 : splitLines(newText.value).length
+    return oldCount * newCount > MAX_DP_CELLS
+  })
+
   const rawDiff = computed(() => diffLines(oldText.value, newText.value))
 
   const twoPanels = computed(() => toTwoPanels(rawDiff.value))
@@ -416,5 +422,5 @@ export function useDiff(oldText: Ref<string>, newText: Ref<string>) {
     return { additions, deletions }
   })
 
-  return { rawDiff, twoPanels, unified, stats }
+  return { rawDiff, twoPanels, unified, stats, isLargeInput }
 }

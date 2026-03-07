@@ -26,7 +26,7 @@ function scheduleDebounce() {
 
 watch([oldText, newText], scheduleDebounce, { immediate: false })
 
-const { twoPanels, unified, stats } = useDiff(debouncedOld, debouncedNew)
+const { twoPanels, unified, stats, isLargeInput } = useDiff(debouncedOld, debouncedNew)
 
 const viewMode = ref<'side-by-side' | 'unified'>('side-by-side')
 
@@ -90,6 +90,13 @@ function swapTexts() {
           :additions="stats.additions"
           :deletions="stats.deletions"
         />
+      </div>
+
+      <div
+        v-if="isLargeInput"
+        class="mt-6 animate-fade-up animate-delay-4 border border-accent-amber/40 bg-accent-amber/10 px-4 py-3 text-sm text-text-secondary"
+      >
+        ⚠ Nội dung quá lớn — kết quả so sánh có thể kém chính xác hơn do dùng thuật toán đơn giản thay vì LCS.
       </div>
 
       <div class="mt-6 animate-fade-up animate-delay-4">
