@@ -25,7 +25,7 @@ onMounted(async () => {
   }
 })
 
-const resetProgress = ref(true)
+const resetProgress = ref(false)
 
 async function handleStart() {
   if (resetProgress.value && props.setId) {
