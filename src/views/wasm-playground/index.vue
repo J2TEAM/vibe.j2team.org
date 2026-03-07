@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, defineAsyncComponent } from 'vue'
-import { RouterLink } from 'vue-router'
+import { ref, defineAsyncComponent, onMounted, watch } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 // Lazy load components
 const LuaTool = defineAsyncComponent(() => import('./components/LuaTool.vue'))
@@ -12,6 +12,9 @@ const ObjectDetectionTool = defineAsyncComponent(() => import('./components/Obje
 const DuckDbTool = defineAsyncComponent(() => import('./components/DuckDbTool.vue'))
 const FaceMeshTool = defineAsyncComponent(() => import('./components/FaceMeshTool.vue'))
 const TransformersTool = defineAsyncComponent(() => import('./components/TransformersTool.vue'))
+
+const route = useRoute()
+const router = useRouter()
 
 const activeTool = ref('lua')
 
@@ -26,6 +29,24 @@ const tools = [
   { id: 'face-mesh', label: 'KHUÔN MẶT', component: FaceMeshTool, version: 'MEDIAPIPE', cdn: 'cdn.jsdelivr.net/npm/@mediapipe/tasks-vision', description: 'Theo dõi 478 điểm trên khuôn mặt realtime bằng WebGPU/WASM.' },
   { id: 'ai-nlp', label: 'NGÔN NGỮ', component: TransformersTool, version: 'TRANSFORMERS.JS', cdn: 'cdn.jsdelivr.net/npm/@huggingface/transformers', description: 'Xử lý ngôn ngữ tự nhiên: Phân tích cảm xúc bằng mô hình DistilBERT.' },
 ] as const
+
+const setActiveTool = (id: string) => {
+  activeTool.value = id
+  router.push({ query: { ...route.query, tool: id } })
+}
+
+onMounted(() => {
+  const toolFromQuery = route.query.tool as string
+  if (toolFromQuery && tools.some(t => t.id === toolFromQuery)) {
+    activeTool.value = toolFromQuery
+  }
+})
+
+watch(() => route.query.tool, (newTool) => {
+  if (newTool && tools.some(t => t.id === newTool)) {
+    activeTool.value = newTool as string
+  }
+})
 </script>
 
 <template>
@@ -51,7 +72,7 @@ const tools = [
         <button 
           v-for="tool in tools"
           :key="tool.id"
-          @click="activeTool = tool.id"
+          @click="setActiveTool(tool.id)"
           :class="[
             'px-4 py-2 text-xs font-mono tracking-tighter sm:tracking-wider transition-all border-b-2 uppercase',
             activeTool === tool.id ? 'border-accent-coral text-accent-coral bg-accent-coral/5' : 'border-transparent text-text-secondary hover:text-text-primary'
