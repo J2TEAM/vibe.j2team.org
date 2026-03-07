@@ -14,11 +14,9 @@ function getRandomIndex(excludeIndex: number): number {
 
 const currentIndex = ref(getRandomIndex(-1))
 const current = computed(() => confessions[currentIndex.value]!)
-const transitionKey = ref(0)
 
 function next() {
   currentIndex.value = getRandomIndex(currentIndex.value)
-  transitionKey.value++
 }
 </script>
 
@@ -34,7 +32,7 @@ function next() {
     <div class="mt-10 w-full max-w-lg animate-fade-up animate-delay-3">
       <Transition name="confession" mode="out-in">
         <div
-          :key="transitionKey"
+          :key="currentIndex"
           class="relative border border-border-default bg-bg-surface p-6 sm:p-8"
         >
           <span class="absolute -top-3 -left-3 font-display text-5xl text-accent-coral leading-none select-none">"</span>
