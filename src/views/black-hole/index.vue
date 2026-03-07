@@ -2,32 +2,19 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 interface Particle {
-  x: number
-  y: number
-  vx: number
-  vy: number
-  radius: number
-  opacity: number
-  hue: number
+  x: number; y: number; vx: number; vy: number
+  radius: number; opacity: number; hue: number
   trail: { x: number; y: number }[]
-  dead: boolean
-  isJet: boolean
+  dead: boolean; isJet: boolean
 }
 
 interface BlackHole {
-  x: number
-  y: number
-  mass: number
-  radius: number
-  accretionRadius: number
+  x: number; y: number; mass: number; radius: number; accretionRadius: number
 }
 
-interface Ripple {
-  x: number
-  y: number
-  radius: number
-  maxRadius: number
-  life: number
+interface Ring {
+  x: number; y: number; radius: number; life: number
+  r: number; g: number; b: number; speed: number
 }
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -36,35 +23,38 @@ const particleCount = ref(0)
 const closestParticle = ref(0)
 const fpsDisplay = ref(60)
 const massLevel = ref(1)
+const simSpeedIdx = ref(1)
+const isVortex = ref(false)
+
+const SIM_SPEEDS = [0.5, 1, 2]
+const SIM_SPEED_LABELS = ['0.5×', '1×', '2×']
 
 let ctx: CanvasRenderingContext2D | null = null
 let animId: number | null = null
-let W = 0
-let H = 0
+let W = 0; let H = 0
 
 const G = 6000
-const TRAIL_LENGTH = 16
+const TRAIL_LENGTH = 22
 const MAX_PARTICLES = 350
 const SPAWN_RATE = 2
 
 const blackHole: BlackHole = { x: 0, y: 0, mass: 1, radius: 36, accretionRadius: 100 }
 const particles: Particle[] = []
-const ripples: Ripple[] = []
+const rings: Ring[] = []
 
 let starBitmap: ImageBitmap | null = null
-
 let isDragging = false
-let dragLastX = 0
-let dragLastY = 0
-let diskAngle = 0
-let time = 0
-let lastFrameTime = 0
-let frameCount = 0
-let fpsTimer = 0
+let dragLastX = 0; let dragLastY = 0
+let diskAngle = 0; let time = 0
+let lastFrameTime = 0; let frameCount = 0; let fpsTimer = 0
+let gravWaveTimer = 0
+let simFrameSkip = 0
 
 onMounted(async () => {
   const canvas = canvasRef.value!
   ctx = canvas.getContext('2d')!
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
   resize()
   window.addEventListener('resize', resize)
   canvas.addEventListener('mousemove', onMouseMove)
@@ -73,7 +63,7 @@ onMounted(async () => {
   canvas.addEventListener('touchstart', onTouchStart, { passive: true })
   canvas.addEventListener('touchmove', onTouchMove, { passive: true })
   canvas.addEventListener('touchend', onTouchEnd, { passive: true })
-  await buildStarfield()
+  await buildBackground()
   loop(0)
 })
 
@@ -88,30 +78,52 @@ function resize() {
   H = canvas.height = canvas.offsetHeight
   blackHole.x = W / 2
   blackHole.y = H / 2
-  buildStarfield()
+  buildBackground()
 }
 
-async function buildStarfield() {
+async function buildBackground() {
   if (!W || !H) return
   const off = new OffscreenCanvas(W, H)
   const octx = off.getContext('2d')!
-  octx.clearRect(0, 0, W, H)
-  const starCount = Math.floor((W * H) / 6000)
+  octx.fillStyle = '#0F1923'
+  octx.fillRect(0, 0, W, H)
+
+  const nebulae = [
+    { x: W * 0.15, y: H * 0.2,  r: W * 0.45, cr: 80,  cg: 30,  cb: 15,  a: 0.22 },
+    { x: W * 0.85, y: H * 0.75, r: W * 0.40, cr: 20,  cg: 60,  cb: 100, a: 0.18 },
+    { x: W * 0.5,  y: H * 0.9,  r: W * 0.35, cr: 100, cg: 55,  cb: 10,  a: 0.14 },
+    { x: W * 0.7,  y: H * 0.15, r: W * 0.3,  cr: 15,  cg: 70,  cb: 120, a: 0.12 },
+  ]
+  for (const n of nebulae) {
+    const g = octx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r)
+    g.addColorStop(0, `rgba(${n.cr},${n.cg},${n.cb},${n.a})`)
+    g.addColorStop(1, 'rgba(0,0,0,0)')
+    octx.fillStyle = g
+    octx.fillRect(0, 0, W, H)
+  }
+
+  const starCount = Math.floor((W * H) / 5000)
   for (let i = 0; i < starCount; i++) {
     const x = Math.random() * W
     const y = Math.random() * H
-    const r = Math.random() < 0.08 ? 1.5 : 0.6
-    const a = 0.15 + Math.random() * 0.55
+    const big = Math.random() < 0.06
+    const r = big ? 1.2 + Math.random() * 0.8 : 0.4 + Math.random() * 0.4
+    const a = big ? 0.5 + Math.random() * 0.5 : 0.1 + Math.random() * 0.5
     const warm = Math.random()
-    const color = warm < 0.4
-      ? `rgba(240,230,200,${a})`
-      : warm < 0.7
-        ? `rgba(180,210,255,${a})`
-        : `rgba(255,200,160,${a})`
+    const c = warm < 0.35 ? `rgba(248,240,220,${a})` : warm < 0.65 ? `rgba(180,215,255,${a})` : `rgba(255,210,170,${a})`
     octx.beginPath()
     octx.arc(x, y, r, 0, Math.PI * 2)
-    octx.fillStyle = color
+    octx.fillStyle = c
     octx.fill()
+    if (big) {
+      const sg = octx.createRadialGradient(x, y, 0, x, y, r * 4)
+      sg.addColorStop(0, `rgba(220,235,255,${a * 0.4})`)
+      sg.addColorStop(1, 'rgba(0,0,0,0)')
+      octx.fillStyle = sg
+      octx.beginPath()
+      octx.arc(x, y, r * 4, 0, Math.PI * 2)
+      octx.fill()
+    }
   }
   starBitmap = await createImageBitmap(off)
 }
@@ -125,50 +137,36 @@ function spawnParticle() {
   else if (edge === 2) { x = Math.random() * W; y = H + 10 }
   else { x = -10; y = Math.random() * H }
 
-  const dx = blackHole.x - x
-  const dy = blackHole.y - y
+  const dx = blackHole.x - x, dy = blackHole.y - y
   const dist = Math.sqrt(dx * dx + dy * dy)
-  const tangX = -dy / dist
-  const tangY = dx / dist
+  const tx = -dy / dist, ty = dx / dist
   const speed = 0.4 + Math.random() * 1.2
-  const tangential = 0.4 + Math.random() * 0.8
-  const hue = Math.random() < 0.55
-    ? 10 + Math.random() * 30
-    : Math.random() < 0.5
-      ? 35 + Math.random() * 25
-      : 195 + Math.random() * 30
+  const tang = 0.4 + Math.random() * 0.8
+  const hue = Math.random() < 0.55 ? 10 + Math.random() * 30 : Math.random() < 0.5 ? 35 + Math.random() * 25 : 195 + Math.random() * 30
 
   particles.push({
     x, y,
-    vx: (dx / dist) * speed + tangX * tangential,
-    vy: (dy / dist) * speed + tangY * tangential,
+    vx: (dx / dist) * speed + tx * tang,
+    vy: (dy / dist) * speed + ty * tang,
     radius: 0.8 + Math.random() * 2,
-    opacity: 0.6 + Math.random() * 0.4,
-    hue,
-    trail: [],
-    dead: false,
-    isJet: false,
+    opacity: 0.65 + Math.random() * 0.35,
+    hue, trail: [], dead: false, isJet: false,
   })
 }
 
 function spawnJetParticle() {
   if (particles.length >= MAX_PARTICLES) return
   const sign = Math.random() < 0.5 ? 1 : -1
-  const spread = (Math.random() - 0.5) * 1.2
-  const speed = 3.5 + Math.random() * 2.5
-  const hue = 185 + Math.random() * 30
-
+  const spread = (Math.random() - 0.5) * 1.0
+  const speed = 4 + Math.random() * 3
   particles.push({
-    x: blackHole.x + (Math.random() - 0.5) * blackHole.radius * 0.8,
+    x: blackHole.x + (Math.random() - 0.5) * blackHole.radius * 0.7,
     y: blackHole.y,
-    vx: spread,
-    vy: sign * speed,
-    radius: 0.5 + Math.random() * 1,
-    opacity: 0.5 + Math.random() * 0.4,
-    hue,
-    trail: [],
-    dead: false,
-    isJet: true,
+    vx: spread, vy: sign * speed,
+    radius: 0.4 + Math.random() * 0.9,
+    opacity: 0.45 + Math.random() * 0.4,
+    hue: 185 + Math.random() * 30,
+    trail: [], dead: false, isJet: true,
   })
 }
 
@@ -176,41 +174,39 @@ function spawnHawkingParticle() {
   if (particles.length >= MAX_PARTICLES) return
   const angle = Math.random() * Math.PI * 2
   const r = blackHole.radius + 2
-  const speed = 0.8 + Math.random() * 1.2
+  const speed = 0.9 + Math.random() * 1.3
   particles.push({
     x: blackHole.x + Math.cos(angle) * r,
     y: blackHole.y + Math.sin(angle) * r,
-    vx: Math.cos(angle) * speed,
-    vy: Math.sin(angle) * speed,
-    radius: 0.4 + Math.random() * 0.6,
-    opacity: 0.4 + Math.random() * 0.3,
-    hue: 50 + Math.random() * 40,
-    trail: [],
-    dead: false,
-    isJet: false,
+    vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+    radius: 0.35 + Math.random() * 0.55,
+    opacity: 0.35 + Math.random() * 0.3,
+    hue: 45 + Math.random() * 40,
+    trail: [], dead: false, isJet: false,
   })
 }
 
-function simulate() {
+function simulate(speed: number) {
+  const gDir = isVortex.value ? -1 : 1
+
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i]
     if (p.dead) { particles.splice(i, 1); continue }
 
-    const dx = blackHole.x - p.x
-    const dy = blackHole.y - p.y
+    const dx = blackHole.x - p.x, dy = blackHole.y - p.y
     const distSq = dx * dx + dy * dy
     const dist = Math.sqrt(distSq)
 
-    if (dist < blackHole.radius - 4) {
+    if (!isVortex.value && dist < blackHole.radius - 4) {
       p.dead = true
-      if (ripples.length < 12) {
-        ripples.push({ x: p.x, y: p.y, radius: blackHole.radius, maxRadius: blackHole.radius + 45, life: 1 })
+      if (rings.length < 16) {
+        rings.push({ x: p.x, y: p.y, radius: blackHole.radius * 0.8, life: 1, r: 255, g: 120, b: 60, speed: 2.5 })
       }
       continue
     }
 
     if (!p.isJet) {
-      const acc = (G * blackHole.mass) / distSq
+      const acc = (G * blackHole.mass * gDir * speed) / distSq
       p.vx += (dx / dist) * acc
       p.vy += (dy / dist) * acc
       p.vx *= 0.999
@@ -220,19 +216,26 @@ function simulate() {
     p.trail.push({ x: p.x, y: p.y })
     if (p.trail.length > TRAIL_LENGTH) p.trail.shift()
 
-    p.x += p.vx
-    p.y += p.vy
+    p.x += p.vx * speed
+    p.y += p.vy * speed
 
-    if (p.x < -200 || p.x > W + 200 || p.y < -200 || p.y > H + 200) {
+    if (p.x < -250 || p.x > W + 250 || p.y < -250 || p.y > H + 250) {
       p.dead = true
     }
   }
 
-  for (let i = ripples.length - 1; i >= 0; i--) {
-    const rp = ripples[i]
-    rp.life -= 0.045
-    rp.radius += 2.5
-    if (rp.life <= 0) ripples.splice(i, 1)
+  for (let i = rings.length - 1; i >= 0; i--) {
+    rings[i].life -= 0.04 * speed
+    rings[i].radius += rings[i].speed * speed
+    if (rings[i].life <= 0) rings.splice(i, 1)
+  }
+
+  gravWaveTimer += speed
+  if (gravWaveTimer > 160) {
+    gravWaveTimer = 0
+    if (rings.length < 16) {
+      rings.push({ x: blackHole.x, y: blackHole.y, radius: blackHole.radius * 1.2, life: 1, r: 255, g: 184, b: 48, speed: 1.8 })
+    }
   }
 }
 
@@ -242,10 +245,9 @@ function draw(now: number) {
   frameCount++
   fpsTimer += now - lastFrameTime
   lastFrameTime = now
-  if (fpsTimer >= 500) {
+  if (fpsTimer >= 600) {
     fpsDisplay.value = Math.round(frameCount / (fpsTimer / 1000))
-    frameCount = 0
-    fpsTimer = 0
+    frameCount = 0; fpsTimer = 0
   }
 
   if (starBitmap) {
@@ -256,24 +258,25 @@ function draw(now: number) {
     ctx.fillRect(0, 0, W, H)
   }
 
-  ctx.fillStyle = 'rgba(15, 25, 35, 0.78)'
+  ctx.fillStyle = 'rgba(15,25,35,0.72)'
   ctx.fillRect(0, 0, W, H)
 
-  drawRipples()
+  drawRings()
   drawBlackHole()
   drawParticles()
 
-  diskAngle += 0.008
-  time += 0.03
+  const ss = SIM_SPEEDS[simSpeedIdx.value]
+  diskAngle += 0.008 * ss
+  time += 0.03 * ss
 }
 
-function drawRipples() {
+function drawRings() {
   if (!ctx) return
-  for (const rp of ripples) {
+  for (const rg of rings) {
     ctx.beginPath()
-    ctx.arc(rp.x, rp.y, rp.radius, 0, Math.PI * 2)
-    ctx.strokeStyle = `rgba(255, 130, 60, ${rp.life * 0.6})`
-    ctx.lineWidth = 1.5 * rp.life
+    ctx.arc(rg.x, rg.y, rg.radius, 0, Math.PI * 2)
+    ctx.strokeStyle = `rgba(${rg.r},${rg.g},${rg.b},${rg.life * 0.55})`
+    ctx.lineWidth = 1.5 * rg.life
     ctx.stroke()
   }
 }
@@ -283,82 +286,110 @@ function drawBlackHole() {
   const bh = blackHole
   const pulse = 1 + 0.06 * Math.sin(time * 1.5)
 
-  const glowGradient = ctx.createRadialGradient(bh.x, bh.y, bh.radius * 0.5, bh.x, bh.y, bh.accretionRadius * 2.5 * pulse)
-  glowGradient.addColorStop(0,   'rgba(255, 107, 74, 0.22)')
-  glowGradient.addColorStop(0.3, 'rgba(255, 184, 48, 0.10)')
-  glowGradient.addColorStop(0.6, 'rgba(56, 189, 248, 0.06)')
-  glowGradient.addColorStop(1,   'rgba(0,0,0,0)')
+  const outerGlow = ctx.createRadialGradient(bh.x, bh.y, bh.radius, bh.x, bh.y, bh.accretionRadius * 3 * pulse)
+  outerGlow.addColorStop(0,   'rgba(255,107,74,0.18)')
+  outerGlow.addColorStop(0.35,'rgba(255,184,48,0.09)')
+  outerGlow.addColorStop(0.7, 'rgba(56,189,248,0.05)')
+  outerGlow.addColorStop(1,   'rgba(0,0,0,0)')
   ctx.beginPath()
-  ctx.arc(bh.x, bh.y, bh.accretionRadius * 2.5 * pulse, 0, Math.PI * 2)
-  ctx.fillStyle = glowGradient
+  ctx.arc(bh.x, bh.y, bh.accretionRadius * 3 * pulse, 0, Math.PI * 2)
+  ctx.fillStyle = outerGlow
   ctx.fill()
 
-  drawAccretionDisk(bh, pulse)
+  drawOuterDisk(bh, pulse)
+  drawInnerDisk(bh, pulse)
 
-  const lensRadius = bh.radius * 2.0
-  for (let arc = 0; arc < 3; arc++) {
-    const alpha = (0.35 - arc * 0.1) * pulse
-    const gr = lensRadius + arc * 6
-    const lensGrad = ctx.createRadialGradient(bh.x, bh.y, gr - 3, bh.x, bh.y, gr + 3)
-    lensGrad.addColorStop(0, `rgba(255,107,74,0)`)
-    lensGrad.addColorStop(0.5, `rgba(255,220,150,${alpha})`)
-    lensGrad.addColorStop(1, `rgba(255,107,74,0)`)
+  const lensR = bh.radius * 2.1
+  for (let arc = 0; arc < 4; arc++) {
+    const alpha = (0.40 - arc * 0.08) * pulse
+    const gr = lensR + arc * 5
+    const lg = ctx.createRadialGradient(bh.x, bh.y, gr - 2.5, bh.x, bh.y, gr + 2.5)
+    lg.addColorStop(0, 'rgba(255,107,74,0)')
+    lg.addColorStop(0.5, `rgba(255,230,160,${alpha})`)
+    lg.addColorStop(1, 'rgba(255,107,74,0)')
     ctx.beginPath()
     ctx.arc(bh.x, bh.y, gr, 0, Math.PI * 2)
-    ctx.strokeStyle = lensGrad
-    ctx.lineWidth = 6 - arc * 1.5
+    ctx.strokeStyle = lg
+    ctx.lineWidth = 5 - arc * 1
     ctx.stroke()
   }
 
-  const singGrad = ctx.createRadialGradient(bh.x - bh.radius * 0.3, bh.y - bh.radius * 0.3, 0, bh.x, bh.y, bh.radius)
-  singGrad.addColorStop(0, '#0a0f15')
-  singGrad.addColorStop(1, '#000000')
+  const sg = ctx.createRadialGradient(bh.x - bh.radius * 0.28, bh.y - bh.radius * 0.28, 0, bh.x, bh.y, bh.radius)
+  sg.addColorStop(0, '#0b1018')
+  sg.addColorStop(1, '#000000')
   ctx.beginPath()
   ctx.arc(bh.x, bh.y, bh.radius, 0, Math.PI * 2)
-  ctx.fillStyle = singGrad
+  ctx.fillStyle = sg
   ctx.fill()
 
-  const rimGrad = ctx.createRadialGradient(bh.x, bh.y, bh.radius - 4, bh.x, bh.y, bh.radius + 8)
-  rimGrad.addColorStop(0, `rgba(255,130,60,${0.45 * pulse})`)
-  rimGrad.addColorStop(1, 'rgba(0,0,0,0)')
+  const rg = ctx.createRadialGradient(bh.x, bh.y, bh.radius - 3, bh.x, bh.y, bh.radius + 10)
+  rg.addColorStop(0, `rgba(255,140,60,${0.5 * pulse})`)
+  rg.addColorStop(1, 'rgba(0,0,0,0)')
   ctx.beginPath()
-  ctx.arc(bh.x, bh.y, bh.radius + 8, 0, Math.PI * 2)
-  ctx.fillStyle = rimGrad
+  ctx.arc(bh.x, bh.y, bh.radius + 10, 0, Math.PI * 2)
+  ctx.fillStyle = rg
   ctx.fill()
 }
 
-function drawAccretionDisk(bh: BlackHole, pulse: number) {
+function drawOuterDisk(bh: BlackHole, pulse: number) {
   if (!ctx) return
-  const rx = bh.accretionRadius * 1.5 * pulse
-  const ry = rx * 0.2
+  const rx = bh.accretionRadius * 1.55 * pulse
+  const ry = rx * 0.18
 
   ctx.save()
   ctx.translate(bh.x, bh.y)
   ctx.rotate(diskAngle)
-
   for (let pass = 0; pass < 2; pass++) {
     const flip = pass === 0 ? 1 : -1
     ctx.save()
     ctx.scale(1, flip * ry / rx)
     ctx.beginPath()
-
-    const diskGrad = ctx.createLinearGradient(-rx, 0, rx, 0)
-    diskGrad.addColorStop(0,    'rgba(255, 107, 74, 0)')
-    diskGrad.addColorStop(0.25, 'rgba(255, 184, 48, 0.85)')
-    diskGrad.addColorStop(0.5,  'rgba(255, 240, 200, 0.95)')
-    diskGrad.addColorStop(0.75, 'rgba(255, 107, 74, 0.80)')
-    diskGrad.addColorStop(1,    'rgba(255, 107, 74, 0)')
-
+    const g = ctx.createLinearGradient(-rx, 0, rx, 0)
+    g.addColorStop(0,    'rgba(255,107,74,0)')
+    g.addColorStop(0.25, 'rgba(255,184,48,0.88)')
+    g.addColorStop(0.5,  'rgba(255,242,200,0.96)')
+    g.addColorStop(0.75, 'rgba(255,107,74,0.82)')
+    g.addColorStop(1,    'rgba(255,107,74,0)')
     ctx.arc(0, 0, rx, 0, Math.PI)
-    ctx.strokeStyle = diskGrad
-    ctx.lineWidth = 10 + 4 * Math.sin(time * 2.5 + pass)
-    ctx.shadowColor = 'rgba(255,184,48,0.6)'
-    ctx.shadowBlur = 18
+    ctx.strokeStyle = g
+    ctx.lineWidth = 11 + 4 * Math.sin(time * 2.3 + pass)
+    ctx.shadowColor = 'rgba(255,184,48,0.55)'
+    ctx.shadowBlur = 20
     ctx.stroke()
     ctx.shadowBlur = 0
     ctx.restore()
   }
+  ctx.restore()
+}
 
+function drawInnerDisk(bh: BlackHole, pulse: number) {
+  if (!ctx) return
+  const rx = bh.radius * 2.1 * pulse
+  const ry = rx * 0.14
+
+  ctx.save()
+  ctx.translate(bh.x, bh.y)
+  ctx.rotate(-diskAngle * 1.8)
+  for (let pass = 0; pass < 2; pass++) {
+    const flip = pass === 0 ? 1 : -1
+    ctx.save()
+    ctx.scale(1, flip * ry / rx)
+    ctx.beginPath()
+    const g = ctx.createLinearGradient(-rx, 0, rx, 0)
+    g.addColorStop(0,    'rgba(80,200,255,0)')
+    g.addColorStop(0.3,  'rgba(180,230,255,0.75)')
+    g.addColorStop(0.5,  'rgba(255,255,255,0.95)')
+    g.addColorStop(0.7,  'rgba(180,230,255,0.75)')
+    g.addColorStop(1,    'rgba(80,200,255,0)')
+    ctx.arc(0, 0, rx, 0, Math.PI)
+    ctx.strokeStyle = g
+    ctx.lineWidth = 5 + 2 * Math.sin(time * 4 + pass * 1.5)
+    ctx.shadowColor = 'rgba(150,220,255,0.8)'
+    ctx.shadowBlur = 14
+    ctx.stroke()
+    ctx.shadowBlur = 0
+    ctx.restore()
+  }
   ctx.restore()
 }
 
@@ -367,37 +398,46 @@ function drawParticles() {
   let minDist = Infinity
 
   for (const p of particles) {
-    const dx = blackHole.x - p.x
-    const dy = blackHole.y - p.y
+    const dx = blackHole.x - p.x, dy = blackHole.y - p.y
     const dist = Math.sqrt(dx * dx + dy * dy)
     if (dist < minDist) minDist = dist
 
-    const proximity = Math.max(0, 1 - dist / (blackHole.accretionRadius * 2))
-    const glowFactor = 1 + proximity * 3
-    const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
-    const saturation = p.isJet ? 90 : Math.max(20, 90 - speed * 4)
-    const lightness = p.isJet ? Math.min(95, 65 + speed * 3) : Math.min(92, 55 + speed * 6)
+    const proximity = Math.max(0, 1 - dist / (blackHole.accretionRadius * 2.2))
+    const glowFactor = 1 + proximity * 2.5
+    const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
+    const sat = p.isJet ? 88 : Math.max(25, 92 - spd * 5)
+    const lig = p.isJet ? Math.min(94, 66 + spd * 3) : Math.min(92, 52 + spd * 7)
+    const trailAlpha = p.isJet ? 0.3 : 0.12 + proximity * 0.45
 
-    for (let t = 1; t < p.trail.length; t += 2) {
-      const pt = p.trail[t]
-      const trailFade = t / p.trail.length
-      const trailOpacity = trailFade * p.opacity * (p.isJet ? 0.25 : 0.1 + proximity * 0.4)
-      if (trailOpacity < 0.02) continue
+    for (let t = 1; t < p.trail.length; t += 1) {
+      const a = p.trail[t - 1], b = p.trail[t]
+      const tFade = t / p.trail.length
+      const opacity = tFade * p.opacity * trailAlpha
+      if (opacity < 0.015) continue
       ctx.beginPath()
-      ctx.arc(pt.x, pt.y, Math.max(0.3, p.radius * trailFade * 0.8), 0, Math.PI * 2)
-      ctx.fillStyle = `hsla(${p.hue}, ${saturation}%, ${lightness}%, ${trailOpacity})`
-      ctx.fill()
+      ctx.moveTo(a.x, a.y)
+      ctx.lineTo(b.x, b.y)
+      ctx.strokeStyle = `hsla(${p.hue},${sat}%,${lig}%,${opacity})`
+      ctx.lineWidth = Math.max(0.4, p.radius * tFade * (p.isJet ? 0.7 : 0.9))
+      ctx.stroke()
     }
 
-    const glowSize = p.radius * glowFactor
-    if (proximity > 0.5 || p.isJet) {
-      ctx.shadowColor = `hsl(${p.hue}, ${saturation}%, ${lightness}%)`
-      ctx.shadowBlur = p.isJet ? 6 : glowSize * 3
+    const gs = p.radius * glowFactor
+    if (proximity > 0.4 || p.isJet) {
+      ctx.shadowColor = `hsl(${p.hue},${sat}%,${lig}%)`
+      ctx.shadowBlur = p.isJet ? 7 : gs * 3
     }
     ctx.beginPath()
-    ctx.arc(p.x, p.y, Math.max(0.5, glowSize), 0, Math.PI * 2)
-    ctx.fillStyle = `hsla(${p.hue}, ${saturation}%, ${lightness}%, ${p.opacity})`
+    ctx.arc(p.x, p.y, Math.max(0.5, gs), 0, Math.PI * 2)
+    ctx.fillStyle = `hsla(${p.hue},${sat}%,${lig}%,${p.opacity})`
     ctx.fill()
+
+    if (proximity > 0.6 && !p.isJet) {
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, Math.max(0.3, gs * 0.35), 0, Math.PI * 2)
+      ctx.fillStyle = `rgba(255,255,255,${proximity * 0.7})`
+      ctx.fill()
+    }
     ctx.shadowBlur = 0
   }
 
@@ -407,10 +447,26 @@ function drawParticles() {
 
 function loop(now: number) {
   if (!isPaused.value) {
-    for (let i = 0; i < SPAWN_RATE; i++) spawnParticle()
-    if (Math.random() < 0.25) spawnJetParticle()
-    if (Math.random() < 0.04) spawnHawkingParticle()
-    simulate()
+    const ss = SIM_SPEEDS[simSpeedIdx.value]
+
+    if (ss < 1) {
+      simFrameSkip++
+      if (simFrameSkip >= 2) {
+        simFrameSkip = 0
+        for (let i = 0; i < SPAWN_RATE; i++) spawnParticle()
+        if (Math.random() < 0.2) spawnJetParticle()
+        if (Math.random() < 0.03) spawnHawkingParticle()
+        simulate(ss)
+      }
+    } else {
+      const steps = Math.round(ss)
+      for (let s = 0; s < steps; s++) {
+        for (let i = 0; i < SPAWN_RATE; i++) spawnParticle()
+        if (Math.random() < 0.2) spawnJetParticle()
+        if (Math.random() < 0.03) spawnHawkingParticle()
+        simulate(1)
+      }
+    }
     draw(now)
   } else {
     lastFrameTime = now
@@ -420,65 +476,63 @@ function loop(now: number) {
 
 function onMouseMove(e: MouseEvent) {
   if (!isDragging) return
-  const rect = canvasRef.value!.getBoundingClientRect()
-  blackHole.x = e.clientX - rect.left
-  blackHole.y = e.clientY - rect.top
-  dragLastX = blackHole.x
-  dragLastY = blackHole.y
+  const r = canvasRef.value!.getBoundingClientRect()
+  blackHole.x = e.clientX - r.left
+  blackHole.y = e.clientY - r.top
+  dragLastX = blackHole.x; dragLastY = blackHole.y
 }
 
 function onMouseDown(e: MouseEvent) {
   isDragging = true
-  const rect = canvasRef.value!.getBoundingClientRect()
-  dragLastX = e.clientX - rect.left
-  dragLastY = e.clientY - rect.top
-  blackHole.x = dragLastX
-  blackHole.y = dragLastY
+  const r = canvasRef.value!.getBoundingClientRect()
+  dragLastX = e.clientX - r.left; dragLastY = e.clientY - r.top
+  blackHole.x = dragLastX; blackHole.y = dragLastY
 }
 
 function onMouseUp() { isDragging = false }
 
 function onTouchStart(e: TouchEvent) {
-  const rect = canvasRef.value!.getBoundingClientRect()
+  const r = canvasRef.value!.getBoundingClientRect()
   const t = e.touches[0]
-  dragLastX = t.clientX - rect.left
-  dragLastY = t.clientY - rect.top
+  dragLastX = t.clientX - r.left; dragLastY = t.clientY - r.top
   isDragging = true
 }
 
 function onTouchMove(e: TouchEvent) {
-  const rect = canvasRef.value!.getBoundingClientRect()
+  const r = canvasRef.value!.getBoundingClientRect()
   const t = e.touches[0]
-  blackHole.x = t.clientX - rect.left
-  blackHole.y = t.clientY - rect.top
-  dragLastX = blackHole.x
-  dragLastY = blackHole.y
+  blackHole.x = t.clientX - r.left; blackHole.y = t.clientY - r.top
+  dragLastX = blackHole.x; dragLastY = blackHole.y
 }
 
 function onTouchEnd() { isDragging = false }
-
 function togglePause() { isPaused.value = !isPaused.value }
+function clearParticles() { particles.length = 0; rings.length = 0 }
 
-function clearParticles() { particles.length = 0 }
-
-function shootParticle() {
-  const cx = blackHole.x + (Math.random() - 0.5) * 300
-  const cy = blackHole.y + (Math.random() - 0.5) * 300
-  for (let i = 0; i < 30; i++) {
+function tidalFlare() {
+  const angle = Math.random() * Math.PI * 2
+  const dist = blackHole.accretionRadius * 2.5
+  const cx = blackHole.x + Math.cos(angle) * dist
+  const cy = blackHole.y + Math.sin(angle) * dist
+  for (let i = 0; i < 55; i++) {
     if (particles.length >= MAX_PARTICLES) break
-    const angle = Math.random() * Math.PI * 2
-    const speed = 1 + Math.random() * 3
+    const spread = (Math.random() - 0.5) * 2.5
+    const speed = 0.6 + Math.random() * 1.8
+    const dx = blackHole.x - cx, dy = blackHole.y - cy
+    const d = Math.sqrt(dx * dx + dy * dy)
     particles.push({
-      x: cx, y: cy,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      radius: 1 + Math.random() * 2.5,
-      opacity: 0.7 + Math.random() * 0.3,
-      hue: Math.random() < 0.5 ? 15 + Math.random() * 20 : 195 + Math.random() * 30,
-      trail: [],
-      dead: false,
-      isJet: false,
+      x: cx + (Math.random() - 0.5) * 30,
+      y: cy + (Math.random() - 0.5) * 30,
+      vx: (dx / d) * speed + (Math.random() - 0.5) * spread,
+      vy: (dy / d) * speed + (Math.random() - 0.5) * spread,
+      radius: 1.2 + Math.random() * 2.8,
+      opacity: 0.75 + Math.random() * 0.25,
+      hue: Math.random() < 0.6 ? 15 + Math.random() * 25 : 50 + Math.random() * 30,
+      trail: [], dead: false, isJet: false,
     })
+  }
+  if (rings.length < 16) {
+    rings.push({ x: cx, y: cy, radius: 5, life: 1, r: 255, g: 160, b: 60, speed: 4 })
   }
 }
 
@@ -486,43 +540,59 @@ function setMass(level: number) {
   massLevel.value = level
   blackHole.mass = level
   blackHole.radius = 28 + level * 8
-  blackHole.accretionRadius = 80 + level * 20
+  blackHole.accretionRadius = 78 + level * 22
+}
+
+function setSimSpeed(idx: number) { simSpeedIdx.value = idx }
+
+function toggleVortex() { isVortex.value = !isVortex.value }
+
+function saveScreenshot() {
+  canvasRef.value!.toBlob(blob => {
+    if (!blob) return
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = 'blackhole.png'; a.click()
+    URL.revokeObjectURL(url)
+  })
 }
 </script>
 
 <template>
   <div class="relative min-h-screen bg-bg-deep overflow-hidden font-body select-none">
 
-    <canvas
-      ref="canvasRef"
-      class="absolute inset-0 w-full h-full cursor-crosshair"
-    />
+    <canvas ref="canvasRef" class="absolute inset-0 w-full h-full cursor-crosshair" />
 
     <div class="absolute top-4 left-4 z-10 flex flex-col gap-2 animate-fade-up">
       <div class="border border-border-default bg-bg-surface/80 backdrop-blur-sm px-4 py-3">
-        <div class="flex items-center gap-2 mb-0.5">
-          <span class="font-display text-xs tracking-widest text-accent-coral">// VŨ TRỤ</span>
-        </div>
-        <h1 class="font-display text-2xl font-bold text-text-primary leading-tight">Hố Đen</h1>
-        <p class="text-text-dim text-xs mt-0.5 font-display tracking-wide">GRAVITY SIMULATOR</p>
+        <span class="font-display text-xs tracking-widest text-accent-coral">// VŨ TRỤ</span>
+        <h1 class="font-display text-2xl font-bold text-text-primary leading-tight mt-0.5">Hố Đen</h1>
+        <p class="text-text-dim text-xs font-display tracking-wide">GRAVITY SIMULATOR</p>
       </div>
 
-      <div class="border border-border-default bg-bg-surface/80 backdrop-blur-sm px-4 py-3 grid grid-cols-3 gap-x-4 gap-y-1">
+      <div class="border border-border-default bg-bg-surface/80 backdrop-blur-sm px-4 py-3 grid grid-cols-3 gap-x-3 gap-y-1">
         <div>
           <div class="text-text-dim text-xs font-display tracking-widest">HẠT</div>
-          <div class="text-accent-amber font-display text-lg font-semibold">{{ particleCount }}</div>
+          <div class="text-accent-amber font-display text-lg font-semibold tabular-nums w-12">{{ particleCount }}</div>
         </div>
         <div>
           <div class="text-text-dim text-xs font-display tracking-widest">GẦN</div>
-          <div class="text-accent-sky font-display text-lg font-semibold">{{ closestParticle }}<span class="text-xs">px</span></div>
+          <div class="text-accent-sky font-display text-lg font-semibold tabular-nums w-12">{{ closestParticle }}</div>
         </div>
         <div>
           <div class="text-text-dim text-xs font-display tracking-widest">FPS</div>
           <div
-            class="font-display text-lg font-semibold"
+            class="font-display text-lg font-semibold tabular-nums w-12"
             :class="fpsDisplay >= 50 ? 'text-accent-coral' : fpsDisplay >= 30 ? 'text-accent-amber' : 'text-red-400'"
           >{{ fpsDisplay }}</div>
         </div>
+      </div>
+
+      <div
+        v-if="isVortex"
+        class="border border-accent-sky bg-accent-sky/10 px-4 py-2 animate-pulse-border"
+      >
+        <span class="font-display text-xs tracking-widest text-accent-sky">⟲ VORTEX ACTIVE</span>
       </div>
     </div>
 
@@ -533,44 +603,67 @@ function setMass(level: number) {
     </div>
 
     <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 animate-fade-up animate-delay-3 w-max">
-      <div class="flex flex-col gap-2 border border-border-default bg-bg-surface/90 backdrop-blur-sm px-4 py-3">
-        <div class="flex gap-2 items-center">
+      <div class="flex flex-col gap-2.5 border border-border-default bg-bg-surface/90 backdrop-blur-sm px-4 py-3">
+        <div class="flex gap-2 items-center flex-wrap justify-center">
           <button
             @click="togglePause"
-            class="flex items-center gap-2 px-4 py-2 border font-display text-xs tracking-widest transition-all duration-200"
+            class="px-3 py-2 border font-display text-xs tracking-widest transition-all duration-200"
             :class="isPaused
               ? 'border-accent-coral text-accent-coral bg-accent-coral/10 hover:bg-accent-coral/20'
               : 'border-border-default text-text-secondary hover:border-accent-coral hover:text-text-primary'"
-          >
-            {{ isPaused ? '▶ TIẾP TỤC' : '⏸ TẠM DỪNG' }}
-          </button>
+          >{{ isPaused ? '▶ TIẾP TỤC' : '⏸ DỪNG' }}</button>
+
           <button
-            @click="shootParticle"
-            class="px-4 py-2 border border-border-default text-text-secondary font-display text-xs tracking-widest transition-all duration-200 hover:border-accent-amber hover:text-accent-amber"
-          >
-            ✦ PHÓNG HẠT
-          </button>
+            @click="tidalFlare"
+            class="px-3 py-2 border border-border-default text-text-secondary font-display text-xs tracking-widest transition-all duration-200 hover:border-accent-amber hover:text-accent-amber"
+          >✦ TIDAL FLARE</button>
+
+          <button
+            @click="toggleVortex"
+            class="px-3 py-2 border font-display text-xs tracking-widest transition-all duration-200"
+            :class="isVortex
+              ? 'border-accent-sky text-accent-sky bg-accent-sky/10 hover:bg-accent-sky/20'
+              : 'border-border-default text-text-secondary hover:border-accent-sky hover:text-accent-sky'"
+          >⟲ VORTEX</button>
+
           <button
             @click="clearParticles"
-            class="px-4 py-2 border border-border-default text-text-secondary font-display text-xs tracking-widest transition-all duration-200 hover:border-accent-sky hover:text-accent-sky"
-          >
-            ✕ XÓA
-          </button>
+            class="px-3 py-2 border border-border-default text-text-secondary font-display text-xs tracking-widest transition-all duration-200 hover:border-accent-sky hover:text-accent-sky"
+          >✕ XÓA</button>
+
+          <button
+            @click="saveScreenshot"
+            class="px-3 py-2 border border-border-default text-text-secondary font-display text-xs tracking-widest transition-all duration-200 hover:border-accent-coral hover:text-accent-coral"
+          >⬇ LƯU</button>
         </div>
-        <div class="flex items-center gap-3">
-          <span class="font-display text-xs tracking-widest text-text-dim">KHỐI LƯỢNG</span>
-          <div class="flex gap-1.5">
-            <button
-              v-for="n in 4"
-              :key="n"
-              @click="setMass(n)"
-              class="w-7 h-7 font-display text-xs border transition-all duration-200"
-              :class="massLevel === n
-                ? 'border-accent-coral bg-accent-coral/20 text-accent-coral'
-                : 'border-border-default text-text-dim hover:border-accent-coral hover:text-text-secondary'"
-            >
-              {{ n }}
-            </button>
+
+        <div class="flex items-center gap-3 justify-between">
+          <div class="flex items-center gap-2">
+            <span class="font-display text-xs tracking-widest text-text-dim">KHỐI LƯỢNG</span>
+            <div class="flex gap-1">
+              <button
+                v-for="n in 4" :key="n"
+                @click="setMass(n)"
+                class="w-7 h-6 font-display text-xs border transition-all duration-200"
+                :class="massLevel === n
+                  ? 'border-accent-coral bg-accent-coral/20 text-accent-coral'
+                  : 'border-border-default text-text-dim hover:border-accent-coral hover:text-text-secondary'"
+              >{{ n }}</button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="font-display text-xs tracking-widest text-text-dim">TỐC ĐỘ</span>
+            <div class="flex gap-1">
+              <button
+                v-for="(label, idx) in SIM_SPEED_LABELS" :key="idx"
+                @click="setSimSpeed(idx)"
+                class="px-2 h-6 font-display text-xs border transition-all duration-200"
+                :class="simSpeedIdx === idx
+                  ? 'border-accent-amber bg-accent-amber/20 text-accent-amber'
+                  : 'border-border-default text-text-dim hover:border-accent-amber hover:text-text-secondary'"
+              >{{ label }}</button>
+            </div>
           </div>
         </div>
       </div>
@@ -578,7 +671,7 @@ function setMass(level: number) {
 
     <div class="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 text-center animate-fade-up animate-delay-4 pointer-events-none">
       <p class="text-text-dim text-xs font-display tracking-wide">
-        CLICK &amp; KÉO để di chuyển hố đen • PHÓNG HẠT để tạo vụ nổ
+        CLICK &amp; KÉO để di chuyển hố đen
       </p>
     </div>
 
@@ -586,9 +679,7 @@ function setMass(level: number) {
       <RouterLink
         to="/"
         class="inline-flex items-center gap-2 border border-border-default bg-bg-surface/80 backdrop-blur-sm px-4 py-2 text-xs text-text-secondary font-display tracking-widest transition-all duration-200 hover:border-accent-coral hover:text-text-primary"
-      >
-        ← TRANG CHỦ
-      </RouterLink>
+      >← TRANG CHỦ</RouterLink>
     </div>
 
     <div class="hidden lg:block absolute top-1/2 -translate-y-1/2 right-4 z-10 w-52 animate-fade-up animate-delay-3">
@@ -596,22 +687,22 @@ function setMass(level: number) {
         <h2 class="font-display text-xs tracking-widest text-accent-coral flex items-center gap-2">
           <span>//</span> VẬT LÝ
         </h2>
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-2.5">
           <div class="border-l-2 border-accent-coral pl-2">
             <div class="text-text-dim text-xs font-display tracking-wide mb-0.5">LỰC HẤP DẪN</div>
             <div class="text-text-secondary text-xs leading-snug">F = G·m·M / r²</div>
           </div>
           <div class="border-l-2 border-accent-amber pl-2">
-            <div class="text-text-dim text-xs font-display tracking-wide mb-0.5">ĐĨA BỒI TỤ</div>
-            <div class="text-text-secondary text-xs leading-snug">Vật chất xoáy quanh chân trời sự kiện</div>
+            <div class="text-text-dim text-xs font-display tracking-wide mb-0.5">ĐĨA BỒI TỤ KÉP</div>
+            <div class="text-text-secondary text-xs leading-snug">Đĩa ngoài (amber) + đĩa trong nóng hơn (cyan)</div>
           </div>
           <div class="border-l-2 border-accent-sky pl-2">
-            <div class="text-text-dim text-xs font-display tracking-wide mb-0.5">TIA JET TƯƠNG ĐỐI TÍNH</div>
-            <div class="text-text-secondary text-xs leading-snug">Plasma phun ra theo trục từ trường</div>
+            <div class="text-text-dim text-xs font-display tracking-wide mb-0.5">TIA JET + HAWKING</div>
+            <div class="text-text-secondary text-xs leading-snug">Plasma phun ra & hạt lượng tử thoát khỏi chân trời</div>
           </div>
           <div class="border-l-2 border-border-default pl-2">
-            <div class="text-text-dim text-xs font-display tracking-wide mb-0.5">BỨC XẠ HAWKING</div>
-            <div class="text-text-secondary text-xs leading-snug">Hạt lượng tử thoát khỏi chân trời</div>
+            <div class="text-text-dim text-xs font-display tracking-wide mb-0.5">SÓNG HẤP DẪN</div>
+            <div class="text-text-secondary text-xs leading-snug">Gợn không-thời gian lan tỏa ra ngoài</div>
           </div>
         </div>
       </div>
