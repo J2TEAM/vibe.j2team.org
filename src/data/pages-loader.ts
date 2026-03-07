@@ -15,4 +15,8 @@ export const pages: PageInfo[] = Object.entries(metaModules)
     path: extractPath(key),
   }))
   .filter((p) => p.path !== '')
-  .sort((a, b) => a.name.localeCompare(b.name))
+  .sort((a, b) => {
+    if (a.path === '/hello-world') return 1
+    if (b.path === '/hello-world') return -1
+    return a.name.localeCompare(b.name)
+  })

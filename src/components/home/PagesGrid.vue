@@ -9,6 +9,9 @@ import { padIndex } from '@/data/homepage'
     <h2 class="font-display text-2xl font-semibold text-text-primary mb-8 flex items-center gap-3">
       <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
       Các trang đã tạo
+      <span class="ml-2 inline-flex items-center justify-center rounded-full bg-accent-coral/10 px-3 py-0.5 text-sm font-medium text-accent-coral">
+        {{ pages.length }}
+      </span>
     </h2>
 
     <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -16,7 +19,7 @@ import { padIndex } from '@/data/homepage'
         v-for="(page, index) in pages"
         :key="page.path"
         :to="page.path"
-        class="group relative block border border-border-default bg-bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-l-4 hover:border-l-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5 animate-fade-up"
+        class="group relative flex flex-col border border-border-default bg-bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-l-4 hover:border-l-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5 animate-fade-up"
         :style="{ animationDelay: `${400 + index * 100}ms` }"
       >
         <!-- Background number -->
@@ -31,8 +34,8 @@ import { padIndex } from '@/data/homepage'
         >
           {{ page.name }}
         </h3>
-        <p class="mt-2 text-sm text-text-secondary">{{ page.description }}</p>
-        <p class="mt-4 text-xs text-text-dim font-display tracking-wide">
+        <p class="mt-2 text-sm text-text-secondary line-clamp-2" :title="page.description">{{ page.description }}</p>
+        <p class="mt-auto pt-4 text-xs text-text-dim font-display tracking-wide">
           bởi
           <a
             v-if="page.facebook"
