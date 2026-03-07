@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { pages, pageComponents } from '@/data/pages-loader'
 
@@ -30,12 +30,8 @@ const pageRoutes: RouteRecordRaw[] = pages.map((page) => {
   }
 })
 
-const history = import.meta.env.DEV
-  ? createWebHistory(import.meta.env.BASE_URL)
-  : createWebHashHistory(import.meta.env.BASE_URL)
-
 const router = createRouter({
-  history,
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',

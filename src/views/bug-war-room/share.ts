@@ -29,8 +29,8 @@ export function buildShareText(payload: SharePayload, missionBonus: number): str
   ].join('\n')
 }
 
-export function openShareCard(options: OpenShareCardOptions): boolean {
-  const shareTab = window.open('', '_blank')
+export function openShareCard(options: OpenShareCardOptions, targetTab?: Window): boolean {
+  const shareTab = targetTab ?? window.open('', '_blank')
   if (!shareTab) {
     return false
   }
@@ -524,7 +524,9 @@ export function openShareCard(options: OpenShareCardOptions): boolean {
     shareTab.document.close()
     return true
   } catch {
-    shareTab.close()
+    if (!targetTab) {
+      shareTab.close()
+    }
     return false
   }
 }

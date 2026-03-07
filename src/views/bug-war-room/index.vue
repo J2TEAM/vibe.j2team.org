@@ -48,7 +48,24 @@ interface LearningEntry {
   createdAt: string
 }
 
+interface AnimationCatalogItem {
+  id: string
+  title: string
+  fileName: string
+  description: string
+  triggerCondition: string
+  operatorHint?: string
+  asset: string
+}
+
+interface ResultHistoryEntry {
+  id: string
+  payload: SharePayload
+  missionBonus: number
+}
+
 type LearningSeverityFilter = 'all' | Severity
+type UiFocusMode = 'full' | 'minimal'
 
 type SlimeMood =
   | 'slime-idle'
@@ -96,6 +113,12 @@ const careerLearningXp = ref<number>(0)
 const learningSeverityFilter = ref<LearningSeverityFilter>('all')
 const learningCollapsed = ref<boolean>(false)
 const showBackToTop = ref<boolean>(false)
+const uiFocusMode = ref<UiFocusMode>('full')
+const tacticalPanelCollapsed = ref<boolean>(false)
+const postmortemCollapsed = ref<boolean>(false)
+const resultHistory = ref<ResultHistoryEntry[]>([])
+const resultHistoryCollapsed = ref<boolean>(false)
+const historyPersistedForRun = ref<boolean>(false)
 
 const playerAliasStorageKey = 'bug-war-room-player-alias'
 const shareDraftStorageKey = 'bug-war-room-share-draft'
@@ -106,10 +129,21 @@ const actionLogCollapsedStorageKey = 'bug-war-room-action-log-collapsed-mobile'
 const learningJournalStorageKey = 'bug-war-room-learning-journal'
 const careerLearningXpStorageKey = 'bug-war-room-career-learning-xp'
 const learningCollapsedStorageKey = 'bug-war-room-learning-collapsed'
+const uiFocusModeStorageKey = 'bug-war-room-ui-focus-mode'
+const tacticalPanelCollapsedStorageKey = 'bug-war-room-tactical-panel-collapsed'
+const postmortemCollapsedStorageKey = 'bug-war-room-postmortem-collapsed'
+const resultHistoryStorageKey = 'bug-war-room-result-history'
+const resultHistoryCollapsedStorageKey = 'bug-war-room-result-history-collapsed'
+const blogUiStateStorageKey = 'bug-war-room-blog-ui-state'
 const slimeSpamWindowMs = 950
 const slimeSpamAnnoyedThreshold = 6
-const slimeClickReactionDurationMs = 1700
+const slimeClickReactionDurationMs = 3200
 const slimeAnnoyedDurationMs = 1200
+const resultHistoryLimit = 40
+const repoIssueBugUrl = 'https://github.com/J2TEAM/vibe.j2team.org/issues/new?template=bug_report.md'
+const repoIssueFeatureUrl = 'https://github.com/J2TEAM/vibe.j2team.org/issues/new?template=feature_request.md'
+const repoForkUrl = 'https://github.com/J2TEAM/vibe.j2team.org/fork'
+const repoContributingUrl = 'https://github.com/J2TEAM/vibe.j2team.org/blob/main/CONTRIBUTING.md'
 
 let alertIdCounter = 0
 let timerHandle: ReturnType<typeof setInterval> | undefined
@@ -144,6 +178,116 @@ const slimeAssetMap: Record<SlimeMood, string> = {
   victory: victorySvg,
   defeat: defeatSvg,
 }
+
+const animationCatalogItems: AnimationCatalogItem[] = [
+  {
+    id: 'slime-idle',
+    title: 'Slime Idle',
+    fileName: 'slime-idle.svg',
+    description: 'Trạng thái quan sát mặc định khi hệ thống bình ổn.',
+    triggerCondition: 'Hiển thị mặc định khi không có hiệu ứng tạm thời và hệ thống chưa vào warning/critical/victory/defeat.',
+    asset: slimeIdleSvg,
+  },
+  {
+    id: 'slime-annoyed',
+    title: 'Slime Annoyed',
+    fileName: 'slime-annoyed.svg',
+    description: 'Phản ứng khi người chơi spam thao tác quá nhanh.',
+    triggerCondition: `Xuất hiện khi số lần click liên tiếp trong ${Math.round(slimeSpamWindowMs / 1000)} giây đạt ngưỡng spam (${slimeSpamAnnoyedThreshold} lần).`,
+    asset: slimeAnnoyedSvg,
+  },
+  {
+    id: 'slime-click-reaction',
+    title: 'Slime Click Reaction',
+    fileName: 'slime-click-reaction.svg',
+    description: 'Hiệu ứng click phản hồi tức thì cho thao tác operator.',
+    triggerCondition: 'Xuất hiện khi người chơi click/tap trực tiếp vào Slime Operator và không bị override bởi trạng thái annoyed.',
+    operatorHint: `Mỗi lần click nên chờ khoảng ${Math.ceil(slimeClickReactionDurationMs / 1000)} giây để animation chạy trọn vẹn rồi hãy click tiếp.`,
+    asset: slimeClickReactionSvg,
+  },
+  {
+    id: 'action-confirm',
+    title: 'Action Confirm',
+    fileName: 'action-confirm.svg',
+    description: 'Xác nhận một quyết định vừa được thực thi.',
+    triggerCondition: 'Xuất hiện sau khi chọn một incident action có tác động trung tính hoặc không rơi vào các nhánh trust-up/stability-up/chaos-up/energy-low.',
+    asset: actionConfirmSvg,
+  },
+  {
+    id: 'trust-up',
+    title: 'Trust Up',
+    fileName: 'trust-up.svg',
+    description: 'Biểu thị niềm tin người dùng được cải thiện.',
+    triggerCondition: 'Xuất hiện khi action vừa chọn có tác động Trust tăng mạnh (T >= +8).',
+    asset: trustUpSvg,
+  },
+  {
+    id: 'stability-up',
+    title: 'Stability Up',
+    fileName: 'stability-up.svg',
+    description: 'Biểu thị hệ thống đang quay lại trạng thái ổn định.',
+    triggerCondition: 'Xuất hiện khi action vừa chọn có tác động Stability tăng mạnh (S >= +8).',
+    asset: stabilityUpSvg,
+  },
+  {
+    id: 'chaos-up',
+    title: 'Chaos Up',
+    fileName: 'chaos-up.svg',
+    description: 'Cảnh báo chaos tăng nhanh sau lựa chọn rủi ro.',
+    triggerCondition: 'Xuất hiện khi action làm chaos tăng mạnh (chaosDelta >= 12) hoặc random event làm chaos tăng đáng kể.',
+    asset: chaosUpSvg,
+  },
+  {
+    id: 'energy-low',
+    title: 'Energy Low',
+    fileName: 'energy-low.svg',
+    description: 'Trạng thái team suy kiệt năng lượng khi xử lý kéo dài.',
+    triggerCondition: 'Xuất hiện khi action làm tiêu hao năng lượng sâu (E <= -10) hoặc Energy hiện tại xuống mức thấp (<= 35).',
+    asset: energyLowSvg,
+  },
+  {
+    id: 'warning',
+    title: 'Warning',
+    fileName: 'warning.svg',
+    description: 'Mức cảnh báo cao khi incident bắt đầu mất kiểm soát.',
+    triggerCondition: 'Tự động hiển thị khi Chaos >= 65 và chưa chạm mức critical.',
+    asset: warningSvg,
+  },
+  {
+    id: 'critical',
+    title: 'Critical',
+    fileName: 'critical.svg',
+    description: 'Báo động đỏ khi hệ thống sát ngưỡng meltdown.',
+    triggerCondition: 'Tự động hiển thị khi Chaos >= 85 (trạng thái báo động đỏ).',
+    asset: criticalSvg,
+  },
+  {
+    id: 'victory',
+    title: 'Victory',
+    fileName: 'victory.svg',
+    description: 'Hiệu ứng chúc mừng khi kết thúc run thành công.',
+    triggerCondition: 'Hiển thị sau khi chiến dịch kết thúc và Campaign Score >= 65.',
+    asset: victorySvg,
+  },
+  {
+    id: 'defeat',
+    title: 'Defeat',
+    fileName: 'defeat.svg',
+    description: 'Hiệu ứng thất bại khi chiến dịch vỡ trận.',
+    triggerCondition: 'Hiển thị sau khi chiến dịch kết thúc và Campaign Score < 65.',
+    asset: defeatSvg,
+  },
+  {
+    id: 'slime-teaching',
+    title: 'Slime Teaching',
+    fileName: 'slime-teaching.svg',
+    description: 'Nhân vật coach trong khu Learning Progress.',
+    triggerCondition: 'Hiển thị tĩnh trong khối Learning Coach để dẫn hướng sang Knowledge Blog.',
+    asset: slimeTeachingSvg,
+  },
+]
+
+const clickReactionWaitSeconds = Math.ceil(slimeClickReactionDurationMs / 1000)
 
 function setTransientMood(mood: SlimeMood, duration = 1500): void {
   if (!characterAnimationEnabled.value) {
@@ -460,6 +604,7 @@ function resetGame(): void {
   currentDailySeed.value = buildDailySeed()
   runId.value = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`
   leaderboardPersisted.value = false
+  historyPersistedForRun.value = false
   transientSlimeMood.value = null
   if (slimeMoodHandle) {
     clearTimeout(slimeMoodHandle)
@@ -624,8 +769,42 @@ function scrollPageToTop(): void {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-async function copyResult(): Promise<void> {
-  const payload: SharePayload = {
+function openPopupRoute(mode: 'knowledge-blog' | 'animation-catalog' | 'share-card'): Window | null {
+  const popupUrl = new URL(window.location.href)
+  popupUrl.searchParams.set('bugWarRoomPopup', mode)
+  return window.open(popupUrl.toString(), '_blank')
+}
+
+function parseShareDraft(raw: string | null): SharePayload | null {
+  if (!raw) {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as SharePayload
+    const valid = typeof parsed?.player === 'string'
+      && typeof parsed?.mode === 'string'
+      && typeof parsed?.rank === 'string'
+      && typeof parsed?.dailySeed === 'string'
+      && typeof parsed?.campaignScore === 'number'
+      && typeof parsed?.rawScore === 'number'
+      && typeof parsed?.bestScore === 'number'
+      && typeof parsed?.dailyBestScore === 'number'
+      && typeof parsed?.chaos === 'number'
+      && typeof parsed?.timeLeft === 'number'
+      && typeof parsed?.rounds === 'string'
+      && typeof parsed?.state === 'string'
+      && typeof parsed?.verdict === 'string'
+      && typeof parsed?.generatedAt === 'string'
+
+    return valid ? parsed : null
+  } catch {
+    return null
+  }
+}
+
+function buildCurrentSharePayload(): SharePayload {
+  return {
     player: playerAlias.value.trim() || 'Anonymous Commander',
     mode: modeLabel.value,
     rank: campaignRank.value,
@@ -641,20 +820,64 @@ async function copyResult(): Promise<void> {
     verdict: verdict.value,
     generatedAt: new Date().toLocaleString('vi-VN'),
   }
+}
 
-  const message = buildShareText(payload, missionBonus.value)
+function parseResultHistory(raw: string | null): ResultHistoryEntry[] {
+  if (!raw) {
+    return []
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as ResultHistoryEntry[]
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+
+    return parsed.filter((entry) => {
+      const payload = entry?.payload
+      return typeof entry?.id === 'string'
+        && typeof entry?.missionBonus === 'number'
+        && payload !== null
+        && typeof payload === 'object'
+        && typeof payload?.player === 'string'
+        && typeof payload?.mode === 'string'
+        && typeof payload?.rank === 'string'
+        && typeof payload?.dailySeed === 'string'
+        && typeof payload?.campaignScore === 'number'
+        && typeof payload?.rawScore === 'number'
+        && typeof payload?.bestScore === 'number'
+        && typeof payload?.dailyBestScore === 'number'
+        && typeof payload?.chaos === 'number'
+        && typeof payload?.timeLeft === 'number'
+        && typeof payload?.rounds === 'string'
+        && typeof payload?.state === 'string'
+        && typeof payload?.verdict === 'string'
+        && typeof payload?.generatedAt === 'string'
+    })
+  } catch {
+    return []
+  }
+}
+
+function persistResultHistoryEntry(payload: SharePayload, missionBonusFromPayload: number): void {
+  const entry: ResultHistoryEntry = {
+    id: `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`,
+    payload,
+    missionBonus: missionBonusFromPayload,
+  }
+
+  resultHistory.value = [entry, ...resultHistory.value].slice(0, resultHistoryLimit)
+  localStorage.setItem(resultHistoryStorageKey, JSON.stringify(resultHistory.value))
+}
+
+async function exportSharePayload(payload: SharePayload, missionBonusFromPayload: number): Promise<void> {
+  const message = buildShareText(payload, missionBonusFromPayload)
 
   try {
     localStorage.setItem(shareDraftStorageKey, JSON.stringify(payload))
     localStorage.setItem(shareDraftAtStorageKey, String(Date.now()))
 
-    const opened = openShareCard({
-      payload,
-      message,
-      draftKey: shareDraftStorageKey,
-      draftAtKey: shareDraftAtStorageKey,
-    })
-
+    const opened = Boolean(openPopupRoute('share-card'))
     if (!opened) {
       throw new Error('tab_blocked')
     }
@@ -680,8 +903,127 @@ async function copyResult(): Promise<void> {
   }, 3500)
 }
 
+function addCurrentRunToHistoryIfNeeded(): void {
+  if (!isFinished.value || historyPersistedForRun.value) {
+    return
+  }
+
+  const payload = buildCurrentSharePayload()
+  persistResultHistoryEntry(payload, missionBonus.value)
+  historyPersistedForRun.value = true
+}
+
+async function exportHistoryEntry(entry: ResultHistoryEntry): Promise<void> {
+  await exportSharePayload(entry.payload, entry.missionBonus)
+}
+
+async function copyHistoryEntryText(entry: ResultHistoryEntry): Promise<void> {
+  const message = buildShareText(entry.payload, entry.missionBonus)
+  if (!navigator.clipboard?.writeText) {
+    shareResultNotice.value = 'Trình duyệt không hỗ trợ clipboard cho thao tác này.'
+    setTimeout(() => {
+      shareResultNotice.value = ''
+    }, 3000)
+    return
+  }
+
+  await navigator.clipboard.writeText(message)
+  shareResultNotice.value = 'Đã copy báo cáo kết quả cũ vào clipboard.'
+  setTimeout(() => {
+    shareResultNotice.value = ''
+  }, 3000)
+}
+
+function clearAllRuntimeDataKeepHistory(): void {
+  const ok = window.confirm('Xóa toàn bộ dữ liệu chơi hiện tại và cài đặt? Lịch sử kết quả sẽ được giữ nguyên.')
+  if (!ok) {
+    return
+  }
+
+  const exactKeysToRemove = [
+    'bug-war-room-best-score',
+    playerAliasStorageKey,
+    shareDraftStorageKey,
+    shareDraftAtStorageKey,
+    characterAnimationStorageKey,
+    docsCollapsedStorageKey,
+    actionLogCollapsedStorageKey,
+    learningJournalStorageKey,
+    careerLearningXpStorageKey,
+    learningCollapsedStorageKey,
+    blogUiStateStorageKey,
+    uiFocusModeStorageKey,
+    tacticalPanelCollapsedStorageKey,
+    postmortemCollapsedStorageKey,
+    resultHistoryCollapsedStorageKey,
+  ]
+
+  for (const key of exactKeysToRemove) {
+    localStorage.removeItem(key)
+  }
+
+  const prefixKeysToRemove = [
+    'bug-war-room-daily-best-',
+    'bug-war-room-daily-leaderboard-',
+  ]
+
+  const allKeys = Object.keys(localStorage)
+  for (const key of allKeys) {
+    if (prefixKeysToRemove.some((prefix) => key.startsWith(prefix))) {
+      localStorage.removeItem(key)
+    }
+  }
+
+  bestScore.value = 0
+  dailyBestScore.value = 0
+  dailyLeaderboard.value = []
+  playerAlias.value = ''
+  learningJournal.value = []
+  careerLearningXp.value = 0
+  learningSeverityFilter.value = 'all'
+  characterAnimationEnabled.value = true
+  mode.value = 'normal'
+  dailySeedEnabled.value = true
+  uiFocusMode.value = window.innerWidth < 640 ? 'minimal' : 'full'
+  docsCollapsed.value = window.innerWidth < 640
+  learningCollapsed.value = window.innerWidth < 640
+  actionLogCollapsedMobile.value = window.innerWidth < 640
+  tacticalPanelCollapsed.value = window.innerWidth < 640
+  postmortemCollapsed.value = window.innerWidth < 640
+  resultHistoryCollapsed.value = window.innerWidth < 640
+  shareResultNotice.value = ''
+
+  resetGame()
+  pushAlert('Đã xóa toàn bộ dữ liệu chơi. Lịch sử kết quả vẫn được giữ.', 'warning')
+}
+
+function clearAllResultHistory(): void {
+  const ok = window.confirm('Xóa toàn bộ lịch sử kết quả? Hành động này không thể hoàn tác.')
+  if (!ok) {
+    return
+  }
+
+  resultHistory.value = []
+  localStorage.removeItem(resultHistoryStorageKey)
+  pushAlert('Đã xóa toàn bộ lịch sử kết quả.', 'critical')
+}
+
+async function copyResult(): Promise<void> {
+  await exportSharePayload(buildCurrentSharePayload(), missionBonus.value)
+}
+
 function openLearningBlog(): void {
-  const blogTab = window.open('', '_blank')
+  const opened = openPopupRoute('knowledge-blog')
+  if (!opened) {
+    shareResultNotice.value = 'Không mở được tab Knowledge Blog. Hãy cho phép pop-up và thử lại.'
+    return
+  }
+
+  pushAlert('Knowledge Blog đã mở ở tab mới.', 'warning')
+}
+
+function hydrateLearningBlog(targetTab?: Window): void {
+  const blogTab = targetTab ?? window.open('', '_blank')
   if (!blogTab) {
     shareResultNotice.value = 'Không mở được tab Knowledge Blog. Hãy cho phép pop-up và thử lại.'
     return
@@ -1037,7 +1379,10 @@ function openLearningBlog(): void {
     const backListBtn = blogTab.document.getElementById('blog-back-list-btn') as HTMLButtonElement | null
 
     let currentSectionIds: string[] = []
+    let activeBlogView: 'home' | 'detail' = 'home'
+    let activeBlogSlug = ''
     let searchKeyword = ''
+    let activeTagInput = ''
     let activeTagQuery = ''
     let activeSortMode = 'newest'
 
@@ -1065,10 +1410,83 @@ function openLearningBlog(): void {
         .trim()
     }
 
+    const parseBlogUiState = (raw: string | null): {
+      searchKeyword: string
+      activeTagInput: string
+      activeSortMode: string
+      activeBlogView: 'home' | 'detail'
+      activeBlogSlug: string
+    } => {
+      if (!raw) {
+        return {
+          searchKeyword: '',
+          activeTagInput: '',
+          activeSortMode: 'newest',
+          activeBlogView: 'home',
+          activeBlogSlug: '',
+        }
+      }
+
+      try {
+        const parsed = JSON.parse(raw) as {
+          searchKeyword?: string
+          activeTagInput?: string
+          activeSortMode?: string
+          activeBlogView?: string
+          activeBlogSlug?: string
+        }
+
+        const acceptedModes = ['newest', 'oldest', 'read-long', 'read-short', 'title-az', 'title-za']
+        const mode = parsed.activeSortMode && acceptedModes.includes(parsed.activeSortMode)
+          ? parsed.activeSortMode
+          : 'newest'
+
+        return {
+          searchKeyword: typeof parsed.searchKeyword === 'string' ? parsed.searchKeyword : '',
+          activeTagInput: typeof parsed.activeTagInput === 'string' ? parsed.activeTagInput : '',
+          activeSortMode: mode,
+          activeBlogView: parsed.activeBlogView === 'detail' ? 'detail' : 'home',
+          activeBlogSlug: typeof parsed.activeBlogSlug === 'string' ? parsed.activeBlogSlug : '',
+        }
+      } catch {
+        return {
+          searchKeyword: '',
+          activeTagInput: '',
+          activeSortMode: 'newest',
+          activeBlogView: 'home',
+          activeBlogSlug: '',
+        }
+      }
+    }
+
+    const saveBlogUiState = (): void => {
+      try {
+        localStorage.setItem(blogUiStateStorageKey, JSON.stringify({
+          searchKeyword,
+          activeTagInput,
+          activeSortMode,
+          activeBlogView,
+          activeBlogSlug,
+        }))
+      } catch {
+        // Storage can be disabled in strict privacy modes.
+      }
+    }
+
     const parseDateScore = (value: string): number => {
       const ts = Date.parse(value)
       return Number.isNaN(ts) ? 0 : ts
     }
+
+    const restoredBlogUi = parseBlogUiState(localStorage.getItem(blogUiStateStorageKey))
+    searchKeyword = restoredBlogUi.searchKeyword
+    activeTagInput = restoredBlogUi.activeTagInput
+    activeTagQuery = activeTagInput && normalizeSearchText(activeTagInput) !== 'all'
+      ? normalizeSearchText(activeTagInput)
+      : ''
+    activeSortMode = restoredBlogUi.activeSortMode
+    activeBlogView = restoredBlogUi.activeBlogView
+    activeBlogSlug = restoredBlogUi.activeBlogSlug
 
     const getSortedPosts = (posts: typeof bugWarRoomBlogPosts) => {
       const sorted = [...posts]
@@ -1153,6 +1571,9 @@ function openLearningBlog(): void {
       detailSection.classList.add('hidden')
       backListBtn.classList.add('hidden')
       currentSectionIds = []
+      activeBlogView = 'home'
+      activeBlogSlug = ''
+      saveBlogUiState()
 
       const filteredPosts = getFilteredPosts()
       if (homeResultCount) {
@@ -1224,6 +1645,9 @@ function openLearningBlog(): void {
       homeSection.classList.add('hidden')
       detailSection.classList.remove('hidden')
       backListBtn.classList.remove('hidden')
+      activeBlogView = 'detail'
+      activeBlogSlug = slug
+      saveBlogUiState()
 
       const coverImageHtml = post.coverImageUrl
         ? `<img class="detail-cover" src="${escapeHtml(post.coverImageUrl)}" alt="${escapeHtml(post.coverImageAlt ?? post.title)}" loading="lazy" />`
@@ -1309,10 +1733,12 @@ function openLearningBlog(): void {
         if (tagFilterTrigger) {
           const tag = tagFilterTrigger.dataset.filterTag
           if (tag) {
+            activeTagInput = tag
             activeTagQuery = normalizeSearchText(tag)
             if (tagCombobox) {
               tagCombobox.value = tag
             }
+            saveBlogUiState()
             renderHome()
             blogTab.scrollTo({ top: 0, behavior: 'smooth' })
           }
@@ -1334,21 +1760,26 @@ function openLearningBlog(): void {
     }
 
     if (searchInput) {
+      searchInput.value = searchKeyword
       searchInput.addEventListener('input', () => {
         searchKeyword = searchInput.value
+        saveBlogUiState()
         renderHome()
       })
     }
 
     if (tagCombobox) {
+      tagCombobox.value = activeTagInput
       tagCombobox.addEventListener('focus', () => {
         tagCombobox.select()
       })
 
       tagCombobox.addEventListener('input', () => {
         const raw = tagCombobox.value.trim()
+        activeTagInput = raw
         const normalized = normalizeSearchText(raw)
         activeTagQuery = normalized === 'all' ? '' : normalized
+        saveBlogUiState()
         renderHome()
       })
 
@@ -1357,13 +1788,16 @@ function openLearningBlog(): void {
           return
         }
 
+        activeTagInput = ''
         activeTagQuery = ''
         tagCombobox.value = ''
+        saveBlogUiState()
         renderHome()
       })
     }
 
     if (sortCombobox) {
+      sortCombobox.value = activeSortMode
       sortCombobox.addEventListener('focus', () => {
         sortCombobox.select()
       })
@@ -1375,22 +1809,26 @@ function openLearningBlog(): void {
         if (!acceptedModes.includes(mode)) {
           sortCombobox.value = 'newest'
         }
+        saveBlogUiState()
         renderHome()
       })
     }
 
     if (clearTagFilterBtn) {
       clearTagFilterBtn.addEventListener('click', () => {
+        activeTagInput = ''
         activeTagQuery = ''
         if (tagCombobox) {
           tagCombobox.value = ''
         }
+        saveBlogUiState()
         renderHome()
       })
     }
 
     if (resetAllFilterBtn) {
       resetAllFilterBtn.addEventListener('click', () => {
+        activeTagInput = ''
         activeTagQuery = ''
         searchKeyword = ''
         activeSortMode = 'newest'
@@ -1403,6 +1841,7 @@ function openLearningBlog(): void {
         if (sortCombobox) {
           sortCombobox.value = 'newest'
         }
+        saveBlogUiState()
         renderHome()
       })
     }
@@ -1432,12 +1871,174 @@ function openLearningBlog(): void {
     }
 
     renderSignals()
-    renderHome()
+    if (activeBlogView === 'detail' && activeBlogSlug) {
+      renderDetail(activeBlogSlug)
+    } else {
+      renderHome()
+    }
 
-    pushAlert('Knowledge Blog đã mở ở tab mới.', 'warning')
   } catch {
-    blogTab.close()
-    shareResultNotice.value = 'Không thể khởi tạo tab Knowledge Blog trên trình duyệt này.'
+    if (!targetTab) {
+      blogTab.close()
+      shareResultNotice.value = 'Không thể khởi tạo tab Knowledge Blog trên trình duyệt này.'
+    }
+  }
+}
+
+function openAnimationCatalog(): void {
+  const opened = openPopupRoute('animation-catalog')
+  if (!opened) {
+    shareResultNotice.value = 'Không mở được tab Animation Catalog. Hãy cho phép pop-up và thử lại.'
+    return
+  }
+
+  pushAlert('Animation Catalog đã mở ở tab mới.', 'warning')
+}
+
+function hydrateAnimationCatalog(targetTab?: Window): void {
+  const animationTab = targetTab ?? window.open('', '_blank')
+  if (!animationTab) {
+    shareResultNotice.value = 'Không mở được tab Animation Catalog. Hãy cho phép pop-up và thử lại.'
+    return
+  }
+
+  const cardsHtml = animationCatalogItems.map((item) => {
+    const operatorHintHtml = item.operatorHint
+      ? `<p class="hint"><strong>Operator note:</strong> ${escapeHtml(item.operatorHint)}</p>`
+      : ''
+    return `<article class="card">
+      <img src="${escapeHtml(item.asset)}" alt="${escapeHtml(item.title)}" loading="lazy" />
+      <div class="body">
+        <p class="kicker">${escapeHtml(item.fileName)}</p>
+        <h3>${escapeHtml(item.title)}</h3>
+        <p>${escapeHtml(item.description)}</p>
+        <p class="trigger"><strong>Điều kiện hiển thị:</strong> ${escapeHtml(item.triggerCondition)}</p>
+        ${operatorHintHtml}
+      </div>
+    </article>`
+  }).join('')
+
+  const html = `<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bug War Room Animation Catalog</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b1621;
+        --panel: #122233;
+        --line: #26384c;
+        --text: #f3f6fa;
+        --muted: #93a8bc;
+        --amber: #ffb830;
+        --sky: #38bdf8;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 18px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 0% 0%, rgba(255, 184, 48, 0.1), transparent 34%),
+          radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.12), transparent 42%),
+          var(--bg);
+      }
+      .layout { max-width: 1080px; margin: 0 auto; display: grid; gap: 12px; }
+      .panel { border: 1px solid var(--line); background: var(--panel); padding: 14px; }
+      h1 { margin: 0 0 6px; font-size: 28px; }
+      .sub { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+      .grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+      .card {
+        border: 1px solid var(--line);
+        background: rgba(8, 14, 22, 0.76);
+        display: grid;
+      }
+      .card img {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: contain;
+        background: radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.08), transparent 70%);
+        padding: 8px;
+      }
+      .body { padding: 10px; display: grid; gap: 6px; }
+      .kicker { margin: 0; color: var(--amber); font-size: 11px; letter-spacing: 0.08em; }
+      .body h3 { margin: 0; font-size: 16px; color: var(--sky); }
+      .body p { margin: 0; font-size: 13px; color: #dce8f5; line-height: 1.6; }
+      .trigger {
+        margin-top: 2px;
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        background: rgba(56, 189, 248, 0.08);
+        padding: 7px 8px;
+        color: #d6ecff;
+      }
+      .hint {
+        margin-top: 2px;
+        border: 1px dashed rgba(255, 184, 48, 0.45);
+        background: rgba(255, 184, 48, 0.07);
+        padding: 7px 8px;
+        color: #ffe2a6;
+      }
+      .ownership {
+        border: 1px dashed rgba(147, 168, 188, 0.45);
+        background: rgba(8, 14, 22, 0.5);
+        padding: 12px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .ownership strong { color: var(--text); }
+      .actions { display: flex; justify-content: flex-end; }
+      .btn {
+        border: 1px solid var(--line);
+        background: rgba(11, 22, 33, 0.8);
+        color: var(--text);
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      .btn:hover { border-color: var(--sky); color: var(--sky); }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <section class="panel">
+        <h1>Slime Animation Catalog</h1>
+        <p class="sub">Tổng hợp toàn bộ animation đã dùng trong Bug War Room, kèm mô tả ngữ cảnh hiển thị.</p>
+      </section>
+      <section class="panel">
+        <div class="grid">
+          ${cardsHtml}
+        </div>
+      </section>
+      <section class="panel ownership">
+        <p><strong>Ownership:</strong> Bộ Slime animated SVG trong trang Bug War Room thuộc quyền sở hữu tác giả <strong>TranQui004</strong>.</p>
+        <p>Vui lòng ghi nguồn đầy đủ nếu tái sử dụng trong project khác.</p>
+      </section>
+      <section class="panel actions">
+        <button id="animation-catalog-close" class="btn" type="button">Close</button>
+      </section>
+    </div>
+  </body>
+</html>`
+
+  try {
+    animationTab.document.open()
+    animationTab.document.write(html)
+    animationTab.document.close()
+
+    const closeBtn = animationTab.document.getElementById('animation-catalog-close') as HTMLButtonElement | null
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        animationTab.close()
+      })
+    }
+
+  } catch {
+    if (!targetTab) {
+      animationTab.close()
+      shareResultNotice.value = 'Không thể khởi tạo tab Animation Catalog trên trình duyệt này.'
+    }
   }
 }
 
@@ -1522,6 +2123,50 @@ const warState = computed<string>(() => {
   if (metrics.value.chaos >= 60) return 'Căng thẳng'
   if (metrics.value.chaos >= 35) return 'Đang kiểm soát'
   return 'Ổn định cao'
+})
+
+const isMinimalFocus = computed<boolean>(() => uiFocusMode.value === 'minimal')
+
+const priorityHeadline = computed<string>(() => {
+  if (metrics.value.chaos >= 85 || metrics.value.timeLeft <= 10) {
+    return 'ƯU TIÊN TỨC THÌ: containment và giảm chaos ngay.'
+  }
+
+  if (metrics.value.chaos >= 65 || metrics.value.energy <= 40) {
+    return 'ƯU TIÊN CAO: hạ áp lực hệ thống và bảo toàn năng lượng team.'
+  }
+
+  if (metrics.value.trust <= 55) {
+    return 'ƯU TIÊN: củng cố trust bằng thông điệp minh bạch và ổn định nhanh.'
+  }
+
+  return 'ƯU TIÊN: giữ nhịp ổn định, tránh quyết định rủi ro không cần thiết.'
+})
+
+const priorityChecklist = computed<string[]>(() => {
+  const items: string[] = []
+
+  if (metrics.value.chaos >= 65) {
+    items.push('Chọn phương án có C âm hoặc C thấp để chặn snowball.')
+  }
+
+  if (metrics.value.energy <= 45) {
+    items.push('Tránh phương án tiêu hao E sâu, ưu tiên phương án cân bằng.')
+  }
+
+  if (metrics.value.timeLeft <= 20) {
+    items.push('Ưu tiên rollback/feature flag để rút ngắn time-to-mitigate.')
+  }
+
+  if (metrics.value.trust <= 55) {
+    items.push('Ưu tiên quyết định có T dương để giảm áp lực từ user/stakeholder.')
+  }
+
+  if (items.length === 0) {
+    items.push('Tiếp tục giữ Chaos thấp và tránh đốt Energy ở các vòng đầu.')
+  }
+
+  return items.slice(0, 2)
 })
 
 const chaosGlowIntensity = computed<number>(() => {
@@ -1779,7 +2424,7 @@ const activeOverlaySlimeMood = computed<SlimeMood | null>(() => {
 
 const slimeIdleAsset = slimeAssetMap['slime-idle']
 
-const currentSlimeOverlayAsset = computed<string>(() => {
+const currentSlimeAsset = computed<string>(() => {
   return activeOverlaySlimeMood.value ? slimeAssetMap[activeOverlaySlimeMood.value] : slimeIdleAsset
 })
 
@@ -1821,6 +2466,7 @@ watch(campaignScore, (value) => {
   }
 
   persistCurrentRunToDailyLeaderboard()
+  addCurrentRunToHistoryIfNeeded()
 })
 
 watch(playerAlias, (value) => {
@@ -1844,6 +2490,32 @@ watch(learningCollapsed, (value) => {
 
 watch(actionLogCollapsedMobile, (value) => {
   localStorage.setItem(actionLogCollapsedStorageKey, value ? '1' : '0')
+})
+
+watch(uiFocusMode, (value) => {
+  localStorage.setItem(uiFocusModeStorageKey, value)
+
+  if (value === 'minimal') {
+    docsCollapsed.value = true
+    learningCollapsed.value = true
+    tacticalPanelCollapsed.value = true
+    postmortemCollapsed.value = true
+    if (window.innerWidth < 640) {
+      actionLogCollapsedMobile.value = true
+    }
+  }
+})
+
+watch(tacticalPanelCollapsed, (value) => {
+  localStorage.setItem(tacticalPanelCollapsedStorageKey, value ? '1' : '0')
+})
+
+watch(postmortemCollapsed, (value) => {
+  localStorage.setItem(postmortemCollapsedStorageKey, value ? '1' : '0')
+})
+
+watch(resultHistoryCollapsed, (value) => {
+  localStorage.setItem(resultHistoryCollapsedStorageKey, value ? '1' : '0')
 })
 
 watch(() => metrics.value.chaos, (newChaos) => {
@@ -1888,6 +2560,17 @@ onMounted(() => {
   const storedDocsCollapsed = localStorage.getItem(docsCollapsedStorageKey)
   const storedLearningCollapsed = localStorage.getItem(learningCollapsedStorageKey)
   const storedActionLogCollapsed = localStorage.getItem(actionLogCollapsedStorageKey)
+  const storedFocusMode = localStorage.getItem(uiFocusModeStorageKey)
+  const storedTacticalPanelCollapsed = localStorage.getItem(tacticalPanelCollapsedStorageKey)
+  const storedPostmortemCollapsed = localStorage.getItem(postmortemCollapsedStorageKey)
+  const storedResultHistoryCollapsed = localStorage.getItem(resultHistoryCollapsedStorageKey)
+
+  resultHistory.value = parseResultHistory(localStorage.getItem(resultHistoryStorageKey))
+
+  if (storedFocusMode === 'full' || storedFocusMode === 'minimal') {
+    uiFocusMode.value = storedFocusMode
+  }
+
   if (storedDocsCollapsed === '1' || storedDocsCollapsed === '0') {
     docsCollapsed.value = storedDocsCollapsed === '1'
   }
@@ -1900,7 +2583,22 @@ onMounted(() => {
     actionLogCollapsedMobile.value = storedActionLogCollapsed === '1'
   }
 
+  if (storedTacticalPanelCollapsed === '1' || storedTacticalPanelCollapsed === '0') {
+    tacticalPanelCollapsed.value = storedTacticalPanelCollapsed === '1'
+  }
+
+  if (storedPostmortemCollapsed === '1' || storedPostmortemCollapsed === '0') {
+    postmortemCollapsed.value = storedPostmortemCollapsed === '1'
+  }
+
+  if (storedResultHistoryCollapsed === '1' || storedResultHistoryCollapsed === '0') {
+    resultHistoryCollapsed.value = storedResultHistoryCollapsed === '1'
+  }
+
   if (window.innerWidth < 640) {
+    if (storedFocusMode === null) {
+      uiFocusMode.value = 'minimal'
+    }
     if (storedDocsCollapsed === null) {
       docsCollapsed.value = true
     }
@@ -1910,6 +2608,22 @@ onMounted(() => {
     if (storedActionLogCollapsed === null) {
       actionLogCollapsedMobile.value = true
     }
+    if (storedTacticalPanelCollapsed === null) {
+      tacticalPanelCollapsed.value = true
+    }
+    if (storedPostmortemCollapsed === null) {
+      postmortemCollapsed.value = true
+    }
+    if (storedResultHistoryCollapsed === null) {
+      resultHistoryCollapsed.value = true
+    }
+  }
+
+  if (uiFocusMode.value === 'minimal') {
+    docsCollapsed.value = true
+    learningCollapsed.value = true
+    tacticalPanelCollapsed.value = true
+    postmortemCollapsed.value = true
   }
 
   const shareDraftAt = Number(localStorage.getItem(shareDraftAtStorageKey))
@@ -1917,6 +2631,42 @@ onMounted(() => {
   if (!Number.isNaN(shareDraftAt) && Date.now() - shareDraftAt > oneHour) {
     localStorage.removeItem(shareDraftStorageKey)
     localStorage.removeItem(shareDraftAtStorageKey)
+  }
+
+  const popupMode = new URLSearchParams(window.location.search).get('bugWarRoomPopup')
+  if (popupMode === 'knowledge-blog') {
+    setTimeout(() => {
+      hydrateLearningBlog(window)
+    }, 0)
+    return
+  }
+
+  if (popupMode === 'animation-catalog') {
+    setTimeout(() => {
+      hydrateAnimationCatalog(window)
+    }, 0)
+    return
+  }
+
+  if (popupMode === 'share-card') {
+    const draftPayload = parseShareDraft(localStorage.getItem(shareDraftStorageKey))
+    if (!draftPayload) {
+      window.document.body.innerHTML = '<div style="font-family:Segoe UI,Tahoma,sans-serif;padding:20px;background:#0f1923;color:#f3f6fa;">Không tìm thấy dữ liệu share card. Hãy quay lại game và mở lại share card.</div>'
+      return
+    }
+
+    const missionBonusFromDraft = Math.max(0, draftPayload.campaignScore - draftPayload.rawScore)
+    const messageFromDraft = buildShareText(draftPayload, missionBonusFromDraft)
+
+    setTimeout(() => {
+      openShareCard({
+        payload: draftPayload,
+        message: messageFromDraft,
+        draftKey: shareDraftStorageKey,
+        draftAtKey: shareDraftAtStorageKey,
+      }, window)
+    }, 0)
+    return
   }
 
   timerHandle = setInterval(() => {
@@ -2020,7 +2770,7 @@ resetGame()
 
     <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <!-- Ticker -->
-      <div class="ticker-shell animate-fade-up border border-border-default bg-bg-surface text-xs tracking-wider text-text-secondary">
+      <div v-if="!isMinimalFocus" class="ticker-shell animate-fade-up border border-border-default bg-bg-surface text-xs tracking-wider text-text-secondary">
         <div class="ticker-track">
           <span class="ticker-segment" v-for="segment in tickerItems" :key="segment">{{ segment }}</span>
           <span class="ticker-segment" v-for="segment in tickerItems" :key="segment + '-mirror'">{{ segment }}</span>
@@ -2061,7 +2811,7 @@ resetGame()
         </div>
 
         <div class="control-wrap relative z-10 mt-4 flex flex-wrap gap-2">
-          <div class="setting-item">
+          <div class="setting-item setting-item-focus">
             <button
               type="button"
               class="border px-3 py-2 text-xs font-display tracking-wider transition-colors"
@@ -2137,6 +2887,29 @@ resetGame()
             <button
               type="button"
               class="border px-3 py-2 text-xs font-display tracking-wider transition-colors"
+              :class="uiFocusMode === 'full' ? 'border-accent-sky bg-accent-sky/10 text-accent-sky' : 'border-border-default text-text-secondary hover:text-text-primary'"
+              @click="uiFocusMode = 'full'"
+            >
+              VIEW FULL
+            </button>
+            <button
+              type="button"
+              class="border px-3 py-2 text-xs font-display tracking-wider transition-colors"
+              :class="uiFocusMode === 'minimal' ? 'border-accent-amber bg-accent-amber/10 text-accent-amber' : 'border-border-default text-text-secondary hover:text-text-primary'"
+              @click="uiFocusMode = 'minimal'"
+            >
+              VIEW MINIMAL
+            </button>
+            <span class="info-tip">
+              <button type="button" class="info-tip-button" aria-label="Giải thích Focus View">?</button>
+              <span class="info-tip-panel">Minimal sẽ thu gọn các panel phụ để tập trung vào chỉ số chính, incident hiện tại và quyết định cần chọn.</span>
+            </span>
+          </div>
+
+          <div class="setting-item">
+            <button
+              type="button"
+              class="border px-3 py-2 text-xs font-display tracking-wider transition-colors"
               :class="characterAnimationEnabled ? 'border-accent-coral bg-accent-coral/10 text-accent-coral' : 'border-border-default text-text-secondary hover:text-text-primary'"
               @click="characterAnimationEnabled = !characterAnimationEnabled"
             >
@@ -2182,6 +2955,18 @@ resetGame()
             <p class="mt-1 text-xs" :class="metrics.chaos >= 85 ? 'text-accent-coral font-bold animate-pulse-fast' : 'text-text-secondary'">{{ warState }}</p>
           </div>
         </div>
+
+        <div class="priority-strip relative z-10 mt-4 border border-accent-coral/45 bg-bg-deep/85 p-3 sm:p-4">
+          <p class="text-[11px] tracking-[0.14em] text-accent-coral">// PRIORITY BRIEF</p>
+          <p class="mt-1 text-sm text-text-primary sm:text-base">{{ priorityHeadline }}</p>
+          <p
+            v-for="item in priorityChecklist"
+            :key="item"
+            class="mt-1 text-xs text-text-secondary sm:text-sm"
+          >
+            - {{ item }}
+          </p>
+        </div>
       </header>
 
       <!-- Guide + Docs Section -->
@@ -2193,10 +2978,12 @@ resetGame()
           </h2>
           <button
             type="button"
-            class="border border-border-default bg-bg-deep px-3 py-1.5 text-[11px] tracking-wider text-text-secondary"
+            class="border border-border-default bg-bg-deep px-3 py-1.5 text-[11px] tracking-wider"
+            :class="isMinimalFocus ? 'cursor-not-allowed text-text-dim opacity-70' : 'text-text-secondary'"
+            :disabled="isMinimalFocus"
             @click="docsCollapsed = !docsCollapsed"
           >
-            {{ docsCollapsed ? 'MỞ TOÀN BỘ DOCS' : 'THU GỌN CHỈ CÒN HƯỚNG DẪN NHANH' }}
+            {{ isMinimalFocus ? 'MINIMAL MODE: GIỮ CHẾ ĐỘ QUICK GUIDE' : (docsCollapsed ? 'MỞ TOÀN BỘ DOCS' : 'THU GỌN CHỈ CÒN HƯỚNG DẪN NHANH') }}
           </button>
         </div>
 
@@ -2286,7 +3073,21 @@ resetGame()
         </div>
       </section>
 
-      <section class="animate-fade-up animate-delay-2 grid gap-3 lg:grid-cols-3">
+      <div class="animate-fade-up animate-delay-2 flex flex-wrap items-center justify-between gap-2 border border-border-default bg-bg-surface p-3">
+        <p class="font-display text-xs tracking-[0.14em] text-accent-sky">// TACTICAL PANELS</p>
+        <button
+          type="button"
+          class="border border-border-default bg-bg-deep px-3 py-1.5 text-[11px] tracking-wider text-text-secondary"
+          @click="tacticalPanelCollapsed = !tacticalPanelCollapsed"
+        >
+          {{ tacticalPanelCollapsed ? 'MỞ PHÂN TÍCH CHIẾN THUẬT' : 'THU GỌN PHÂN TÍCH CHIẾN THUẬT' }}
+        </button>
+      </div>
+
+      <section
+        class="collapsible-mobile animate-fade-up animate-delay-2 grid gap-3 lg:grid-cols-3"
+        :class="{ 'collapsed-mobile': tacticalPanelCollapsed }"
+      >
         <div class="border border-border-default bg-bg-surface p-4">
           <p class="font-display text-xs tracking-[0.16em] text-accent-coral">// COMMAND PHASE</p>
           <p class="mt-2 font-display text-2xl text-text-primary">{{ operationPhase }}</p>
@@ -2349,6 +3150,8 @@ resetGame()
                 <button
                   type="button"
                   class="mt-3 border border-accent-sky bg-accent-sky/10 px-3 py-2 text-[11px] tracking-wider text-accent-sky transition-colors hover:bg-accent-sky/20"
+                  title="Mở Knowledge Blog ở tab mới"
+                  aria-label="Mở Knowledge Blog ở tab mới"
                   @click="openLearningBlog"
                 >
                   OPEN KNOWLEDGE BLOG
@@ -2561,9 +3364,19 @@ resetGame()
             | Daily best: <span class="text-accent-sky">{{ dailyBestScore }}</span>
           </div>
 
-          <div class="mt-4 border border-border-default bg-bg-deep p-4 text-sm text-text-secondary">
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-2 border border-border-default bg-bg-deep px-3 py-2">
             <p class="font-display text-xs tracking-widest text-accent-sky">// POSTMORTEM CHI TIẾT</p>
-            <div class="mt-3 grid gap-3 md:grid-cols-2">
+            <button
+              type="button"
+              class="border border-border-default bg-bg-surface px-3 py-1.5 text-[11px] tracking-wider text-text-secondary"
+              @click="postmortemCollapsed = !postmortemCollapsed"
+            >
+              {{ postmortemCollapsed ? 'MỞ POSTMORTEM CHI TIẾT' : 'THU GỌN POSTMORTEM' }}
+            </button>
+          </div>
+
+          <div class="collapsible-mobile mt-3 border border-border-default bg-bg-deep p-4 text-sm text-text-secondary" :class="{ 'collapsed-mobile': postmortemCollapsed }">
+            <div class="grid gap-3 md:grid-cols-2">
               <div class="border border-border-default bg-bg-surface p-3">
                 <p class="text-xs tracking-widest text-text-dim">BEST DECISION</p>
                 <p class="mt-1 text-text-primary">{{ bestDecision?.action || 'Chưa có dữ liệu' }}</p>
@@ -2621,6 +3434,8 @@ resetGame()
             <button
               type="button"
               class="border border-border-default bg-bg-deep px-4 py-2 text-xs font-display tracking-widest text-text-secondary transition-colors hover:border-accent-coral hover:text-text-primary"
+              title="Bắt đầu lại một chiến dịch mới"
+              aria-label="Chơi lại chiến dịch"
               @click="resetGame"
             >
               CHƠI LẠI
@@ -2629,6 +3444,8 @@ resetGame()
             <button
               type="button"
               class="border border-accent-amber bg-accent-amber/10 px-4 py-2 text-xs font-display tracking-widest text-accent-amber transition-colors hover:bg-accent-amber/20"
+              title="Mở tab share card và xuất PNG"
+              aria-label="Mở share card"
               @click="copyResult"
             >
               OPEN SHARE CARD
@@ -2656,12 +3473,10 @@ resetGame()
               @keydown.space.prevent="onSlimeOperatorClick"
             >
               <div class="slime-stage">
-                <img :src="slimeIdleAsset" alt="Bug War Room Slime Idle" class="slime-layer slime-layer-idle">
                 <img
-                  :src="currentSlimeOverlayAsset"
-                  alt="Bug War Room Slime Reaction"
-                  class="slime-layer slime-layer-overlay"
-                  :class="{ 'slime-layer-visible': !!activeOverlaySlimeMood }"
+                  :src="currentSlimeAsset"
+                  :alt="`Bug War Room Slime - ${currentSlimeMoodLabel}`"
+                  class="slime-layer slime-layer-visible"
                 >
               </div>
             </div>
@@ -2677,10 +3492,22 @@ resetGame()
               Trạng thái slime phản ánh chaos, energy và action gần nhất trong trận hiện tại.
             </p>
             <p class="mt-2 text-xs text-text-dim">Character FX: {{ characterAnimationEnabled ? 'ON' : 'OFF' }}</p>
+            <p class="mt-1 text-[11px] text-accent-sky">
+              Click reaction note: sau mỗi lần click vào Slime Operator, nên chờ khoảng {{ clickReactionWaitSeconds }} giây để animation hiển thị trọn vẹn.
+            </p>
             <p class="mt-1 text-[11px] text-text-dim">
               Animation Credits: Bộ Slime animated SVG được thiết kế bởi
               <span class="text-accent-amber">TranQui004</span>.
             </p>
+            <button
+              type="button"
+              class="mt-3 border border-accent-sky bg-accent-sky/10 px-3 py-2 text-[11px] tracking-wider text-accent-sky transition-colors hover:bg-accent-sky/20"
+              title="Mở trang tổng hợp toàn bộ animation đã dùng"
+              aria-label="Mở animation catalog"
+              @click="openAnimationCatalog"
+            >
+              OPEN ANIMATION CATALOG
+            </button>
           </div>
 
           <!-- Action Log -->
@@ -2730,6 +3557,41 @@ resetGame()
           Disclaimer: Nội dung học tập/khuyến nghị trên trang được AI tạo tự động, chỉ mang tính tham khảo.
           Luôn xác minh lại bằng nguồn đáng tin cậy trước khi áp dụng thực tế.
         </p>
+        <div class="w-full border border-border-default bg-bg-deep p-3 text-[11px] text-text-secondary sm:max-w-3xl">
+          <p class="font-display tracking-[0.08em] text-accent-sky">// BÁO LỖI HOẶC ĐÓNG GÓP KHI ĐANG CHƠI</p>
+          <p class="mt-1">Nếu phát hiện lỗi hoặc muốn đề xuất cải tiến, dùng các đường dẫn sau:</p>
+          <p class="mt-1">
+            Bug report:
+            <a :href="repoIssueBugUrl" target="_blank" rel="noopener noreferrer" class="text-accent-sky underline underline-offset-2">{{ repoIssueBugUrl }}</a>
+          </p>
+          <p class="mt-1">
+            Feature request:
+            <a :href="repoIssueFeatureUrl" target="_blank" rel="noopener noreferrer" class="text-accent-sky underline underline-offset-2">{{ repoIssueFeatureUrl }}</a>
+          </p>
+          <p class="mt-1">
+            Fork để commit/PR:
+            <a :href="repoForkUrl" target="_blank" rel="noopener noreferrer" class="text-accent-amber underline underline-offset-2">{{ repoForkUrl }}</a>
+          </p>
+          <p class="mt-1">
+            Hướng dẫn đóng góp:
+            <a :href="repoContributingUrl" target="_blank" rel="noopener noreferrer" class="text-accent-amber underline underline-offset-2">{{ repoContributingUrl }}</a>
+          </p>
+        </div>
+        <div class="w-full border border-border-default bg-bg-deep p-3 text-[11px] text-text-secondary sm:max-w-3xl">
+          <p class="font-display tracking-[0.08em] text-accent-coral">// DATA CONTROLS</p>
+          <p class="mt-1">Dọn toàn bộ dữ liệu chơi/cài đặt để bắt đầu mới, nhưng vẫn giữ lịch sử kết quả.</p>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="border border-accent-coral bg-accent-coral/10 px-3 py-2 text-[11px] tracking-wider text-accent-coral transition-colors hover:bg-accent-coral/20"
+              title="Xóa toàn bộ dữ liệu chơi và cài đặt nhưng giữ lại lịch sử kết quả"
+              aria-label="Xóa toàn bộ dữ liệu chơi"
+              @click="clearAllRuntimeDataKeepHistory"
+            >
+              RESET GAME DATA (KEEP HISTORY)
+            </button>
+          </div>
+        </div>
         <RouterLink
           to="/"
           class="inline-flex items-center gap-2 border border-border-default bg-bg-deep px-4 py-2 text-xs font-display tracking-widest text-text-secondary transition-colors hover:border-accent-coral hover:text-text-primary"
@@ -2739,10 +3601,87 @@ resetGame()
         </RouterLink>
       </footer>
 
+      <section class="animate-fade-up animate-delay-4 border border-border-default bg-bg-surface p-4 sm:p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="flex items-center gap-3 font-display text-lg font-semibold sm:text-xl">
+            <span class="font-display text-xs tracking-widest text-accent-amber">//</span>
+            Lịch Sử Kết Quả
+          </h2>
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="border border-border-default bg-bg-deep px-3 py-1.5 text-[11px] tracking-wider text-text-secondary"
+              @click="resultHistoryCollapsed = !resultHistoryCollapsed"
+            >
+              {{ resultHistoryCollapsed ? 'MỞ LỊCH SỬ' : 'THU GỌN LỊCH SỬ' }}
+            </button>
+            <button
+              v-if="resultHistory.length > 0"
+              type="button"
+              class="border border-accent-coral bg-accent-coral/10 px-3 py-1.5 text-[11px] tracking-wider text-accent-coral transition-colors hover:bg-accent-coral/20"
+              @click="clearAllResultHistory"
+            >
+              XÓA TOÀN BỘ LỊCH SỬ
+            </button>
+          </div>
+        </div>
+
+        <p class="mt-2 text-xs text-text-dim">Lịch sử lưu kết quả campaign trước đây để bạn xem lại và export lại share card bất cứ lúc nào.</p>
+
+        <div class="collapsible-mobile mt-3" :class="{ 'collapsed-mobile': resultHistoryCollapsed }">
+          <div v-if="resultHistory.length === 0" class="border border-dashed border-border-default bg-bg-deep p-3 text-xs text-text-dim">
+            Chưa có lịch sử kết quả. Hoàn thành một campaign để hệ thống tự lưu vào đây.
+          </div>
+
+          <div v-else class="space-y-2">
+            <article
+              v-for="entry in resultHistory"
+              :key="entry.id"
+              class="border border-border-default bg-bg-deep p-3"
+            >
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <p class="font-display text-xs tracking-widest text-accent-amber">
+                  {{ entry.payload.generatedAt }}
+                </p>
+                <p class="text-xs text-text-secondary">
+                  {{ entry.payload.mode }} / {{ entry.payload.dailySeed }}
+                </p>
+              </div>
+              <p class="mt-1 text-sm text-text-primary">
+                {{ entry.payload.player }} - {{ entry.payload.rank }} - Score {{ entry.payload.campaignScore }}
+              </p>
+              <p class="mt-1 text-xs text-text-dim">
+                Base {{ entry.payload.rawScore }} + Bonus {{ entry.missionBonus }} | Chaos {{ entry.payload.chaos }} | Time {{ entry.payload.timeLeft }}m | {{ entry.payload.rounds }}
+              </p>
+              <p class="mt-1 text-xs text-text-secondary">{{ entry.payload.verdict }}</p>
+
+              <div class="mt-2 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  class="border border-accent-amber bg-accent-amber/10 px-3 py-1.5 text-[11px] tracking-wider text-accent-amber transition-colors hover:bg-accent-amber/20"
+                  @click="exportHistoryEntry(entry)"
+                >
+                  EXPORT SHARE CARD
+                </button>
+                <button
+                  type="button"
+                  class="border border-border-default bg-bg-surface px-3 py-1.5 text-[11px] tracking-wider text-text-secondary transition-colors hover:border-accent-sky hover:text-accent-sky"
+                  @click="copyHistoryEntryText(entry)"
+                >
+                  COPY REPORT TEXT
+                </button>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <button
         v-if="showBackToTop"
         type="button"
         class="fixed bottom-4 right-4 z-50 border border-border-default bg-bg-surface/95 px-3 py-2 text-xs tracking-wider text-text-primary backdrop-blur transition-colors hover:border-accent-amber hover:text-accent-amber"
+        title="Cuộn về đầu trang"
+        aria-label="Cuộn về đầu trang"
         @click="scrollPageToTop"
       >
         BACK TO TOP
@@ -2891,6 +3830,10 @@ resetGame()
   height: auto;
 }
 
+.priority-strip {
+  box-shadow: inset 0 0 0 1px rgba(255, 107, 74, 0.16);
+}
+
 .control-wrap > * {
   flex-shrink: 0;
 }
@@ -2900,6 +3843,10 @@ resetGame()
   align-items: center;
   gap: 0.35rem;
   position: relative;
+}
+
+.setting-item-focus {
+  flex-wrap: wrap;
 }
 
 .info-tip {
@@ -3090,6 +4037,15 @@ resetGame()
   .setting-item {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .setting-item-focus {
+    justify-content: flex-start;
+    gap: 0.45rem;
+  }
+
+  .setting-item-focus .info-tip {
+    margin-left: auto;
   }
 
   .info-tip-panel {
