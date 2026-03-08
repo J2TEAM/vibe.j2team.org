@@ -85,3 +85,28 @@ export interface SharePayload {
   verdict: string
   generatedAt: string
 }
+
+export interface DailyLeaderboardEntry {
+  id: string
+  player: string
+  score: number
+  rank: string
+  chaos: number
+  timeLeft: number
+  createdAt: string
+}
+
+export interface LearningEntry {
+  id: string
+  title: string
+  note: string
+  severity: Severity
+  lesson: string
+  createdAt: string
+}
+
+export interface ResultHistoryEntry {
+  id: string
+  payload: SharePayload
+  missionBonus: number
+}

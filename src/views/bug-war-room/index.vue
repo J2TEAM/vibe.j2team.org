@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import {
   incidents,
@@ -9,7 +9,20 @@ import {
   severityPressureByLevel,
 } from './data'
 import { buildShareText, openShareCard, PUBLIC_SHARE_URL } from './share'
-import type { ChaosAlert, Choice, GameMode, Incident, Metrics, RandomEvent, RoundLog, Severity, SharePayload } from './types'
+import type {
+  ChaosAlert,
+  Choice,
+  DailyLeaderboardEntry,
+  GameMode,
+  Incident,
+  LearningEntry,
+  Metrics,
+  RandomEvent,
+  ResultHistoryEntry,
+  RoundLog,
+  Severity,
+  SharePayload,
+} from './types'
 import actionConfirmSvg from './svg-animation/action-confirm.svg'
 import chaosUpSvg from './svg-animation/chaos-up.svg'
 import criticalSvg from './svg-animation/critical.svg'
@@ -24,45 +37,29 @@ import trustUpSvg from './svg-animation/trust-up.svg'
 import victorySvg from './svg-animation/victory.svg'
 import warningSvg from './svg-animation/warning.svg'
 import { bugWarRoomBlogPosts } from './blog/posts'
-
-interface AnalyzedLog extends RoundLog {
-  weightedDelta: number
-}
-
-interface DailyLeaderboardEntry {
-  id: string
-  player: string
-  score: number
-  rank: string
-  chaos: number
-  timeLeft: number
-  createdAt: string
-}
-
-interface LearningEntry {
-  id: string
-  title: string
-  note: string
-  severity: Severity
-  lesson: string
-  createdAt: string
-}
-
-interface AnimationCatalogItem {
-  id: string
-  title: string
-  fileName: string
-  description: string
-  triggerCondition: string
-  operatorHint?: string
-  asset: string
-}
-
-interface ResultHistoryEntry {
-  id: string
-  payload: SharePayload
-  missionBonus: number
-}
+import { createAnimationCatalogItems } from './utils/animationCatalog'
+import type { AnimationCatalogItem } from './utils/animationCatalog'
+import { hydrateLearningBlogPopup } from './utils/blogPopup'
+import { hydrateAnimationCatalogPopup } from './utils/animationPopup'
+import {
+  buildDailySeed,
+  clamp,
+  createLearningLesson,
+  createSeededRandom,
+  dailyBestStorageKey,
+  dailyLeaderboardStorageKey,
+  formatClock,
+  hashSeed,
+  impactLabel,
+  parseDailyLeaderboard,
+  parseLearningJournal,
+  parseResultHistory,
+  parseShareDraft,
+  severityClass,
+  upsertDailyLeaderboardEntry,
+} from './utils/stateUtils'
+import { bugWarRoomStorageKeys, bugWarRoomStoragePrefixes } from './utils/storageKeys'
+import { useBugWarRoomComputed } from './composables/useBugWarRoomComputed'
 
 type LearningSeverityFilter = 'all' | Severity
 type UiFocusMode = 'full' | 'minimal'
@@ -120,21 +117,21 @@ const resultHistory = ref<ResultHistoryEntry[]>([])
 const resultHistoryCollapsed = ref<boolean>(false)
 const historyPersistedForRun = ref<boolean>(false)
 
-const playerAliasStorageKey = 'bug-war-room-player-alias'
-const shareDraftStorageKey = 'bug-war-room-share-draft'
-const shareDraftAtStorageKey = 'bug-war-room-share-draft-at'
-const characterAnimationStorageKey = 'bug-war-room-character-animation-enabled'
-const docsCollapsedStorageKey = 'bug-war-room-docs-collapsed'
-const actionLogCollapsedStorageKey = 'bug-war-room-action-log-collapsed-mobile'
-const learningJournalStorageKey = 'bug-war-room-learning-journal'
-const careerLearningXpStorageKey = 'bug-war-room-career-learning-xp'
-const learningCollapsedStorageKey = 'bug-war-room-learning-collapsed'
-const uiFocusModeStorageKey = 'bug-war-room-ui-focus-mode'
-const tacticalPanelCollapsedStorageKey = 'bug-war-room-tactical-panel-collapsed'
-const postmortemCollapsedStorageKey = 'bug-war-room-postmortem-collapsed'
-const resultHistoryStorageKey = 'bug-war-room-result-history'
-const resultHistoryCollapsedStorageKey = 'bug-war-room-result-history-collapsed'
-const blogUiStateStorageKey = 'bug-war-room-blog-ui-state'
+const playerAliasStorageKey = bugWarRoomStorageKeys.playerAlias
+const shareDraftStorageKey = bugWarRoomStorageKeys.shareDraft
+const shareDraftAtStorageKey = bugWarRoomStorageKeys.shareDraftAt
+const characterAnimationStorageKey = bugWarRoomStorageKeys.characterAnimationEnabled
+const docsCollapsedStorageKey = bugWarRoomStorageKeys.docsCollapsed
+const actionLogCollapsedStorageKey = bugWarRoomStorageKeys.actionLogCollapsedMobile
+const learningJournalStorageKey = bugWarRoomStorageKeys.learningJournal
+const careerLearningXpStorageKey = bugWarRoomStorageKeys.careerLearningXp
+const learningCollapsedStorageKey = bugWarRoomStorageKeys.learningCollapsed
+const uiFocusModeStorageKey = bugWarRoomStorageKeys.uiFocusMode
+const tacticalPanelCollapsedStorageKey = bugWarRoomStorageKeys.tacticalPanelCollapsed
+const postmortemCollapsedStorageKey = bugWarRoomStorageKeys.postmortemCollapsed
+const resultHistoryStorageKey = bugWarRoomStorageKeys.resultHistory
+const resultHistoryCollapsedStorageKey = bugWarRoomStorageKeys.resultHistoryCollapsed
+const blogUiStateStorageKey = bugWarRoomStorageKeys.blogUiState
 const slimeSpamWindowMs = 950
 const slimeSpamAnnoyedThreshold = 6
 const slimeClickReactionDurationMs = 3200
@@ -179,113 +176,26 @@ const slimeAssetMap: Record<SlimeMood, string> = {
   defeat: defeatSvg,
 }
 
-const animationCatalogItems: AnimationCatalogItem[] = [
-  {
-    id: 'slime-idle',
-    title: 'Slime Idle',
-    fileName: 'slime-idle.svg',
-    description: 'Trạng thái quan sát mặc định khi hệ thống bình ổn.',
-    triggerCondition: 'Hiển thị mặc định khi không có hiệu ứng tạm thời và hệ thống chưa vào warning/critical/victory/defeat.',
-    asset: slimeIdleSvg,
+const animationCatalogItems: AnimationCatalogItem[] = createAnimationCatalogItems({
+  slimeSpamWindowMs,
+  slimeSpamAnnoyedThreshold,
+  slimeClickReactionDurationMs,
+  assets: {
+    slimeIdleSvg,
+    slimeAnnoyedSvg,
+    slimeClickReactionSvg,
+    actionConfirmSvg,
+    trustUpSvg,
+    stabilityUpSvg,
+    chaosUpSvg,
+    energyLowSvg,
+    warningSvg,
+    criticalSvg,
+    victorySvg,
+    defeatSvg,
+    slimeTeachingSvg,
   },
-  {
-    id: 'slime-annoyed',
-    title: 'Slime Annoyed',
-    fileName: 'slime-annoyed.svg',
-    description: 'Phản ứng khi người chơi spam thao tác quá nhanh.',
-    triggerCondition: `Xuất hiện khi số lần click liên tiếp trong ${Math.round(slimeSpamWindowMs / 1000)} giây đạt ngưỡng spam (${slimeSpamAnnoyedThreshold} lần).`,
-    asset: slimeAnnoyedSvg,
-  },
-  {
-    id: 'slime-click-reaction',
-    title: 'Slime Click Reaction',
-    fileName: 'slime-click-reaction.svg',
-    description: 'Hiệu ứng click phản hồi tức thì cho thao tác operator.',
-    triggerCondition: 'Xuất hiện khi người chơi click/tap trực tiếp vào Slime Operator và không bị override bởi trạng thái annoyed.',
-    operatorHint: `Mỗi lần click nên chờ khoảng ${Math.ceil(slimeClickReactionDurationMs / 1000)} giây để animation chạy trọn vẹn rồi hãy click tiếp.`,
-    asset: slimeClickReactionSvg,
-  },
-  {
-    id: 'action-confirm',
-    title: 'Action Confirm',
-    fileName: 'action-confirm.svg',
-    description: 'Xác nhận một quyết định vừa được thực thi.',
-    triggerCondition: 'Xuất hiện sau khi chọn một incident action có tác động trung tính hoặc không rơi vào các nhánh trust-up/stability-up/chaos-up/energy-low.',
-    asset: actionConfirmSvg,
-  },
-  {
-    id: 'trust-up',
-    title: 'Trust Up',
-    fileName: 'trust-up.svg',
-    description: 'Biểu thị niềm tin người dùng được cải thiện.',
-    triggerCondition: 'Xuất hiện khi action vừa chọn có tác động Trust tăng mạnh (T >= +8).',
-    asset: trustUpSvg,
-  },
-  {
-    id: 'stability-up',
-    title: 'Stability Up',
-    fileName: 'stability-up.svg',
-    description: 'Biểu thị hệ thống đang quay lại trạng thái ổn định.',
-    triggerCondition: 'Xuất hiện khi action vừa chọn có tác động Stability tăng mạnh (S >= +8).',
-    asset: stabilityUpSvg,
-  },
-  {
-    id: 'chaos-up',
-    title: 'Chaos Up',
-    fileName: 'chaos-up.svg',
-    description: 'Cảnh báo chaos tăng nhanh sau lựa chọn rủi ro.',
-    triggerCondition: 'Xuất hiện khi action làm chaos tăng mạnh (chaosDelta >= 12) hoặc random event làm chaos tăng đáng kể.',
-    asset: chaosUpSvg,
-  },
-  {
-    id: 'energy-low',
-    title: 'Energy Low',
-    fileName: 'energy-low.svg',
-    description: 'Trạng thái team suy kiệt năng lượng khi xử lý kéo dài.',
-    triggerCondition: 'Xuất hiện khi action làm tiêu hao năng lượng sâu (E <= -10) hoặc Energy hiện tại xuống mức thấp (<= 35).',
-    asset: energyLowSvg,
-  },
-  {
-    id: 'warning',
-    title: 'Warning',
-    fileName: 'warning.svg',
-    description: 'Mức cảnh báo cao khi incident bắt đầu mất kiểm soát.',
-    triggerCondition: 'Tự động hiển thị khi Chaos >= 65 và chưa chạm mức critical.',
-    asset: warningSvg,
-  },
-  {
-    id: 'critical',
-    title: 'Critical',
-    fileName: 'critical.svg',
-    description: 'Báo động đỏ khi hệ thống sát ngưỡng meltdown.',
-    triggerCondition: 'Tự động hiển thị khi Chaos >= 85 (trạng thái báo động đỏ).',
-    asset: criticalSvg,
-  },
-  {
-    id: 'victory',
-    title: 'Victory',
-    fileName: 'victory.svg',
-    description: 'Hiệu ứng chúc mừng khi kết thúc run thành công.',
-    triggerCondition: 'Hiển thị sau khi chiến dịch kết thúc và Campaign Score >= 65.',
-    asset: victorySvg,
-  },
-  {
-    id: 'defeat',
-    title: 'Defeat',
-    fileName: 'defeat.svg',
-    description: 'Hiệu ứng thất bại khi chiến dịch vỡ trận.',
-    triggerCondition: 'Hiển thị sau khi chiến dịch kết thúc và Campaign Score < 65.',
-    asset: defeatSvg,
-  },
-  {
-    id: 'slime-teaching',
-    title: 'Slime Teaching',
-    fileName: 'slime-teaching.svg',
-    description: 'Nhân vật coach trong khu Learning Progress.',
-    triggerCondition: 'Hiển thị tĩnh trong khối Learning Coach để dẫn hướng sang Knowledge Blog.',
-    asset: slimeTeachingSvg,
-  },
-]
+})
 
 const clickReactionWaitSeconds = Math.ceil(slimeClickReactionDurationMs / 1000)
 
@@ -347,52 +257,6 @@ function randomizeDeck(): Incident[] {
   return output.slice(0, targetRounds)
 }
 
-function parseLearningJournal(raw: string | null): LearningEntry[] {
-  if (!raw) {
-    return []
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as LearningEntry[]
-    if (!Array.isArray(parsed)) {
-      return []
-    }
-
-    return parsed.filter((item) => {
-      return typeof item?.id === 'string'
-        && typeof item?.title === 'string'
-        && typeof item?.note === 'string'
-        && typeof item?.severity === 'string'
-        && typeof item?.lesson === 'string'
-        && typeof item?.createdAt === 'string'
-    })
-  } catch {
-    return []
-  }
-}
-
-function createLearningLesson(choice: Choice, severity: Severity): string {
-  const effect = choice.effect
-  const chaosGuarded = effect.chaos <= -6
-  const trustGuarded = effect.trust >= 6
-  const stabilityGuarded = effect.stability >= 8
-  const energyRisk = effect.energy <= -10
-
-  if (severity === 'SEV-1' && chaosGuarded) {
-    return 'SEV-1: ưu tiên containment nhanh và giảm chaos trước, rồi mới tối ưu trải nghiệm.'
-  }
-  if (trustGuarded && stabilityGuarded) {
-    return 'Cân bằng trust + stability đang tốt; đây là chiến thuật nên đưa vào runbook chuẩn.'
-  }
-  if (energyRisk) {
-    return 'Quyết định này tiêu hao team mạnh; cần phương án xoay ca/on-call để tránh burnout.'
-  }
-  if (effect.minutes <= -12) {
-    return 'Mất nhiều thời gian thực thi; cân nhắc rollback/feature flag để giảm time-to-mitigate.'
-  }
-
-  return 'Bài học: kiểm tra trade-off giữa chaos, trust và năng lượng team trước khi chốt phương án.'
-}
 
 function pushLearningEntry(incident: Incident, choice: Choice): void {
   const newEntry: LearningEntry = {
@@ -413,65 +277,6 @@ function pushLearningEntry(incident: Incident, choice: Choice): void {
   localStorage.setItem(careerLearningXpStorageKey, String(careerLearningXp.value))
 }
 
-function buildDailySeed(): string {
-  const now = new Date()
-  const y = now.getFullYear()
-  const m = `${now.getMonth() + 1}`.padStart(2, '0')
-  const d = `${now.getDate()}`.padStart(2, '0')
-  return `${y}${m}${d}`
-}
-
-function hashSeed(text: string): number {
-  let hash = 2166136261
-  for (const ch of text) {
-    hash ^= ch.charCodeAt(0)
-    hash = Math.imul(hash, 16777619)
-  }
-  return hash >>> 0
-}
-
-function createSeededRandom(seed: number): () => number {
-  let state = seed || 1
-  return () => {
-    state += 0x6D2B79F5
-    let t = Math.imul(state ^ (state >>> 15), 1 | state)
-    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-
-function dailyBestStorageKey(seed: string, gameMode: GameMode): string {
-  return `bug-war-room-daily-best-${seed}-${gameMode}`
-}
-
-function dailyLeaderboardStorageKey(seed: string, gameMode: GameMode): string {
-  return `bug-war-room-daily-leaderboard-${seed}-${gameMode}`
-}
-
-function parseDailyLeaderboard(raw: string | null): DailyLeaderboardEntry[] {
-  if (!raw) {
-    return []
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as DailyLeaderboardEntry[]
-    if (!Array.isArray(parsed)) {
-      return []
-    }
-
-    return parsed.filter((item) => {
-      return typeof item?.id === 'string'
-        && typeof item?.player === 'string'
-        && typeof item?.score === 'number'
-        && typeof item?.rank === 'string'
-        && typeof item?.chaos === 'number'
-        && typeof item?.timeLeft === 'number'
-        && typeof item?.createdAt === 'string'
-    })
-  } catch {
-    return []
-  }
-}
 
 function updateDailyBestFromStorage(seed: string, gameMode: GameMode): void {
   const stored = Number(localStorage.getItem(dailyBestStorageKey(seed, gameMode)))
@@ -497,28 +302,11 @@ function persistCurrentRunToDailyLeaderboard(): void {
     createdAt: new Date().toLocaleString('vi-VN'),
   }
 
-  const merged = [
-    entry,
-    ...dailyLeaderboard.value.filter((item) => item.id !== runId.value),
-  ]
-
-  const sorted = merged.sort((a, b) => {
-    if (b.score !== a.score) {
-      return b.score - a.score
-    }
-    if (a.chaos !== b.chaos) {
-      return a.chaos - b.chaos
-    }
-    return b.timeLeft - a.timeLeft
-  }).slice(0, 5)
+  const sorted = upsertDailyLeaderboardEntry(dailyLeaderboard.value, entry, 5)
 
   dailyLeaderboard.value = sorted
   localStorage.setItem(dailyLeaderboardStorageKey(currentDailySeed.value, mode.value), JSON.stringify(sorted))
   leaderboardPersisted.value = true
-}
-
-function clamp(value: number): number {
-  return Math.max(0, Math.min(100, value))
 }
 
 function pushAlert(message: string, level: ChaosAlert['level']): void {
@@ -648,23 +436,6 @@ function severityPressure(severity: Severity): number {
   return severityPressureByLevel[severity]
 }
 
-function impactLabel(choice: Choice): string {
-  const total = choice.effect.stability + choice.effect.trust + choice.effect.energy - choice.effect.chaos
-  if (total >= 25) {
-    return 'Xuất sắc'
-  }
-
-  if (total >= 10) {
-    return 'Ổn định'
-  }
-
-  if (total >= 0) {
-    return 'Tạm ổn'
-  }
-
-  return 'Rủi ro cao'
-}
-
 function applyChoice(choice: Choice): void {
   if (isFinished.value) {
     return
@@ -724,43 +495,6 @@ function progress(value: number): number {
   return clamp(value)
 }
 
-function severityClass(severity: Severity): string {
-  if (severity === 'SEV-1') {
-    return 'text-accent-coral border-accent-coral bg-accent-coral/10'
-  }
-
-  if (severity === 'SEV-2') {
-    return 'text-accent-amber border-accent-amber bg-accent-amber/10'
-  }
-
-  return 'text-accent-sky border-accent-sky bg-accent-sky/10'
-}
-
-function formatClock(seconds: number): string {
-  const safe = Math.max(0, seconds)
-  const mm = Math.floor(safe / 60)
-  const ss = safe % 60
-  return `${mm.toString().padStart(2, '0')}:${ss.toString().padStart(2, '0')}`
-}
-
-function escapeHtml(value: string): string {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
-
-function jitter(base: number, phase: number, amplitude: number): number {
-  if (isFinished.value) {
-    return base
-  }
-
-  const wave = Math.sin((telemetryTick.value + phase) / 4)
-  return clamp(base + Math.round(wave * amplitude))
-}
-
 function onPageScroll(): void {
   showBackToTop.value = window.scrollY > 360
 }
@@ -775,33 +509,6 @@ function openPopupRoute(mode: 'knowledge-blog' | 'animation-catalog' | 'share-ca
   return window.open(popupUrl.toString(), '_blank')
 }
 
-function parseShareDraft(raw: string | null): SharePayload | null {
-  if (!raw) {
-    return null
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as SharePayload
-    const valid = typeof parsed?.player === 'string'
-      && typeof parsed?.mode === 'string'
-      && typeof parsed?.rank === 'string'
-      && typeof parsed?.dailySeed === 'string'
-      && typeof parsed?.campaignScore === 'number'
-      && typeof parsed?.rawScore === 'number'
-      && typeof parsed?.bestScore === 'number'
-      && typeof parsed?.dailyBestScore === 'number'
-      && typeof parsed?.chaos === 'number'
-      && typeof parsed?.timeLeft === 'number'
-      && typeof parsed?.rounds === 'string'
-      && typeof parsed?.state === 'string'
-      && typeof parsed?.verdict === 'string'
-      && typeof parsed?.generatedAt === 'string'
-
-    return valid ? parsed : null
-  } catch {
-    return null
-  }
-}
 
 function buildCurrentSharePayload(): SharePayload {
   return {
@@ -819,43 +526,6 @@ function buildCurrentSharePayload(): SharePayload {
     state: warState.value,
     verdict: verdict.value,
     generatedAt: new Date().toLocaleString('vi-VN'),
-  }
-}
-
-function parseResultHistory(raw: string | null): ResultHistoryEntry[] {
-  if (!raw) {
-    return []
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as ResultHistoryEntry[]
-    if (!Array.isArray(parsed)) {
-      return []
-    }
-
-    return parsed.filter((entry) => {
-      const payload = entry?.payload
-      return typeof entry?.id === 'string'
-        && typeof entry?.missionBonus === 'number'
-        && payload !== null
-        && typeof payload === 'object'
-        && typeof payload?.player === 'string'
-        && typeof payload?.mode === 'string'
-        && typeof payload?.rank === 'string'
-        && typeof payload?.dailySeed === 'string'
-        && typeof payload?.campaignScore === 'number'
-        && typeof payload?.rawScore === 'number'
-        && typeof payload?.bestScore === 'number'
-        && typeof payload?.dailyBestScore === 'number'
-        && typeof payload?.chaos === 'number'
-        && typeof payload?.timeLeft === 'number'
-        && typeof payload?.rounds === 'string'
-        && typeof payload?.state === 'string'
-        && typeof payload?.verdict === 'string'
-        && typeof payload?.generatedAt === 'string'
-    })
-  } catch {
-    return []
   }
 }
 
@@ -941,7 +611,7 @@ function clearAllRuntimeDataKeepHistory(): void {
   }
 
   const exactKeysToRemove = [
-    'bug-war-room-best-score',
+    bugWarRoomStorageKeys.bestScore,
     playerAliasStorageKey,
     shareDraftStorageKey,
     shareDraftAtStorageKey,
@@ -963,8 +633,8 @@ function clearAllRuntimeDataKeepHistory(): void {
   }
 
   const prefixKeysToRemove = [
-    'bug-war-room-daily-best-',
-    'bug-war-room-daily-leaderboard-',
+    bugWarRoomStoragePrefixes.dailyBest,
+    bugWarRoomStoragePrefixes.dailyLeaderboard,
   ]
 
   const allKeys = Object.keys(localStorage)
@@ -1023,866 +693,24 @@ function openLearningBlog(): void {
 }
 
 function hydrateLearningBlog(targetTab?: Window): void {
-  const blogTab = targetTab ?? window.open('', '_blank')
-  if (!blogTab) {
-    shareResultNotice.value = 'Không mở được tab Knowledge Blog. Hãy cho phép pop-up và thử lại.'
-    return
-  }
-
-  const html = `<!doctype html>
-<html lang="vi">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Bug War Room Knowledge Blog</title>
-    <style>
-      :root {
-        color-scheme: dark;
-        --bg: #0b1621;
-        --panel: #122233;
-        --line: #26384c;
-        --text: #f3f6fa;
-        --muted: #93a8bc;
-        --amber: #ffb830;
-        --coral: #ff6b4a;
-        --sky: #38bdf8;
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: var(--text);
-        background:
-          radial-gradient(circle at 0% 0%, rgba(255, 107, 74, 0.1), transparent 38%),
-          radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.12), transparent 42%),
-          var(--bg);
-        padding: 18px;
-      }
-      .layout { max-width: 1020px; margin: 0 auto; display: grid; gap: 12px; }
-      .panel { border: 1px solid var(--line); background: var(--panel); padding: 14px; }
-      .toc-panel { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
-      .action-list { display: flex; flex-wrap: wrap; gap: 8px; }
-      .action-link {
-        text-decoration: none;
-        border: 1px solid var(--line);
-        background: rgba(11, 22, 33, 0.8);
-        color: var(--sky);
-        padding: 6px 10px;
-        font-size: 12px;
-        cursor: pointer;
-      }
-      .action-link:hover { border-color: var(--sky); }
-      .blog-action {
-        border: 1px solid var(--line);
-        background: rgba(56, 189, 248, 0.12);
-        color: var(--text);
-        padding: 8px 12px;
-        cursor: pointer;
-        font-size: 12px;
-      }
-      .blog-action:hover { border-color: var(--sky); background: rgba(56, 189, 248, 0.2); }
-      h1 { margin: 0 0 4px; font-size: 30px; }
-      h2 { margin: 0 0 10px; font-size: 18px; }
-      h3 { margin: 0 0 8px; }
-      .sub { margin: 0; color: var(--muted); font-size: 12px; }
-      .hero {
-        border: 1px solid var(--line);
-        background: rgba(11, 22, 33, 0.84);
-        padding: 18px;
-      }
-      .blog-home-list { display: grid; gap: 10px; }
-      .blog-controls { display: grid; gap: 10px; margin-bottom: 12px; }
-      .search-input {
-        width: 100%;
-        border: 1px solid var(--line);
-        background: rgba(8, 14, 22, 0.72);
-        color: var(--text);
-        padding: 10px 12px;
-        font-size: 13px;
-      }
-      .search-input::placeholder { color: var(--muted); }
-      .combo-group { display: grid; gap: 6px; }
-      .combo-label { color: var(--muted); font-size: 11px; letter-spacing: 0.08em; }
-      .combo-input {
-        width: 100%;
-        border: 1px solid var(--line);
-        background: rgba(8, 14, 22, 0.72);
-        color: var(--text);
-        padding: 9px 12px;
-        font-size: 13px;
-      }
-      .combo-input::placeholder { color: var(--muted); }
-      .combo-help { margin: 0; color: var(--muted); font-size: 11px; }
-      .combo-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-      .combo-action-btn {
-        border: 1px solid var(--line);
-        background: rgba(11, 22, 33, 0.8);
-        color: #b8dff5;
-        padding: 6px 10px;
-        font-size: 11px;
-        cursor: pointer;
-      }
-      .combo-action-btn:hover { border-color: var(--sky); color: var(--sky); }
-      .home-result-count { margin: 0; color: var(--muted); font-size: 12px; }
-      .post-card { border: 1px solid var(--line); background: rgba(8, 14, 22, 0.72); padding: 14px; display: grid; gap: 8px; }
-      .post-cover {
-        width: 100%;
-        max-height: 220px;
-        object-fit: cover;
-        border: 1px solid rgba(38, 56, 76, 0.75);
-      }
-      .post-title-btn {
-        border: 0;
-        background: transparent;
-        color: var(--text);
-        font-size: 22px;
-        text-align: left;
-        padding: 0;
-        cursor: pointer;
-      }
-      .post-title-btn:hover { color: var(--sky); }
-      .post-meta { margin: 0; color: var(--muted); font-size: 12px; }
-      .post-excerpt { margin: 0; color: #dce8f5; line-height: 1.6; }
-      .blog-post { display: grid; gap: 12px; }
-      .post-kicker { margin: 0; color: var(--coral); font-size: 11px; letter-spacing: 0.12em; }
-      .tags { display: flex; flex-wrap: wrap; gap: 8px; }
-      .tag { border: 1px solid var(--line); background: rgba(8, 14, 22, 0.72); color: var(--amber); padding: 4px 8px; font-size: 11px; }
-      .tag-clickable { cursor: pointer; }
-      .detail-cover {
-        width: 100%;
-        max-height: 340px;
-        object-fit: cover;
-        border: 1px solid rgba(38, 56, 76, 0.75);
-      }
-      .image-links {
-        border: 1px dashed rgba(147, 168, 188, 0.45);
-        background: rgba(8, 14, 22, 0.4);
-        padding: 10px;
-      }
-      .image-links p { margin: 0 0 8px; color: var(--muted); font-size: 12px; }
-      .image-links ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
-      .image-links a { color: var(--sky); text-decoration: underline; text-underline-offset: 2px; }
-      .home-empty {
-        border: 1px dashed rgba(147, 168, 188, 0.45);
-        background: rgba(8, 14, 22, 0.4);
-        color: var(--muted);
-        padding: 16px;
-        font-size: 13px;
-      }
-      .detail-layout { display: grid; gap: 12px; }
-      @media (min-width: 1040px) {
-        .detail-layout { grid-template-columns: 280px 1fr; }
-      }
-      .toc-side {
-        border: 1px solid var(--line);
-        background: rgba(8, 14, 22, 0.82);
-        padding: 12px;
-      }
-      @media (min-width: 1040px) {
-        .toc-side { position: sticky; top: 16px; max-height: calc(100vh - 40px); overflow: auto; }
-      }
-      .toc-side-list { display: grid; gap: 8px; }
-      .toc-side-link {
-        border: 1px solid rgba(38, 56, 76, 0.75);
-        background: rgba(11, 22, 33, 0.8);
-        color: #b8dff5;
-        text-decoration: none;
-        padding: 6px 8px;
-        font-size: 12px;
-      }
-      .toc-side-link.active {
-        color: var(--amber);
-        border-color: rgba(255, 184, 48, 0.75);
-      }
-      .blog-reading-note {
-        margin: 0;
-        border: 1px solid rgba(56, 189, 248, 0.35);
-        background: rgba(56, 189, 248, 0.08);
-        color: #d6ecff;
-        padding: 10px;
-        font-size: 12px;
-        line-height: 1.6;
-      }
-      .blog-section {
-        border: 1px solid rgba(38, 56, 76, 0.75);
-        background: rgba(8, 14, 22, 0.55);
-        padding: 12px;
-        display: grid;
-        gap: 10px;
-      }
-      .blog-section-heading {
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: var(--sky);
-        font-size: 16px;
-      }
-      .section-index {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 24px;
-        height: 24px;
-        border: 1px solid rgba(56, 189, 248, 0.5);
-        color: var(--amber);
-        font-size: 12px;
-        background: rgba(11, 22, 33, 0.8);
-      }
-      .section-points {
-        margin: 0;
-        padding-left: 20px;
-        display: grid;
-        gap: 8px;
-      }
-      .section-points li {
-        font-size: 14px;
-        line-height: 1.7;
-        color: #dce8f5;
-      }
-      .section-points li::marker {
-        color: var(--amber);
-      }
-      .signal-list { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: #dce8f5; font-size: 13px; }
-      .signal-list strong { color: var(--coral); }
-      .muted { margin: 0; font-size: 13px; color: var(--muted); }
-      .footer { color: var(--sky); font-size: 13px; }
-      .hidden { display: none !important; }
-      .export-hint { color: var(--muted); font-size: 11px; }
-      .back-top {
-        position: fixed;
-        right: 16px;
-        bottom: 16px;
-        border: 1px solid var(--line);
-        background: rgba(11, 22, 33, 0.9);
-        color: var(--text);
-        padding: 8px 11px;
-        cursor: pointer;
-        display: none;
-      }
-      a { color: var(--sky); }
-      @media print {
-        .toc-panel,
-        .toc-side,
-        .back-top { display: none !important; }
-        body { background: #fff; color: #111; padding: 0; }
-        .panel,
-        .hero,
-        .post-card,
-        .toc-side,
-        .blog-post { border-color: #999; background: #fff; color: #111; }
-        .blog-section p,
-        .section-points li,
-        .post-excerpt,
-        .signal-list,
-        .post-meta,
-        .muted,
-        .footer { color: #222 !important; }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="layout">
-      <section class="panel toc-panel" id="toc">
-        <div class="action-list">
-          <button id="blog-home-btn" class="action-link" type="button">Trang Chủ Blog</button>
-          <button id="blog-back-list-btn" class="action-link hidden" type="button">Quay Lại Danh Sách</button>
-        </div>
-        <div>
-          <button id="blog-export-pdf-btn" class="blog-action" type="button">Export Blog PDF</button>
-          <p class="export-hint">Xuất PDF từ trang đang mở trong blog (Home hoặc Detail).</p>
-        </div>
-      </section>
-
-      <section class="hero" id="overview">
-          <p class="sub">// BUG WAR ROOM KNOWLEDGE BLOG</p>
-          <h1>Engineering Notes Từ Bug War Room</h1>
-          <p class="sub">Trang chủ hiển thị danh sách bài viết. Chọn bài để mở trang chi tiết và dùng mục lục bên cạnh để nhảy nhanh giữa các đề mục.</p>
-      </section>
-
-      <section id="blog-home" class="panel">
-        <h2>Bài Viết Mới Nhất</h2>
-        <div class="blog-controls">
-          <input id="blog-search-input" class="search-input" type="search" placeholder="Tìm theo tiêu đề, mô tả, nội dung, tác giả hoặc tag..." />
-          <div class="combo-group">
-            <label class="combo-label" for="blog-tag-combobox">FILTER TAG (COMBOBOX - CÓ THỂ GÕ ĐỂ TÌM)</label>
-            <input id="blog-tag-combobox" class="combo-input" list="blog-tag-options" placeholder="Ví dụ: rollback, incident, observability..." />
-            <datalist id="blog-tag-options"></datalist>
-            <div class="combo-actions">
-              <button id="blog-clear-tag-filter-btn" type="button" class="combo-action-btn">Xóa Lọc Tag</button>
-              <button id="blog-reset-all-filter-btn" type="button" class="combo-action-btn">Reset Tất Cả Lọc</button>
-            </div>
-            <p class="combo-help">Bấm vào ô để gõ đè tag cũ ngay. Nhấn <strong>Esc</strong> để xóa nhanh lọc tag.</p>
-          </div>
-          <div class="combo-group">
-            <label class="combo-label" for="blog-sort-combobox">SORT (COMBOBOX)</label>
-            <input id="blog-sort-combobox" class="combo-input" list="blog-sort-options" placeholder="newest" value="newest" />
-            <datalist id="blog-sort-options">
-              <option value="newest"></option>
-              <option value="oldest"></option>
-              <option value="read-long"></option>
-              <option value="read-short"></option>
-              <option value="title-az"></option>
-              <option value="title-za"></option>
-            </datalist>
-            <p class="combo-help">Giá trị hỗ trợ: <strong>newest</strong>, <strong>oldest</strong>, <strong>read-long</strong>, <strong>read-short</strong>, <strong>title-az</strong>, <strong>title-za</strong>.</p>
-          </div>
-          <p id="blog-home-result-count" class="home-result-count"></p>
-        </div>
-        <div id="blog-home-list" class="blog-home-list"></div>
-      </section>
-
-      <section id="blog-detail" class="panel hidden">
-        <div class="detail-layout">
-          <aside class="toc-side">
-            <h3>Mục Lục Bài Viết</h3>
-            <div id="blog-detail-toc" class="toc-side-list"></div>
-          </aside>
-          <article id="blog-detail-content" class="blog-post"></article>
-        </div>
-      </section>
-
-      <section class="panel" id="recent-signals">
-        <h2>Recent Signals From Your Run</h2>
-        <ul id="blog-signal-list" class="signal-list"></ul>
-        <p id="blog-signal-empty" class="muted hidden">Chưa có signal nào từ run hiện tại.</p>
-      </section>
-
-      <section class="panel footer" id="play-link">
-        Play at <a href="${PUBLIC_SHARE_URL}" target="_blank" rel="noopener noreferrer">${PUBLIC_SHARE_URL}</a>
-      </section>
-    </div>
-    <button id="blog-back-to-top" class="back-top" type="button">Back to top</button>
-  </body>
-</html>`
-
-  try {
-    blogTab.document.open()
-    blogTab.document.write(html)
-    blogTab.document.close()
-
-    const homeSection = blogTab.document.getElementById('blog-home') as HTMLElement | null
-    const homeList = blogTab.document.getElementById('blog-home-list') as HTMLElement | null
-    const detailSection = blogTab.document.getElementById('blog-detail') as HTMLElement | null
-    const detailToc = blogTab.document.getElementById('blog-detail-toc') as HTMLElement | null
-    const detailContent = blogTab.document.getElementById('blog-detail-content') as HTMLElement | null
-    const searchInput = blogTab.document.getElementById('blog-search-input') as HTMLInputElement | null
-    const tagCombobox = blogTab.document.getElementById('blog-tag-combobox') as HTMLInputElement | null
-    const tagOptions = blogTab.document.getElementById('blog-tag-options') as HTMLDataListElement | null
-    const sortCombobox = blogTab.document.getElementById('blog-sort-combobox') as HTMLInputElement | null
-    const clearTagFilterBtn = blogTab.document.getElementById('blog-clear-tag-filter-btn') as HTMLButtonElement | null
-    const resetAllFilterBtn = blogTab.document.getElementById('blog-reset-all-filter-btn') as HTMLButtonElement | null
-    const homeResultCount = blogTab.document.getElementById('blog-home-result-count') as HTMLElement | null
-    const signalList = blogTab.document.getElementById('blog-signal-list') as HTMLElement | null
-    const signalEmpty = blogTab.document.getElementById('blog-signal-empty') as HTMLElement | null
-    const homeBtn = blogTab.document.getElementById('blog-home-btn') as HTMLButtonElement | null
-    const backListBtn = blogTab.document.getElementById('blog-back-list-btn') as HTMLButtonElement | null
-
-    let currentSectionIds: string[] = []
-    let activeBlogView: 'home' | 'detail' = 'home'
-    let activeBlogSlug = ''
-    let searchKeyword = ''
-    let activeTagInput = ''
-    let activeTagQuery = ''
-    let activeSortMode = 'newest'
-
-    const allTags = Array.from(new Set(
-      bugWarRoomBlogPosts.flatMap((post) => post.tags.map((tag) => tag.trim())).filter((tag) => tag.length > 0),
-    )).sort((a, b) => a.localeCompare(b, 'vi'))
-
-    const syncTagOptions = (): void => {
-      if (!tagOptions) {
-        return
-      }
-
-      const optionsHtml = [
-        '<option value="all"></option>',
-        ...allTags.map((tag) => `<option value="${escapeHtml(tag)}"></option>`),
-      ]
-      tagOptions.innerHTML = optionsHtml.join('')
-    }
-
-    const normalizeSearchText = (value: string): string => {
-      return value
-        .toLocaleLowerCase('vi')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .trim()
-    }
-
-    const parseBlogUiState = (raw: string | null): {
-      searchKeyword: string
-      activeTagInput: string
-      activeSortMode: string
-      activeBlogView: 'home' | 'detail'
-      activeBlogSlug: string
-    } => {
-      if (!raw) {
-        return {
-          searchKeyword: '',
-          activeTagInput: '',
-          activeSortMode: 'newest',
-          activeBlogView: 'home',
-          activeBlogSlug: '',
-        }
-      }
-
-      try {
-        const parsed = JSON.parse(raw) as {
-          searchKeyword?: string
-          activeTagInput?: string
-          activeSortMode?: string
-          activeBlogView?: string
-          activeBlogSlug?: string
-        }
-
-        const acceptedModes = ['newest', 'oldest', 'read-long', 'read-short', 'title-az', 'title-za']
-        const mode = parsed.activeSortMode && acceptedModes.includes(parsed.activeSortMode)
-          ? parsed.activeSortMode
-          : 'newest'
-
-        return {
-          searchKeyword: typeof parsed.searchKeyword === 'string' ? parsed.searchKeyword : '',
-          activeTagInput: typeof parsed.activeTagInput === 'string' ? parsed.activeTagInput : '',
-          activeSortMode: mode,
-          activeBlogView: parsed.activeBlogView === 'detail' ? 'detail' : 'home',
-          activeBlogSlug: typeof parsed.activeBlogSlug === 'string' ? parsed.activeBlogSlug : '',
-        }
-      } catch {
-        return {
-          searchKeyword: '',
-          activeTagInput: '',
-          activeSortMode: 'newest',
-          activeBlogView: 'home',
-          activeBlogSlug: '',
-        }
-      }
-    }
-
-    const saveBlogUiState = (): void => {
-      try {
-        localStorage.setItem(blogUiStateStorageKey, JSON.stringify({
-          searchKeyword,
-          activeTagInput,
-          activeSortMode,
-          activeBlogView,
-          activeBlogSlug,
-        }))
-      } catch {
-        // Storage can be disabled in strict privacy modes.
-      }
-    }
-
-    const parseDateScore = (value: string): number => {
-      const ts = Date.parse(value)
-      return Number.isNaN(ts) ? 0 : ts
-    }
-
-    const restoredBlogUi = parseBlogUiState(localStorage.getItem(blogUiStateStorageKey))
-    searchKeyword = restoredBlogUi.searchKeyword
-    activeTagInput = restoredBlogUi.activeTagInput
-    activeTagQuery = activeTagInput && normalizeSearchText(activeTagInput) !== 'all'
-      ? normalizeSearchText(activeTagInput)
-      : ''
-    activeSortMode = restoredBlogUi.activeSortMode
-    activeBlogView = restoredBlogUi.activeBlogView
-    activeBlogSlug = restoredBlogUi.activeBlogSlug
-
-    const getSortedPosts = (posts: typeof bugWarRoomBlogPosts) => {
-      const sorted = [...posts]
-
-      sorted.sort((a, b) => {
-        if (activeSortMode === 'oldest') {
-          return parseDateScore(a.publishedAt) - parseDateScore(b.publishedAt)
-        }
-
-        if (activeSortMode === 'read-long') {
-          return b.readMinutes - a.readMinutes
-        }
-
-        if (activeSortMode === 'read-short') {
-          return a.readMinutes - b.readMinutes
-        }
-
-        if (activeSortMode === 'title-az') {
-          return a.title.localeCompare(b.title, 'vi')
-        }
-
-        if (activeSortMode === 'title-za') {
-          return b.title.localeCompare(a.title, 'vi')
-        }
-
-        return parseDateScore(b.publishedAt) - parseDateScore(a.publishedAt)
-      })
-
-      return sorted
-    }
-
-    const getFilteredPosts = () => {
-      const keyword = normalizeSearchText(searchKeyword)
-
-      const filtered = bugWarRoomBlogPosts.filter((post) => {
-        if (activeTagQuery && !post.tags.some((tag) => normalizeSearchText(tag).includes(activeTagQuery))) {
-          return false
-        }
-
-        if (!keyword) {
-          return true
-        }
-
-        const textToSearch = normalizeSearchText([
-          post.title,
-          post.excerpt,
-          post.author,
-          post.tags.join(' '),
-          post.sections.map((section) => `${section.heading} ${section.paragraphs.join(' ')}`).join(' '),
-        ].join(' '))
-
-        return textToSearch.includes(keyword)
-      })
-
-      return getSortedPosts(filtered)
-    }
-
-    const renderSignals = (): void => {
-      if (!signalList || !signalEmpty) {
-        return
-      }
-
-      const entries = filteredLearningJournal.value.slice(0, 4)
-      if (entries.length === 0) {
-        signalList.innerHTML = ''
-        signalEmpty.classList.remove('hidden')
-        return
-      }
-
-      signalEmpty.classList.add('hidden')
-      signalList.innerHTML = entries.map((entry) => {
-        return `<li><strong>${escapeHtml(entry.severity)}</strong> - ${escapeHtml(entry.note)} (${escapeHtml(entry.createdAt)})</li>`
-      }).join('')
-    }
-
-    const renderHome = (): void => {
-      if (!homeSection || !homeList || !detailSection || !backListBtn) {
-        return
-      }
-
-      homeSection.classList.remove('hidden')
-      detailSection.classList.add('hidden')
-      backListBtn.classList.add('hidden')
-      currentSectionIds = []
-      activeBlogView = 'home'
-      activeBlogSlug = ''
-      saveBlogUiState()
-
-      const filteredPosts = getFilteredPosts()
-      if (homeResultCount) {
-        const suffix = filteredPosts.length === bugWarRoomBlogPosts.length && !searchKeyword && !activeTagQuery
-          ? `${filteredPosts.length} bài`
-          : `${filteredPosts.length}/${bugWarRoomBlogPosts.length} bài phù hợp`
-        homeResultCount.textContent = suffix
-      }
-
-      if (filteredPosts.length === 0) {
-        homeList.innerHTML = '<div class="home-empty">Không tìm thấy bài viết phù hợp. Hãy thử từ khóa khác hoặc bỏ lọc tag.</div>'
-        return
-      }
-
-      homeList.innerHTML = filteredPosts.map((post) => {
-        const coverImageHtml = post.coverImageUrl
-          ? `<img class="post-cover" src="${escapeHtml(post.coverImageUrl)}" alt="${escapeHtml(post.coverImageAlt ?? post.title)}" loading="lazy" />`
-          : ''
-        const tagsHtml = post.tags.map((tag) => `<button type="button" class="tag tag-clickable" data-filter-tag="${escapeHtml(tag)}">${escapeHtml(tag)}</button>`).join('')
-        return `<article class="post-card">
-          <p class="post-kicker">BUG WAR ROOM BLOG</p>
-          ${coverImageHtml}
-          <button type="button" class="post-title-btn" data-blog-slug="${escapeHtml(post.slug)}">${escapeHtml(post.title)}</button>
-          <p class="post-meta">Tác giả: ${escapeHtml(post.author)} • Ngày đăng: ${escapeHtml(post.publishedAt)}${post.updatedAt ? ` • Cập nhật: ${escapeHtml(post.updatedAt)}` : ''} • ${post.readMinutes} phút đọc</p>
-          <p class="post-excerpt">${escapeHtml(post.excerpt)}</p>
-          <div class="tags">${tagsHtml}</div>
-        </article>`
-      }).join('')
-    }
-
-    const updateActiveTocLink = (): void => {
-      if (!detailToc || currentSectionIds.length === 0 || detailSection?.classList.contains('hidden')) {
-        return
-      }
-
-      let activeId = currentSectionIds[0]
-      for (const id of currentSectionIds) {
-        const section = blogTab.document.getElementById(id)
-        if (!section) {
-          continue
-        }
-
-        const top = section.getBoundingClientRect().top
-        if (top <= 140) {
-          activeId = id
-        }
-      }
-
-      detailToc.querySelectorAll('.toc-side-link').forEach((node) => {
-        node.classList.remove('active')
-      })
-      const activeLink = detailToc.querySelector(`[data-target="${activeId}"]`)
-      if (activeLink) {
-        activeLink.classList.add('active')
-      }
-    }
-
-    const renderDetail = (slug: string): void => {
-      if (!homeSection || !detailSection || !detailToc || !detailContent || !backListBtn) {
-        return
-      }
-
-      const post = bugWarRoomBlogPosts.find((item) => item.slug === slug)
-      if (!post) {
-        renderHome()
-        return
-      }
-
-      homeSection.classList.add('hidden')
-      detailSection.classList.remove('hidden')
-      backListBtn.classList.remove('hidden')
-      activeBlogView = 'detail'
-      activeBlogSlug = slug
-      saveBlogUiState()
-
-      const coverImageHtml = post.coverImageUrl
-        ? `<img class="detail-cover" src="${escapeHtml(post.coverImageUrl)}" alt="${escapeHtml(post.coverImageAlt ?? post.title)}" loading="lazy" />`
-        : ''
-      const tagsHtml = post.tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join('')
-      const imageLinksHtml = post.imageLinks && post.imageLinks.length > 0
-        ? `<div class="image-links">
-            <p>Link ảnh tham khảo theo chủ đề bài viết:</p>
-            <ul>
-              ${post.imageLinks.map((item) => `<li><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.label)}</a></li>`).join('')}
-            </ul>
-          </div>`
-        : ''
-      const sectionBlocks = post.sections.map((section, sectionIndex) => {
-        const sectionId = `blog-post-${post.slug}-section-${sectionIndex + 1}`
-        const paragraphsHtml = section.paragraphs.map((paragraph) => `<li>${escapeHtml(paragraph)}</li>`).join('')
-        return `<section class="blog-section" id="${escapeHtml(sectionId)}">
-          <h3 class="blog-section-heading">
-            <span class="section-index">${sectionIndex + 1}</span>
-            <span>${escapeHtml(section.heading)}</span>
-          </h3>
-          <ol class="section-points">${paragraphsHtml}</ol>
-        </section>`
-      })
-
-      detailContent.innerHTML = `
-        <p class="post-kicker">BUG WAR ROOM BLOG / CHI TIẾT</p>
-        <h2>${escapeHtml(post.title)}</h2>
-        <p class="post-meta">Tác giả: ${escapeHtml(post.author)} • Ngày đăng: ${escapeHtml(post.publishedAt)}${post.updatedAt ? ` • Cập nhật: ${escapeHtml(post.updatedAt)}` : ''} • ${post.readMinutes} phút đọc</p>
-        ${coverImageHtml}
-        <p class="post-excerpt">${escapeHtml(post.excerpt)}</p>
-        <p class="blog-reading-note">Gợi ý đọc nhanh: xem mục lục bên phải để nhảy theo chủ đề, mỗi phần đã tách thành các ý chính để theo dõi dễ hơn.</p>
-        <div class="tags">${tagsHtml}</div>
-        ${imageLinksHtml}
-        ${sectionBlocks.join('')}
-      `
-
-      currentSectionIds = post.sections.map((_, sectionIndex) => `blog-post-${post.slug}-section-${sectionIndex + 1}`)
-      detailToc.innerHTML = post.sections.map((section, sectionIndex) => {
-        const sectionId = `blog-post-${post.slug}-section-${sectionIndex + 1}`
-        return `<a href="#${escapeHtml(sectionId)}" data-target="${escapeHtml(sectionId)}" class="toc-side-link">${sectionIndex + 1}. ${escapeHtml(section.heading)}</a>`
-      }).join('')
-
-      detailToc.querySelectorAll('.toc-side-link').forEach((node) => {
-        node.addEventListener('click', (event) => {
-          event.preventDefault()
-          const target = (node as HTMLElement).dataset.target
-          if (!target) {
-            return
-          }
-
-          const section = blogTab.document.getElementById(target)
-          if (!section) {
-            return
-          }
-
-          section.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        })
-      })
-
-      updateActiveTocLink()
-      blogTab.scrollTo({ top: 0, behavior: 'auto' })
-    }
-
-    if (homeBtn) {
-      homeBtn.addEventListener('click', () => {
-        renderHome()
-        blogTab.scrollTo({ top: 0, behavior: 'smooth' })
-      })
-    }
-
-    if (backListBtn) {
-      backListBtn.addEventListener('click', () => {
-        renderHome()
-        blogTab.scrollTo({ top: 0, behavior: 'smooth' })
-      })
-    }
-
-    if (homeList) {
-      homeList.addEventListener('click', (event) => {
-        const target = event.target as HTMLElement
-        const tagFilterTrigger = target.closest('[data-filter-tag]') as HTMLElement | null
-        if (tagFilterTrigger) {
-          const tag = tagFilterTrigger.dataset.filterTag
-          if (tag) {
-            activeTagInput = tag
-            activeTagQuery = normalizeSearchText(tag)
-            if (tagCombobox) {
-              tagCombobox.value = tag
-            }
-            saveBlogUiState()
-            renderHome()
-            blogTab.scrollTo({ top: 0, behavior: 'smooth' })
-          }
-          return
-        }
-
-        const trigger = target.closest('[data-blog-slug]') as HTMLElement | null
-        if (!trigger) {
-          return
-        }
-
-        const slug = trigger.dataset.blogSlug
-        if (!slug) {
-          return
-        }
-
-        renderDetail(slug)
-      })
-    }
-
-    if (searchInput) {
-      searchInput.value = searchKeyword
-      searchInput.addEventListener('input', () => {
-        searchKeyword = searchInput.value
-        saveBlogUiState()
-        renderHome()
-      })
-    }
-
-    if (tagCombobox) {
-      tagCombobox.value = activeTagInput
-      tagCombobox.addEventListener('focus', () => {
-        tagCombobox.select()
-      })
-
-      tagCombobox.addEventListener('input', () => {
-        const raw = tagCombobox.value.trim()
-        activeTagInput = raw
-        const normalized = normalizeSearchText(raw)
-        activeTagQuery = normalized === 'all' ? '' : normalized
-        saveBlogUiState()
-        renderHome()
-      })
-
-      tagCombobox.addEventListener('keydown', (event) => {
-        if (event.key !== 'Escape') {
-          return
-        }
-
-        activeTagInput = ''
-        activeTagQuery = ''
-        tagCombobox.value = ''
-        saveBlogUiState()
-        renderHome()
-      })
-    }
-
-    if (sortCombobox) {
-      sortCombobox.value = activeSortMode
-      sortCombobox.addEventListener('focus', () => {
-        sortCombobox.select()
-      })
-
-      sortCombobox.addEventListener('input', () => {
-        const mode = normalizeSearchText(sortCombobox.value)
-        const acceptedModes = ['newest', 'oldest', 'read-long', 'read-short', 'title-az', 'title-za']
-        activeSortMode = acceptedModes.includes(mode) ? mode : 'newest'
-        if (!acceptedModes.includes(mode)) {
-          sortCombobox.value = 'newest'
-        }
-        saveBlogUiState()
-        renderHome()
-      })
-    }
-
-    if (clearTagFilterBtn) {
-      clearTagFilterBtn.addEventListener('click', () => {
-        activeTagInput = ''
-        activeTagQuery = ''
-        if (tagCombobox) {
-          tagCombobox.value = ''
-        }
-        saveBlogUiState()
-        renderHome()
-      })
-    }
-
-    if (resetAllFilterBtn) {
-      resetAllFilterBtn.addEventListener('click', () => {
-        activeTagInput = ''
-        activeTagQuery = ''
-        searchKeyword = ''
-        activeSortMode = 'newest'
-        if (tagCombobox) {
-          tagCombobox.value = ''
-        }
-        if (searchInput) {
-          searchInput.value = ''
-        }
-        if (sortCombobox) {
-          sortCombobox.value = 'newest'
-        }
-        saveBlogUiState()
-        renderHome()
-      })
-    }
-
-    syncTagOptions()
-
-    const exportBtn = blogTab.document.getElementById('blog-export-pdf-btn') as HTMLButtonElement | null
-    if (exportBtn) {
-      exportBtn.addEventListener('click', () => {
-        blogTab.focus()
-        blogTab.print()
-      })
-    }
-
-    const backTopBtn = blogTab.document.getElementById('blog-back-to-top') as HTMLButtonElement | null
-    if (backTopBtn) {
-      backTopBtn.addEventListener('click', () => {
-        blogTab.scrollTo({ top: 0, behavior: 'smooth' })
-      })
-
-      const onBlogScroll = () => {
-        backTopBtn.style.display = blogTab.scrollY > 420 ? 'block' : 'none'
-        updateActiveTocLink()
-      }
-      blogTab.addEventListener('scroll', onBlogScroll)
-      onBlogScroll()
-    }
-
-    renderSignals()
-    if (activeBlogView === 'detail' && activeBlogSlug) {
-      renderDetail(activeBlogSlug)
-    } else {
-      renderHome()
-    }
-
-  } catch {
-    if (!targetTab) {
-      blogTab.close()
+  hydrateLearningBlogPopup({
+    targetTab,
+    popupSourceWindow: window,
+    posts: bugWarRoomBlogPosts,
+    signals: filteredLearningJournal.value.map((entry) => ({
+      severity: entry.severity,
+      note: entry.note,
+      createdAt: entry.createdAt,
+    })),
+    blogUiStateStorageKey,
+    publicShareUrl: PUBLIC_SHARE_URL,
+    onBlocked: () => {
+      shareResultNotice.value = 'Không mở được tab Knowledge Blog. Hãy cho phép pop-up và thử lại.'
+    },
+    onInitError: () => {
       shareResultNotice.value = 'Không thể khởi tạo tab Knowledge Blog trên trình duyệt này.'
-    }
-  }
+    },
+  })
 }
 
 function openAnimationCatalog(): void {
@@ -1896,555 +724,81 @@ function openAnimationCatalog(): void {
 }
 
 function hydrateAnimationCatalog(targetTab?: Window): void {
-  const animationTab = targetTab ?? window.open('', '_blank')
-  if (!animationTab) {
-    shareResultNotice.value = 'Không mở được tab Animation Catalog. Hãy cho phép pop-up và thử lại.'
-    return
-  }
-
-  const cardsHtml = animationCatalogItems.map((item) => {
-    const operatorHintHtml = item.operatorHint
-      ? `<p class="hint"><strong>Operator note:</strong> ${escapeHtml(item.operatorHint)}</p>`
-      : ''
-    return `<article class="card">
-      <img src="${escapeHtml(item.asset)}" alt="${escapeHtml(item.title)}" loading="lazy" />
-      <div class="body">
-        <p class="kicker">${escapeHtml(item.fileName)}</p>
-        <h3>${escapeHtml(item.title)}</h3>
-        <p>${escapeHtml(item.description)}</p>
-        <p class="trigger"><strong>Điều kiện hiển thị:</strong> ${escapeHtml(item.triggerCondition)}</p>
-        ${operatorHintHtml}
-      </div>
-    </article>`
-  }).join('')
-
-  const html = `<!doctype html>
-<html lang="vi">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Bug War Room Animation Catalog</title>
-    <style>
-      :root {
-        color-scheme: dark;
-        --bg: #0b1621;
-        --panel: #122233;
-        --line: #26384c;
-        --text: #f3f6fa;
-        --muted: #93a8bc;
-        --amber: #ffb830;
-        --sky: #38bdf8;
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        padding: 18px;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: var(--text);
-        background:
-          radial-gradient(circle at 0% 0%, rgba(255, 184, 48, 0.1), transparent 34%),
-          radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.12), transparent 42%),
-          var(--bg);
-      }
-      .layout { max-width: 1080px; margin: 0 auto; display: grid; gap: 12px; }
-      .panel { border: 1px solid var(--line); background: var(--panel); padding: 14px; }
-      h1 { margin: 0 0 6px; font-size: 28px; }
-      .sub { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
-      .grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
-      .card {
-        border: 1px solid var(--line);
-        background: rgba(8, 14, 22, 0.76);
-        display: grid;
-      }
-      .card img {
-        width: 100%;
-        aspect-ratio: 1 / 1;
-        object-fit: contain;
-        background: radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.08), transparent 70%);
-        padding: 8px;
-      }
-      .body { padding: 10px; display: grid; gap: 6px; }
-      .kicker { margin: 0; color: var(--amber); font-size: 11px; letter-spacing: 0.08em; }
-      .body h3 { margin: 0; font-size: 16px; color: var(--sky); }
-      .body p { margin: 0; font-size: 13px; color: #dce8f5; line-height: 1.6; }
-      .trigger {
-        margin-top: 2px;
-        border: 1px solid rgba(56, 189, 248, 0.35);
-        background: rgba(56, 189, 248, 0.08);
-        padding: 7px 8px;
-        color: #d6ecff;
-      }
-      .hint {
-        margin-top: 2px;
-        border: 1px dashed rgba(255, 184, 48, 0.45);
-        background: rgba(255, 184, 48, 0.07);
-        padding: 7px 8px;
-        color: #ffe2a6;
-      }
-      .ownership {
-        border: 1px dashed rgba(147, 168, 188, 0.45);
-        background: rgba(8, 14, 22, 0.5);
-        padding: 12px;
-        font-size: 12px;
-        color: var(--muted);
-      }
-      .ownership strong { color: var(--text); }
-      .actions { display: flex; justify-content: flex-end; }
-      .btn {
-        border: 1px solid var(--line);
-        background: rgba(11, 22, 33, 0.8);
-        color: var(--text);
-        padding: 8px 12px;
-        cursor: pointer;
-      }
-      .btn:hover { border-color: var(--sky); color: var(--sky); }
-    </style>
-  </head>
-  <body>
-    <div class="layout">
-      <section class="panel">
-        <h1>Slime Animation Catalog</h1>
-        <p class="sub">Tổng hợp toàn bộ animation đã dùng trong Bug War Room, kèm mô tả ngữ cảnh hiển thị.</p>
-      </section>
-      <section class="panel">
-        <div class="grid">
-          ${cardsHtml}
-        </div>
-      </section>
-      <section class="panel ownership">
-        <p><strong>Ownership:</strong> Bộ Slime animated SVG trong trang Bug War Room thuộc quyền sở hữu tác giả <strong>TranQui004</strong>.</p>
-        <p>Vui lòng ghi nguồn đầy đủ nếu tái sử dụng trong project khác.</p>
-      </section>
-      <section class="panel actions">
-        <button id="animation-catalog-close" class="btn" type="button">Close</button>
-      </section>
-    </div>
-  </body>
-</html>`
-
-  try {
-    animationTab.document.open()
-    animationTab.document.write(html)
-    animationTab.document.close()
-
-    const closeBtn = animationTab.document.getElementById('animation-catalog-close') as HTMLButtonElement | null
-    if (closeBtn) {
-      closeBtn.addEventListener('click', () => {
-        animationTab.close()
-      })
-    }
-
-  } catch {
-    if (!targetTab) {
-      animationTab.close()
+  hydrateAnimationCatalogPopup({
+    targetTab,
+    popupSourceWindow: window,
+    items: animationCatalogItems,
+    onBlocked: () => {
+      shareResultNotice.value = 'Không mở được tab Animation Catalog. Hãy cho phép pop-up và thử lại.'
+    },
+    onInitError: () => {
       shareResultNotice.value = 'Không thể khởi tạo tab Animation Catalog trên trình duyệt này.'
-    }
-  }
-}
-
-const currentIncident = computed<Incident>(() => {
-  const maxR = maxRoundsByMode[mode.value]
-  const index = Math.min(round.value - 1, maxR - 1)
-  return deck.value[index] ?? fallbackIncident
-})
-
-const maxRounds = computed<number>(() => maxRoundsByMode[mode.value])
-const isFinished = computed<boolean>(() => {
-  return round.value > maxRounds.value || metrics.value.timeLeft <= 0 || metrics.value.chaos >= 100
-})
-
-const liveMetrics = computed(() => ({
-  stability: jitter(metrics.value.stability, 1, 2),
-  trust: jitter(metrics.value.trust, 4, 2),
-  energy: jitter(metrics.value.energy, 7, 3),
-  chaos: jitter(metrics.value.chaos, 11, 2),
-}))
-
-const score = computed<number>(() => {
-  const value = (metrics.value.stability + metrics.value.trust + metrics.value.energy + (100 - metrics.value.chaos)) / 4
-  return Math.round(value)
-})
-
-const missionContract = computed(() => {
-  return [
-    {
-      id: 'low-chaos',
-      label: 'Giữ chaos <= 55',
-      done: metrics.value.chaos <= 55,
-      bonus: 6,
     },
-    {
-      id: 'high-energy',
-      label: 'Kết thúc với energy >= 60',
-      done: metrics.value.energy >= 60,
-      bonus: 5,
-    },
-    {
-      id: 'combo-streak',
-      label: 'Đạt streak x3 trở lên',
-      done: streak.value >= 3,
-      bonus: 3,
-    },
-  ]
-})
-
-const missionBonus = computed<number>(() => {
-  return missionContract.value.reduce((total, item) => {
-    return item.done ? total + item.bonus : total
-  }, 0)
-})
-
-const campaignScore = computed<number>(() => {
-  return Math.min(100, score.value + missionBonus.value)
-})
-
-const campaignRank = computed<string>(() => {
-  if (campaignScore.value >= 90) return 'Legend Commander'
-  if (campaignScore.value >= 78) return 'Senior Commander'
-  if (campaignScore.value >= 62) return 'Incident Lead'
-  return 'Junior Operator'
-})
-
-const verdict = computed<string>(() => {
-  if (campaignScore.value >= 80) return 'Bạn giữ hệ thống rất tốt. Team có thể ngủ yên.'
-  if (campaignScore.value >= 65) return 'Bạn xử lý ổn định. Còn vài điểm có thể tối ưu sau postmortem.'
-  if (campaignScore.value >= 45) return 'Đã dập được cháy, nhưng hệ thống còn mong manh.'
-  return 'War room vỡ trận. Cần viết runbook và luyện incident drill ngay.'
-})
-
-const scoreTone = computed<string>(() => {
-  if (campaignScore.value >= 80) return 'text-accent-coral'
-  if (campaignScore.value >= 65) return 'text-accent-amber'
-  return 'text-accent-sky'
-})
-
-const warState = computed<string>(() => {
-  if (metrics.value.chaos >= 85) return 'MELTDOWN'
-  if (metrics.value.chaos >= 60) return 'Căng thẳng'
-  if (metrics.value.chaos >= 35) return 'Đang kiểm soát'
-  return 'Ổn định cao'
-})
-
-const isMinimalFocus = computed<boolean>(() => uiFocusMode.value === 'minimal')
-
-const priorityHeadline = computed<string>(() => {
-  if (metrics.value.chaos >= 85 || metrics.value.timeLeft <= 10) {
-    return 'ƯU TIÊN TỨC THÌ: containment và giảm chaos ngay.'
-  }
-
-  if (metrics.value.chaos >= 65 || metrics.value.energy <= 40) {
-    return 'ƯU TIÊN CAO: hạ áp lực hệ thống và bảo toàn năng lượng team.'
-  }
-
-  if (metrics.value.trust <= 55) {
-    return 'ƯU TIÊN: củng cố trust bằng thông điệp minh bạch và ổn định nhanh.'
-  }
-
-  return 'ƯU TIÊN: giữ nhịp ổn định, tránh quyết định rủi ro không cần thiết.'
-})
-
-const priorityChecklist = computed<string[]>(() => {
-  const items: string[] = []
-
-  if (metrics.value.chaos >= 65) {
-    items.push('Chọn phương án có C âm hoặc C thấp để chặn snowball.')
-  }
-
-  if (metrics.value.energy <= 45) {
-    items.push('Tránh phương án tiêu hao E sâu, ưu tiên phương án cân bằng.')
-  }
-
-  if (metrics.value.timeLeft <= 20) {
-    items.push('Ưu tiên rollback/feature flag để rút ngắn time-to-mitigate.')
-  }
-
-  if (metrics.value.trust <= 55) {
-    items.push('Ưu tiên quyết định có T dương để giảm áp lực từ user/stakeholder.')
-  }
-
-  if (items.length === 0) {
-    items.push('Tiếp tục giữ Chaos thấp và tránh đốt Energy ở các vòng đầu.')
-  }
-
-  return items.slice(0, 2)
-})
-
-const chaosGlowIntensity = computed<number>(() => {
-  if (metrics.value.chaos >= 85) return 0.4
-  if (metrics.value.chaos >= 60) return 0.2
-  return 0
-})
-
-const incomingCount = computed<number>(() => Math.max(0, maxRounds.value - round.value))
-
-const modeLabel = computed<string>(() => mode.value === 'hardcore' ? 'Hardcore' : 'Normal')
-
-const feedMessage = computed<string>(() => {
-  const incident = currentIncident.value
-  return `[LIVE] ${incident.severity} ${incident.title} | Còn ${metrics.value.timeLeft} phút để khóa tình hình`
-})
-
-const canChangeMode = computed<boolean>(() => logs.value.length === 0 && round.value === 1)
-
-const tickerItems = computed<string[]>(() => [
-  `MODE ${modeLabel.value}`,
-  `SEED ${dailySeedLabel.value}`,
-  `ROUND ${Math.min(round.value, maxRounds.value)}/${maxRounds.value}`,
-  `CHAOS ${liveMetrics.value.chaos}`,
-  `STABILITY ${liveMetrics.value.stability}`,
-  `TRUST ${liveMetrics.value.trust}`,
-  `ENERGY ${liveMetrics.value.energy}`,
-  `TIMER ${formatClock(missionClockSeconds.value)}`,
-  `INCIDENT LEFT ${incomingCount.value}`,
-])
-
-const canContinue = computed<boolean>(() => !isFinished.value && currentIncident.value.choices.length > 0 && !showRandomEvent.value)
-
-const operationPhase = computed<string>(() => {
-  if (metrics.value.chaos >= 80) return 'Containment'
-  if (metrics.value.chaos >= 55) return 'Escalation'
-  if (round.value <= 2) return 'Detection'
-  return 'Recovery'
-})
-
-const pressureIndex = computed<number>(() => {
-  const pressure = (metrics.value.chaos * 0.45) + ((100 - metrics.value.energy) * 0.25) + ((100 - metrics.value.stability) * 0.3)
-  return Math.round(Math.max(0, Math.min(100, pressure)))
-})
-
-const frontlineStatus = computed(() => {
-  const chaos = metrics.value.chaos
-  return [
-    {
-      name: 'Gateway Front',
-      status: chaos >= 70 ? 'Hot' : chaos >= 45 ? 'Warm' : 'Stable',
-      tone: chaos >= 70 ? 'text-accent-coral' : chaos >= 45 ? 'text-accent-amber' : 'text-accent-sky',
-    },
-    {
-      name: 'Data Front',
-      status: metrics.value.stability < 50 ? 'Risky' : metrics.value.stability < 70 ? 'Guarded' : 'Healthy',
-      tone: metrics.value.stability < 50 ? 'text-accent-coral' : metrics.value.stability < 70 ? 'text-accent-amber' : 'text-accent-sky',
-    },
-    {
-      name: 'Team Front',
-      status: metrics.value.energy < 40 ? 'Fatigued' : metrics.value.energy < 65 ? 'Strained' : 'Ready',
-      tone: metrics.value.energy < 40 ? 'text-accent-coral' : metrics.value.energy < 65 ? 'text-accent-amber' : 'text-accent-sky',
-    },
-  ]
-})
-
-const severityWeights: Record<Severity, number> = {
-  'SEV-1': 1.35,
-  'SEV-2': 1.15,
-  'SEV-3': 1,
-}
-
-const dailySeedLabel = computed<string>(() => {
-  const raw = currentDailySeed.value
-  if (raw.length !== 8) {
-    return raw
-  }
-
-  return `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`
-})
-
-const analyzedLogs = computed<AnalyzedLog[]>(() => {
-  return logs.value
-    .filter((entry) => typeof entry.deltaScore === 'number')
-    .map((entry) => {
-      const weight = severityWeights[entry.severity] ?? 1
-      const weightedDelta = Math.round((entry.deltaScore as number) * weight)
-      return {
-        ...entry,
-        weightedDelta,
-      }
-    })
-})
-
-const bestDecision = computed<AnalyzedLog | null>(() => {
-  if (analyzedLogs.value.length === 0) {
-    return null
-  }
-
-  return analyzedLogs.value.reduce((best, entry) => {
-    const bestScoreDelta = best.weightedDelta
-    const currentScoreDelta = entry.weightedDelta
-    return currentScoreDelta > bestScoreDelta ? entry : best
   })
-})
-
-const riskiestDecision = computed<AnalyzedLog | null>(() => {
-  if (analyzedLogs.value.length === 0) {
-    return null
-  }
-
-  return analyzedLogs.value.reduce((worst, entry) => {
-    const worstScoreDelta = worst.weightedDelta
-    const currentScoreDelta = entry.weightedDelta
-    return currentScoreDelta < worstScoreDelta ? entry : worst
-  })
-})
-
-const postmortemActions = computed<string[]>(() => {
-  const actions: string[] = []
-
-  if (metrics.value.chaos >= 70) {
-    actions.push('Chaos cuối trận cao: ưu tiên phương án có chaosDelta thấp ở 2 vòng đầu để tránh snowball.')
-  }
-
-  if (metrics.value.energy < 50) {
-    actions.push('Energy thấp: dùng chiến thuật giảm tải on-call, hạn chế fix nóng liên tục qua nhiều vòng.')
-  }
-
-  if (metrics.value.trust < 55) {
-    actions.push('Trust giảm sâu: thêm cập nhật trạng thái sớm cho user và stakeholder ở các sự cố SEV-1/SEV-2.')
-  }
-
-  if (metrics.value.timeLeft <= 20) {
-    actions.push('Time buffer mỏng: chọn giải pháp rollback/feature flag trước, tối ưu dài hạn để sau postmortem.')
-  }
-
-  if (actions.length === 0) {
-    actions.push('Đội hình đang vận hành tốt. Thử Hardcore + Daily Seed để benchmark chiến lược mới.')
-  }
-
-  return actions
-})
-
-const currentLearningLevel = computed<number>(() => {
-  return Math.floor(careerLearningXp.value / 40) + 1
-})
-
-const nextLearningLevelXp = computed<number>(() => {
-  return currentLearningLevel.value * 40
-})
-
-const learningLevelProgress = computed<number>(() => {
-  const start = (currentLearningLevel.value - 1) * 40
-  const span = 40
-  return Math.max(0, Math.min(100, Math.round(((careerLearningXp.value - start) / span) * 100)))
-})
-
-const learningBySeverity = computed<Record<Severity, number>>(() => {
-  return learningJournal.value.reduce((acc, item) => {
-    acc[item.severity] += 1
-    return acc
-  }, {
-    'SEV-1': 0,
-    'SEV-2': 0,
-    'SEV-3': 0,
-  } as Record<Severity, number>)
-})
-
-const learningRecent7dCount = computed<number>(() => {
-  const threshold = Date.now() - (7 * 24 * 60 * 60 * 1000)
-  return learningJournal.value.filter((entry) => {
-    const ts = Number(entry.id.split('-')[0])
-    return !Number.isNaN(ts) && ts >= threshold
-  }).length
-})
-
-const learningMasteryScore = computed<number>(() => {
-  const diversityBonus = Object.values(learningBySeverity.value).filter((count) => count > 0).length * 6
-  const lessonBonus = Math.min(38, learningJournal.value.length * 3)
-  const xpBonus = Math.min(44, Math.round(careerLearningXp.value / 6))
-  return Math.min(100, diversityBonus + lessonBonus + xpBonus)
-})
-
-const learningFocus = computed<string[]>(() => {
-  const items: string[] = []
-
-  if (metrics.value.chaos >= 65) {
-    items.push('Chaos cao: luyện quyết định giảm chaos ở early-game.')
-  }
-  if (metrics.value.energy <= 45) {
-    items.push('Energy thấp: ưu tiên phương án giảm áp lực on-call.')
-  }
-  if (metrics.value.trust <= 55) {
-    items.push('Trust yếu: thêm thông điệp cập nhật minh bạch cho user.')
-  }
-  if (learningBySeverity.value['SEV-1'] < 2) {
-    items.push('Nên luyện thêm kịch bản SEV-1 để tăng phản xạ incident lớn.')
-  }
-
-  if (items.length === 0) {
-    items.push('Đà học đang ổn. Thử Hardcore + Daily Seed để mở rộng kinh nghiệm.')
-  }
-
-  return items.slice(0, 4)
-})
-
-const filteredLearningJournal = computed<LearningEntry[]>(() => {
-  if (learningSeverityFilter.value === 'all') {
-    return learningJournal.value
-  }
-
-  return learningJournal.value.filter((entry) => entry.severity === learningSeverityFilter.value)
-})
-
-const systemSlimeMood = computed<SlimeMood>(() => {
-  if (!characterAnimationEnabled.value) {
-    return 'slime-idle'
-  }
-
-  if (isFinished.value) {
-    return campaignScore.value >= 65 ? 'victory' : 'defeat'
-  }
-
-  if (metrics.value.chaos >= 85) {
-    return 'critical'
-  }
-
-  if (metrics.value.chaos >= 65) {
-    return 'warning'
-  }
-
-  if (metrics.value.energy <= 35) {
-    return 'energy-low'
-  }
-
-  return 'slime-idle'
-})
-
-const activeOverlaySlimeMood = computed<SlimeMood | null>(() => {
-  if (!characterAnimationEnabled.value) {
-    return null
-  }
-
-  if (transientSlimeMood.value) {
-    return transientSlimeMood.value
-  }
-
-  if (systemSlimeMood.value === 'slime-idle') {
-    return null
-  }
-
-  return systemSlimeMood.value
-})
+}
 
 const slimeIdleAsset = slimeAssetMap['slime-idle']
 
-const currentSlimeAsset = computed<string>(() => {
-  return activeOverlaySlimeMood.value ? slimeAssetMap[activeOverlaySlimeMood.value] : slimeIdleAsset
-})
-
-const currentSlimeMoodLabel = computed<string>(() => {
-  const labels: Record<SlimeMood, string> = {
-    'slime-idle': 'Idle / Quan sát',
-    annoyed: 'Annoyed / Bị chọc nhiều quá',
-    'click-reaction': 'Click Reaction / Phản hồi thao tác',
-    'action-confirm': 'Action Confirm / Đã thực thi lệnh',
-    'trust-up': 'Trust Up / User confidence tăng',
-    'stability-up': 'Stability Up / Hệ thống ổn định hơn',
-    'chaos-up': 'Chaos Up / Áp lực tăng',
-    'energy-low': 'Energy Low / Team đang mệt',
-    warning: 'Warning / Tình hình nóng',
-    critical: 'Critical / Báo động đỏ',
-    victory: 'Victory / Chiến dịch thành công',
-    defeat: 'Defeat / Cần reset chiến lược',
-  }
-
-  return labels[activeOverlaySlimeMood.value ?? 'slime-idle']
+const {
+  currentIncident,
+  maxRounds,
+  isFinished,
+  liveMetrics,
+  score,
+  missionContract,
+  missionBonus,
+  campaignScore,
+  campaignRank,
+  verdict,
+  scoreTone,
+  warState,
+  isMinimalFocus,
+  priorityHeadline,
+  priorityChecklist,
+  chaosGlowIntensity,
+  incomingCount,
+  modeLabel,
+  feedMessage,
+  canChangeMode,
+  tickerItems,
+  canContinue,
+  operationPhase,
+  pressureIndex,
+  frontlineStatus,
+  dailySeedLabel,
+  bestDecision,
+  riskiestDecision,
+  postmortemActions,
+  currentLearningLevel,
+  nextLearningLevelXp,
+  learningLevelProgress,
+  learningBySeverity,
+  learningRecent7dCount,
+  learningMasteryScore,
+  learningFocus,
+  filteredLearningJournal,
+  currentSlimeAsset,
+  currentSlimeMoodLabel,
+} = useBugWarRoomComputed({
+  mode,
+  round,
+  deck,
+  metrics,
+  streak,
+  logs,
+  telemetryTick,
+  missionClockSeconds,
+  showRandomEvent,
+  uiFocusMode,
+  learningJournal,
+  learningSeverityFilter,
+  careerLearningXp,
+  characterAnimationEnabled,
+  transientSlimeMood,
+  currentDailySeed,
+  fallbackIncident,
+  slimeAssetMap,
+  slimeIdleAsset,
 })
 
 watch(campaignScore, (value) => {
@@ -2454,7 +808,7 @@ watch(campaignScore, (value) => {
 
   if (value > bestScore.value) {
     bestScore.value = value
-    localStorage.setItem('bug-war-room-best-score', String(value))
+    localStorage.setItem(bugWarRoomStorageKeys.bestScore, String(value))
   }
 
   if (currentDailySeed.value) {
@@ -2536,7 +890,7 @@ watch(() => metrics.value.chaos, (newChaos) => {
 })
 
 onMounted(() => {
-  const stored = Number(localStorage.getItem('bug-war-room-best-score'))
+  const stored = Number(localStorage.getItem(bugWarRoomStorageKeys.bestScore))
   if (!Number.isNaN(stored) && stored > 0) {
     bestScore.value = stored
   }
