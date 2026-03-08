@@ -2,7 +2,8 @@ export interface Hexagram {
   id: number
   binary: string
   name: string
-  animation: string
+  symbol: string
+  type: string
   description: string
   advice: string
 }
