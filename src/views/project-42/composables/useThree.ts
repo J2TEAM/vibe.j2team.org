@@ -122,10 +122,6 @@ export function useThree() {
       // Final Burst to 100%
       clearInterval(smoothProgress);
       loadingProgress.value = 100;
-
-      setTimeout(() => {
-        isLoading.value = false;
-      }, 800);
     } catch (e) {
       console.error("Core Init Failed:", e);
     }
@@ -145,6 +141,7 @@ export function useThree() {
   };
 
   const updateProgress = (delta: number) => {
+    if (isLoading.value) return;
     scrollProgress.value = Math.max(0, scrollProgress.value + delta * 0.002);
 
     // Scene Determination: Find the last passed threshold

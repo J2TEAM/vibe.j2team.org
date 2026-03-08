@@ -1,23 +1,67 @@
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * PROJECT 42 - Immersive Scroll-driven 3D Web Experience
  * Author: sanghynh
  */
-import { onMounted, onUnmounted } from "vue";
+import { onMounted, onUnmounted, watch } from "vue";
 import { RouterLink } from "vue-router";
 import { useThree } from "./composables/useThree";
+import { preloadAudio, initAudio, tickAudio, cleanupAudio } from "./audio";
 import NarrativeLayer from "./components/NarrativeLayer.vue";
 
-// Logic
 const { canvasRef, isLoading, loadingProgress, currentScene, scrollProgress, init, cleanup } =
   useThree();
 
-onMounted(() => {
-  init();
+let _audioStarted = false;
+
+const startAudio = () => {
+  if (_audioStarted || loadingProgress.value < 100) return;
+
+  const ToneLib = (window as unknown as { Tone: any }).Tone;
+  if (!ToneLib) return;
+
+  _audioStarted = true;
+
+  ToneLib.start().then(() => {
+    initAudio().then(() => {
+      tickAudio(scrollProgress.value);
+    });
+  });
+
+  // Cleanup all possible triggers
+  window.removeEventListener("click", startAudio);
+  window.removeEventListener("keydown", startAudio);
+  window.removeEventListener("wheel", startAudio);
+  window.removeEventListener("touchstart", startAudio);
+};
+
+// Bind global triggers for first interaction — Click and Keydown are safe
+window.addEventListener("click", startAudio, { once: true });
+window.addEventListener("keydown", startAudio, { once: true });
+
+const handleBegin = () => {
+  startAudio();
+  // Smoothly exit loading screen
+  setTimeout(() => {
+    isLoading.value = false;
+  }, 400);
+};
+
+watch(scrollProgress, (val) => {
+  tickAudio(val);
+});
+
+onMounted(async () => {
+  // Song song: 3D engine + Tone CDN preload
+  await Promise.all([init(), preloadAudio()]);
 });
 
 onUnmounted(() => {
   cleanup();
+  cleanupAudio();
+  window.removeEventListener("click", startAudio);
+  window.removeEventListener("keydown", startAudio);
 });
 </script>
 
@@ -41,18 +85,22 @@ onUnmounted(() => {
 
       <!-- Narrative & Loading Layer -->
       <div class="flex-1 flex flex-col items-center justify-center px-10 text-center">
-        <!-- ADVANCED LOADING: J2TEAM -->
         <Transition name="fade-fast">
-          <div v-if="isLoading" class="flex flex-col items-center">
+          <div
+            v-if="isLoading"
+            class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm"
+            :class="{ 'cursor-pointer pointer-events-auto': loadingProgress === 100 }"
+            @click="loadingProgress === 100 && handleBegin()"
+          >
             <!-- Outline/Fill Text -->
             <div class="relative mb-8 select-none">
               <h1
-                class="font-display text-4xl m:text-7xl lg:text-8xl font-black tracking-[0.3em] uppercase text-outline"
+                class="font-display text-4xl md:text-7xl lg:text-8xl font-black tracking-[0.3em] uppercase text-outline"
               >
                 J2TEAM
               </h1>
               <h1
-                class="absolute top-0 left-0 font-display text-4xl m:text-7xl lg:text-8xl font-black tracking-[0.3em] uppercase text-fill overflow-hidden transition-all duration-300"
+                class="absolute top-0 left-0 font-display text-4xl md:text-7xl lg:text-8xl font-black tracking-[0.3em] uppercase text-fill overflow-hidden transition-all duration-300"
                 :style="{ width: loadingProgress + '%' }"
               >
                 J2TEAM
@@ -66,13 +114,25 @@ onUnmounted(() => {
                 :style="{ width: loadingProgress + '%' }"
               ></div>
             </div>
+
             <div
+              v-if="loadingProgress === 100"
+              class="mt-8 font-display text-[12px] tracking-[0.5em] uppercase text-[#38BDF8] animate-pulse transition-colors"
+            >
+              [ click anywhere to begin ]
+            </div>
+            <div
+              v-else
               class="mt-4 font-display text-[10px] tracking-[0.5em] uppercase text-[#38BDF8]/60 animate-pulse"
             >
               System Initialization: {{ loadingProgress }}%
             </div>
           </div>
-          <NarrativeLayer v-else :current-scene="currentScene" :scroll-progress="scrollProgress" />
+          <NarrativeLayer
+            v-else
+            :current-scene="currentScene"
+            :scroll-progress="scrollProgress"
+          />
         </Transition>
       </div>
 
