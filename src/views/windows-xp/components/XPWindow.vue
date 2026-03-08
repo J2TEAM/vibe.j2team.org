@@ -48,22 +48,22 @@ const toggleMaximize = () => {
 const onPointerDown = (e: MouseEvent | TouchEvent) => {
   emit('focus', props.id) // Bring to front
   if (isMaximized.value) return // Don't drag if maximized
-
+  
   isDragging = true
-
+  
   const clientX = 'touches' in e ? (e.touches[0]?.clientX ?? 0) : e.clientX
   const clientY = 'touches' in e ? (e.touches[0]?.clientY ?? 0) : e.clientY
-
+  
   startX = clientX - x.value
   startY = clientY - y.value
 }
 
 const onPointerMove = (e: MouseEvent | TouchEvent) => {
   if (!isDragging || isMaximized.value) return
-
+  
   const clientX = 'touches' in e ? (e.touches[0]?.clientX ?? 0) : e.clientX
   const clientY = 'touches' in e ? (e.touches[0]?.clientY ?? 0) : e.clientY
-
+  
   x.value = clientX - startX
   y.value = Math.max(0, clientY - startY) // Prevent dragging above screen
 }
@@ -71,6 +71,7 @@ const onPointerMove = (e: MouseEvent | TouchEvent) => {
 const onPointerUp = () => {
   isDragging = false
 }
+
 
 onMounted(() => {
   window.addEventListener('mousemove', onPointerMove)
@@ -88,35 +89,21 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div
+  <div 
     class="absolute flex flex-col bg-[#ece9d8] border-3 rounded-t shadow-2xl overflow-hidden transition-all duration-75"
     :class="[
       isActive ? 'border-[#0055e5] z-50' : 'border-[#7595d6]',
-      isMaximized ? 'w-full h-[calc(100vh-40px)] left-0 top-0 rounded-none' : 'rounded-t-lg',
+      isMaximized ? 'w-full h-[calc(100vh-40px)] left-0 top-0 rounded-none' : 'rounded-t-lg'
     ]"
-    :style="
-      !isMaximized
-        ? {
-            left: `${x}px`,
-            top: `${y}px`,
-            width: width || '400px',
-            height: height || '300px',
-            zIndex,
-          }
-        : { zIndex }
-    "
+    :style="!isMaximized ? { left: `${x}px`, top: `${y}px`, width: width || '400px', height: height || '300px', zIndex } : { zIndex }"
     @mousedown="emit('focus', id)"
     @touchstart="emit('focus', id)"
   >
     <!-- Title Bar -->
-    <div
+    <div 
       ref="titleBarRef"
       class="h-[30px] flex items-center justify-between px-1 cursor-default shrink-0"
-      :class="
-        isActive
-          ? 'bg-gradient-to-r from-[#0058e6] via-[#3a93ff] to-[#0058e6]'
-          : 'bg-gradient-to-r from-[#7a96df] via-[#a8c0f5] to-[#7a96df]'
-      "
+      :class="isActive ? 'bg-gradient-to-r from-[#0058e6] via-[#3a93ff] to-[#0058e6]' : 'bg-gradient-to-r from-[#7a96df] via-[#a8c0f5] to-[#7a96df]'"
       @mousedown="onPointerDown"
       @touchstart.prevent="onPointerDown"
       @dblclick="toggleMaximize"
@@ -124,40 +111,26 @@ onUnmounted(() => {
       <!-- Title + Icon -->
       <div class="flex items-center gap-1 overflow-hidden pointer-events-none">
         <span class="text-lg drop-shadow">{{ icon }}</span>
-        <span
-          class="text-white font-bold text-sm tracking-wide truncate drop-shadow"
-          style="font-family: 'Trebuchet MS', Tahoma, sans-serif"
-          >{{ title }}</span
-        >
+        <span class="text-white font-bold text-sm tracking-wide truncate drop-shadow" style="font-family: 'Trebuchet MS', Tahoma, sans-serif;">{{ title }}</span>
       </div>
 
       <!-- Controls -->
       <div class="flex gap-0.5 items-center pr-1 shrink-0">
-        <button
-          class="w-5 h-[21px] rounded-[2px] bg-gradient-to-b from-[#fff] to-[#d6d6d6] border border-white flex items-center justify-center text-xs hover:brightness-110 active:brightness-90 font-bold focus:outline-none shadow-sm"
-          style="box-shadow: inset -1px -1px 2px rgba(0, 0, 0, 0.3)"
-        >
-          _
-        </button>
-        <button
-          class="w-5 h-[21px] rounded-[2px] bg-gradient-to-b from-[#fff] to-[#d6d6d6] border border-white flex items-center justify-center text-[10px] hover:brightness-110 active:brightness-90 focus:outline-none shadow-sm"
-          style="box-shadow: inset -1px -1px 2px rgba(0, 0, 0, 0.3)"
+        <button class="w-5 h-[21px] rounded-[2px] bg-gradient-to-b from-[#fff] to-[#d6d6d6] border border-white flex items-center justify-center text-xs hover:brightness-110 active:brightness-90 font-bold focus:outline-none shadow-sm" style="box-shadow: inset -1px -1px 2px rgba(0,0,0,0.3)">_</button>
+        <button 
+          class="w-5 h-[21px] rounded-[2px] bg-gradient-to-b from-[#fff] to-[#d6d6d6] border border-white flex items-center justify-center text-[10px] hover:brightness-110 active:brightness-90 focus:outline-none shadow-sm" 
+          style="box-shadow: inset -1px -1px 2px rgba(0,0,0,0.3)"
           @click.stop="toggleMaximize"
         >
-          <div
-            class="w-2.5 h-2.5 border-t-2 border-l-2 border-r-2 border-b-2 border-black"
-            :class="{ relative: isMaximized }"
-          >
+          <div class="w-2.5 h-2.5 border-t-2 border-l-2 border-r-2 border-b-2 border-black" :class="{ 'relative': isMaximized }">
             <template v-if="isMaximized">
-              <div
-                class="absolute -top-[3px] -right-[3px] w-2.5 h-2.5 border-t-2 border-r-2 border-black"
-              ></div>
+               <div class="absolute -top-[3px] -right-[3px] w-2.5 h-2.5 border-t-2 border-r-2 border-black"></div>
             </template>
           </div>
         </button>
-        <button
-          class="w-[21px] h-[21px] rounded-[2px] bg-gradient-to-b from-[#e57a55] to-[#d44026] border border-white flex items-center justify-center text-white text-md hover:brightness-110 active:brightness-90 focus:outline-none shadow-sm"
-          style="box-shadow: inset -1px -1px 2px rgba(0, 0, 0, 0.4)"
+        <button 
+          class="w-[21px] h-[21px] rounded-[2px] bg-gradient-to-b from-[#e57a55] to-[#d44026] border border-white flex items-center justify-center text-white text-md hover:brightness-110 active:brightness-90 focus:outline-none shadow-sm" 
+          style="box-shadow: inset -1px -1px 2px rgba(0,0,0,0.4)"
           @click.stop="emit('close', id)"
         >
           ✕
