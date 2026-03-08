@@ -25,7 +25,10 @@ function shuffle<T>(arr: T[]): T[] {
   const out = [...arr]
   for (let i = out.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[out[i], out[j]] = [out[j], out[i]]
+    const a = out[i] as T
+    const b = out[j] as T
+    out[i] = b
+    out[j] = a
   }
   return out
 }
@@ -75,10 +78,13 @@ function generateTargetFromBoard(board: CardItem[]): number | null {
   for (let i = 0; i < numbers.length; i++) {
     for (let j = 0; j < numbers.length; j++) {
       if (i === j) continue
+      const numI = numbers[i]
+      const numJ = numbers[j]
+      if (numI == null || numJ == null) continue
       for (const opCard of operators) {
         const op = opCard.value
-        const a = numbers[i].value
-        const b = numbers[j].value
+        const a = numI.value
+        const b = numJ.value
         const result = compute(a, op, b)
         if (result >= 0 && result <= 100 && Number.isInteger(result)) {
           valid.push(result)
@@ -87,7 +93,8 @@ function generateTargetFromBoard(board: CardItem[]): number | null {
     }
   }
   if (valid.length === 0) return null
-  return valid[Math.floor(Math.random() * valid.length)]
+  const idx = Math.floor(Math.random() * valid.length)
+  return valid[idx] ?? null
 }
 
 const gameStatus = ref<GameStatus>('idle')
@@ -105,19 +112,11 @@ let timerId: ReturnType<typeof setInterval> | null = null
 let previewTimerId: ReturnType<typeof setInterval> | null = null
 let confettiTimeoutId: ReturnType<typeof setTimeout> | null = null
 
-const selectedCards = computed(() => board.value.filter((c) => c.isSelected))
 const selectedCardsOrdered = computed(() =>
   selectedIdsOrder.value
     .map((id) => board.value.find((c) => c.id === id))
     .filter((c): c is CardItem => c != null)
 )
-const selectionOrder = computed(() => {
-  const s = selectedCards.value
-  if (s.length === 0) return '_ _ _'
-  if (s.length === 1) return `${s[0].value} _ _`
-  if (s.length === 2) return `${s[0].value} ${s[1].value} _`
-  return `${s[0].value} ${s[1].value} ${s[2].value}`
-})
 
 const timeFormatted = computed(() => {
   const m = Math.floor(timeLeft.value / 60)
@@ -141,7 +140,7 @@ function triggerConfetti() {
     id: i,
     left: Math.random() * 100,
     delay: Math.random() * 400,
-    color: colors[Math.floor(Math.random() * colors.length)],
+    color: colors[Math.floor(Math.random() * colors.length)] ?? '#FF6B4A',
     size: 6 + Math.random() * 8,
   }))
   showConfetti.value = true
@@ -175,19 +174,23 @@ function resetSelection() {
 function evaluateSelection() {
   const sel = selectedCardsOrdered.value
   if (sel.length !== 3) return
+  const first = sel[0]
+  const second = sel[1]
+  const third = sel[2]
+  if (first == null || second == null || third == null) return
   gameStatus.value = 'checking'
   const isValidFormula =
-    sel[0].type === 'number' &&
-    sel[1].type === 'operator' &&
-    sel[2].type === 'number'
+    first.type === 'number' &&
+    second.type === 'operator' &&
+    third.type === 'number'
   if (!isValidFormula) {
     statusMessage.value = 'Sai phép tính. Cần: số → phép toán → số.'
     setTimeout(resetSelection, CHECK_DELAY_MS)
     return
   }
-  const a = sel[0].value as number
-  const op = sel[1].value as Operator
-  const b = sel[2].value as number
+  const a = first.value as number
+  const op = second.value as Operator
+  const b = third.value as number
   const result = compute(a, op, b)
   if (result === target.value) {
     triggerConfetti()
