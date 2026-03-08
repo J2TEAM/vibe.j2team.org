@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description: 'Kiểm tra độ mạnh và mức độ an toàn của mật khẩu.',
   author: 'Trần Minh Quốc',
   facebook: 'https://www.facebook.com/tranminhquocreal',
+  category: 'tool',
 }
 
 export default meta

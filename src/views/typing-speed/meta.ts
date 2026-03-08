@@ -6,6 +6,7 @@ const meta: PageMeta = {
     'Mini game kiểm tra tốc độ gõ phím tiếng Việt — gõ càng nhanh càng chính xác càng tốt!',
   author: 'Bùi Minh Quang',
   facebook: 'https://github.com/quangbm0807',
+  category: 'learn',
 }
 
 export default meta

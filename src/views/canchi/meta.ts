@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description: 'Lá số Tử Vi Đẩu Số — lập lá số theo ngày tháng năm sinh',
   author: 'duckocancode',
   facebook: 'https://www.facebook.com/ngdh4720',
+  category: 'spiritual',
 }
 
 export default meta

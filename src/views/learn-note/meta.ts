@@ -6,6 +6,7 @@ const meta: PageMeta = {
     'Ghi nhớ note nhạc trên khuôn nhạc, trợ giúp cho việc đọc khuôn nhạc nhanh hơn, hiệu quả hơn',
   author: 'Đăng Khởi',
   facebook: 'https://www.facebook.com/ndkNguyen123',
+  category: 'learn',
 }
 
 export default meta

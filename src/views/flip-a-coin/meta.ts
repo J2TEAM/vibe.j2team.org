@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description: 'Tung đồng xu với hiệu ứng xoay 3D và trả kết quả ngẫu nhiên.',
   author: 'Thinkj07',
   facebook: 'https://www.facebook.com/thinh.ng.403097/',
+  category: 'fun',
 }
 
 export default meta

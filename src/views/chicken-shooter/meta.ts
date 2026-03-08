@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description: 'Mini game bắn gà giải trí',
   author: 'pkucpkam',
   facebook: 'https://www.facebook.com/phucpham1803',
+  category: 'game',
 }
 
 export default meta
