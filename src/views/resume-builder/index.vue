@@ -89,13 +89,17 @@ const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const STORAGE_KEY = 'rb_groq_api_key'
 
 // ─── Groq Models ──────────────────────────────────────────────────────────────
-interface GroqModel { id: string; label: string; note: string }
+interface GroqModel {
+  id: string
+  label: string
+  note: string
+}
 
 const groqModels: GroqModel[] = [
-  { id: 'llama-3.3-70b-versatile',  label: 'Llama 3.3 70B',    note: 'Mạnh nhất · Khuyên dùng' },
-  { id: 'llama-3.1-8b-instant',     label: 'Llama 3.1 8B',     note: 'Nhanh · Nhẹ' },
-  { id: 'gemma2-9b-it',             label: 'Gemma 2 9B',        note: 'Google · Cân bằng' },
-  { id: 'mixtral-8x7b-32768',       label: 'Mixtral 8x7B',      note: 'Context dài' },
+  { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B', note: 'Mạnh nhất · Khuyên dùng' },
+  { id: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B', note: 'Nhanh · Nhẹ' },
+  { id: 'gemma2-9b-it', label: 'Gemma 2 9B', note: 'Google · Cân bằng' },
+  { id: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B', note: 'Context dài' },
 ]
 
 const selectedModel = ref(groqModels[0]!.id)
@@ -248,7 +252,7 @@ async function callAI(systemPrompt: string): Promise<void> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${groqApiKey.value}`,
+        Authorization: `Bearer ${groqApiKey.value}`,
       },
       body: JSON.stringify({
         model: selectedModel.value,
@@ -269,11 +273,9 @@ async function callAI(systemPrompt: string): Promise<void> {
 
     if (data.error) throw new Error(data.error.message)
 
-    aiSuggestion.value =
-      data.choices?.[0]?.message?.content ?? 'Không có gợi ý từ AI.'
+    aiSuggestion.value = data.choices?.[0]?.message?.content ?? 'Không có gợi ý từ AI.'
   } catch (err) {
-    aiError.value =
-      err instanceof Error ? err.message : 'Lỗi không xác định khi gọi Groq API.'
+    aiError.value = err instanceof Error ? err.message : 'Lỗi không xác định khi gọi Groq API.'
   } finally {
     aiLoading.value = false
   }
@@ -428,8 +430,19 @@ onMounted(() => {
           title="Cài đặt Groq API key"
           @click="openApiKeyModal"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
+            />
           </svg>
           <span class="rb-key-dot" :class="groqApiKey ? 'rb-key-dot--on' : 'rb-key-dot--off'" />
         </button>
@@ -531,20 +544,51 @@ onMounted(() => {
           <!-- API Key status -->
           <div class="rb-ai-key-bar">
             <div v-if="groqApiKey" class="rb-key-active">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <polyline points="20 6 9 17 4 12" />
               </svg>
               Groq API đã kết nối
             </div>
             <div v-else class="rb-key-missing">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
               Chưa có API key
             </div>
             <button class="rb-key-btn" type="button" @click="openApiKeyModal">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
+                />
               </svg>
               {{ groqApiKey ? 'Đổi key' : 'Thêm key' }}
             </button>
@@ -552,8 +596,19 @@ onMounted(() => {
 
           <!-- Model selector -->
           <div class="rb-model-bar">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="2" y="3" width="20" height="14" rx="2" />
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="17" x2="12" y2="21" />
             </svg>
             <select v-model="selectedModel" class="rb-model-select">
               <option v-for="m in groqModels" :key="m.id" :value="m.id">
@@ -630,9 +685,7 @@ onMounted(() => {
           <div class="rb-ai-result">
             <!-- Loading -->
             <div v-if="aiLoading" class="rb-ai-loading">
-              <div class="rb-dots">
-                <span /><span /><span />
-              </div>
+              <div class="rb-dots"><span /><span /><span /></div>
               <p>AI đang phân tích CV...</p>
             </div>
 
@@ -726,22 +779,44 @@ onMounted(() => {
         <div class="rb-modal">
           <div class="rb-modal-header">
             <span class="rb-modal-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
+                />
               </svg>
               Cài đặt Groq API Key
             </span>
             <button class="rb-ai-close" type="button" @click="showApiKeyModal = false">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
           </div>
 
           <div class="rb-modal-body">
             <p class="rb-modal-desc">
-              Tính năng AI dùng <strong>Groq</strong> — chạy LLM cực nhanh trên phần cứng LPU. Miễn phí
-              <strong>500,000 tokens/ngày</strong>. Key lưu vào <code>localStorage</code> trình duyệt, không gửi lên server.
+              Tính năng AI dùng <strong>Groq</strong> — chạy LLM cực nhanh trên phần cứng LPU. Miễn
+              phí <strong>500,000 tokens/ngày</strong>. Key lưu vào <code>localStorage</code> trình
+              duyệt, không gửi lên server.
             </p>
 
             <a
@@ -750,9 +825,19 @@ onMounted(() => {
               rel="noopener noreferrer nofollow"
               class="rb-modal-link"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
               </svg>
               Lấy API key miễn phí tại console.groq.com →
             </a>
@@ -772,7 +857,16 @@ onMounted(() => {
             </div>
 
             <div v-if="groqApiKey" class="rb-modal-current">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#10b981"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <polyline points="20 6 9 17 4 12" />
               </svg>
               Key đang dùng: {{ groqApiKey.slice(0, 8) }}••••••••{{ groqApiKey.slice(-4) }}
@@ -788,8 +882,12 @@ onMounted(() => {
             >
               Xóa key
             </button>
-            <div style="flex:1" />
-            <button class="rb-modal-btn rb-modal-btn--ghost" type="button" @click="showApiKeyModal = false">
+            <div style="flex: 1" />
+            <button
+              class="rb-modal-btn rb-modal-btn--ghost"
+              type="button"
+              @click="showApiKeyModal = false"
+            >
               Hủy
             </button>
             <button
@@ -798,7 +896,17 @@ onMounted(() => {
               :disabled="!apiKeyInput.trim()"
               @click="saveApiKey"
             >
-              <svg v-if="apiKeySaved" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                v-if="apiKeySaved"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <polyline points="20 6 9 17 4 12" />
               </svg>
               {{ apiKeySaved ? 'Đã lưu!' : 'Lưu key' }}
@@ -865,7 +973,9 @@ onMounted(() => {
   text-decoration: none;
   transition: color 0.15s;
 }
-.rb-back:hover { color: var(--c-text); }
+.rb-back:hover {
+  color: var(--c-text);
+}
 
 .rb-divider {
   color: var(--c-border);
@@ -918,14 +1028,18 @@ onMounted(() => {
   background: var(--c-ai);
   color: white;
 }
-.rb-btn-ai:hover { background: var(--c-ai-h); }
+.rb-btn-ai:hover {
+  background: var(--c-ai-h);
+}
 
 .rb-btn-print {
   background: var(--c-surface);
   color: var(--c-text);
   border: 1px solid var(--c-border);
 }
-.rb-btn-print:hover { background: var(--c-bg); }
+.rb-btn-print:hover {
+  background: var(--c-bg);
+}
 
 /* ── Layout ─────────────────────────────────────────────────────────────── */
 .rb-layout {
@@ -984,11 +1098,19 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.12s, border-color 0.12s;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
   font-family: 'DM Mono', monospace;
 }
-.rb-tool:hover { background: var(--c-bg); border-color: #ccc; }
-.rb-tool-italic { font-style: italic; font-weight: 400; }
+.rb-tool:hover {
+  background: var(--c-bg);
+  border-color: #ccc;
+}
+.rb-tool-italic {
+  font-style: italic;
+  font-weight: 400;
+}
 
 .rb-textarea {
   flex: 1;
@@ -1159,7 +1281,9 @@ onMounted(() => {
   border-radius: 4px;
   transition: background 0.12s;
 }
-.rb-ai-close:hover { background: var(--c-bg); }
+.rb-ai-close:hover {
+  background: var(--c-bg);
+}
 
 .rb-ai-note {
   display: flex;
@@ -1206,10 +1330,18 @@ onMounted(() => {
   margin-bottom: 5px;
   transition: all 0.12s;
 }
-.rb-quick-btn:hover:not(:disabled) { background: var(--c-bg); border-color: #bbb; }
-.rb-quick-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.rb-quick-btn:hover:not(:disabled) {
+  background: var(--c-bg);
+  border-color: #bbb;
+}
+.rb-quick-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 
-.rb-quick-icon { font-size: 14px; }
+.rb-quick-icon {
+  font-size: 14px;
+}
 
 .rb-quick-arrow {
   margin-left: auto;
@@ -1239,7 +1371,9 @@ onMounted(() => {
   background: var(--c-surface);
   color: var(--c-text);
 }
-.rb-prompt-input:focus { border-color: var(--c-ai); }
+.rb-prompt-input:focus {
+  border-color: var(--c-ai);
+}
 
 .rb-prompt-send {
   width: 32px;
@@ -1255,8 +1389,13 @@ onMounted(() => {
   flex-shrink: 0;
   transition: background 0.12s;
 }
-.rb-prompt-send:hover:not(:disabled) { background: var(--c-ai-h); }
-.rb-prompt-send:disabled { opacity: 0.4; cursor: not-allowed; }
+.rb-prompt-send:hover:not(:disabled) {
+  background: var(--c-ai-h);
+}
+.rb-prompt-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
 .rb-ai-result {
   padding: 13px 14px;
@@ -1285,12 +1424,24 @@ onMounted(() => {
   border-radius: 50%;
   animation: rb-bounce 1.2s infinite ease-in-out;
 }
-.rb-dots span:nth-child(2) { animation-delay: 0.15s; }
-.rb-dots span:nth-child(3) { animation-delay: 0.3s; }
+.rb-dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.rb-dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
 
 @keyframes rb-bounce {
-  0%, 80%, 100% { transform: scale(0.65); opacity: 0.4; }
-  40% { transform: scale(1); opacity: 1; }
+  0%,
+  80%,
+  100% {
+    transform: scale(0.65);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .rb-ai-error {
@@ -1347,10 +1498,21 @@ onMounted(() => {
   transition: all 0.12s;
 }
 
-.rb-sug-apply { background: var(--c-ai); color: white; }
-.rb-sug-apply:hover { background: var(--c-ai-h); }
-.rb-sug-copy { background: white; color: var(--c-text); border: 1px solid #d1d5db; }
-.rb-sug-copy:hover { background: #f9fafb; }
+.rb-sug-apply {
+  background: var(--c-ai);
+  color: white;
+}
+.rb-sug-apply:hover {
+  background: var(--c-ai-h);
+}
+.rb-sug-copy {
+  background: white;
+  color: var(--c-text);
+  border: 1px solid #d1d5db;
+}
+.rb-sug-copy:hover {
+  background: #f9fafb;
+}
 
 .rb-ai-empty {
   display: flex;
@@ -1377,7 +1539,9 @@ onMounted(() => {
 
 /* ── Print ──────────────────────────────────────────────────────────────── */
 @media print {
-  .no-print { display: none !important; }
+  .no-print {
+    display: none !important;
+  }
 
   .rb-app,
   .rb-layout,
@@ -1399,18 +1563,46 @@ onMounted(() => {
 }
 
 /* ── Scrollbar ──────────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 2px;
+}
 
 /* ── Responsive mobile ──────────────────────────────────────────────────── */
 @media (max-width: 700px) {
-  .rb-layout { flex-direction: column; height: auto; overflow: visible; }
-  .rb-editor { width: 100%; min-width: 0; height: auto; border-right: none; border-bottom: 1px solid var(--c-border); }
-  .rb-preview { padding: 16px 8px; }
-  .rb-sheet { padding: 28px 20px; }
-  .rb-ai-panel { width: 100%; min-width: 0; border-left: none; border-top: 1px solid var(--c-border); }
-  .rb-logo { display: none; }
+  .rb-layout {
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+  }
+  .rb-editor {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--c-border);
+  }
+  .rb-preview {
+    padding: 16px 8px;
+  }
+  .rb-sheet {
+    padding: 28px 20px;
+  }
+  .rb-ai-panel {
+    width: 100%;
+    min-width: 0;
+    border-left: none;
+    border-top: 1px solid var(--c-border);
+  }
+  .rb-logo {
+    display: none;
+  }
 }
 
 /* ── API Key button (topbar) ────────────────────────────────────────────── */
@@ -1428,8 +1620,15 @@ onMounted(() => {
   color: var(--c-soft);
   transition: all 0.15s;
 }
-.rb-btn-key:hover { background: var(--c-bg); color: var(--c-text); border-color: #bbb; }
-.rb-btn-key--active { border-color: #10b981; color: #10b981; }
+.rb-btn-key:hover {
+  background: var(--c-bg);
+  color: var(--c-text);
+  border-color: #bbb;
+}
+.rb-btn-key--active {
+  border-color: #10b981;
+  color: #10b981;
+}
 
 .rb-key-dot {
   position: absolute;
@@ -1439,8 +1638,12 @@ onMounted(() => {
   height: 6px;
   border-radius: 50%;
 }
-.rb-key-dot--on { background: #10b981; }
-.rb-key-dot--off { background: #f59e0b; }
+.rb-key-dot--on {
+  background: #10b981;
+}
+.rb-key-dot--off {
+  background: #f59e0b;
+}
 
 /* ── API Key bar (ai panel) ─────────────────────────────────────────────── */
 .rb-ai-key-bar {
@@ -1487,7 +1690,11 @@ onMounted(() => {
   transition: all 0.12s;
   white-space: nowrap;
 }
-.rb-key-btn:hover { background: var(--c-ai); color: white; border-color: var(--c-ai); }
+.rb-key-btn:hover {
+  background: var(--c-ai);
+  color: white;
+  border-color: var(--c-ai);
+}
 
 /* ── Model selector bar ─────────────────────────────────────────────────── */
 .rb-model-bar {
@@ -1567,7 +1774,9 @@ onMounted(() => {
   margin: 0;
 }
 
-.rb-modal-desc strong { color: var(--c-text); }
+.rb-modal-desc strong {
+  color: var(--c-text);
+}
 
 .rb-modal-desc code {
   font-family: 'DM Mono', monospace;
@@ -1587,7 +1796,9 @@ onMounted(() => {
   font-weight: 500;
   transition: opacity 0.15s;
 }
-.rb-modal-link:hover { opacity: 0.75; }
+.rb-modal-link:hover {
+  opacity: 0.75;
+}
 
 .rb-modal-label {
   font-size: 11px;
@@ -1597,7 +1808,10 @@ onMounted(() => {
   color: var(--c-soft);
 }
 
-.rb-modal-input-row { display: flex; gap: 8px; }
+.rb-modal-input-row {
+  display: flex;
+  gap: 8px;
+}
 
 .rb-modal-input {
   flex: 1;
@@ -1611,7 +1825,9 @@ onMounted(() => {
   background: var(--c-surface);
   color: var(--c-text);
 }
-.rb-modal-input:focus { border-color: var(--c-ai); }
+.rb-modal-input:focus {
+  border-color: var(--c-ai);
+}
 
 .rb-modal-current {
   display: flex;
@@ -1648,24 +1864,39 @@ onMounted(() => {
   background: var(--c-ai);
   color: white;
 }
-.rb-modal-btn--primary:hover:not(:disabled) { background: var(--c-ai-h); }
-.rb-modal-btn--primary:disabled { opacity: 0.45; cursor: not-allowed; }
+.rb-modal-btn--primary:hover:not(:disabled) {
+  background: var(--c-ai-h);
+}
+.rb-modal-btn--primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 
 .rb-modal-btn--ghost {
   background: transparent;
   color: var(--c-soft);
   border: 1px solid var(--c-border);
 }
-.rb-modal-btn--ghost:hover { background: var(--c-bg); }
+.rb-modal-btn--ghost:hover {
+  background: var(--c-bg);
+}
 
 .rb-modal-btn--danger {
   background: transparent;
   color: #dc2626;
   border: 1px solid #fecaca;
 }
-.rb-modal-btn--danger:hover { background: #fef2f2; }
+.rb-modal-btn--danger:hover {
+  background: #fef2f2;
+}
 
 /* ── Fade transition ────────────────────────────────────────────────────── */
-.rb-fade-enter-active, .rb-fade-leave-active { transition: opacity 0.18s ease; }
-.rb-fade-enter-from, .rb-fade-leave-to { opacity: 0; }
+.rb-fade-enter-active,
+.rb-fade-leave-active {
+  transition: opacity 0.18s ease;
+}
+.rb-fade-enter-from,
+.rb-fade-leave-to {
+  opacity: 0;
+}
 </style>

@@ -2,7 +2,14 @@
 import { ref, onMounted } from 'vue'
 import type { Card, CardSet } from '../../types'
 import { getSetById } from '../../services/set-service'
-import { getCardsBySet, createCard, updateCard, removeCard, reorderCard, bulkCreateCards } from '../../services/card-service'
+import {
+  getCardsBySet,
+  createCard,
+  updateCard,
+  removeCard,
+  reorderCard,
+  bulkCreateCards,
+} from '../../services/card-service'
 import { useNavigation } from '../../composables/use-navigation'
 import EmptyState from '../layout/EmptyState.vue'
 import ConfirmDialog from '../layout/ConfirmDialog.vue'
@@ -115,12 +122,7 @@ async function handleJsonImport(items: { front: string; back: string }[]) {
     </div>
 
     <!-- Add form -->
-    <CardForm
-      v-if="showAddForm"
-      class="mb-4"
-      @save="handleAddCard"
-      @cancel="showAddForm = false"
-    />
+    <CardForm v-if="showAddForm" class="mb-4" @save="handleAddCard" @cancel="showAddForm = false" />
 
     <!-- Edit form -->
     <CardForm
@@ -143,7 +145,10 @@ async function handleJsonImport(items: { front: string; back: string }[]) {
 
     <div v-else class="space-y-2">
       <!-- Column headers -->
-      <div v-if="cards.length > 0" class="flex items-center gap-3 px-4 py-2 text-xs text-text-dim font-display">
+      <div
+        v-if="cards.length > 0"
+        class="flex items-center gap-3 px-4 py-2 text-xs text-text-dim font-display"
+      >
         <div class="w-6 shrink-0" />
         <div class="flex-1 min-w-0 grid grid-cols-2 gap-4">
           <span>Mặt trước</span>

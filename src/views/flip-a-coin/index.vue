@@ -65,26 +65,36 @@ const flipCoin = (): void => {
 
 <template>
   <div class="min-h-screen bg-[#f7f3ea] px-4 py-8 text-[#6f5534] font-body">
-    <div class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-3xl flex-col items-center justify-center">
-      <h1 class="font-display text-center text-3xl font-bold tracking-[0.2em] text-[#6f5534] uppercase md:text-4xl">
+    <div
+      class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-3xl flex-col items-center justify-center"
+    >
+      <h1
+        class="font-display text-center text-3xl font-bold tracking-[0.2em] text-[#6f5534] uppercase md:text-4xl"
+      >
         Flip a coin
       </h1>
 
-      <div class="coin-container mt-10" role="button" tabindex="0" aria-label="Flip coin" @click="flipCoin">
+      <div
+        class="coin-container mt-10"
+        role="button"
+        tabindex="0"
+        aria-label="Flip coin"
+        @click="flipCoin"
+      >
         <div class="coin" :class="[coinRestClass, coinAnimationClass]">
           <div class="coin-face heads">
             <img
               class="coin-image"
               src="https://media.geeksforgeeks.org/wp-content/uploads/20231016151817/heads.png"
               alt="Heads"
-            >
+            />
           </div>
           <div class="coin-face tails">
             <img
               class="coin-image"
               src="https://media.geeksforgeeks.org/wp-content/uploads/20231016151806/tails.png"
               alt="Tails"
-            >
+            />
           </div>
         </div>
       </div>
@@ -97,8 +107,12 @@ const flipCoin = (): void => {
           {{ result }}
         </p>
         <div class="flex items-center gap-8 text-sm tracking-[0.08em] uppercase">
-          <div>Heads: <span>{{ heads }}</span></div>
-          <div>Tails: <span>{{ tails }}</span></div>
+          <div>
+            Heads: <span>{{ heads }}</span>
+          </div>
+          <div>
+            Tails: <span>{{ tails }}</span>
+          </div>
         </div>
         <button
           type="button"

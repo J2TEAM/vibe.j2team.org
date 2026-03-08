@@ -87,34 +87,45 @@ const showCityPicker = ref(false)
 
 function worldTime(tz: string) {
   const d = now.value
-  const h = d.toLocaleString('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+  const h = d.toLocaleString('en-US', {
+    timeZone: tz,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  })
   return h
 }
 
 function worldDate(tz: string) {
-  return now.value.toLocaleDateString('vi-VN', { timeZone: tz, weekday: 'short', day: 'numeric', month: 'short' })
+  return now.value.toLocaleDateString('vi-VN', {
+    timeZone: tz,
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  })
 }
 
 function worldOffset(tz: string) {
   const formatter = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'shortOffset' })
   const parts = formatter.formatToParts(now.value)
-  const offsetPart = parts.find(p => p.type === 'timeZoneName')
+  const offsetPart = parts.find((p) => p.type === 'timeZoneName')
   return offsetPart?.value ?? ''
 }
 
 function toggleCity(city: WorldCity) {
-  const idx = selectedCities.value.findIndex(c => c.timezone === city.timezone)
+  const idx = selectedCities.value.findIndex((c) => c.timezone === city.timezone)
   if (idx >= 0) {
     selectedCities.value.splice(idx, 1)
   } else {
     // Check if it's in our options list, if not add it as a new city
-    const existing = worldCityOptions.find(c => c.timezone === city.timezone)
+    const existing = worldCityOptions.find((c) => c.timezone === city.timezone)
     selectedCities.value.push(existing ?? city)
   }
 }
 
 function isCitySelected(city: WorldCity) {
-  return selectedCities.value.some(c => c.timezone === city.timezone)
+  return selectedCities.value.some((c) => c.timezone === city.timezone)
 }
 
 // Fullscreen
@@ -342,27 +353,39 @@ watch(mode, () => {
 
 watch(pomodoroSessions, () => {
   sessionPop.value = true
-  setTimeout(() => { sessionPop.value = false }, 300)
+  setTimeout(() => {
+    sessionPop.value = false
+  }, 300)
 })
 
 // ─── Accent color per mode ───────────────────────────────────────────
 const modeAccent = computed(() => {
   switch (mode.value) {
-    case 'clock': return 'coral'
-    case 'stopwatch': return 'sky'
-    case 'countdown': return 'amber'
-    case 'pomodoro': return 'coral'
-    case 'world': return 'sky'
-    default: return 'coral'
+    case 'clock':
+      return 'coral'
+    case 'stopwatch':
+      return 'sky'
+    case 'countdown':
+      return 'amber'
+    case 'pomodoro':
+      return 'coral'
+    case 'world':
+      return 'sky'
+    default:
+      return 'coral'
   }
 })
 
 const phaseLabel = computed(() => {
   switch (pomodoroPhase.value) {
-    case 'work': return 'Làm việc'
-    case 'short-break': return 'Nghỉ ngắn'
-    case 'long-break': return 'Nghỉ dài'
-    default: return ''
+    case 'work':
+      return 'Làm việc'
+    case 'short-break':
+      return 'Nghỉ ngắn'
+    case 'long-break':
+      return 'Nghỉ dài'
+    default:
+      return ''
   }
 })
 
@@ -453,327 +476,360 @@ const clockStyles: { key: ClockStyle; label: string }[] = [
     <!-- Main display area -->
     <div class="flex-1 flex flex-col items-center justify-center px-4 pb-8 w-full">
       <Transition name="mode-switch" mode="out-in" appear>
-      <div :key="mode" class="w-full">
-      <!-- CLOCK MODE -->
-      <template v-if="mode === 'clock'">
-        <Transition name="style-switch" mode="out-in">
-          <DigitalClock
-            v-if="clockStyle === 'digital'"
-            key="digital"
-            :hours="clockTime.h"
-            :minutes="clockTime.m"
-            :seconds="clockTime.s"
-            :date="clockDate"
-          />
-          <AnalogClock
-            v-else-if="clockStyle === 'analog'"
-            key="analog"
-            :hours="now.getHours()"
-            :minutes="now.getMinutes()"
-            :seconds="now.getSeconds()"
-            :date="clockDate"
-          />
-          <FlipClock
-            v-else-if="clockStyle === 'flip'"
-            key="flip"
-            :hours="clockTime.h"
-            :minutes="clockTime.m"
-            :seconds="clockTime.s"
-            :date="clockDate"
-          />
-          <MinimalClock
-            v-else-if="clockStyle === 'minimal'"
-            key="minimal"
-            :hours="clockTime.h"
-            :minutes="clockTime.m"
-            :seconds="clockTime.s"
-            :date="clockDate"
-          />
-        </Transition>
-      </template>
+        <div :key="mode" class="w-full">
+          <!-- CLOCK MODE -->
+          <template v-if="mode === 'clock'">
+            <Transition name="style-switch" mode="out-in">
+              <DigitalClock
+                v-if="clockStyle === 'digital'"
+                key="digital"
+                :hours="clockTime.h"
+                :minutes="clockTime.m"
+                :seconds="clockTime.s"
+                :date="clockDate"
+              />
+              <AnalogClock
+                v-else-if="clockStyle === 'analog'"
+                key="analog"
+                :hours="now.getHours()"
+                :minutes="now.getMinutes()"
+                :seconds="now.getSeconds()"
+                :date="clockDate"
+              />
+              <FlipClock
+                v-else-if="clockStyle === 'flip'"
+                key="flip"
+                :hours="clockTime.h"
+                :minutes="clockTime.m"
+                :seconds="clockTime.s"
+                :date="clockDate"
+              />
+              <MinimalClock
+                v-else-if="clockStyle === 'minimal'"
+                key="minimal"
+                :hours="clockTime.h"
+                :minutes="clockTime.m"
+                :seconds="clockTime.s"
+                :date="clockDate"
+              />
+            </Transition>
+          </template>
 
-      <!-- STOPWATCH MODE -->
-      <template v-if="mode === 'stopwatch'">
-        <div class="text-center">
-          <div class="font-display font-bold tracking-tight leading-none">
-            <span
-              class="text-6xl min-[375px]:text-7xl sm:text-8xl md:text-9xl lg:text-[11rem]"
-              :class="stopwatchRunning ? 'text-accent-sky stopwatch-glow' : 'text-text-primary'"
-            >
-              {{ stopwatchDisplay.h }}:{{ stopwatchDisplay.m }}:{{ stopwatchDisplay.s }}
-            </span>
-            <span class="text-3xl sm:text-4xl md:text-5xl text-text-dim ml-1">.{{ stopwatchDisplay.cs }}</span>
-          </div>
-
-          <div class="flex justify-center gap-3 mt-10">
-            <button
-              class="border px-6 py-3 text-sm font-display tracking-wide transition-all duration-300"
-              :class="
-                stopwatchRunning
-                  ? 'border-accent-amber text-accent-amber hover:bg-accent-amber/10'
-                  : 'border-accent-sky text-accent-sky hover:bg-accent-sky/10'
-              "
-              @click="toggleStopwatch"
-            >
-              {{ stopwatchRunning ? 'Tạm dừng' : stopwatchMs > 0 ? 'Tiếp tục' : 'Bắt đầu' }}
-            </button>
-            <button
-              v-if="stopwatchRunning"
-              class="border border-border-default text-text-secondary px-6 py-3 text-sm font-display tracking-wide transition hover:border-accent-sky hover:text-accent-sky"
-              @click="recordLap"
-            >
-              Vòng
-            </button>
-            <button
-              v-if="stopwatchMs > 0 && !stopwatchRunning"
-              class="border border-border-default text-text-secondary px-6 py-3 text-sm font-display tracking-wide transition hover:border-accent-coral hover:text-accent-coral"
-              @click="resetStopwatch"
-            >
-              Đặt lại
-            </button>
-          </div>
-
-          <!-- Lap list -->
-          <div v-if="stopwatchLaps.length > 0" class="mt-8 w-full max-w-sm mx-auto">
-            <div class="flex items-center justify-between mb-3">
-              <div class="h-px flex-1 bg-border-default" />
-              <button
-                class="ml-3 text-xs font-display tracking-widest text-text-dim transition hover:text-accent-coral"
-                @click="clearLaps"
-              >
-                Xoá vòng
-              </button>
-            </div>
-            <div class="max-h-48 overflow-y-auto space-y-1 tick-scrollbar">
-              <div
-                v-for="(lap, i) in [...stopwatchLaps].reverse()"
-                :key="i"
-                class="flex justify-between px-3 py-1.5 text-sm font-display tracking-wide"
-                :class="i === 0 ? 'text-accent-sky' : 'text-text-dim'"
-              >
-                <span>Vòng {{ stopwatchLaps.length - i }}</span>
-                <span>{{ formatMs(lap).m }}:{{ formatMs(lap).s }}.{{ formatMs(lap).cs }}</span>
+          <!-- STOPWATCH MODE -->
+          <template v-if="mode === 'stopwatch'">
+            <div class="text-center">
+              <div class="font-display font-bold tracking-tight leading-none">
+                <span
+                  class="text-6xl min-[375px]:text-7xl sm:text-8xl md:text-9xl lg:text-[11rem]"
+                  :class="stopwatchRunning ? 'text-accent-sky stopwatch-glow' : 'text-text-primary'"
+                >
+                  {{ stopwatchDisplay.h }}:{{ stopwatchDisplay.m }}:{{ stopwatchDisplay.s }}
+                </span>
+                <span class="text-3xl sm:text-4xl md:text-5xl text-text-dim ml-1"
+                  >.{{ stopwatchDisplay.cs }}</span
+                >
               </div>
-            </div>
-          </div>
-        </div>
-      </template>
 
-      <!-- COUNTDOWN MODE -->
-      <template v-if="mode === 'countdown'">
-        <div class="text-center">
-          <!-- Input -->
-          <div v-if="countdownEditing" class="flex items-center justify-center gap-3">
-            <div class="flex flex-col items-center">
-              <label class="text-text-dim text-xs font-display tracking-widest mb-2">PHÚT</label>
-              <input
-                v-model.number="countdownInputMin"
-                type="number"
-                min="0"
-                max="999"
-                class="w-24 sm:w-32 bg-bg-surface border border-border-default text-center text-text-primary font-display text-4xl sm:text-5xl py-3 focus:outline-none focus:border-accent-amber transition"
-              />
-            </div>
-            <span class="text-accent-amber font-display text-4xl sm:text-5xl font-bold mt-6">:</span>
-            <div class="flex flex-col items-center">
-              <label class="text-text-dim text-xs font-display tracking-widest mb-2">GIÂY</label>
-              <input
-                v-model.number="countdownInputSec"
-                type="number"
-                min="0"
-                max="59"
-                class="w-24 sm:w-32 bg-bg-surface border border-border-default text-center text-text-primary font-display text-4xl sm:text-5xl py-3 focus:outline-none focus:border-accent-amber transition"
-              />
-            </div>
-          </div>
+              <div class="flex justify-center gap-3 mt-10">
+                <button
+                  class="border px-6 py-3 text-sm font-display tracking-wide transition-all duration-300"
+                  :class="
+                    stopwatchRunning
+                      ? 'border-accent-amber text-accent-amber hover:bg-accent-amber/10'
+                      : 'border-accent-sky text-accent-sky hover:bg-accent-sky/10'
+                  "
+                  @click="toggleStopwatch"
+                >
+                  {{ stopwatchRunning ? 'Tạm dừng' : stopwatchMs > 0 ? 'Tiếp tục' : 'Bắt đầu' }}
+                </button>
+                <button
+                  v-if="stopwatchRunning"
+                  class="border border-border-default text-text-secondary px-6 py-3 text-sm font-display tracking-wide transition hover:border-accent-sky hover:text-accent-sky"
+                  @click="recordLap"
+                >
+                  Vòng
+                </button>
+                <button
+                  v-if="stopwatchMs > 0 && !stopwatchRunning"
+                  class="border border-border-default text-text-secondary px-6 py-3 text-sm font-display tracking-wide transition hover:border-accent-coral hover:text-accent-coral"
+                  @click="resetStopwatch"
+                >
+                  Đặt lại
+                </button>
+              </div>
 
-          <!-- Running display -->
-          <div v-else>
-            <!-- Progress bar -->
-            <div class="w-full max-w-md mx-auto h-1 bg-bg-surface mb-8">
-              <div
-                class="h-full bg-accent-amber transition-all duration-1000 ease-linear"
-                :style="{ width: countdownProgress + '%' }"
-              />
-            </div>
-
-            <div class="font-display font-bold tracking-tight leading-none">
-              <span
-                class="text-6xl min-[375px]:text-7xl sm:text-8xl md:text-9xl lg:text-[11rem]"
-                :class="countdownRemaining <= 0 ? 'text-accent-coral' : 'text-text-primary'"
-              >
-                {{ countdownDisplay.h }}:{{ countdownDisplay.m }}:{{ countdownDisplay.s }}
-              </span>
-            </div>
-
-            <p v-if="countdownRemaining <= 0" class="mt-4 text-accent-coral font-display tracking-widest text-sm animate-bounce-alert">
-              HẾT GIỜ
-            </p>
-          </div>
-
-          <div class="flex justify-center gap-3 mt-10">
-            <button
-              class="border px-6 py-3 text-sm font-display tracking-wide transition-all duration-300"
-              :class="
-                countdownRunning
-                  ? 'border-accent-coral text-accent-coral hover:bg-accent-coral/10'
-                  : 'border-accent-amber text-accent-amber hover:bg-accent-amber/10'
-              "
-              @click="toggleCountdown"
-            >
-              {{ countdownRunning ? 'Tạm dừng' : countdownEditing ? 'Bắt đầu' : 'Tiếp tục' }}
-            </button>
-            <button
-              v-if="!countdownEditing"
-              class="border border-border-default text-text-secondary px-6 py-3 text-sm font-display tracking-wide transition hover:border-accent-coral hover:text-accent-coral"
-              @click="resetCountdown"
-            >
-              Đặt lại
-            </button>
-          </div>
-        </div>
-      </template>
-
-      <!-- POMODORO MODE -->
-      <template v-if="mode === 'pomodoro'">
-        <div class="text-center">
-          <!-- Phase selector -->
-          <div class="flex justify-center gap-2 mb-8">
-            <button
-              v-for="preset in pomodoroPresets"
-              :key="preset.phase"
-              class="px-4 py-2 text-sm font-display tracking-wide border transition-all duration-300"
-              :class="
-                pomodoroPhase === preset.phase
-                  ? 'border-accent-coral text-accent-coral bg-bg-surface'
-                  : 'border-border-default text-text-dim hover:text-text-secondary hover:border-border-default'
-              "
-              @click="selectPomodoro(preset)"
-            >
-              {{ preset.label }}
-            </button>
-          </div>
-
-          <!-- Circular progress ring -->
-          <div class="relative inline-flex items-center justify-center mb-6">
-            <svg class="w-64 h-64 sm:w-80 sm:h-80 -rotate-90" viewBox="0 0 200 200">
-              <circle
-                cx="100"
-                cy="100"
-                r="90"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                class="text-bg-surface"
-              />
-              <circle
-                cx="100"
-                cy="100"
-                r="90"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="3"
-                stroke-linecap="butt"
-                class="text-accent-coral transition-all duration-1000 ease-linear"
-                :stroke-dasharray="565.48"
-                :stroke-dashoffset="565.48 - (565.48 * pomodoroProgress) / 100"
-              />
-            </svg>
-            <div class="absolute font-display font-bold">
-              <span class="text-5xl sm:text-6xl text-text-primary">
-                {{ pomodoroDisplay.m }}:{{ pomodoroDisplay.s }}
-              </span>
-              <p class="text-text-dim text-xs font-display tracking-widest mt-1">
-                {{ phaseLabel.toUpperCase() }}
-              </p>
-            </div>
-          </div>
-
-          <!-- Sessions counter -->
-          <p class="text-text-dim text-xs font-display tracking-widest mb-6">
-            <span class="text-accent-amber inline-block" :class="{ 'session-pop': sessionPop }">{{ pomodoroSessions }}</span> phiên hoàn thành
-          </p>
-
-          <div class="flex justify-center gap-3">
-            <button
-              class="border px-6 py-3 text-sm font-display tracking-wide transition-all duration-300"
-              :class="
-                pomodoroRunning
-                  ? 'border-accent-amber text-accent-amber hover:bg-accent-amber/10'
-                  : 'border-accent-coral text-accent-coral hover:bg-accent-coral/10'
-              "
-              @click="togglePomodoro"
-            >
-              {{ pomodoroRunning ? 'Tạm dừng' : pomodoroRemaining < pomodoroTotal ? 'Tiếp tục' : 'Bắt đầu' }}
-            </button>
-            <button
-              v-if="pomodoroRemaining < pomodoroTotal"
-              class="border border-border-default text-text-secondary px-6 py-3 text-sm font-display tracking-wide transition hover:border-accent-coral hover:text-accent-coral"
-              @click="resetPomodoro"
-            >
-              Đặt lại
-            </button>
-          </div>
-        </div>
-      </template>
-
-      <!-- WORLD CLOCK MODE -->
-      <template v-if="mode === 'world'">
-        <div class="text-center w-full mx-auto">
-          <!-- City cards -->
-          <div class="max-w-lg mx-auto">
-            <div class="space-y-3 mb-8">
-            <div
-              v-for="city in selectedCities"
-              :key="city.timezone"
-              class="flex items-center justify-between border border-border-default bg-bg-surface px-5 py-4 transition-all duration-300 hover:border-accent-sky/40"
-            >
-              <div class="flex items-center gap-3 text-left">
-                <span class="text-xl">{{ city.flag }}</span>
-                <div>
-                  <p class="text-text-primary font-display text-sm tracking-wide">{{ city.label }}</p>
-                  <p class="text-text-dim text-xs font-display tracking-widest">{{ worldDate(city.timezone) }} · {{ worldOffset(city.timezone) }}</p>
+              <!-- Lap list -->
+              <div v-if="stopwatchLaps.length > 0" class="mt-8 w-full max-w-sm mx-auto">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="h-px flex-1 bg-border-default" />
+                  <button
+                    class="ml-3 text-xs font-display tracking-widest text-text-dim transition hover:text-accent-coral"
+                    @click="clearLaps"
+                  >
+                    Xoá vòng
+                  </button>
+                </div>
+                <div class="max-h-48 overflow-y-auto space-y-1 tick-scrollbar">
+                  <div
+                    v-for="(lap, i) in [...stopwatchLaps].reverse()"
+                    :key="i"
+                    class="flex justify-between px-3 py-1.5 text-sm font-display tracking-wide"
+                    :class="i === 0 ? 'text-accent-sky' : 'text-text-dim'"
+                  >
+                    <span>Vòng {{ stopwatchLaps.length - i }}</span>
+                    <span>{{ formatMs(lap).m }}:{{ formatMs(lap).s }}.{{ formatMs(lap).cs }}</span>
+                  </div>
                 </div>
               </div>
-              <span class="text-text-primary font-display font-bold text-2xl sm:text-3xl tracking-tight tabular-nums">
-                {{ worldTime(city.timezone) }}
-              </span>
             </div>
-          </div>
+          </template>
 
-          <!-- Add/remove cities -->
-          <button
-            class="border border-border-default text-text-secondary px-5 py-2.5 text-sm font-display tracking-wide transition-all duration-300 hover:border-accent-sky hover:text-accent-sky"
-            @click="showCityPicker = !showCityPicker"
-          >
-            {{ showCityPicker ? 'Đóng' : 'Chọn thành phố' }}
-          </button>
-
-          <!-- City picker -->
-          <Transition name="style-switch">
-            <div v-if="showCityPicker" class="mt-4 border border-border-default bg-bg-surface p-4">
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-56 overflow-y-auto tick-scrollbar">
-                <button
-                  v-for="city in worldCityOptions"
-                  :key="city.timezone"
-                  class="flex items-center gap-2 px-3 py-2 text-sm font-display tracking-wide border transition-all duration-200"
-                  :class="
-                    isCitySelected(city)
-                      ? 'border-accent-sky text-accent-sky bg-accent-sky/5'
-                      : 'border-transparent text-text-dim hover:text-text-secondary'
-                  "
-                  @click="toggleCity(city)"
+          <!-- COUNTDOWN MODE -->
+          <template v-if="mode === 'countdown'">
+            <div class="text-center">
+              <!-- Input -->
+              <div v-if="countdownEditing" class="flex items-center justify-center gap-3">
+                <div class="flex flex-col items-center">
+                  <label class="text-text-dim text-xs font-display tracking-widest mb-2"
+                    >PHÚT</label
+                  >
+                  <input
+                    v-model.number="countdownInputMin"
+                    type="number"
+                    min="0"
+                    max="999"
+                    class="w-24 sm:w-32 bg-bg-surface border border-border-default text-center text-text-primary font-display text-4xl sm:text-5xl py-3 focus:outline-none focus:border-accent-amber transition"
+                  />
+                </div>
+                <span class="text-accent-amber font-display text-4xl sm:text-5xl font-bold mt-6"
+                  >:</span
                 >
-                  <span>{{ city.flag }}</span>
-                  <span>{{ city.label }}</span>
+                <div class="flex flex-col items-center">
+                  <label class="text-text-dim text-xs font-display tracking-widest mb-2"
+                    >GIÂY</label
+                  >
+                  <input
+                    v-model.number="countdownInputSec"
+                    type="number"
+                    min="0"
+                    max="59"
+                    class="w-24 sm:w-32 bg-bg-surface border border-border-default text-center text-text-primary font-display text-4xl sm:text-5xl py-3 focus:outline-none focus:border-accent-amber transition"
+                  />
+                </div>
+              </div>
+
+              <!-- Running display -->
+              <div v-else>
+                <!-- Progress bar -->
+                <div class="w-full max-w-md mx-auto h-1 bg-bg-surface mb-8">
+                  <div
+                    class="h-full bg-accent-amber transition-all duration-1000 ease-linear"
+                    :style="{ width: countdownProgress + '%' }"
+                  />
+                </div>
+
+                <div class="font-display font-bold tracking-tight leading-none">
+                  <span
+                    class="text-6xl min-[375px]:text-7xl sm:text-8xl md:text-9xl lg:text-[11rem]"
+                    :class="countdownRemaining <= 0 ? 'text-accent-coral' : 'text-text-primary'"
+                  >
+                    {{ countdownDisplay.h }}:{{ countdownDisplay.m }}:{{ countdownDisplay.s }}
+                  </span>
+                </div>
+
+                <p
+                  v-if="countdownRemaining <= 0"
+                  class="mt-4 text-accent-coral font-display tracking-widest text-sm animate-bounce-alert"
+                >
+                  HẾT GIỜ
+                </p>
+              </div>
+
+              <div class="flex justify-center gap-3 mt-10">
+                <button
+                  class="border px-6 py-3 text-sm font-display tracking-wide transition-all duration-300"
+                  :class="
+                    countdownRunning
+                      ? 'border-accent-coral text-accent-coral hover:bg-accent-coral/10'
+                      : 'border-accent-amber text-accent-amber hover:bg-accent-amber/10'
+                  "
+                  @click="toggleCountdown"
+                >
+                  {{ countdownRunning ? 'Tạm dừng' : countdownEditing ? 'Bắt đầu' : 'Tiếp tục' }}
+                </button>
+                <button
+                  v-if="!countdownEditing"
+                  class="border border-border-default text-text-secondary px-6 py-3 text-sm font-display tracking-wide transition hover:border-accent-coral hover:text-accent-coral"
+                  @click="resetCountdown"
+                >
+                  Đặt lại
                 </button>
               </div>
             </div>
-          </Transition>
-          </div>
+          </template>
+
+          <!-- POMODORO MODE -->
+          <template v-if="mode === 'pomodoro'">
+            <div class="text-center">
+              <!-- Phase selector -->
+              <div class="flex justify-center gap-2 mb-8">
+                <button
+                  v-for="preset in pomodoroPresets"
+                  :key="preset.phase"
+                  class="px-4 py-2 text-sm font-display tracking-wide border transition-all duration-300"
+                  :class="
+                    pomodoroPhase === preset.phase
+                      ? 'border-accent-coral text-accent-coral bg-bg-surface'
+                      : 'border-border-default text-text-dim hover:text-text-secondary hover:border-border-default'
+                  "
+                  @click="selectPomodoro(preset)"
+                >
+                  {{ preset.label }}
+                </button>
+              </div>
+
+              <!-- Circular progress ring -->
+              <div class="relative inline-flex items-center justify-center mb-6">
+                <svg class="w-64 h-64 sm:w-80 sm:h-80 -rotate-90" viewBox="0 0 200 200">
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="90"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    class="text-bg-surface"
+                  />
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="90"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-linecap="butt"
+                    class="text-accent-coral transition-all duration-1000 ease-linear"
+                    :stroke-dasharray="565.48"
+                    :stroke-dashoffset="565.48 - (565.48 * pomodoroProgress) / 100"
+                  />
+                </svg>
+                <div class="absolute font-display font-bold">
+                  <span class="text-5xl sm:text-6xl text-text-primary">
+                    {{ pomodoroDisplay.m }}:{{ pomodoroDisplay.s }}
+                  </span>
+                  <p class="text-text-dim text-xs font-display tracking-widest mt-1">
+                    {{ phaseLabel.toUpperCase() }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Sessions counter -->
+              <p class="text-text-dim text-xs font-display tracking-widest mb-6">
+                <span
+                  class="text-accent-amber inline-block"
+                  :class="{ 'session-pop': sessionPop }"
+                  >{{ pomodoroSessions }}</span
+                >
+                phiên hoàn thành
+              </p>
+
+              <div class="flex justify-center gap-3">
+                <button
+                  class="border px-6 py-3 text-sm font-display tracking-wide transition-all duration-300"
+                  :class="
+                    pomodoroRunning
+                      ? 'border-accent-amber text-accent-amber hover:bg-accent-amber/10'
+                      : 'border-accent-coral text-accent-coral hover:bg-accent-coral/10'
+                  "
+                  @click="togglePomodoro"
+                >
+                  {{
+                    pomodoroRunning
+                      ? 'Tạm dừng'
+                      : pomodoroRemaining < pomodoroTotal
+                        ? 'Tiếp tục'
+                        : 'Bắt đầu'
+                  }}
+                </button>
+                <button
+                  v-if="pomodoroRemaining < pomodoroTotal"
+                  class="border border-border-default text-text-secondary px-6 py-3 text-sm font-display tracking-wide transition hover:border-accent-coral hover:text-accent-coral"
+                  @click="resetPomodoro"
+                >
+                  Đặt lại
+                </button>
+              </div>
+            </div>
+          </template>
+
+          <!-- WORLD CLOCK MODE -->
+          <template v-if="mode === 'world'">
+            <div class="text-center w-full mx-auto">
+              <!-- City cards -->
+              <div class="max-w-lg mx-auto">
+                <div class="space-y-3 mb-8">
+                  <div
+                    v-for="city in selectedCities"
+                    :key="city.timezone"
+                    class="flex items-center justify-between border border-border-default bg-bg-surface px-5 py-4 transition-all duration-300 hover:border-accent-sky/40"
+                  >
+                    <div class="flex items-center gap-3 text-left">
+                      <span class="text-xl">{{ city.flag }}</span>
+                      <div>
+                        <p class="text-text-primary font-display text-sm tracking-wide">
+                          {{ city.label }}
+                        </p>
+                        <p class="text-text-dim text-xs font-display tracking-widest">
+                          {{ worldDate(city.timezone) }} · {{ worldOffset(city.timezone) }}
+                        </p>
+                      </div>
+                    </div>
+                    <span
+                      class="text-text-primary font-display font-bold text-2xl sm:text-3xl tracking-tight tabular-nums"
+                    >
+                      {{ worldTime(city.timezone) }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Add/remove cities -->
+                <button
+                  class="border border-border-default text-text-secondary px-5 py-2.5 text-sm font-display tracking-wide transition-all duration-300 hover:border-accent-sky hover:text-accent-sky"
+                  @click="showCityPicker = !showCityPicker"
+                >
+                  {{ showCityPicker ? 'Đóng' : 'Chọn thành phố' }}
+                </button>
+
+                <!-- City picker -->
+                <Transition name="style-switch">
+                  <div
+                    v-if="showCityPicker"
+                    class="mt-4 border border-border-default bg-bg-surface p-4"
+                  >
+                    <div
+                      class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-56 overflow-y-auto tick-scrollbar"
+                    >
+                      <button
+                        v-for="city in worldCityOptions"
+                        :key="city.timezone"
+                        class="flex items-center gap-2 px-3 py-2 text-sm font-display tracking-wide border transition-all duration-200"
+                        :class="
+                          isCitySelected(city)
+                            ? 'border-accent-sky text-accent-sky bg-accent-sky/5'
+                            : 'border-transparent text-text-dim hover:text-text-secondary'
+                        "
+                        @click="toggleCity(city)"
+                      >
+                        <span>{{ city.flag }}</span>
+                        <span>{{ city.label }}</span>
+                      </button>
+                    </div>
+                  </div>
+                </Transition>
+              </div>
+            </div>
+          </template>
         </div>
-      </template>
-      </div>
       </Transition>
     </div>
 
@@ -790,10 +846,14 @@ const clockStyles: { key: ClockStyle; label: string }[] = [
 <style scoped>
 /* ── Mode switch transition ── */
 .mode-switch-enter-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 .mode-switch-leave-active {
-  transition: opacity 0.12s ease, transform 0.12s ease;
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
 }
 .mode-switch-enter-from {
   opacity: 0;
@@ -807,7 +867,9 @@ const clockStyles: { key: ClockStyle; label: string }[] = [
 /* ── Clock style switch ── */
 .style-switch-enter-active,
 .style-switch-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 .style-switch-enter-from {
   opacity: 0;
@@ -832,8 +894,15 @@ button:active {
 
 /* ── HẾT GIỜ bounce ── */
 @keyframes bounce-alert {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.12); opacity: 0.85; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.85;
+  }
 }
 .animate-bounce-alert {
   animation: bounce-alert 0.8s ease-in-out infinite;
@@ -841,8 +910,13 @@ button:active {
 
 /* ── Stopwatch running glow ── */
 @keyframes subtle-glow {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.2); }
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.2);
+  }
 }
 .stopwatch-glow {
   animation: subtle-glow 1.5s ease-in-out infinite;
@@ -850,9 +924,15 @@ button:active {
 
 /* ── Pomodoro session pop ── */
 @keyframes pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.5); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 .session-pop {
   animation: pop 0.3s ease;
@@ -865,7 +945,7 @@ button:active {
 }
 .tick-scrollbar::-webkit-scrollbar-track,
 :deep(*)::-webkit-scrollbar-track {
-  background: #0F1923;
+  background: #0f1923;
 }
 .tick-scrollbar::-webkit-scrollbar-thumb,
 :deep(*)::-webkit-scrollbar-thumb {
@@ -874,13 +954,13 @@ button:active {
 }
 .tick-scrollbar::-webkit-scrollbar-thumb:hover,
 :deep(*)::-webkit-scrollbar-thumb:hover {
-  background: #FF6B4A;
+  background: #ff6b4a;
 }
 
 /* Firefox */
 .tick-scrollbar,
 :deep(*) {
   scrollbar-width: thin;
-  scrollbar-color: #253549 #0F1923;
+  scrollbar-color: #253549 #0f1923;
 }
 </style>

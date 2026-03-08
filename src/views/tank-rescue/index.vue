@@ -9,10 +9,23 @@ import type { Direction } from './types'
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 const {
-  gameState, score, playerHealth, playerMaxHealth, enemiesLeft,
-  currentLevel, levelName, hasShield, hasRapidFire,
-  shieldPercent, rapidFirePercent, highScore,
-  start, resume, togglePause, setTouchDir, setTouchShoot,
+  gameState,
+  score,
+  playerHealth,
+  playerMaxHealth,
+  enemiesLeft,
+  currentLevel,
+  levelName,
+  hasShield,
+  hasRapidFire,
+  shieldPercent,
+  rapidFirePercent,
+  highScore,
+  start,
+  resume,
+  togglePause,
+  setTouchDir,
+  setTouchShoot,
 } = useGameEngine(() => canvasRef.value)
 
 function handleTouchStart(dir: Direction) {
@@ -34,7 +47,10 @@ function handleShootEnd() {
 
 <template>
   <!-- ==================== MENU SCREEN ==================== -->
-  <div v-if="gameState === 'menu'" class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col tr-menu-bg overflow-hidden">
+  <div
+    v-if="gameState === 'menu'"
+    class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col tr-menu-bg overflow-hidden"
+  >
     <div class="tr-grid-overlay" />
     <div class="tr-scanline" />
 
@@ -69,15 +85,21 @@ function handleShootEnd() {
         // Nhiệm vụ giải cứu
       </p>
 
-      <h1 class="text-5xl sm:text-6xl font-display font-bold text-center leading-tight mb-2 animate-fade-up animate-delay-1">
+      <h1
+        class="text-5xl sm:text-6xl font-display font-bold text-center leading-tight mb-2 animate-fade-up animate-delay-1"
+      >
         <span class="tr-title-glow">TANK</span>
         <br />
         <span class="text-accent-coral tr-title-glow-coral">RESCUE</span>
       </h1>
 
-      <div class="w-24 h-px bg-gradient-to-r from-transparent via-accent-coral/60 to-transparent my-4 animate-fade-up animate-delay-1" />
+      <div
+        class="w-24 h-px bg-gradient-to-r from-transparent via-accent-coral/60 to-transparent my-4 animate-fade-up animate-delay-1"
+      />
 
-      <p class="text-text-secondary text-center max-w-sm text-sm leading-relaxed mb-1 animate-fade-up animate-delay-2">
+      <p
+        class="text-text-secondary text-center max-w-sm text-sm leading-relaxed mb-1 animate-fade-up animate-delay-2"
+      >
         Điều khiển xe tăng, tiêu diệt kẻ địch<br class="hidden sm:block" />
         và giải cứu công chúa khỏi lâu đài bóng tối!
       </p>
@@ -91,20 +113,31 @@ function handleShootEnd() {
       </div>
 
       <!-- High score -->
-      <p v-if="highScore > 0" class="text-accent-amber/60 text-xs mb-4 animate-fade-up animate-delay-2">
+      <p
+        v-if="highScore > 0"
+        class="text-accent-amber/60 text-xs mb-4 animate-fade-up animate-delay-2"
+      >
         Kỷ lục: <span class="font-bold tabular-nums">{{ highScore }}</span>
       </p>
 
       <button class="tr-btn-play group animate-fade-up animate-delay-3" @click="start">
         <span class="relative z-10 flex items-center gap-2">
-          <svg class="w-5 h-5 transition group-hover:translate-x-0.5" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M6.3 2.8A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.31l9.56-5.89a1.5 1.5 0 000-2.62L6.3 2.8z" />
+          <svg
+            class="w-5 h-5 transition group-hover:translate-x-0.5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              d="M6.3 2.8A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.31l9.56-5.89a1.5 1.5 0 000-2.62L6.3 2.8z"
+            />
           </svg>
           BẮT ĐẦU
         </span>
       </button>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-10 w-full max-w-lg animate-fade-up animate-delay-4">
+      <div
+        class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-10 w-full max-w-lg animate-fade-up animate-delay-4"
+      >
         <div class="tr-info-card">
           <p class="tr-info-label">Điều khiển</p>
           <div class="space-y-1.5 text-xs">
@@ -146,15 +179,24 @@ function handleShootEnd() {
           <p class="tr-info-label">Vật phẩm</p>
           <div class="space-y-1.5 text-xs">
             <div class="flex items-center gap-1.5">
-              <span class="w-4 h-4 rounded-full bg-green-500/20 border border-green-500/40 flex items-center justify-center text-green-400 text-[9px] font-bold">+</span>
+              <span
+                class="w-4 h-4 rounded-full bg-green-500/20 border border-green-500/40 flex items-center justify-center text-green-400 text-[9px] font-bold"
+                >+</span
+              >
               <span class="text-text-secondary">Hồi máu</span>
             </div>
             <div class="flex items-center gap-1.5">
-              <span class="w-4 h-4 rounded-full bg-yellow-500/20 border border-yellow-500/40 flex items-center justify-center text-yellow-400 text-[9px] font-bold">F</span>
+              <span
+                class="w-4 h-4 rounded-full bg-yellow-500/20 border border-yellow-500/40 flex items-center justify-center text-yellow-400 text-[9px] font-bold"
+                >F</span
+              >
               <span class="text-text-secondary">Bắn nhanh</span>
             </div>
             <div class="flex items-center gap-1.5">
-              <span class="w-4 h-4 rounded-full bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 text-[9px] font-bold">S</span>
+              <span
+                class="w-4 h-4 rounded-full bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 text-[9px] font-bold"
+                >S</span
+              >
               <span class="text-text-secondary">Khiên bảo vệ</span>
             </div>
           </div>
@@ -163,15 +205,29 @@ function handleShootEnd() {
     </main>
 
     <footer class="relative z-10 w-full border-t border-border-default/50 mt-auto">
-      <div class="max-w-[860px] mx-auto px-4 py-3 flex items-center justify-between text-xs text-text-secondary">
-        <span>Made with &#9829; by <a href="https://www.facebook.com/nosiaht" target="_blank" rel="noopener noreferrer" class="text-accent-coral hover:underline">sondt</a></span>
+      <div
+        class="max-w-[860px] mx-auto px-4 py-3 flex items-center justify-between text-xs text-text-secondary"
+      >
+        <span
+          >Made with &#9829; by
+          <a
+            href="https://www.facebook.com/nosiaht"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-accent-coral hover:underline"
+            >sondt</a
+          ></span
+        >
         <span class="text-text-secondary/40">vibe.j2team.org</span>
       </div>
     </footer>
   </div>
 
   <!-- ==================== GAME SCREEN ==================== -->
-  <div v-else class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col items-center">
+  <div
+    v-else
+    class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col items-center"
+  >
     <!-- Header — z-20 to stay above canvas overlays -->
     <header class="relative z-20 w-full border-b border-border-default">
       <div class="max-w-[860px] mx-auto px-4 py-3 flex items-center justify-between">
@@ -183,7 +239,9 @@ function handleShootEnd() {
         </RouterLink>
         <div class="text-center">
           <p class="text-[10px] tracking-widest text-accent-amber uppercase">// Tank Rescue</p>
-          <h1 class="text-lg font-display font-bold text-accent-coral leading-tight">Giải Cứu Công Chúa</h1>
+          <h1 class="text-lg font-display font-bold text-accent-coral leading-tight">
+            Giải Cứu Công Chúa
+          </h1>
         </div>
         <button
           v-if="gameState === 'playing' || gameState === 'paused'"
@@ -201,7 +259,9 @@ function handleShootEnd() {
       v-if="gameState === 'playing' || gameState === 'paused' || gameState === 'level_transition'"
       class="w-full max-w-[860px] px-4 py-2"
     >
-      <div class="flex flex-wrap items-center justify-between gap-2 rounded border border-border-default bg-bg-surface/80 px-3 py-2 text-sm backdrop-blur-sm sm:px-4">
+      <div
+        class="flex flex-wrap items-center justify-between gap-2 rounded border border-border-default bg-bg-surface/80 px-3 py-2 text-sm backdrop-blur-sm sm:px-4"
+      >
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-1.5">
             <span class="text-text-secondary text-xs">HP</span>
@@ -210,21 +270,37 @@ function handleShootEnd() {
                 v-for="i in playerMaxHealth"
                 :key="i"
                 class="inline-block h-3 w-3 rounded-sm border"
-                :class="i <= playerHealth ? 'bg-green-500 border-green-400' : 'bg-bg-deep border-border-default'"
+                :class="
+                  i <= playerHealth
+                    ? 'bg-green-500 border-green-400'
+                    : 'bg-bg-deep border-border-default'
+                "
               />
             </div>
           </div>
           <!-- Buff indicators with timer bars -->
           <div v-if="hasShield" class="flex items-center gap-1">
-            <span class="rounded bg-blue-500/20 px-1.5 py-0.5 text-[10px] text-blue-400 border border-blue-500/30">Khiên</span>
+            <span
+              class="rounded bg-blue-500/20 px-1.5 py-0.5 text-[10px] text-blue-400 border border-blue-500/30"
+              >Khiên</span
+            >
             <div class="w-8 h-1.5 bg-bg-deep rounded-full overflow-hidden">
-              <div class="h-full bg-blue-400 transition-all duration-200" :style="{ width: shieldPercent + '%' }" />
+              <div
+                class="h-full bg-blue-400 transition-all duration-200"
+                :style="{ width: shieldPercent + '%' }"
+              />
             </div>
           </div>
           <div v-if="hasRapidFire" class="flex items-center gap-1">
-            <span class="rounded bg-yellow-500/20 px-1.5 py-0.5 text-[10px] text-yellow-400 border border-yellow-500/30">Bắn nhanh</span>
+            <span
+              class="rounded bg-yellow-500/20 px-1.5 py-0.5 text-[10px] text-yellow-400 border border-yellow-500/30"
+              >Bắn nhanh</span
+            >
             <div class="w-8 h-1.5 bg-bg-deep rounded-full overflow-hidden">
-              <div class="h-full bg-yellow-400 transition-all duration-200" :style="{ width: rapidFirePercent + '%' }" />
+              <div
+                class="h-full bg-yellow-400 transition-all duration-200"
+                :style="{ width: rapidFirePercent + '%' }"
+              />
             </div>
           </div>
         </div>
@@ -234,7 +310,10 @@ function handleShootEnd() {
             Địch: <span class="text-accent-coral font-bold tabular-nums">{{ enemiesLeft }}</span>
           </span>
           <span class="text-text-secondary text-xs">
-            Màn: <span class="text-text-primary font-bold tabular-nums">{{ currentLevel + 1 }}/{{ LEVELS.length }}</span>
+            Màn:
+            <span class="text-text-primary font-bold tabular-nums"
+              >{{ currentLevel + 1 }}/{{ LEVELS.length }}</span
+            >
           </span>
         </div>
       </div>
@@ -248,7 +327,9 @@ function handleShootEnd() {
         class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-bg-deep/90 backdrop-blur-sm"
       >
         <p class="text-[10px] tracking-widest text-accent-amber uppercase mb-2">// Màn tiếp theo</p>
-        <h2 class="text-3xl font-display font-bold text-accent-coral mb-2">Màn {{ currentLevel + 1 }}</h2>
+        <h2 class="text-3xl font-display font-bold text-accent-coral mb-2">
+          Màn {{ currentLevel + 1 }}
+        </h2>
         <p class="text-text-secondary text-lg">{{ levelName }}</p>
       </div>
 
@@ -277,9 +358,13 @@ function handleShootEnd() {
         v-if="gameState === 'won'"
         class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-bg-deep/95 backdrop-blur-sm"
       >
-        <div class="border border-accent-coral bg-bg-surface p-8 text-center max-w-sm tr-ending-fade">
+        <div
+          class="border border-accent-coral bg-bg-surface p-8 text-center max-w-sm tr-ending-fade"
+        >
           <p class="text-[10px] tracking-widest text-accent-amber uppercase mb-2">// Chiến thắng</p>
-          <h2 class="text-3xl font-display font-bold text-green-400 mb-2">Công chúa đã được giải cứu!</h2>
+          <h2 class="text-3xl font-display font-bold text-green-400 mb-2">
+            Công chúa đã được giải cứu!
+          </h2>
           <p class="text-5xl mb-4">👸</p>
           <div class="grid grid-cols-2 gap-3 mb-4 text-sm">
             <div class="border border-border-default p-2">
@@ -344,12 +429,24 @@ function handleShootEnd() {
         <!-- D-pad (bigger: 168px = 56px cells) -->
         <div class="grid grid-cols-3 grid-rows-3 gap-1.5 w-[168px] h-[168px]">
           <div />
-          <button class="tr-dpad-btn touch-none" @touchstart.prevent="handleTouchStart('up')" @touchend.prevent="handleTouchEnd">
-            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path d="M10 5l5 7H5z" /></svg>
+          <button
+            class="tr-dpad-btn touch-none"
+            @touchstart.prevent="handleTouchStart('up')"
+            @touchend.prevent="handleTouchEnd"
+          >
+            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10 5l5 7H5z" />
+            </svg>
           </button>
           <div />
-          <button class="tr-dpad-btn touch-none" @touchstart.prevent="handleTouchStart('left')" @touchend.prevent="handleTouchEnd">
-            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path d="M5 10l7-5v10z" /></svg>
+          <button
+            class="tr-dpad-btn touch-none"
+            @touchstart.prevent="handleTouchStart('left')"
+            @touchend.prevent="handleTouchEnd"
+          >
+            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M5 10l7-5v10z" />
+            </svg>
           </button>
           <!-- Center: pause button -->
           <button
@@ -358,12 +455,24 @@ function handleShootEnd() {
           >
             ⏸
           </button>
-          <button class="tr-dpad-btn touch-none" @touchstart.prevent="handleTouchStart('right')" @touchend.prevent="handleTouchEnd">
-            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path d="M15 10l-7 5V5z" /></svg>
+          <button
+            class="tr-dpad-btn touch-none"
+            @touchstart.prevent="handleTouchStart('right')"
+            @touchend.prevent="handleTouchEnd"
+          >
+            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M15 10l-7 5V5z" />
+            </svg>
           </button>
           <div />
-          <button class="tr-dpad-btn touch-none" @touchstart.prevent="handleTouchStart('down')" @touchend.prevent="handleTouchEnd">
-            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path d="M10 15l-5-7h10z" /></svg>
+          <button
+            class="tr-dpad-btn touch-none"
+            @touchstart.prevent="handleTouchStart('down')"
+            @touchend.prevent="handleTouchEnd"
+          >
+            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10 15l-5-7h10z" />
+            </svg>
           </button>
           <div />
         </div>
@@ -381,8 +490,19 @@ function handleShootEnd() {
 
     <!-- Footer -->
     <footer class="w-full border-t border-border-default mt-auto">
-      <div class="max-w-[860px] mx-auto px-4 py-4 flex items-center justify-between text-xs text-text-secondary">
-        <span>Made with &#9829; by <a href="https://www.facebook.com/nosiaht" target="_blank" rel="noopener noreferrer" class="text-accent-coral hover:underline">sondt</a></span>
+      <div
+        class="max-w-[860px] mx-auto px-4 py-4 flex items-center justify-between text-xs text-text-secondary"
+      >
+        <span
+          >Made with &#9829; by
+          <a
+            href="https://www.facebook.com/nosiaht"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-accent-coral hover:underline"
+            >sondt</a
+          ></span
+        >
         <span class="text-text-secondary/50">vibe.j2team.org</span>
       </div>
     </footer>
@@ -421,10 +541,21 @@ function handleShootEnd() {
 }
 
 @keyframes tr-scan {
-  0%, 100% { top: 0; opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { top: 100%; opacity: 0; }
+  0%,
+  100% {
+    top: 0;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
 }
 
 .tr-title-glow {
@@ -433,20 +564,48 @@ function handleShootEnd() {
 }
 
 .tr-title-glow-coral {
-  text-shadow: 0 0 30px rgba(255, 107, 107, 0.3), 0 0 60px rgba(255, 107, 107, 0.1);
+  text-shadow:
+    0 0 30px rgba(255, 107, 107, 0.3),
+    0 0 60px rgba(255, 107, 107, 0.1);
 }
 
-.tr-float-tank { position: absolute; pointer-events: none; }
-.tr-float-tank--left { left: 5%; top: 35%; animation: tr-float 6s ease-in-out infinite; }
-.tr-float-tank--right { right: 8%; bottom: 30%; animation: tr-float 8s ease-in-out infinite reverse; }
+.tr-float-tank {
+  position: absolute;
+  pointer-events: none;
+}
+.tr-float-tank--left {
+  left: 5%;
+  top: 35%;
+  animation: tr-float 6s ease-in-out infinite;
+}
+.tr-float-tank--right {
+  right: 8%;
+  bottom: 30%;
+  animation: tr-float 8s ease-in-out infinite reverse;
+}
 
 @keyframes tr-float {
-  0%, 100% { transform: translateY(0) rotate(-5deg); }
-  50% { transform: translateY(-12px) rotate(5deg); }
+  0%,
+  100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(5deg);
+  }
 }
 
-.tr-badge { font-size: 11px; color: var(--color-text-secondary); opacity: 0.6; }
-.tr-badge-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--color-text-secondary); opacity: 0.3; }
+.tr-badge {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+}
+.tr-badge-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--color-text-secondary);
+  opacity: 0.3;
+}
 
 .tr-btn-play {
   position: relative;
@@ -473,10 +632,14 @@ function handleShootEnd() {
 
 .tr-btn-play:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3), 0 2px 8px rgba(255, 107, 107, 0.2);
+  box-shadow:
+    0 8px 24px rgba(255, 107, 107, 0.3),
+    0 2px 8px rgba(255, 107, 107, 0.2);
 }
 
-.tr-btn-play:active { transform: translateY(0); }
+.tr-btn-play:active {
+  transform: translateY(0);
+}
 
 .tr-info-card {
   border: 1px solid var(--color-border-default);
@@ -485,7 +648,9 @@ function handleShootEnd() {
   transition: border-color 0.2s;
 }
 
-.tr-info-card:hover { border-color: var(--color-accent-coral); }
+.tr-info-card:hover {
+  border-color: var(--color-accent-coral);
+}
 
 .tr-info-label {
   font-size: 9px;
@@ -496,7 +661,12 @@ function handleShootEnd() {
   opacity: 0.8;
 }
 
-.tr-enemy-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.tr-enemy-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
 
 .tr-dpad-btn {
   display: flex;
@@ -515,10 +685,18 @@ function handleShootEnd() {
   border-color: var(--color-accent-coral);
 }
 
-.tr-ending-fade { animation: tr-ending-appear 0.4s ease-out; }
+.tr-ending-fade {
+  animation: tr-ending-appear 0.4s ease-out;
+}
 
 @keyframes tr-ending-appear {
-  from { opacity: 0; transform: scale(0.95) translateY(8px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 </style>

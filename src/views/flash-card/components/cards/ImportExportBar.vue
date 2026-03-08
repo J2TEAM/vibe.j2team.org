@@ -47,8 +47,12 @@ function handleFileChange(event: Event) {
       if (!Array.isArray(data.cards)) return
 
       const validCards = data.cards
-        .filter((c): c is { front: string; back: string } =>
-          typeof c.front === 'string' && typeof c.back === 'string' && c.front.trim() !== '' && c.back.trim() !== '',
+        .filter(
+          (c): c is { front: string; back: string } =>
+            typeof c.front === 'string' &&
+            typeof c.back === 'string' &&
+            c.front.trim() !== '' &&
+            c.back.trim() !== '',
         )
         .map((c) => ({ front: c.front.trim(), back: c.back.trim() }))
 
@@ -78,12 +82,6 @@ function handleFileChange(event: Event) {
     >
       Nhập JSON
     </button>
-    <input
-      ref="fileInput"
-      type="file"
-      accept=".json"
-      class="hidden"
-      @change="handleFileChange"
-    />
+    <input ref="fileInput" type="file" accept=".json" class="hidden" @change="handleFileChange" />
   </div>
 </template>

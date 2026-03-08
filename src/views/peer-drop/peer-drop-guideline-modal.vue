@@ -15,9 +15,13 @@ const emit = defineEmits<{ close: [] }>()
           class="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-bg-deep border border-border-default shadow-2xl"
         >
           <!-- Header -->
-          <div class="sticky top-0 z-10 bg-bg-deep border-b border-border-default px-6 py-4 flex items-center justify-between">
+          <div
+            class="sticky top-0 z-10 bg-bg-deep border-b border-border-default px-6 py-4 flex items-center justify-between"
+          >
             <div>
-              <h2 class="font-display text-xl font-bold text-text-primary">Cách gửi file với Peer Drop</h2>
+              <h2 class="font-display text-xl font-bold text-text-primary">
+                Cách gửi file với Peer Drop
+              </h2>
               <p class="text-xs text-text-dim mt-1">Chỉ 4 bước đơn giản!</p>
             </div>
             <button
@@ -25,18 +29,27 @@ const emit = defineEmits<{ close: [] }>()
               @click="emit('close')"
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                <path
+                  d="M5 5L15 15M15 5L5 15"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
               </svg>
             </button>
           </div>
 
           <!-- Steps -->
           <div class="px-6 py-6 space-y-8">
-
             <!-- Step 1 -->
             <section>
-              <h3 class="font-display text-lg font-semibold text-accent-coral mb-1 flex items-center gap-2">
-                <span class="inline-flex items-center justify-center w-7 h-7 border border-accent-coral text-sm">1</span>
+              <h3
+                class="font-display text-lg font-semibold text-accent-coral mb-1 flex items-center gap-2"
+              >
+                <span
+                  class="inline-flex items-center justify-center w-7 h-7 border border-accent-coral text-sm"
+                  >1</span
+                >
                 Chọn file
               </h3>
               <p class="text-sm text-text-secondary">
@@ -46,8 +59,13 @@ const emit = defineEmits<{ close: [] }>()
 
             <!-- Step 2 -->
             <section>
-              <h3 class="font-display text-lg font-semibold text-accent-amber mb-1 flex items-center gap-2">
-                <span class="inline-flex items-center justify-center w-7 h-7 border border-accent-amber text-sm">2</span>
+              <h3
+                class="font-display text-lg font-semibold text-accent-amber mb-1 flex items-center gap-2"
+              >
+                <span
+                  class="inline-flex items-center justify-center w-7 h-7 border border-accent-amber text-sm"
+                  >2</span
+                >
                 Tạo link mời & gửi cho người nhận
               </h3>
               <p class="text-sm text-text-secondary">
@@ -58,20 +76,31 @@ const emit = defineEmits<{ close: [] }>()
 
             <!-- Step 3 -->
             <section>
-              <h3 class="font-display text-lg font-semibold text-accent-sky mb-1 flex items-center gap-2">
-                <span class="inline-flex items-center justify-center w-7 h-7 border border-accent-sky text-sm">3</span>
+              <h3
+                class="font-display text-lg font-semibold text-accent-sky mb-1 flex items-center gap-2"
+              >
+                <span
+                  class="inline-flex items-center justify-center w-7 h-7 border border-accent-sky text-sm"
+                  >3</span
+                >
                 Người nhận mở link & gửi mã trả lời
               </h3>
               <p class="text-sm text-text-secondary">
-                Người nhận mở link &rarr; bấm <strong class="text-text-primary">Nhận file</strong>
-                &rarr; copy <strong class="text-text-primary">mã trả lời</strong> gửi lại cho bạn.
+                Người nhận mở link &rarr; bấm
+                <strong class="text-text-primary">Nhận file</strong> &rarr; copy
+                <strong class="text-text-primary">mã trả lời</strong> gửi lại cho bạn.
               </p>
             </section>
 
             <!-- Step 4 -->
             <section>
-              <h3 class="font-display text-lg font-semibold text-accent-coral mb-1 flex items-center gap-2">
-                <span class="inline-flex items-center justify-center w-7 h-7 border border-accent-coral text-sm">4</span>
+              <h3
+                class="font-display text-lg font-semibold text-accent-coral mb-1 flex items-center gap-2"
+              >
+                <span
+                  class="inline-flex items-center justify-center w-7 h-7 border border-accent-coral text-sm"
+                  >4</span
+                >
                 Dán mã trả lời & chuyển file tự động!
               </h3>
               <p class="text-sm text-text-secondary">

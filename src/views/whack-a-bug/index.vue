@@ -1,412 +1,412 @@
 <script setup lang="ts">
-import { ref, onUnmounted, onMounted, computed } from "vue";
+import { ref, onUnmounted, onMounted, computed } from 'vue'
 
-type EntityType = "bug" | "golden" | "bomb" | "coffee" | "boss" | "freeze";
+type EntityType = 'bug' | 'golden' | 'bomb' | 'coffee' | 'boss' | 'freeze'
 
 interface ActiveEntity {
-  index: number;
-  type: EntityType;
-  emoji: string;
+  index: number
+  type: EntityType
+  emoji: string
 }
 
 interface Particle {
-  id: number;
-  x: number;
-  y: number;
-  text: string;
-  color: string;
+  id: number
+  x: number
+  y: number
+  text: string
+  color: string
 }
 
-const score = ref(0);
-const highScore = ref(0);
-const timeLeft = ref(30);
-const activeEntity = ref<ActiveEntity | null>(null);
-const isGameOver = ref(false);
-const message = ref("Sẵn sàng chưa?");
-const combo = ref(0);
-const isMuted = ref(false);
-const cheerText = ref("");
-const showCheer = ref(false);
+const score = ref(0)
+const highScore = ref(0)
+const timeLeft = ref(30)
+const activeEntity = ref<ActiveEntity | null>(null)
+const isGameOver = ref(false)
+const message = ref('Sẵn sàng chưa?')
+const combo = ref(0)
+const isMuted = ref(false)
+const cheerText = ref('')
+const showCheer = ref(false)
 
-const isBulletTime = ref(false);
-const isFrozen = ref(false);
-const bossHealth = ref(3);
+const isBulletTime = ref(false)
+const isFrozen = ref(false)
+const bossHealth = ref(3)
 
-const particles = ref<Particle[]>([]);
-const floaters = ref<Particle[]>([]);
+const particles = ref<Particle[]>([])
+const floaters = ref<Particle[]>([])
 
-const bugEmojis = ["🐛", "🐞", "🦟", "🦗", "🕷️"];
-const codeSnippets = ["ĐÃ FIX", "404", "{ }", "0101", "BUG", "XONG", "ĐÃ MERGE"];
+const bugEmojis = ['🐛', '🐞', '🦟', '🦗', '🕷️']
+const codeSnippets = ['ĐÃ FIX', '404', '{ }', '0101', 'BUG', 'XONG', 'ĐÃ MERGE']
 const messages = [
-  "Đập nó!",
-  "Sạch sẽ!",
-  "Đã sửa!",
-  "Lỗi này lạ quá!",
-  "Bug này cứng đầu thế!",
-  "Vibe up!",
-  "J2TEAM Security!",
-  "Code sạch!",
-  "Cẩn thận bom!",
-  "Nhanh tay lên!",
-  "Comboooo!",
-];
+  'Đập nó!',
+  'Sạch sẽ!',
+  'Đã sửa!',
+  'Lỗi này lạ quá!',
+  'Bug này cứng đầu thế!',
+  'Vibe up!',
+  'J2TEAM Security!',
+  'Code sạch!',
+  'Cẩn thận bom!',
+  'Nhanh tay lên!',
+  'Comboooo!',
+]
 const cheers = [
-  "QUÁ ĐỈNH!",
-  "KHÔNG THỂ CẢN PHÁ!",
-  "NHƯ MỘT VỊ THẦN!",
-  "KẺ DIỆT BUG!",
-  "VÃI CHƯỞNG!",
-  "HUYỀN THOẠI!",
-];
+  'QUÁ ĐỈNH!',
+  'KHÔNG THỂ CẢN PHÁ!',
+  'NHƯ MỘT VỊ THẦN!',
+  'KẺ DIỆT BUG!',
+  'VÃI CHƯỞNG!',
+  'HUYỀN THOẠI!',
+]
 
-let gameTimeout: ReturnType<typeof setTimeout>;
-let timerInterval: ReturnType<typeof setInterval>;
-let effectTimeout: ReturnType<typeof setTimeout>;
-let audioCtx: AudioContext | null = null;
+let gameTimeout: ReturnType<typeof setTimeout>
+let timerInterval: ReturnType<typeof setInterval>
+let effectTimeout: ReturnType<typeof setTimeout>
+let audioCtx: AudioContext | null = null
 
 interface WindowWithWebkit extends Window {
-  webkitAudioContext?: typeof AudioContext;
+  webkitAudioContext?: typeof AudioContext
 }
 
 const initAudio = () => {
   if (!audioCtx) {
-    audioCtx = new (window.AudioContext || (window as WindowWithWebkit).webkitAudioContext)();
+    audioCtx = new (window.AudioContext || (window as WindowWithWebkit).webkitAudioContext)()
   }
-};
+}
 
 onMounted(() => {
-  const saved = localStorage.getItem("whack-a-bug-highscore");
-  if (saved) highScore.value = parseInt(saved);
-});
+  const saved = localStorage.getItem('whack-a-bug-highscore')
+  if (saved) highScore.value = parseInt(saved)
+})
 
 const playSound = (
   type:
-    | "pop"
-    | "whack"
-    | "bomb"
-    | "golden"
-    | "gameover"
-    | "cheer"
-    | "coffee"
-    | "freeze"
-    | "bossHit"
-    | "bossKill",
+    | 'pop'
+    | 'whack'
+    | 'bomb'
+    | 'golden'
+    | 'gameover'
+    | 'cheer'
+    | 'coffee'
+    | 'freeze'
+    | 'bossHit'
+    | 'bossKill',
 ) => {
-  if (isMuted.value || !audioCtx) return;
-  if (audioCtx.state === "suspended") audioCtx.resume();
+  if (isMuted.value || !audioCtx) return
+  if (audioCtx.state === 'suspended') audioCtx.resume()
 
-  const now = audioCtx.currentTime;
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
+  const now = audioCtx.currentTime
+  const osc = audioCtx.createOscillator()
+  const gain = audioCtx.createGain()
+  osc.connect(gain)
+  gain.connect(audioCtx.destination)
 
-  if (type === "cheer" || type === "coffee") {
-    const notes = type === "cheer" ? [523, 659, 783, 1046] : [261, 329, 392, 523];
+  if (type === 'cheer' || type === 'coffee') {
+    const notes = type === 'cheer' ? [523, 659, 783, 1046] : [261, 329, 392, 523]
     notes.forEach((freq, i) => {
-      const o = audioCtx!.createOscillator();
-      const g = audioCtx!.createGain();
-      o.connect(g);
-      g.connect(audioCtx!.destination);
-      o.type = type === "coffee" ? "sine" : "triangle";
-      o.frequency.setValueAtTime(freq / (type === "coffee" ? 2 : 1), now + i * 0.1);
-      g.gain.setValueAtTime(0.1, now + i * 0.1);
-      g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.3);
-      o.start(now + i * 0.1);
-      o.stop(now + i * 0.1 + 0.3);
-    });
-    return;
+      const o = audioCtx!.createOscillator()
+      const g = audioCtx!.createGain()
+      o.connect(g)
+      g.connect(audioCtx!.destination)
+      o.type = type === 'coffee' ? 'sine' : 'triangle'
+      o.frequency.setValueAtTime(freq / (type === 'coffee' ? 2 : 1), now + i * 0.1)
+      g.gain.setValueAtTime(0.1, now + i * 0.1)
+      g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.3)
+      o.start(now + i * 0.1)
+      o.stop(now + i * 0.1 + 0.3)
+    })
+    return
   }
 
-  if (type === "freeze") {
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(1046, now);
-    osc.frequency.linearRampToValueAtTime(1318, now + 0.5);
-    gain.gain.setValueAtTime(0.1, now);
-    gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
-    osc.start(now);
-    osc.stop(now + 0.5);
-  } else if (type === "bossHit") {
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(80, now);
-    osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
-    gain.gain.setValueAtTime(0.2, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-    osc.start(now);
-    osc.stop(now + 0.1);
-  } else if (type === "bossKill") {
-    osc.type = "square";
-    osc.frequency.setValueAtTime(200, now);
-    osc.frequency.exponentialRampToValueAtTime(50, now + 0.4);
-    gain.gain.setValueAtTime(0.3, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-    osc.start(now);
-    osc.stop(now + 0.4);
-  } else if (type === "pop") {
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(440, now);
-    osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
-    gain.gain.setValueAtTime(0.05, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-    osc.start(now);
-    osc.stop(now + 0.1);
-  } else if (type === "whack") {
-    osc.type = "square";
-    osc.frequency.setValueAtTime(150, now);
-    osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
-    gain.gain.setValueAtTime(0.1, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-    osc.start(now);
-    osc.stop(now + 0.1);
-  } else if (type === "bomb") {
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(100, now);
-    osc.frequency.linearRampToValueAtTime(20, now + 0.3);
-    gain.gain.setValueAtTime(0.2, now);
-    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-    osc.start(now);
-    osc.stop(now + 0.3);
-  } else if (type === "golden") {
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(880, now);
-    osc.frequency.exponentialRampToValueAtTime(1760, now + 0.2);
-    gain.gain.setValueAtTime(0.1, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-    osc.start(now);
-    osc.stop(now + 0.2);
-  } else if (type === "gameover") {
-    [440, 349, 329, 261].forEach((freq, i) => {
-      const o = audioCtx!.createOscillator();
-      const g = audioCtx!.createGain();
-      o.connect(g);
-      g.connect(audioCtx!.destination);
-      o.type = "triangle";
-      o.frequency.setValueAtTime(freq, now + i * 0.15);
-      g.gain.setValueAtTime(0.1, now + i * 0.15);
-      g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.1);
-      o.start(now + i * 0.15);
-      o.stop(now + i * 0.15 + 0.1);
-    });
+  if (type === 'freeze') {
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(1046, now)
+    osc.frequency.linearRampToValueAtTime(1318, now + 0.5)
+    gain.gain.setValueAtTime(0.1, now)
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.5)
+    osc.start(now)
+    osc.stop(now + 0.5)
+  } else if (type === 'bossHit') {
+    osc.type = 'sawtooth'
+    osc.frequency.setValueAtTime(80, now)
+    osc.frequency.exponentialRampToValueAtTime(40, now + 0.1)
+    gain.gain.setValueAtTime(0.2, now)
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1)
+    osc.start(now)
+    osc.stop(now + 0.1)
+  } else if (type === 'bossKill') {
+    osc.type = 'square'
+    osc.frequency.setValueAtTime(200, now)
+    osc.frequency.exponentialRampToValueAtTime(50, now + 0.4)
+    gain.gain.setValueAtTime(0.3, now)
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4)
+    osc.start(now)
+    osc.stop(now + 0.4)
+  } else if (type === 'pop') {
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(440, now)
+    osc.frequency.exponentialRampToValueAtTime(880, now + 0.1)
+    gain.gain.setValueAtTime(0.05, now)
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1)
+    osc.start(now)
+    osc.stop(now + 0.1)
+  } else if (type === 'whack') {
+    osc.type = 'square'
+    osc.frequency.setValueAtTime(150, now)
+    osc.frequency.exponentialRampToValueAtTime(40, now + 0.1)
+    gain.gain.setValueAtTime(0.1, now)
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1)
+    osc.start(now)
+    osc.stop(now + 0.1)
+  } else if (type === 'bomb') {
+    osc.type = 'sawtooth'
+    osc.frequency.setValueAtTime(100, now)
+    osc.frequency.linearRampToValueAtTime(20, now + 0.3)
+    gain.gain.setValueAtTime(0.2, now)
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.3)
+    osc.start(now)
+    osc.stop(now + 0.3)
+  } else if (type === 'golden') {
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(880, now)
+    osc.frequency.exponentialRampToValueAtTime(1760, now + 0.2)
+    gain.gain.setValueAtTime(0.1, now)
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2)
+    osc.start(now)
+    osc.stop(now + 0.2)
+  } else if (type === 'gameover') {
+    ;[440, 349, 329, 261].forEach((freq, i) => {
+      const o = audioCtx!.createOscillator()
+      const g = audioCtx!.createGain()
+      o.connect(g)
+      g.connect(audioCtx!.destination)
+      o.type = 'triangle'
+      o.frequency.setValueAtTime(freq, now + i * 0.15)
+      g.gain.setValueAtTime(0.1, now + i * 0.15)
+      g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.1)
+      o.start(now + i * 0.15)
+      o.stop(now + i * 0.15 + 0.1)
+    })
   }
-};
+}
 
 const spawnParticles = (x: number, y: number, color: string) => {
-  const id = Date.now();
-  const text = codeSnippets[Math.floor(Math.random() * codeSnippets.length)] || "";
-  particles.value.push({ id, x, y, text, color });
+  const id = Date.now()
+  const text = codeSnippets[Math.floor(Math.random() * codeSnippets.length)] || ''
+  particles.value.push({ id, x, y, text, color })
   setTimeout(() => {
-    particles.value = particles.value.filter((p) => p.id !== id);
-  }, 800);
-};
+    particles.value = particles.value.filter((p) => p.id !== id)
+  }, 800)
+}
 
 const spawnFloater = (x: number, y: number, text: string, color: string) => {
-  const id = Date.now() + Math.random();
-  floaters.value.push({ id, x, y, text, color });
+  const id = Date.now() + Math.random()
+  floaters.value.push({ id, x, y, text, color })
   setTimeout(() => {
-    floaters.value = floaters.value.filter((f) => f.id !== id);
-  }, 1000);
-};
+    floaters.value = floaters.value.filter((f) => f.id !== id)
+  }, 1000)
+}
 
 const triggerCheer = () => {
-  const index = Math.min(Math.floor((combo.value - 3) / 2), cheers.length - 1);
-  cheerText.value = cheers[index] || "";
-  showCheer.value = true;
-  playSound("cheer");
+  const index = Math.min(Math.floor((combo.value - 3) / 2), cheers.length - 1)
+  cheerText.value = cheers[index] || ''
+  showCheer.value = true
+  playSound('cheer')
   setTimeout(() => {
-    showCheer.value = false;
-  }, 1000);
-};
+    showCheer.value = false
+  }, 1000)
+}
 
 const startGame = () => {
-  initAudio();
-  score.value = 0;
-  timeLeft.value = 30;
-  isGameOver.value = false;
-  isBulletTime.value = false;
-  isFrozen.value = false;
-  message.value = "Chạy ngay đi!";
-  combo.value = 0;
-  startTimer();
-  spawnNext();
-};
+  initAudio()
+  score.value = 0
+  timeLeft.value = 30
+  isGameOver.value = false
+  isBulletTime.value = false
+  isFrozen.value = false
+  message.value = 'Chạy ngay đi!'
+  combo.value = 0
+  startTimer()
+  spawnNext()
+}
 
 const startTimer = () => {
   timerInterval = setInterval(() => {
     if (!isFrozen.value) {
-      timeLeft.value--;
-      if (timeLeft.value <= 0) endGame();
+      timeLeft.value--
+      if (timeLeft.value <= 0) endGame()
     }
-  }, 1000);
-};
+  }, 1000)
+}
 
 const spawnNext = () => {
-  if (isGameOver.value) return;
+  if (isGameOver.value) return
 
-  const rand = Math.random();
-  let type: EntityType = "bug";
-  let emoji = bugEmojis[Math.floor(Math.random() * bugEmojis.length)] || "🐛";
+  const rand = Math.random()
+  let type: EntityType = 'bug'
+  let emoji = bugEmojis[Math.floor(Math.random() * bugEmojis.length)] || '🐛'
 
   if (rand > 0.96) {
-    type = "freeze";
-    emoji = "❄️";
+    type = 'freeze'
+    emoji = '❄️'
   } else if (rand > 0.92) {
-    type = "coffee";
-    emoji = "☕";
+    type = 'coffee'
+    emoji = '☕'
   } else if (rand > 0.88) {
-    type = "boss";
-    emoji = "👾";
-    bossHealth.value = 3;
+    type = 'boss'
+    emoji = '👾'
+    bossHealth.value = 3
   } else if (rand > 0.8) {
-    type = "golden";
-    emoji = "✨";
+    type = 'golden'
+    emoji = '✨'
   } else if (rand > 0.65) {
-    type = "bomb";
-    emoji = "💣";
+    type = 'bomb'
+    emoji = '💣'
   }
 
-  activeEntity.value = { index: Math.floor(Math.random() * 9), type, emoji };
-  playSound("pop");
+  activeEntity.value = { index: Math.floor(Math.random() * 9), type, emoji }
+  playSound('pop')
 
-  let duration = Math.max(300, 1000 - score.value * 15);
-  if (type === "golden") duration = 400;
-  if (type === "coffee" || type === "freeze") duration = 700;
-  if (type === "bomb") duration = Math.max(500, 1000 - score.value * 5);
-  if (type === "boss") duration = Math.max(1200, 2000 - score.value * 10);
+  let duration = Math.max(300, 1000 - score.value * 15)
+  if (type === 'golden') duration = 400
+  if (type === 'coffee' || type === 'freeze') duration = 700
+  if (type === 'bomb') duration = Math.max(500, 1000 - score.value * 5)
+  if (type === 'boss') duration = Math.max(1200, 2000 - score.value * 10)
 
-  if (isBulletTime.value) duration *= 2.5;
-  if (isFrozen.value) duration *= 1.5;
+  if (isBulletTime.value) duration *= 2.5
+  if (isFrozen.value) duration *= 1.5
 
   gameTimeout = setTimeout(() => {
-    activeEntity.value = null;
+    activeEntity.value = null
     if (!isGameOver.value) {
       const nextDelay =
-        isBulletTime.value || isFrozen.value ? 500 : Math.max(100, 400 - score.value * 5);
-      setTimeout(spawnNext, Math.random() * nextDelay + 50);
+        isBulletTime.value || isFrozen.value ? 500 : Math.max(100, 400 - score.value * 5)
+      setTimeout(spawnNext, Math.random() * nextDelay + 50)
     }
-  }, duration);
-};
+  }, duration)
+}
 
 const whack = (index: number, event: MouseEvent) => {
-  if (isGameOver.value) return;
+  if (isGameOver.value) return
 
   if (activeEntity.value && index === activeEntity.value.index) {
-    const type = activeEntity.value.type;
+    const type = activeEntity.value.type
 
     // Handle Boss Logic separately because it takes multiple hits
-    if (type === "boss") {
-      bossHealth.value--;
-      spawnParticles(event.clientX, event.clientY, "#a855f7");
+    if (type === 'boss') {
+      bossHealth.value--
+      spawnParticles(event.clientX, event.clientY, '#a855f7')
 
       if (bossHealth.value > 0) {
-        playSound("bossHit");
-        spawnFloater(event.clientX, event.clientY, "-1 HP", "#a855f7");
-        return; // Do not destroy the entity yet
+        playSound('bossHit')
+        spawnFloater(event.clientX, event.clientY, '-1 HP', '#a855f7')
+        return // Do not destroy the entity yet
       } else {
         // Boss killed
-        activeEntity.value = null;
-        clearTimeout(gameTimeout);
-        score.value += 10;
-        timeLeft.value += 3;
-        combo.value += 3;
-        playSound("bossKill");
-        spawnFloater(event.clientX, event.clientY, "+10", "#fbbf24");
-        spawnFloater(event.clientX, event.clientY - 30, "+3s", "#34d399");
-        message.value = "ĐÃ DIỆT TRÙM! 👾";
-        if (combo.value >= 3) triggerCheer();
-        spawnNext();
-        return;
+        activeEntity.value = null
+        clearTimeout(gameTimeout)
+        score.value += 10
+        timeLeft.value += 3
+        combo.value += 3
+        playSound('bossKill')
+        spawnFloater(event.clientX, event.clientY, '+10', '#fbbf24')
+        spawnFloater(event.clientX, event.clientY - 30, '+3s', '#34d399')
+        message.value = 'ĐÃ DIỆT TRÙM! 👾'
+        if (combo.value >= 3) triggerCheer()
+        spawnNext()
+        return
       }
     }
 
     // Normal entities
-    activeEntity.value = null;
-    clearTimeout(gameTimeout);
+    activeEntity.value = null
+    clearTimeout(gameTimeout)
 
     const color =
-      type === "golden"
-        ? "#fbbf24"
-        : type === "bomb"
-          ? "#ef4444"
-          : type === "coffee"
-            ? "#60a5fa"
-            : type === "freeze"
-              ? "#38bdf8"
-              : "#f87171";
-    spawnParticles(event.clientX, event.clientY, color);
+      type === 'golden'
+        ? '#fbbf24'
+        : type === 'bomb'
+          ? '#ef4444'
+          : type === 'coffee'
+            ? '#60a5fa'
+            : type === 'freeze'
+              ? '#38bdf8'
+              : '#f87171'
+    spawnParticles(event.clientX, event.clientY, color)
 
-    if (type === "bug") {
-      score.value++;
-      combo.value++;
-      playSound("whack");
-      spawnFloater(event.clientX, event.clientY, "+1", "#ffffff");
-      message.value = messages[Math.floor(Math.random() * messages.length)] || "";
-      if (combo.value >= 3 && combo.value % 2 === 1) triggerCheer();
-    } else if (type === "golden") {
-      score.value += 5;
-      combo.value += 2;
-      playSound("golden");
-      spawnFloater(event.clientX, event.clientY, "+5", "#fbbf24");
-      message.value = "XỊN THẾ! +5 💎";
-      if (combo.value >= 3) triggerCheer();
-    } else if (type === "bomb") {
-      score.value = Math.max(0, score.value - 3);
-      timeLeft.value = Math.max(0, timeLeft.value - 2);
-      combo.value = 0;
-      playSound("bomb");
-      spawnFloater(event.clientX, event.clientY, "-3", "#ef4444");
-      spawnFloater(event.clientX, event.clientY - 30, "-2s", "#ef4444");
-      message.value = "BÙM! -3đ -2s 💀";
-    } else if (type === "coffee") {
-      isBulletTime.value = true;
-      playSound("coffee");
-      spawnFloater(event.clientX, event.clientY, "SIÊU CHẬM", "#60a5fa");
-      message.value = "ĐẾN GIỜ CAFE! ☕";
-      clearTimeout(effectTimeout);
+    if (type === 'bug') {
+      score.value++
+      combo.value++
+      playSound('whack')
+      spawnFloater(event.clientX, event.clientY, '+1', '#ffffff')
+      message.value = messages[Math.floor(Math.random() * messages.length)] || ''
+      if (combo.value >= 3 && combo.value % 2 === 1) triggerCheer()
+    } else if (type === 'golden') {
+      score.value += 5
+      combo.value += 2
+      playSound('golden')
+      spawnFloater(event.clientX, event.clientY, '+5', '#fbbf24')
+      message.value = 'XỊN THẾ! +5 💎'
+      if (combo.value >= 3) triggerCheer()
+    } else if (type === 'bomb') {
+      score.value = Math.max(0, score.value - 3)
+      timeLeft.value = Math.max(0, timeLeft.value - 2)
+      combo.value = 0
+      playSound('bomb')
+      spawnFloater(event.clientX, event.clientY, '-3', '#ef4444')
+      spawnFloater(event.clientX, event.clientY - 30, '-2s', '#ef4444')
+      message.value = 'BÙM! -3đ -2s 💀'
+    } else if (type === 'coffee') {
+      isBulletTime.value = true
+      playSound('coffee')
+      spawnFloater(event.clientX, event.clientY, 'SIÊU CHẬM', '#60a5fa')
+      message.value = 'ĐẾN GIỜ CAFE! ☕'
+      clearTimeout(effectTimeout)
       effectTimeout = setTimeout(() => {
-        isBulletTime.value = false;
-      }, 5000);
-    } else if (type === "freeze") {
-      isFrozen.value = true;
-      playSound("freeze");
-      spawnFloater(event.clientX, event.clientY, "BĂNG GIÁ!", "#38bdf8");
-      message.value = "NGƯNG ĐỌNG! ❄️";
-      clearTimeout(effectTimeout);
+        isBulletTime.value = false
+      }, 5000)
+    } else if (type === 'freeze') {
+      isFrozen.value = true
+      playSound('freeze')
+      spawnFloater(event.clientX, event.clientY, 'BĂNG GIÁ!', '#38bdf8')
+      message.value = 'NGƯNG ĐỌNG! ❄️'
+      clearTimeout(effectTimeout)
       effectTimeout = setTimeout(() => {
-        isFrozen.value = false;
-      }, 3000);
+        isFrozen.value = false
+      }, 3000)
     }
 
-    spawnNext();
+    spawnNext()
   } else {
-    combo.value = 0;
+    combo.value = 0
   }
-};
+}
 
 const endGame = () => {
-  isGameOver.value = true;
-  clearInterval(timerInterval);
-  clearTimeout(gameTimeout);
-  clearTimeout(effectTimeout);
-  activeEntity.value = null;
-  playSound("gameover");
+  isGameOver.value = true
+  clearInterval(timerInterval)
+  clearTimeout(gameTimeout)
+  clearTimeout(effectTimeout)
+  activeEntity.value = null
+  playSound('gameover')
   if (score.value > highScore.value) {
-    highScore.value = score.value;
-    localStorage.setItem("whack-a-bug-highscore", score.value.toString());
+    highScore.value = score.value
+    localStorage.setItem('whack-a-bug-highscore', score.value.toString())
   }
 
-  if (score.value > 80) message.value = "CẤP ĐỘ CTO! 👑";
-  else if (score.value > 50) message.value = "HUYỀN THOẠI LẬP TRÌNH! 🏆";
-  else if (score.value > 30) message.value = "LẬP TRÌNH VIÊN CẤP CAO! 😎";
-  else message.value = "Cố gắng thêm nhé! 💪";
-};
+  if (score.value > 80) message.value = 'CẤP ĐỘ CTO! 👑'
+  else if (score.value > 50) message.value = 'HUYỀN THOẠI LẬP TRÌNH! 🏆'
+  else if (score.value > 30) message.value = 'LẬP TRÌNH VIÊN CẤP CAO! 😎'
+  else message.value = 'Cố gắng thêm nhé! 💪'
+}
 
 onUnmounted(() => {
-  clearInterval(timerInterval);
-  clearTimeout(gameTimeout);
-  clearTimeout(effectTimeout);
-});
+  clearInterval(timerInterval)
+  clearTimeout(gameTimeout)
+  clearTimeout(effectTimeout)
+})
 
-const timerWidth = computed(() => Math.min((timeLeft.value / 30) * 100, 100));
+const timerWidth = computed(() => Math.min((timeLeft.value / 30) * 100, 100))
 </script>
 
 <template>
@@ -489,7 +489,7 @@ const timerWidth = computed(() => Math.min((timeLeft.value / 30) * 100, 100));
             @click="isMuted = !isMuted"
             class="p-1.5 bg-slate-800/50 hover:bg-slate-700 rounded-lg border border-slate-700"
           >
-            {{ isMuted ? "🔇" : "🔊" }}
+            {{ isMuted ? '🔇' : '🔊' }}
           </button>
         </div>
       </div>
@@ -517,7 +517,7 @@ const timerWidth = computed(() => Math.min((timeLeft.value / 30) * 100, 100));
             class="text-[10px] font-mono"
             :class="combo >= 3 ? 'text-accent-coral font-black' : 'text-white/50'"
           >
-            {{ combo >= 5 ? "🔥" : "" }} Combo: {{ combo }}
+            {{ combo >= 5 ? '🔥' : '' }} Combo: {{ combo }}
           </p>
         </div>
         <div class="text-center">
@@ -615,7 +615,9 @@ const timerWidth = computed(() => Math.min((timeLeft.value / 30) * 100, 100));
             @click="startGame"
             class="group relative px-8 py-4 w-full bg-white text-black font-black text-2xl rounded-2xl hover:bg-accent-coral hover:text-white transition-all active:scale-95"
           >
-            <span class="relative z-10">{{ isGameOver ? "TRIỂN KHAI LẠI" : "BẮT ĐẦU FIX BUG" }}</span>
+            <span class="relative z-10">{{
+              isGameOver ? 'TRIỂN KHAI LẠI' : 'BẮT ĐẦU FIX BUG'
+            }}</span>
             <div
               class="absolute inset-0 bg-accent-amber blur-xl opacity-0 group-hover:opacity-40 transition-opacity"
             ></div>

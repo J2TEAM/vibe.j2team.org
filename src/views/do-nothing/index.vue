@@ -18,7 +18,7 @@ function playNote(
   freq: number,
   startTime: number,
   duration: number,
-  volume: number
+  volume: number,
 ): void {
   const osc = ctx.createOscillator()
   const osc2 = ctx.createOscillator()
@@ -64,9 +64,7 @@ function createAndPlayBirdSound(): void {
     const ctx = new AudioContext()
     audioContext = ctx
     scheduleNextChirp()
-  } catch {
-
-  }
+  } catch {}
 }
 
 function stopBirdSound(): void {
@@ -150,10 +148,7 @@ onUnmounted(() => {
       playsinline
       aria-hidden="true"
     >
-      <source
-        src="https://assets.mixkit.co/videos/16937/16937-720.mp4"
-        type="video/mp4"
-      />
+      <source src="https://assets.mixkit.co/videos/16937/16937-720.mp4" type="video/mp4" />
     </video>
     <!-- Lớp phủ tối nhẹ để chữ dễ đọc -->
     <div
@@ -173,9 +168,7 @@ onUnmounted(() => {
         <p class="mt-4 text-white/80 text-center max-w-md text-sm sm:text-base">
           Chỉ cần thư giãn và lắng nghe. Đừng chạm chuột hay bàn phím.
         </p>
-        <p class="mt-2 text-white/60 text-xs">
-          Bật loa khi bấm Bắt đầu.
-        </p>
+        <p class="mt-2 text-white/60 text-xs">Bật loa khi bấm Bắt đầu.</p>
         <button
           type="button"
           class="mt-8 font-display font-semibold text-bg-deep bg-accent-amber px-8 py-3 border-0 cursor-pointer transition opacity-90 hover:opacity-100 animate-fade-up animate-delay-2"
@@ -187,16 +180,16 @@ onUnmounted(() => {
 
       <!-- Đang đếm ngược -->
       <template v-else-if="isCounting">
-        <p
-          class="font-display text-6xl sm:text-7xl font-bold text-white mt-4 tabular-nums"
-        >
+        <p class="font-display text-6xl sm:text-7xl font-bold text-white mt-4 tabular-nums">
           {{ formatTime(secondsLeft) }}
         </p>
       </template>
 
       <!-- Xong 2 phút -->
       <template v-else>
-        <p class="font-display text-2xl sm:text-3xl font-semibold text-white text-center animate-fade-up">
+        <p
+          class="font-display text-2xl sm:text-3xl font-semibold text-white text-center animate-fade-up"
+        >
           Bạn đã làm được.
         </p>
         <p class="mt-3 text-white/80 text-center animate-fade-up animate-delay-1">

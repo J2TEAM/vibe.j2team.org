@@ -200,6 +200,72 @@ const devInsights = computed(() => {
   return insights.slice(0, 4)
 })
 
+function updateMetaTags() {
+  if (!user.value) return
+  const u = user.value
+  const title = `${u.name || u.login} - GitHub Portfolio`
+  const description =
+    u.bio ||
+    `Xem portfolio GitHub của ${u.name || u.login}: ${u.public_repos} repos, ${fmt(totalStars.value)} stars, ${u.followers} followers`
+  const url = shareUrl.value
+  const image = u.avatar_url
+
+  // Update or create meta tags
+  const updateMeta = (property: string, content: string) => {
+    let meta = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement
+    if (!meta) {
+      meta = document.createElement('meta')
+      meta.setAttribute('property', property)
+      document.head.appendChild(meta)
+    }
+    meta.content = content
+  }
+
+  const updateMetaName = (name: string, content: string) => {
+    let meta = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement
+    if (!meta) {
+      meta = document.createElement('meta')
+      meta.setAttribute('name', name)
+      document.head.appendChild(meta)
+    }
+    meta.content = content
+  }
+
+  // Open Graph tags
+  updateMeta('og:title', title)
+  updateMeta('og:description', description)
+  updateMeta('og:image', image)
+  updateMeta('og:url', url)
+  updateMeta('og:type', 'profile')
+
+  // Twitter Card tags
+  updateMetaName('twitter:card', 'summary_large_image')
+  updateMetaName('twitter:title', title)
+  updateMetaName('twitter:description', description)
+  updateMetaName('twitter:image', image)
+
+  // Update page title
+  document.title = title
+}
+
+function clearMetaTags() {
+  // Remove Open Graph and Twitter meta tags
+  const tags = ['og:title', 'og:description', 'og:image', 'og:url', 'og:type']
+  tags.forEach((tag) => {
+    const meta = document.querySelector(`meta[property="${tag}"]`)
+    if (meta) meta.remove()
+  })
+
+  const nameTags = ['twitter:card', 'twitter:title', 'twitter:description', 'twitter:image']
+  nameTags.forEach((tag) => {
+    const meta = document.querySelector(`meta[name="${tag}"]`)
+    if (meta) meta.remove()
+  })
+
+  // Reset page title
+  document.title = 'GitHub Portfolio - vibe.j2team.org'
+}
+
 function getHeaders(): HeadersInit {
   const h: HeadersInit = { Accept: 'application/vnd.github.v3+json' }
   if (token.value.trim()) h.Authorization = `Bearer ${token.value.trim()}`
@@ -249,6 +315,8 @@ async function fetchPortfolio(name: string) {
     repos.value = rr.ok ? ((await rr.json()) as GitHubRepo[]) : []
     router.replace({ query: { user: user.value.login } })
     state.value = 'portfolio'
+    // Update meta tags for social sharing
+    updateMetaTags()
   } catch {
     errorInfo.value = {
       title: 'Lỗi kết nối',
@@ -271,6 +339,7 @@ function resetToInput() {
   user.value = null
   repos.value = []
   router.replace({ query: {} })
+  clearMetaTags()
 }
 async function copyShareLink() {
   try {
@@ -289,206 +358,216 @@ async function copyShareLink() {
   }, 2000)
 }
 
+async function generateCardCanvas(): Promise<Blob | null> {
+  if (!user.value) return null
+  const W = 1200,
+    H = 630
+  const cv = document.createElement('canvas')
+  cv.width = W
+  cv.height = H
+  const ctx = cv.getContext('2d')!
+  const u = user.value
+  // Background
+  const bg = ctx.createLinearGradient(0, 0, W, H)
+  bg.addColorStop(0, '#0B1A2B')
+  bg.addColorStop(1, '#0F1923')
+  ctx.fillStyle = bg
+  ctx.fillRect(0, 0, W, H)
+  // Grid pattern
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)'
+  ctx.lineWidth = 1
+  for (let x = 0; x < W; x += 60) {
+    ctx.beginPath()
+    ctx.moveTo(x, 0)
+    ctx.lineTo(x, H)
+    ctx.stroke()
+  }
+  for (let y = 0; y < H; y += 60) {
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    ctx.lineTo(W, y)
+    ctx.stroke()
+  }
+  // Coral glow
+  const glow = ctx.createRadialGradient(W - 100, 100, 0, W - 100, 100, 250)
+  glow.addColorStop(0, 'rgba(255,107,74,0.08)')
+  glow.addColorStop(1, 'rgba(255,107,74,0)')
+  ctx.fillStyle = glow
+  ctx.fillRect(0, 0, W, H)
+  // Avatar
+  const avatar = new Image()
+  avatar.crossOrigin = 'anonymous'
+  await new Promise<void>((res, rej) => {
+    avatar.onload = () => res()
+    avatar.onerror = () => rej()
+    avatar.src = u.avatar_url
+  })
+  const ax = 80,
+    ay = 80,
+    ar = 56
+  ctx.save()
+  ctx.beginPath()
+  ctx.arc(ax + ar, ay + ar, ar, 0, Math.PI * 2)
+  ctx.clip()
+  ctx.drawImage(avatar, ax, ay, ar * 2, ar * 2)
+  ctx.restore()
+  ctx.strokeStyle = '#2A3A4E'
+  ctx.lineWidth = 3
+  ctx.beginPath()
+  ctx.arc(ax + ar, ay + ar, ar, 0, Math.PI * 2)
+  ctx.stroke()
+  // Name + username
+  ctx.fillStyle = '#E8ECF0'
+  ctx.font = 'bold 36px system-ui, sans-serif'
+  ctx.fillText(u.name || u.login, 210, 115)
+  ctx.fillStyle = '#6B7F99'
+  ctx.font = '18px system-ui, sans-serif'
+  ctx.fillText(`@${u.login}`, 210, 145)
+  // Bio
+  if (u.bio) {
+    ctx.fillStyle = '#8B9DB5'
+    ctx.font = '16px system-ui, sans-serif'
+    ctx.fillText(u.bio.slice(0, 80), 210, 175)
+  }
+  // Score ring
+  const sx = W - 160,
+    sy = 100,
+    sr = 55
+  ctx.strokeStyle = '#1E2D3D'
+  ctx.lineWidth = 8
+  ctx.beginPath()
+  ctx.arc(sx, sy, sr, 0, Math.PI * 2)
+  ctx.stroke()
+  ctx.strokeStyle = devLevel.value.color
+  ctx.lineWidth = 8
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.arc(sx, sy, sr, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * devScore.value) / 100)
+  ctx.stroke()
+  ctx.fillStyle = '#E8ECF0'
+  ctx.font = 'bold 32px system-ui, sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText(String(devScore.value), sx, sy + 10)
+  ctx.fillStyle = '#6B7F99'
+  ctx.font = '11px system-ui, sans-serif'
+  ctx.fillText(devLevel.value.label, sx, sy + 30)
+  ctx.textAlign = 'left'
+  // Divider
+  ctx.fillStyle = '#1E2D3D'
+  ctx.fillRect(80, 220, W - 160, 1)
+  // Stats row
+  const stats = [
+    { val: fmt(u.public_repos), label: 'Repo', color: '#FF6B4A' },
+    { val: fmt(totalStars.value), label: 'Sao', color: '#FFB340' },
+    { val: fmt(u.followers), label: 'Theo dõi', color: '#4DC9F6' },
+    { val: fmt(u.following), label: 'Đang theo dõi', color: '#E8ECF0' },
+  ]
+  const sw = (W - 160) / stats.length
+  stats.forEach((s, i) => {
+    const x = 80 + i * sw + sw / 2
+    ctx.fillStyle = s.color
+    ctx.font = 'bold 28px system-ui, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText(s.val, x, 275)
+    ctx.fillStyle = '#6B7F99'
+    ctx.font = '12px system-ui, sans-serif'
+    ctx.fillText(s.label, x, 298)
+  })
+  ctx.textAlign = 'left'
+  // Divider 2
+  ctx.fillStyle = '#1E2D3D'
+  ctx.fillRect(80, 320, W - 160, 1)
+  // Top repos
+  const topR = topRepos.value.slice(0, 3)
+  ctx.fillStyle = '#FF6B4A'
+  ctx.font = '11px system-ui, sans-serif'
+  ctx.fillText('// TOP REPO', 80, 355)
+  if (topR.length > 0) {
+    topR.forEach((r, i) => {
+      const y = 380 + i * 36
+      ctx.fillStyle = '#E8ECF0'
+      ctx.font = 'bold 15px system-ui, sans-serif'
+      ctx.fillText(r.name, 80, y)
+      const nameW = ctx.measureText(r.name).width
+      ctx.fillStyle = '#6B7F99'
+      ctx.font = '13px system-ui, sans-serif'
+      ctx.fillText(`★ ${fmt(r.stargazers_count)}`, 80 + nameW + 12, y)
+    })
+  } else {
+    ctx.fillStyle = '#6B7F99'
+    ctx.font = '13px system-ui, sans-serif'
+    ctx.fillText('Chưa có repository công khai', 80, 390)
+  }
+  // Languages
+  if (languageStats.value.length) {
+    ctx.fillStyle = '#FFB340'
+    ctx.font = '11px system-ui, sans-serif'
+    ctx.fillText('// NGÔN NGỮ', 600, 355)
+    // Bar
+    let bx = 600
+    const bw = W - 160 - 520,
+      by = 370
+    languageStats.value.slice(0, 4).forEach((l) => {
+      const lw = (l.percent / 100) * bw
+      ctx.fillStyle = l.color
+      ctx.fillRect(bx, by, lw, 8)
+      bx += lw
+    })
+    languageStats.value.slice(0, 4).forEach((l, i) => {
+      const y = 400 + i * 24
+      ctx.fillStyle = l.color
+      ctx.beginPath()
+      ctx.arc(608, y - 4, 5, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#8B9DB5'
+      ctx.font = '13px system-ui, sans-serif'
+      ctx.fillText(`${l.name}  ${l.percent}%`, 620, y)
+    })
+  } else {
+    ctx.fillStyle = '#FFB340'
+    ctx.font = '11px system-ui, sans-serif'
+    ctx.fillText('// NGÔN NGỮ', 600, 355)
+    ctx.fillStyle = '#6B7F99'
+    ctx.font = '13px system-ui, sans-serif'
+    ctx.fillText('Chưa có dữ liệu', 600, 390)
+  }
+  // Branding
+  ctx.fillStyle = '#3D5068'
+  ctx.font = '12px system-ui, sans-serif'
+  ctx.fillText('vibe.j2team.org/github-portfolio', 80, H - 30)
+  ctx.fillStyle = '#2A3A4E'
+  ctx.font = '12px system-ui, sans-serif'
+  ctx.textAlign = 'right'
+  ctx.fillText(memberSince.value, W - 80, H - 30)
+  ctx.textAlign = 'left'
+
+  // Return blob
+  return new Promise<Blob | null>((resolve) => {
+    cv.toBlob((blob) => {
+      resolve(blob)
+    }, 'image/png')
+  })
+}
+
 async function downloadCard() {
   if (!user.value || downloadingCard.value) return
   downloadingCard.value = true
   try {
-    const W = 1200,
-      H = 630
-    const cv = document.createElement('canvas')
-    cv.width = W
-    cv.height = H
-    const ctx = cv.getContext('2d')!
-    // Background
-    const bg = ctx.createLinearGradient(0, 0, W, H)
-    bg.addColorStop(0, '#0B1A2B')
-    bg.addColorStop(1, '#0F1923')
-    ctx.fillStyle = bg
-    ctx.fillRect(0, 0, W, H)
-    // Grid pattern
-    ctx.strokeStyle = 'rgba(255,255,255,0.03)'
-    ctx.lineWidth = 1
-    for (let x = 0; x < W; x += 60) {
-      ctx.beginPath()
-      ctx.moveTo(x, 0)
-      ctx.lineTo(x, H)
-      ctx.stroke()
-    }
-    for (let y = 0; y < H; y += 60) {
-      ctx.beginPath()
-      ctx.moveTo(0, y)
-      ctx.lineTo(W, y)
-      ctx.stroke()
-    }
-    // Coral glow
-    const glow = ctx.createRadialGradient(W - 100, 100, 0, W - 100, 100, 250)
-    glow.addColorStop(0, 'rgba(255,107,74,0.08)')
-    glow.addColorStop(1, 'rgba(255,107,74,0)')
-    ctx.fillStyle = glow
-    ctx.fillRect(0, 0, W, H)
-    // Avatar
-    const u = user.value
-    const avatar = new Image()
-    avatar.crossOrigin = 'anonymous'
-    await new Promise<void>((res, rej) => {
-      avatar.onload = () => res()
-      avatar.onerror = () => rej()
-      avatar.src = u.avatar_url
-    })
-    const ax = 80,
-      ay = 80,
-      ar = 56
-    ctx.save()
-    ctx.beginPath()
-    ctx.arc(ax + ar, ay + ar, ar, 0, Math.PI * 2)
-    ctx.clip()
-    ctx.drawImage(avatar, ax, ay, ar * 2, ar * 2)
-    ctx.restore()
-    ctx.strokeStyle = '#2A3A4E'
-    ctx.lineWidth = 3
-    ctx.beginPath()
-    ctx.arc(ax + ar, ay + ar, ar, 0, Math.PI * 2)
-    ctx.stroke()
-    // Name + username
-    ctx.fillStyle = '#E8ECF0'
-    ctx.font = 'bold 36px system-ui, sans-serif'
-    ctx.fillText(u.name || u.login, 210, 115)
-    ctx.fillStyle = '#6B7F99'
-    ctx.font = '18px system-ui, sans-serif'
-    ctx.fillText(`@${u.login}`, 210, 145)
-    // Bio
-    if (u.bio) {
-      ctx.fillStyle = '#8B9DB5'
-      ctx.font = '16px system-ui, sans-serif'
-      ctx.fillText(u.bio.slice(0, 80), 210, 175)
-    }
-    // Score ring
-    const sx = W - 160,
-      sy = 100,
-      sr = 55
-    ctx.strokeStyle = '#1E2D3D'
-    ctx.lineWidth = 8
-    ctx.beginPath()
-    ctx.arc(sx, sy, sr, 0, Math.PI * 2)
-    ctx.stroke()
-    ctx.strokeStyle = devLevel.value.color
-    ctx.lineWidth = 8
-    ctx.lineCap = 'round'
-    ctx.beginPath()
-    ctx.arc(sx, sy, sr, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * devScore.value) / 100)
-    ctx.stroke()
-    ctx.fillStyle = '#E8ECF0'
-    ctx.font = 'bold 32px system-ui, sans-serif'
-    ctx.textAlign = 'center'
-    ctx.fillText(String(devScore.value), sx, sy + 10)
-    ctx.fillStyle = '#6B7F99'
-    ctx.font = '11px system-ui, sans-serif'
-    ctx.fillText(devLevel.value.label, sx, sy + 30)
-    ctx.textAlign = 'left'
-    // Divider
-    ctx.fillStyle = '#1E2D3D'
-    ctx.fillRect(80, 220, W - 160, 1)
-    // Stats row
-    const stats = [
-      { val: fmt(u.public_repos), label: 'Repo', color: '#FF6B4A' },
-      { val: fmt(totalStars.value), label: 'Sao', color: '#FFB340' },
-      { val: fmt(u.followers), label: 'Theo dõi', color: '#4DC9F6' },
-      { val: fmt(u.following), label: 'Đang theo dõi', color: '#E8ECF0' },
-    ]
-    const sw = (W - 160) / stats.length
-    stats.forEach((s, i) => {
-      const x = 80 + i * sw + sw / 2
-      ctx.fillStyle = s.color
-      ctx.font = 'bold 28px system-ui, sans-serif'
-      ctx.textAlign = 'center'
-      ctx.fillText(s.val, x, 275)
-      ctx.fillStyle = '#6B7F99'
-      ctx.font = '12px system-ui, sans-serif'
-      ctx.fillText(s.label, x, 298)
-    })
-    ctx.textAlign = 'left'
-    // Divider 2
-    ctx.fillStyle = '#1E2D3D'
-    ctx.fillRect(80, 320, W - 160, 1)
-    // Top repos
-    const topR = topRepos.value.slice(0, 3)
-    ctx.fillStyle = '#FF6B4A'
-    ctx.font = '11px system-ui, sans-serif'
-    ctx.fillText('// TOP REPO', 80, 355)
-    if (topR.length > 0) {
-      topR.forEach((r, i) => {
-        const y = 380 + i * 36
-        ctx.fillStyle = '#E8ECF0'
-        ctx.font = 'bold 15px system-ui, sans-serif'
-        ctx.fillText(r.name, 80, y)
-        const nameW = ctx.measureText(r.name).width
-        ctx.fillStyle = '#6B7F99'
-        ctx.font = '13px system-ui, sans-serif'
-        ctx.fillText(`★ ${fmt(r.stargazers_count)}`, 80 + nameW + 12, y)
-      })
-    } else {
-      ctx.fillStyle = '#6B7F99'
-      ctx.font = '13px system-ui, sans-serif'
-      ctx.fillText('Chưa có repository công khai', 80, 390)
-    }
-    // Languages
-    if (languageStats.value.length) {
-      ctx.fillStyle = '#FFB340'
-      ctx.font = '11px system-ui, sans-serif'
-      ctx.fillText('// NGÔN NGỮ', 600, 355)
-      // Bar
-      let bx = 600
-      const bw = W - 160 - 520,
-        by = 370
-      languageStats.value.slice(0, 4).forEach((l) => {
-        const lw = (l.percent / 100) * bw
-        ctx.fillStyle = l.color
-        ctx.fillRect(bx, by, lw, 8)
-        bx += lw
-      })
-      languageStats.value.slice(0, 4).forEach((l, i) => {
-        const y = 400 + i * 24
-        ctx.fillStyle = l.color
-        ctx.beginPath()
-        ctx.arc(608, y - 4, 5, 0, Math.PI * 2)
-        ctx.fill()
-        ctx.fillStyle = '#8B9DB5'
-        ctx.font = '13px system-ui, sans-serif'
-        ctx.fillText(`${l.name}  ${l.percent}%`, 620, y)
-      })
-    } else {
-      ctx.fillStyle = '#FFB340'
-      ctx.font = '11px system-ui, sans-serif'
-      ctx.fillText('// NGÔN NGỮ', 600, 355)
-      ctx.fillStyle = '#6B7F99'
-      ctx.font = '13px system-ui, sans-serif'
-      ctx.fillText('Chưa có dữ liệu', 600, 390)
-    }
-    // Branding
-    ctx.fillStyle = '#3D5068'
-    ctx.font = '12px system-ui, sans-serif'
-    ctx.fillText('vibe.j2team.org/github-portfolio', 80, H - 30)
-    ctx.fillStyle = '#2A3A4E'
-    ctx.font = '12px system-ui, sans-serif'
-    ctx.textAlign = 'right'
-    ctx.fillText(memberSince.value, W - 80, H - 30)
-    ctx.textAlign = 'left'
-    // Download
-    cv.toBlob((blob) => {
-      if (!blob) return
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `github-portfolio-${u.login}.png`
-      a.click()
-      URL.revokeObjectURL(url)
-    }, 'image/png')
+    const blob = await generateCardCanvas()
+    if (!blob) return
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `github-portfolio-${user.value.login}.png`
+    a.click()
+    URL.revokeObjectURL(url)
   } catch (e) {
     console.error('Card export failed:', e)
   } finally {
     downloadingCard.value = false
   }
 }
+
 function fmt(n: number): string {
   if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`
@@ -541,7 +620,7 @@ watch(
       >
         <RouterLink
           to="/"
-          class="inline-flex items-center gap-2 text-sm text-text-secondary transition hover:text-accent-coral"
+          class="inline-flex items-center gap-2 text-sm text-text-secondary transition hover:text-accent-coral gp-nav-link"
         >
           <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
             <path
@@ -552,20 +631,20 @@ watch(
               stroke-linejoin="round"
             />
           </svg>
-          Về trang chủ
+          <span class="gp-nav-text">Về trang chủ</span>
         </RouterLink>
         <span
-          class="font-display text-text-dim select-none"
+          class="font-display text-text-dim select-none gp-header-title"
           style="font-size: 11px; letter-spacing: 0.2em"
           >GITHUB PORTFOLIO</span
         >
         <button
           v-if="state === 'portfolio'"
-          class="font-display text-text-dim hover:text-accent-coral transition"
+          class="font-display text-text-dim hover:text-accent-coral transition gp-nav-link"
           style="font-size: 11px; letter-spacing: 0.15em"
           @click="resetToInput"
         >
-          TẠO MỚI
+          <span class="gp-nav-text">TẠO MỚI</span>
         </button>
         <span v-else style="width: 60px" />
       </nav>
@@ -592,14 +671,14 @@ watch(
             // PORTFOLIO TRONG 10 GIÂY
           </p>
           <h1
-            class="font-display font-bold animate-fade-up animate-delay-1"
-            style="font-size: clamp(32px, 5vw, 56px); line-height: 1.1"
+            class="font-display font-bold animate-fade-up animate-delay-1 gp-hero-title"
+            style="font-size: clamp(28px, 5vw, 56px); line-height: 1.15"
           >
             Biến <span class="text-accent-coral">GitHub</span><br />thành Portfolio
           </h1>
           <p
             class="text-text-secondary animate-fade-up animate-delay-2"
-            style="margin-top: 20px; font-size: 16px; line-height: 1.7; max-width: 380px"
+            style="margin-top: 16px; font-size: 15px; line-height: 1.65; max-width: 380px"
           >
             Chỉ cần nhập username, hệ thống sẽ tạo trang portfolio cá nhân đẹp mắt cho bạn ngay lập
             tức.
@@ -637,7 +716,7 @@ watch(
                 <input
                   v-model="username"
                   type="text"
-                  placeholder="ví dụ: octocat"
+                  placeholder="ví dụ: ariushieu"
                   autofocus
                   autocomplete="off"
                   class="bg-bg-surface border border-border-default text-text-primary placeholder:text-text-dim text-sm focus:outline-none focus:border-accent-coral"
@@ -1052,12 +1131,13 @@ watch(
 
           <!-- Stats row -->
           <div
-            class="animate-fade-up animate-delay-2"
+            class="animate-fade-up animate-delay-2 gp-page-stats"
             style="
               margin-top: 32px;
               display: grid;
               grid-template-columns: repeat(5, 1fr);
               gap: 1px;
+              border: 1px solid var(--color-border-default);
               background: var(--color-border-default);
             "
           >
@@ -1679,45 +1759,93 @@ watch(
   }
   .gp-left-panel > div {
     text-align: center;
+    max-width: 100% !important;
   }
   .gp-left-panel p {
     margin-left: auto;
     margin-right: auto;
   }
 }
+
+/* Mobile-first improvements */
 @media (max-width: 767px) {
+  /* Header improvements */
+  .gp-header-title {
+    font-size: 9px !important;
+    letter-spacing: 0.1em !important;
+  }
+
+  /* Hero section */
+  .gp-hero-title {
+    font-size: 32px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Profile section */
   .gp-profile-row {
     flex-direction: column !important;
     align-items: center !important;
     text-align: center;
   }
   .gp-avatar-wrap {
-    width: 96px !important;
-    height: 96px !important;
+    width: 100px !important;
+    height: 100px !important;
   }
+
+  /* Stats grid - 2 columns on mobile */
+  .gp-page-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1px !important;
+  }
+  .gp-page-stats > div:nth-child(5) {
+    grid-column: span 2;
+  }
+
+  /* Content grid */
   .gp-content-grid {
     grid-template-columns: 1fr !important;
     gap: 32px !important;
   }
+
+  /* Analysis grid */
   .gp-analysis-grid {
     grid-template-columns: 1fr !important;
-    gap: 20px !important;
+    gap: 24px !important;
     text-align: center;
+    padding: 24px !important;
+  }
+
+  /* Sidebar becomes full width */
+  .gp-sidebar {
+    order: -1;
   }
 }
+
+/* Small mobile adjustments */
+@media (max-width: 479px) {
+  .mx-auto {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .gp-hero-title {
+    font-size: 28px !important;
+  }
+
+  .gp-analysis-grid {
+    padding: 20px !important;
+  }
+}
+
+/* Tablet range */
 @media (min-width: 768px) and (max-width: 1023px) {
   .gp-content-grid {
     grid-template-columns: 1fr 240px !important;
     gap: 32px !important;
   }
-}
-/* Stats responsive */
-@media (max-width: 639px) {
+
   .gp-page-stats {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  .gp-page-stats > :last-child {
-    grid-column: span 2;
+    grid-template-columns: repeat(5, 1fr) !important;
   }
 }
 /* Hover arrow animation */

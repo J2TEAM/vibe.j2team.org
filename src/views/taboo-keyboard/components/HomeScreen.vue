@@ -1,43 +1,43 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { RouterLink } from "vue-router";
+import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
 
 const emit = defineEmits<{
-  (e: "start", name: string): void;
-}>();
+  (e: 'start', name: string): void
+}>()
 
-const STORAGE_KEY = "taboo_keyboard_player_name";
+const STORAGE_KEY = 'taboo_keyboard_player_name'
 
-const playerNameInput = ref("");
-const nameError = ref("");
+const playerNameInput = ref('')
+const nameError = ref('')
 
 // Load saved name
-const savedName = sessionStorage.getItem(STORAGE_KEY);
-if (savedName) playerNameInput.value = savedName;
+const savedName = sessionStorage.getItem(STORAGE_KEY)
+if (savedName) playerNameInput.value = savedName
 
 function handleStartGame() {
-  const trimmed = playerNameInput.value.trim();
+  const trimmed = playerNameInput.value.trim()
 
   if (trimmed.length < 2) {
-    nameError.value = "Name must be at least 2 characters";
-    return;
+    nameError.value = 'Name must be at least 2 characters'
+    return
   }
   if (trimmed.length > 16) {
-    nameError.value = "Name must be at most 16 characters";
-    return;
+    nameError.value = 'Name must be at most 16 characters'
+    return
   }
   if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) {
-    nameError.value = "Only letters, numbers, and underscores";
-    return;
+    nameError.value = 'Only letters, numbers, and underscores'
+    return
   }
 
-  sessionStorage.setItem(STORAGE_KEY, trimmed);
-  emit("start", trimmed);
+  sessionStorage.setItem(STORAGE_KEY, trimmed)
+  emit('start', trimmed)
 }
 
 function handleClearName() {
-  playerNameInput.value = "";
-  sessionStorage.removeItem(STORAGE_KEY);
+  playerNameInput.value = ''
+  sessionStorage.removeItem(STORAGE_KEY)
 }
 </script>
 

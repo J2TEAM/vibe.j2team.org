@@ -14,7 +14,8 @@ export interface I18nSchema {
 export const i18n: Record<Lang, I18nSchema> = {
   en: {
     langToggleLabel: 'Tiếng Việt',
-    heroSubtitle: 'Our future is woven from countless assumptions and hidden crossroads behind every choice. Each question, each card revealed opens a door to a new reality. Choose your next path and discover the version of yourself you will become.',
+    heroSubtitle:
+      'Our future is woven from countless assumptions and hidden crossroads behind every choice. Each question, each card revealed opens a door to a new reality. Choose your next path and discover the version of yourself you will become.',
     clickHint: 'Click the deck to draw a card',
     shuffling: 'Shuffling…',
     drawAnother: 'Draw another card',
@@ -35,7 +36,8 @@ export const i18n: Record<Lang, I18nSchema> = {
   },
   vi: {
     langToggleLabel: 'English',
-    heroSubtitle: 'Tương lai của mỗi chúng ta vốn được dệt nên từ vô vàn những giả định và ngã rẽ ẩn mình sau mỗi lựa chọn. Mỗi câu hỏi, mỗi lá bài được lật sẽ mở ra cánh cửa đưa chúng ta đến một thực tại mới. Hãy chọn con đường tiếp theo mà bạn sẽ đi và khám phá phiên bản mình sẽ trở thành.',
+    heroSubtitle:
+      'Tương lai của mỗi chúng ta vốn được dệt nên từ vô vàn những giả định và ngã rẽ ẩn mình sau mỗi lựa chọn. Mỗi câu hỏi, mỗi lá bài được lật sẽ mở ra cánh cửa đưa chúng ta đến một thực tại mới. Hãy chọn con đường tiếp theo mà bạn sẽ đi và khám phá phiên bản mình sẽ trở thành.',
     clickHint: 'Nhấn vào bộ bài để rút một lá',
     shuffling: 'Đang xào bài…',
     drawAnother: 'Rút lá khác',

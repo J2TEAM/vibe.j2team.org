@@ -1,229 +1,229 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import { RouterLink } from "vue-router";
+import { ref, computed, onMounted } from 'vue'
+import { RouterLink } from 'vue-router'
 
 // --- Types ---
 interface Token {
-  index: number;
-  content: string;
-  length: number;
-  isWhitespace: boolean;
+  index: number
+  content: string
+  length: number
+  isWhitespace: boolean
 }
 
 // --- Constants & Data ---
 const modelPricing: Record<string, { input: number; output: number }> = {
-  "gpt-5": { input: 1.25, output: 10.0 },
-  "gpt-5-mini": { input: 0.25, output: 2.0 },
-  "gpt-5-nano": { input: 0.05, output: 0.4 },
-  "gpt-4.1": { input: 2.0, output: 8.0 },
-  "gpt-4.1-mini": { input: 0.4, output: 1.6 },
-  "gpt-4.1-nano": { input: 0.1, output: 0.4 },
-  "gpt-4o-mini": { input: 0.15, output: 0.6 },
-  "gpt-3.5-turbo": { input: 0.5, output: 1.5 },
-};
+  'gpt-5': { input: 1.25, output: 10.0 },
+  'gpt-5-mini': { input: 0.25, output: 2.0 },
+  'gpt-5-nano': { input: 0.05, output: 0.4 },
+  'gpt-4.1': { input: 2.0, output: 8.0 },
+  'gpt-4.1-mini': { input: 0.4, output: 1.6 },
+  'gpt-4.1-nano': { input: 0.1, output: 0.4 },
+  'gpt-4o-mini': { input: 0.15, output: 0.6 },
+  'gpt-3.5-turbo': { input: 0.5, output: 1.5 },
+}
 
 const words = [
-  "lorem",
-  "ipsum",
-  "dolor",
-  "sit",
-  "amet",
-  "consectetur",
-  "adipiscing",
-  "elit",
-  "sed",
-  "do",
-  "eiusmod",
-  "tempor",
-  "incididunt",
-  "ut",
-  "labore",
-  "et",
-  "dolore",
-  "magna",
-  "aliqua",
-  "enim",
-  "ad",
-  "minim",
-  "veniam",
-  "quis",
-  "nostrud",
-  "exercitation",
-  "ullamco",
-  "laboris",
-  "nisi",
-  "aliquip",
-  "ex",
-  "ea",
-  "commodo",
-  "consequat",
-  "duis",
-  "aute",
-  "irure",
-  "in",
-  "reprehenderit",
-  "voluptate",
-  "velit",
-  "esse",
-  "cillum",
-  "fugiat",
-  "nulla",
-  "pariatur",
-  "excepteur",
-  "sint",
-  "occaecat",
-  "cupidatat",
-  "non",
-  "proident",
-  "sunt",
-  "culpa",
-  "qui",
-  "officia",
-  "deserunt",
-  "mollit",
-  "anim",
-  "id",
-  "est",
-  "laborum",
-  "con",
-  "cáo",
-  "nâu",
-  "nhanh",
-  "nhẹn",
-  "nhảy",
-  "qua",
-  "con",
-  "chó",
-  "lười",
-  "xin",
-  "chào",
-  "thế",
-  "giới",
-  "chương",
-  "trình",
-  "mã",
-  "nguồn",
-  "hàm",
-  "biến",
-  "dữ",
-  "liệu",
-  "hệ",
-  "thống",
-  "máy",
-  "tính",
-  "api",
-  "web",
-  "ứng",
-  "dụng",
-  "phát",
-  "triển",
-  "phần",
-  "mềm",
-  "công",
-  "nghệ",
-];
-const punctuation = [".", ",", "!", "?", ";", ":"];
+  'lorem',
+  'ipsum',
+  'dolor',
+  'sit',
+  'amet',
+  'consectetur',
+  'adipiscing',
+  'elit',
+  'sed',
+  'do',
+  'eiusmod',
+  'tempor',
+  'incididunt',
+  'ut',
+  'labore',
+  'et',
+  'dolore',
+  'magna',
+  'aliqua',
+  'enim',
+  'ad',
+  'minim',
+  'veniam',
+  'quis',
+  'nostrud',
+  'exercitation',
+  'ullamco',
+  'laboris',
+  'nisi',
+  'aliquip',
+  'ex',
+  'ea',
+  'commodo',
+  'consequat',
+  'duis',
+  'aute',
+  'irure',
+  'in',
+  'reprehenderit',
+  'voluptate',
+  'velit',
+  'esse',
+  'cillum',
+  'fugiat',
+  'nulla',
+  'pariatur',
+  'excepteur',
+  'sint',
+  'occaecat',
+  'cupidatat',
+  'non',
+  'proident',
+  'sunt',
+  'culpa',
+  'qui',
+  'officia',
+  'deserunt',
+  'mollit',
+  'anim',
+  'id',
+  'est',
+  'laborum',
+  'con',
+  'cáo',
+  'nâu',
+  'nhanh',
+  'nhẹn',
+  'nhảy',
+  'qua',
+  'con',
+  'chó',
+  'lười',
+  'xin',
+  'chào',
+  'thế',
+  'giới',
+  'chương',
+  'trình',
+  'mã',
+  'nguồn',
+  'hàm',
+  'biến',
+  'dữ',
+  'liệu',
+  'hệ',
+  'thống',
+  'máy',
+  'tính',
+  'api',
+  'web',
+  'ứng',
+  'dụng',
+  'phát',
+  'triển',
+  'phần',
+  'mềm',
+  'công',
+  'nghệ',
+]
+const punctuation = ['.', ',', '!', '?', ';', ':']
 
 // --- State ---
-const activeTab = ref<"tokenize" | "generate">("tokenize");
+const activeTab = ref<'tokenize' | 'generate'>('tokenize')
 
 // Tokenize Tab State
-const inputText = ref("");
-const modelTokenize = ref("gpt-4o-mini");
-const priceTypeTokenize = ref<"input" | "output">("input");
+const inputText = ref('')
+const modelTokenize = ref('gpt-4o-mini')
+const priceTypeTokenize = ref<'input' | 'output'>('input')
 
 // Generate Tab State
-const targetTokenCount = ref(100);
-const modelGenerate = ref("gpt-4o-mini");
-const priceTypeGenerate = ref<"input" | "output">("input");
-const generatedText = ref("");
+const targetTokenCount = ref(100)
+const modelGenerate = ref('gpt-4o-mini')
+const priceTypeGenerate = ref<'input' | 'output'>('input')
+const generatedText = ref('')
 
 // --- Logic ---
 function tokenize(text: string): Token[] {
-  if (!text) return [];
-  const pattern = /[\w]+|[^\w\s]|\s+/g;
-  const tokens: Token[] = [];
-  let match;
-  let index = 0;
+  if (!text) return []
+  const pattern = /[\w]+|[^\w\s]|\s+/g
+  const tokens: Token[] = []
+  let match
+  let index = 0
   while ((match = pattern.exec(text)) !== null) {
-    const content = match[0];
+    const content = match[0]
     tokens.push({
       index: index++,
       content,
       length: content.length,
       isWhitespace: /^\s+$/.test(content),
-    });
+    })
   }
-  return tokens;
+  return tokens
 }
 
 function countTokens(tokens: Token[]): number {
-  return tokens.filter((t) => !t.isWhitespace).length;
+  return tokens.filter((t) => !t.isWhitespace).length
 }
 
-function calculateCost(tokenCount: number, model: string, type: "input" | "output"): string {
-  const pricing = modelPricing[model] ?? modelPricing["gpt-4o-mini"]!;
-  const ratePer1M = pricing[type];
-  const cost = (tokenCount / 1000000) * ratePer1M;
-  return "$" + cost.toFixed(6);
+function calculateCost(tokenCount: number, model: string, type: 'input' | 'output'): string {
+  const pricing = modelPricing[model] ?? modelPricing['gpt-4o-mini']!
+  const ratePer1M = pricing[type]
+  const cost = (tokenCount / 1000000) * ratePer1M
+  return '$' + cost.toFixed(6)
 }
 
 // (generateLorem removed - unused)
 
 // Fixed generator to work with ref
 const handleGenerate = () => {
-  let val = targetTokenCount.value;
-  if (val < 1) val = 1;
-  if (val > 100000) val = 100000;
-  targetTokenCount.value = val;
+  let val = targetTokenCount.value
+  if (val < 1) val = 1
+  if (val > 100000) val = 100000
+  targetTokenCount.value = val
 
-  const result: string[] = [];
-  let currentTokens = 0;
-  const random = (arr: string[]): string => arr[Math.floor(Math.random() * arr.length)]!;
+  const result: string[] = []
+  let currentTokens = 0
+  const random = (arr: string[]): string => arr[Math.floor(Math.random() * arr.length)]!
 
   while (currentTokens < val) {
-    const sentenceLength = Math.floor(Math.random() * 11) + 5;
-    const sentence: string[] = [];
+    const sentenceLength = Math.floor(Math.random() * 11) + 5
+    const sentence: string[] = []
     for (let i = 0; i < sentenceLength; i++) {
-      if (currentTokens >= val) break;
-      sentence.push(random(words));
-      currentTokens++;
+      if (currentTokens >= val) break
+      sentence.push(random(words))
+      currentTokens++
     }
     if (sentence.length > 0) {
-      const first = sentence[0]!;
-      sentence[0] = first.charAt(0).toUpperCase() + first.slice(1);
-      const lastIdx = sentence.length - 1;
-      const punct = random(punctuation);
-      if (punct === "." || Math.random() > 0.3) {
-        sentence[lastIdx] += ".";
+      const first = sentence[0]!
+      sentence[0] = first.charAt(0).toUpperCase() + first.slice(1)
+      const lastIdx = sentence.length - 1
+      const punct = random(punctuation)
+      if (punct === '.' || Math.random() > 0.3) {
+        sentence[lastIdx] += '.'
       } else {
-        sentence[lastIdx] += punct;
+        sentence[lastIdx] += punct
       }
-      result.push(sentence.join(" "));
+      result.push(sentence.join(' '))
     }
   }
-  generatedText.value = result.join(" ");
-};
+  generatedText.value = result.join(' ')
+}
 
 // --- Computed ---
-const tokenizeTokens = computed(() => tokenize(inputText.value));
-const tokenizeTokenCount = computed(() => countTokens(tokenizeTokens.value));
-const tokenizeCharCount = computed(() => inputText.value.length);
+const tokenizeTokens = computed(() => tokenize(inputText.value))
+const tokenizeTokenCount = computed(() => countTokens(tokenizeTokens.value))
+const tokenizeCharCount = computed(() => inputText.value.length)
 const tokenizeCost = computed(() =>
   calculateCost(tokenizeTokenCount.value, modelTokenize.value, priceTypeTokenize.value),
-);
+)
 
-const generateTokens = computed(() => tokenize(generatedText.value));
-const generateTokenCount = computed(() => countTokens(generateTokens.value));
-const generateCharCount = computed(() => generatedText.value.length);
+const generateTokens = computed(() => tokenize(generatedText.value))
+const generateTokenCount = computed(() => countTokens(generateTokens.value))
+const generateCharCount = computed(() => generatedText.value.length)
 const generateCost = computed(() =>
   calculateCost(generateTokenCount.value, modelGenerate.value, priceTypeGenerate.value),
-);
+)
 
 onMounted(() => {
   inputText.value =
-    "Xin chào thế giới! Đây là một bản demo token hóa. OpenAI sử dụng BPE (Byte Pair Encoding) để chia nhỏ văn bản thành các token.";
-});
+    'Xin chào thế giới! Đây là một bản demo token hóa. OpenAI sử dụng BPE (Byte Pair Encoding) để chia nhỏ văn bản thành các token.'
+})
 </script>
 
 <template>
@@ -680,7 +680,7 @@ input::-webkit-inner-spin-button {
   margin: 0;
 }
 
-input[type="number"] {
+input[type='number'] {
   -moz-appearance: textfield;
 }
 

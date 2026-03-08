@@ -1,88 +1,88 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { RouterLink } from "vue-router";
+import { ref, computed } from 'vue'
+import { RouterLink } from 'vue-router'
 
 const styles = [
-  { value: "adventurer", label: "Adventurer" },
-  { value: "adventurer-neutral", label: "Adventurer Neutral" },
-  { value: "avataaars", label: "Avataaars" },
-  { value: "avataaars-neutral", label: "Avataaars Neutral" },
-  { value: "big-ears", label: "Big Ears" },
-  { value: "big-ears-neutral", label: "Big Ears Neutral" },
-  { value: "big-smile", label: "Big Smile" },
-  { value: "bottts", label: "Bottts" },
-  { value: "bottts-neutral", label: "Bottts Neutral" },
-  { value: "croodles", label: "Croodles" },
-  { value: "croodles-neutral", label: "Croodles Neutral" },
-  { value: "dylan", label: "Dylan" },
-  { value: "fun-emoji", label: "Fun Emoji" },
-  { value: "glass", label: "Glass" },
-  { value: "icons", label: "Icons" },
-  { value: "identicon", label: "Identicon" },
-  { value: "initials", label: "Initials" },
-  { value: "lorelei", label: "Lorelei" },
-  { value: "lorelei-neutral", label: "Lorelei Neutral" },
-  { value: "micah", label: "Micah" },
-  { value: "miniavs", label: "Miniavs" },
-  { value: "notionists", label: "Notionists" },
-  { value: "notionists-neutral", label: "Notionists Neutral" },
-  { value: "open-peeps", label: "Open Peeps" },
-  { value: "personas", label: "Personas" },
-  { value: "pixel-art", label: "Pixel Art" },
-  { value: "pixel-art-neutral", label: "Pixel Art Neutral" },
-  { value: "rings", label: "Rings" },
-  { value: "shapes", label: "Shapes" },
-  { value: "thumbs", label: "Thumbs" },
-];
+  { value: 'adventurer', label: 'Adventurer' },
+  { value: 'adventurer-neutral', label: 'Adventurer Neutral' },
+  { value: 'avataaars', label: 'Avataaars' },
+  { value: 'avataaars-neutral', label: 'Avataaars Neutral' },
+  { value: 'big-ears', label: 'Big Ears' },
+  { value: 'big-ears-neutral', label: 'Big Ears Neutral' },
+  { value: 'big-smile', label: 'Big Smile' },
+  { value: 'bottts', label: 'Bottts' },
+  { value: 'bottts-neutral', label: 'Bottts Neutral' },
+  { value: 'croodles', label: 'Croodles' },
+  { value: 'croodles-neutral', label: 'Croodles Neutral' },
+  { value: 'dylan', label: 'Dylan' },
+  { value: 'fun-emoji', label: 'Fun Emoji' },
+  { value: 'glass', label: 'Glass' },
+  { value: 'icons', label: 'Icons' },
+  { value: 'identicon', label: 'Identicon' },
+  { value: 'initials', label: 'Initials' },
+  { value: 'lorelei', label: 'Lorelei' },
+  { value: 'lorelei-neutral', label: 'Lorelei Neutral' },
+  { value: 'micah', label: 'Micah' },
+  { value: 'miniavs', label: 'Miniavs' },
+  { value: 'notionists', label: 'Notionists' },
+  { value: 'notionists-neutral', label: 'Notionists Neutral' },
+  { value: 'open-peeps', label: 'Open Peeps' },
+  { value: 'personas', label: 'Personas' },
+  { value: 'pixel-art', label: 'Pixel Art' },
+  { value: 'pixel-art-neutral', label: 'Pixel Art Neutral' },
+  { value: 'rings', label: 'Rings' },
+  { value: 'shapes', label: 'Shapes' },
+  { value: 'thumbs', label: 'Thumbs' },
+]
 
-const seed = ref("j2team");
-const selectedStyle = ref("adventurer");
-const copied = ref(false);
-const inputSeed = ref("j2team");
+const seed = ref('j2team')
+const selectedStyle = ref('adventurer')
+const copied = ref(false)
+const inputSeed = ref('j2team')
 
 const avatarUrl = computed(
   () =>
     `https://api.dicebear.com/9.x/${selectedStyle.value}/svg?seed=${encodeURIComponent(seed.value)}`,
-);
+)
 
 function randomSeed() {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let result = ''
   for (let i = 0; i < 12; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+    result += chars.charAt(Math.floor(Math.random() * chars.length))
   }
-  seed.value = result;
-  inputSeed.value = result;
+  seed.value = result
+  inputSeed.value = result
 }
 
 function applySeed() {
-  seed.value = inputSeed.value.trim() || "j2team";
+  seed.value = inputSeed.value.trim() || 'j2team'
 }
 
 function copySeed() {
   navigator.clipboard.writeText(seed.value).then(() => {
-    copied.value = true;
-    setTimeout(() => (copied.value = false), 1500);
-  });
+    copied.value = true
+    setTimeout(() => (copied.value = false), 1500)
+  })
 }
 
-async function downloadAvatar(format: "png" | "svg") {
-  const url = `https://api.dicebear.com/9.x/${selectedStyle.value}/${format}?seed=${encodeURIComponent(seed.value)}`;
+async function downloadAvatar(format: 'png' | 'svg') {
+  const url = `https://api.dicebear.com/9.x/${selectedStyle.value}/${format}?seed=${encodeURIComponent(seed.value)}`
 
-  const res = await fetch(url);
-  const blob = await res.blob();
+  const res = await fetch(url)
+  const blob = await res.blob()
 
-  const link = document.createElement("a");
-  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a')
+  const objectUrl = URL.createObjectURL(blob)
 
-  link.href = objectUrl;
-  link.download = `avatar-${selectedStyle.value}-${seed.value}.${format}`;
+  link.href = objectUrl
+  link.download = `avatar-${selectedStyle.value}-${seed.value}.${format}`
 
-  document.body.appendChild(link);
-  link.click();
+  document.body.appendChild(link)
+  link.click()
 
-  document.body.removeChild(link);
-  URL.revokeObjectURL(objectUrl);
+  document.body.removeChild(link)
+  URL.revokeObjectURL(objectUrl)
 }
 </script>
 
@@ -250,7 +250,7 @@ async function downloadAvatar(format: "png" | "svg") {
                 "
                 @click="copySeed"
               >
-                {{ copied ? "ĐÃ SAO CHÉP" : "SAO CHÉP" }}
+                {{ copied ? 'ĐÃ SAO CHÉP' : 'SAO CHÉP' }}
               </button>
             </div>
 

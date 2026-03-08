@@ -6,9 +6,7 @@ export async function getCardsBySet(setId: string): Promise<Card[]> {
   return cards.sort((a, b) => a.order - b.order)
 }
 
-export async function createCard(
-  data: Pick<Card, 'setId' | 'front' | 'back'>,
-): Promise<Card> {
+export async function createCard(data: Pick<Card, 'setId' | 'front' | 'back'>): Promise<Card> {
   const existing = await getCardsBySet(data.setId)
   const maxOrder = existing.length > 0 ? Math.max(...existing.map((c) => c.order)) : -1
   const now = Date.now()

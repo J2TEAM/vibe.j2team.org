@@ -128,9 +128,7 @@ export function useTimer(onComplete?: (mode: TimerMode) => void) {
       .padStart(2, '0'),
   )
 
-  const displaySeconds = computed(() =>
-    (remainingSeconds.value % 60).toString().padStart(2, '0'),
-  )
+  const displaySeconds = computed(() => (remainingSeconds.value % 60).toString().padStart(2, '0'))
 
   onUnmounted(clearTimer)
 
