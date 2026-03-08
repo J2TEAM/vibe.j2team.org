@@ -2,16 +2,17 @@
 
 ## Project Overview
 
-vibe.j2team.org - A collaborative vibe coding project by J2TEAM Community. The homepage acts as a launcher linking to sub-pages, where each community member creates their own page.
+vibe.j2team.org — A collaborative vibe coding project by J2TEAM Community with 55+ sub-pages. The homepage acts as a launcher linking to sub-pages, where each community member creates their own page.
 
 ## Tech Stack
 
-- Vue 3 (Composition API with `<script setup>`)
-- TypeScript (strict mode)
-- Vite
-- Tailwind CSS v4
-- Vue Router
-- Pinia
+- Vue 3.5 (Composition API with `<script setup>`)
+- TypeScript (strict mode, `noUncheckedIndexedAccess: true`)
+- Vite 7
+- Tailwind CSS v4 (via `@tailwindcss/vite`)
+- Vue Router 5
+- Pinia 3
+- @unhead/vue (document head/meta management)
 
 ## Setup & Build
 
@@ -20,7 +21,8 @@ pnpm install
 pnpm dev          # Dev server
 pnpm build        # Type-check + production build
 pnpm test:unit    # Unit tests with Vitest
-pnpm lint         # Lint with oxlint + ESLint
+pnpm lint         # Lint with oxlint + ESLint (with --fix)
+pnpm lint:ci      # Lint without --fix (for CI)
 pnpm format       # Format with oxfmt
 ```
 
@@ -28,17 +30,36 @@ pnpm format       # Format with oxfmt
 
 ```
 src/
-  main.ts                    # App entry point
-  App.vue                    # Root component (only contains <RouterView />)
-  assets/main.css            # Tailwind CSS entry
-  router/index.ts            # Vue Router configuration
-  stores/                    # Pinia stores
+  main.ts                    # App entry (createPinia + createHead + router)
+  App.vue                    # Root component (<RouterView /> + useHead for dynamic meta)
+  assets/main.css            # Tailwind CSS v4 @theme tokens + custom animations
+  router/index.ts            # Vue Router — auto-generates routes from pages-loader
+  types/page.ts              # PageMeta & PageInfo interfaces
+  data/
+    pages-loader.ts          # Auto-discovers views/*/meta.ts via import.meta.glob()
+    categories.ts            # Category definitions (game, tool, fun, learn, spiritual, connect)
+    homepage.ts              # Homepage content data (tech stack, rules, products)
+    constants.ts             # Shared constants
+  components/
+    home/                    # Homepage section components (HeroSection, PagesGrid, etc.)
+    BackToTop.vue
+  stores/                    # Pinia stores (currently unused — pages manage state locally)
   views/
     HomePage.vue             # Landing page / launcher
+    ContentPolicy.vue        # Content policy page
+    NotFound.vue             # 404 page
     <app-name>/
       index.vue              # Each sub-page is a directory with index.vue
-      meta.ts                # Page metadata (name, description, author) — route auto-generated
+      meta.ts                # Page metadata — route auto-generated from folder name
 ```
+
+## Auto-Routing System
+
+Routes are auto-generated via `src/data/pages-loader.ts`:
+- `import.meta.glob('@/views/*/meta.ts')` discovers all pages
+- Path is derived from folder name (e.g., `src/views/my-app/` → `/my-app`)
+- Featured pages are pinned to the top of the homepage (hand-picked list in pages-loader.ts)
+- `hello-world` is always sorted last (template reference)
 
 ## Design System
 
@@ -63,7 +84,7 @@ Read `docs/DESIGN_SYSTEM.md` before making any visual changes.
 - Do not use `any` or `unknown` types
 - Use Composition API (not Options API)
 - Use `pnpm` as package manager (not npm/yarn)
-- Vietnamese text must use diacritics (tieng Viet co dau)
+- Vietnamese text must use diacritics (tiếng Việt có dấu)
 
 ## Rules
 
@@ -80,7 +101,9 @@ Read `docs/DESIGN_SYSTEM.md` before making any visual changes.
 
 1. Create a new directory under `src/views/<your-page-name>/`
 2. Add `index.vue` as the main component inside that directory
-3. Add `meta.ts` with page info (name, description, author) — the route is auto-generated from this file
+3. Add `meta.ts` exporting a `PageMeta` object with: `name`, `description`, `author`, and optionally `facebook` and `category`
+4. Available categories: `game`, `tool`, `fun`, `learn`, `spiritual`, `connect`
+5. The route is auto-generated from the folder name — no router changes needed
 
 ## Path Aliases
 
@@ -94,6 +117,7 @@ Read `docs/DESIGN_SYSTEM.md` before making any visual changes.
 ## Linting & Formatting
 
 - ESLint + eslint-plugin-vue + @vue/eslint-config-typescript
-- Oxlint (Rust-based linter, runs before ESLint)
-- Oxfmt for formatting
+- Oxlint (Rust-based linter, runs before ESLint) — config in `.oxlintrc.json`
+- Oxfmt for formatting — config in `.oxfmtrc.json` (no semicolons, single quotes)
 - Prettier config exists for compatibility (eslint-config-prettier)
+- Pre-commit: `simple-git-hooks` + `lint-staged` runs linters on staged files

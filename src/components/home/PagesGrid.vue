@@ -97,7 +97,7 @@ function goToRandom() {
           </svg>
           <input
             v-model="searchQuery"
-            type="text"
+            type="search"
             placeholder="Tìm theo tên, mô tả hoặc tác giả..."
             class="w-full bg-bg-surface border border-border-default pl-11 pr-4 py-3 text-sm text-text-primary placeholder-text-dim font-body transition-colors duration-200 focus:outline-none focus:border-accent-coral"
           />
