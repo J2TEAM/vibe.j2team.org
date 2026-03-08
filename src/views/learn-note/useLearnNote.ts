@@ -103,15 +103,15 @@ export const DIFFICULTY_RANGES: Record<
 > = {
   easy: {
     treble: { low: buildNote('C', '', 4), high: buildNote('B', '', 4) },
-    bass:   { low: buildNote('G', '', 2), high: buildNote('A', '', 3) },
+    bass: { low: buildNote('G', '', 2), high: buildNote('A', '', 3) },
   },
   medium: {
     treble: { low: buildNote('C', '', 4), high: buildNote('B', '', 5) },
-    bass:   { low: buildNote('E', '', 2), high: buildNote('C', '', 4) },
+    bass: { low: buildNote('E', '', 2), high: buildNote('C', '', 4) },
   },
   hard: {
     treble: { low: buildNote('C', '', 3), high: buildNote('B', '', 5) },
-    bass:   { low: buildNote('C', '', 2), high: buildNote('E', '', 4) },
+    bass: { low: buildNote('C', '', 2), high: buildNote('E', '', 4) },
   },
 }
 

@@ -229,7 +229,12 @@ export class Boss {
       // Check if fireball is out of bounds or hits solid
       const fc = Math.floor(fb.x / TILE_SIZE)
       const fr = Math.floor(fb.y / TILE_SIZE)
-      if (level.isSolidAt(fc, fr) || fb.x < 0 || fb.x > level.pixelWidth || fb.y > level.pixelHeight) {
+      if (
+        level.isSolidAt(fc, fr) ||
+        fb.x < 0 ||
+        fb.x > level.pixelWidth ||
+        fb.y > level.pixelHeight
+      ) {
         fb.active = false
       }
     }

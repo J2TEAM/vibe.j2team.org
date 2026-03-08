@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description: 'Anime sắp ra mắt',
   author: 'nupniichan',
   facebook: 'https://www.facebook.com/nupniichan',
+  category: 'fun',
 }
 
 export default meta

@@ -18,7 +18,9 @@ import { j2teamProducts } from '@/data/homepage'
         rel="noopener noreferrer nofollow"
         class="group border border-border-default bg-bg-surface px-6 py-4 transition-all duration-300 hover:-translate-y-1 hover:border-accent-amber hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-amber/5"
       >
-        <span class="font-display font-semibold text-text-primary group-hover:text-accent-amber transition-colors">
+        <span
+          class="font-display font-semibold text-text-primary group-hover:text-accent-amber transition-colors"
+        >
           {{ product.name }}
         </span>
       </a>

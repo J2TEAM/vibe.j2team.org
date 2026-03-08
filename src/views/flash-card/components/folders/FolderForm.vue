@@ -27,13 +27,33 @@ watch(
 )
 
 const presetColors = [
-  '#FF6B4A', '#FFB830', '#38BDF8', '#4ADE80',
-  '#F472B6', '#A78BFA', '#FB923C', '#6EE7B7',
+  '#FF6B4A',
+  '#FFB830',
+  '#38BDF8',
+  '#4ADE80',
+  '#F472B6',
+  '#A78BFA',
+  '#FB923C',
+  '#6EE7B7',
 ]
 
 const presetIcons = [
-  '📁', '📚', '🌍', '🔬', '💻', '🎨', '🎵', '📐',
-  '🧮', '🏥', '⚖️', '🔧', '🌿', '🎯', '💬', '🧠',
+  '📁',
+  '📚',
+  '🌍',
+  '🔬',
+  '💻',
+  '🎨',
+  '🎵',
+  '📐',
+  '🧮',
+  '🏥',
+  '⚖️',
+  '🔧',
+  '🌿',
+  '🎯',
+  '💬',
+  '🧠',
 ]
 
 function handleSubmit() {
@@ -93,7 +113,11 @@ function handleSubmit() {
                 :key="emoji"
                 type="button"
                 class="w-10 h-10 flex items-center justify-center text-xl border transition"
-                :class="icon === emoji ? 'border-accent-coral bg-accent-coral/10' : 'border-border-default hover:border-accent-coral/50'"
+                :class="
+                  icon === emoji
+                    ? 'border-accent-coral bg-accent-coral/10'
+                    : 'border-border-default hover:border-accent-coral/50'
+                "
                 @click="icon = emoji"
               >
                 {{ emoji }}
@@ -110,7 +134,11 @@ function handleSubmit() {
                 :key="c"
                 type="button"
                 class="w-8 h-8 border-2 transition"
-                :class="color === c ? 'border-text-primary scale-110' : 'border-transparent hover:border-text-dim'"
+                :class="
+                  color === c
+                    ? 'border-text-primary scale-110'
+                    : 'border-transparent hover:border-text-dim'
+                "
                 :style="{ backgroundColor: c }"
                 @click="color = c"
               />

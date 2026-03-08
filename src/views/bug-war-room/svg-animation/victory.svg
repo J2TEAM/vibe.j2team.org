@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="320" height="320" style="overflow: visible;">
+    <style>
+        /* Tổng thời gian 3s. Thời gian Pose ăn mừng chiếm 40% -> 1.2s */
+        .victory-body {
+            transform-origin: 100px 165px;
+            animation: victory-dance 3s infinite;
+        }
+
+        @keyframes victory-dance {
+            0% { transform: scale(1, 1) translateY(0); }
+            /* Nhịp nhún thứ 1 */
+            6% { transform: scale(1.15, 0.85) translateY(5px); }
+            12% { transform: scale(0.9, 1.1) translateY(-25px); }
+            18% { transform: scale(1.1, 0.9) translateY(0); }
+            /* Nhịp nhún thứ 2 (Nhảy cao hơn) */
+            24% { transform: scale(0.85, 1.15) translateY(-45px); }
+            28% { transform: scale(1, 1) translateY(-50px); }
+            /* Tiếp đất và bắt đầu Pose ăn mừng (từ 32% đến 75% = ~1.3 giây) */
+            32% { transform: scale(1.2, 0.8) translateY(5px); }
+            36% { transform: scale(0.95, 1.05) translateY(-2px); }
+            
+            /* Lắc lư tự hào (Proud Wobble) */
+            45% { transform: scale(1, 1) translateY(0) rotate(3deg); }
+            55% { transform: scale(1.02, 0.98) translateY(1px) rotate(-3deg); }
+            65% { transform: scale(1, 1) translateY(0) rotate(3deg); }
+            75% { transform: scale(1.02, 0.98) translateY(1px) rotate(-2deg); }
+            
+            /* Kết thúc Pose, chùng xuống nghỉ */
+            85% { transform: scale(1.05, 0.95) translateY(2px) rotate(0deg); }
+            100% { transform: scale(1, 1) translateY(0); }
+        }
+
+        /* Bóng đổ dưới mặt đất nhịp nhàng theo cú nhảy */
+        .victory-shadow {
+            transform-origin: 100px 165px;
+            animation: shadow-dance 3s infinite;
+        }
+        @keyframes shadow-dance {
+            0% { transform: scale(1); opacity: 0.3; }
+            6% { transform: scale(1.2); opacity: 0.4; }
+            12% { transform: scale(0.7); opacity: 0.15; }
+            18% { transform: scale(1.1); opacity: 0.35; }
+            24%, 28% { transform: scale(0.5); opacity: 0.05; }
+            32% { transform: scale(1.3); opacity: 0.45; }
+            45%, 75% { transform: scale(1); opacity: 0.3; }
+            85% { transform: scale(1.1); opacity: 0.35; }
+            100% { transform: scale(1); opacity: 0.3; }
+        }
+
+        /* Huy hiệu Rank Pop-up */
+        .badge-group {
+            transform-origin: 150px 60px;
+            animation: badge-pop 3s infinite;
+        }
+        @keyframes badge-pop {
+            0%, 20% { transform: scale(0) rotate(-45deg); opacity: 0; }
+            26% { transform: scale(1.3) rotate(15deg); opacity: 1; }
+            32%, 75% { transform: scale(1) rotate(10deg); opacity: 1; }
+            82%, 100% { transform: scale(0) rotate(45deg); opacity: 0; }
+        }
+
+        /* Ánh sáng lướt qua huy hiệu */
+        .badge-shine {
+            animation: shine-sweep 3s infinite;
+        }
+        @keyframes shine-sweep {
+            0%, 35% { transform: translateX(-50px); opacity: 0; }
+            40% { opacity: 0.5; }
+            55%, 100% { transform: translateX(50px); opacity: 0; }
+        }
+
+        /* Pháo giấy (Confetti) bắn ra lúc tiếp đất lần 2 */
+        .confetti {
+            transform-origin: 100px 100px;
+            animation: confetti-burst 3s infinite ease-out;
+        }
+        @keyframes confetti-burst {
+            0%, 28% { opacity: 0; transform: translate(0, 0) scale(0) rotate(0deg); }
+            30% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
+            50%, 100% { opacity: 0; transform: var(--end-transform); }
+        }
+        .c1 { --end-transform: translate(-60px, -70px) scale(0.8) rotate(180deg); }
+        .c2 { --end-transform: translate(60px, -80px) scale(0.5) rotate(-180deg); }
+        .c3 { --end-transform: translate(-80px, -20px) scale(0.6) rotate(90deg); }
+        .c4 { --end-transform: translate(70px, -10px) scale(0.9) rotate(-90deg); }
+        .c5 { --end-transform: translate(0px, -90px) scale(0.7) rotate(120deg); }
+    </style>
+
+    <!-- Bóng dưới mặt đất -->
+    <ellipse class="victory-shadow" cx="100" cy="165" rx="55" ry="12" fill="#000000" />
+
+    <!-- PHÁO GIẤY BẮN RA TỪ TÂM (Confetti) -->
+    <rect class="confetti c1" x="95" y="95" width="10" height="15" fill="#ef4444" rx="2" />
+    <rect class="confetti c2" x="95" y="95" width="12" height="8" fill="#3b82f6" rx="2" />
+    <rect class="confetti c3" x="95" y="95" width="8" height="12" fill="#f59e0b" rx="2" />
+    <rect class="confetti c4" x="95" y="95" width="14" height="10" fill="#a855f7" rx="2" />
+    <circle class="confetti c5" cx="100" cy="100" r="6" fill="#10b981" />
+
+    <!-- NHÓM CƠ THỂ SLIME -->
+    <g class="victory-body">
+        
+        <!-- Thân hình Slime xanh lá (tươi tắn) -->
+        <path d="M 50 145 C 50 85, 70 50, 100 50 C 130 50, 150 85, 150 145 C 160 145, 160 165, 100 165 C 40 165, 40 145, 50 145 Z" fill="#34d399" />
+
+        <!-- Điểm nhấn bắt sáng -->
+        <path d="M 70 75 Q 100 55 130 75" stroke="#ffffff" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.4" />
+
+        <!-- KHUÔN MẶT SIÊU HẠNH PHÚC (Victory Face) -->
+        <g>
+            <!-- Mắt nhắm cười hình ^ ^ -->
+            <path d="M 72 102 Q 80 90 88 102" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" fill="none" />
+            <path d="M 112 102 Q 120 90 128 102" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" fill="none" />
+
+            <!-- Má hồng ửng rạng rỡ -->
+            <ellipse cx="65" cy="108" rx="9" ry="5" fill="#ef4444" opacity="0.4" />
+            <ellipse cx="135" cy="108" rx="9" ry="5" fill="#ef4444" opacity="0.4" />
+
+            <!-- Miệng cười ngoác rộng chữ D (Há to sảng khoái) -->
+            <path d="M 85 110 Q 100 140 115 110 Z" fill="#0f172a" />
+            <!-- Lưỡi đỏ bên trong -->
+            <path d="M 90 118 Q 100 135 110 118 Z" fill="#ef4444" />
+        </g>
+    </g>
+
+    <!-- HUY HIỆU S RANK BẬT LÊN KẾ BÊN -->
+    <g class="badge-group">
+        <!-- Ngôi sao nền viền cam -->
+        <polygon points="150,30 156,48 175,48 160,60 165,78 150,68 135,78 140,60 125,48 144,48" fill="#d97706" />
+        <!-- Ngôi sao chính màu vàng -->
+        <polygon points="150,34 155,49 171,49 158,59 162,74 150,65 138,74 142,59 129,49 145,49" fill="#facc15" />
+        
+        <!-- Chữ "S" Rank ở giữa -->
+        <text x="150" y="62" font-family="'Impact', 'Arial Black', sans-serif" font-weight="900" font-size="28" fill="#ffffff" text-anchor="middle" style="text-shadow: 0 2px 4px rgba(217, 119, 6, 0.8), 0 -1px 1px rgba(255, 255, 255, 0.8);">S</text>
+
+        <!-- Vệt sáng bóng chớp qua huy hiệu -->
+        <g clip-path="url(#badge-clip)">
+            <rect class="badge-shine" x="130" y="20" width="10" height="70" fill="#ffffff" transform="skewX(-20)" />
+        </g>
+    </g>
+
+    <defs>
+        <!-- Clip-path để ánh sáng chỉ quét trong phạm vi ngôi sao -->
+        <clipPath id="badge-clip">
+            <polygon points="150,34 155,49 171,49 158,59 162,74 150,65 138,74 142,59 129,49 145,49" />
+        </clipPath>
+    </defs>
+
+</svg>

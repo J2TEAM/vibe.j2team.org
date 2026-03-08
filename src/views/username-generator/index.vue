@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from "vue"
-import { RouterLink } from "vue-router"
+import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
 
-const username = ref("")
+const username = ref('')
 
 type StyleSet = {
   adj: string[]
@@ -11,30 +11,30 @@ type StyleSet = {
 
 const styles = {
   gaming: {
-    adj: ["dark", "shadow", "killer", "ghost", "crazy"],
-    noun: ["ninja", "dragon", "hunter", "sniper"]
+    adj: ['dark', 'shadow', 'killer', 'ghost', 'crazy'],
+    noun: ['ninja', 'dragon', 'hunter', 'sniper'],
   },
   tech: {
-    adj: ["cyber", "quantum", "pixel", "neon"],
-    noun: ["coder", "dev", "engineer", "node"]
+    adj: ['cyber', 'quantum', 'pixel', 'neon'],
+    noun: ['coder', 'dev', 'engineer', 'node'],
   },
   cute: {
-    adj: ["sweet", "tiny", "happy", "pink"],
-    noun: ["kitty", "bunny", "cookie", "panda"]
+    adj: ['sweet', 'tiny', 'happy', 'pink'],
+    noun: ['kitty', 'bunny', 'cookie', 'panda'],
   },
   anime: {
-    adj: ["kawaii", "baka", "sakura", "neko"],
-    noun: ["chan", "kun", "sensei", "otaku"]
+    adj: ['kawaii', 'baka', 'sakura', 'neko'],
+    noun: ['chan', 'kun', 'sensei', 'otaku'],
   },
   minimal: {
-    adj: ["mono", "void", "silent", "zero"],
-    noun: ["user", "core", "unit", "base"]
-  }
+    adj: ['mono', 'void', 'silent', 'zero'],
+    noun: ['user', 'core', 'unit', 'base'],
+  },
 } satisfies Record<string, StyleSet>
 
 type StyleKey = keyof typeof styles
 
-const style = ref<StyleKey>("gaming")
+const style = ref<StyleKey>('gaming')
 
 function generate() {
   const s = styles[style.value]
@@ -48,7 +48,7 @@ function generate() {
 
 async function copy() {
   await navigator.clipboard.writeText(username.value)
-  alert("Đã copy username!")
+  alert('Đã copy username!')
 }
 </script>
 
@@ -56,9 +56,7 @@ async function copy() {
   <div
     class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col items-center justify-center px-4"
   >
-    <h1
-      class="font-display text-4xl sm:text-6xl font-bold text-accent-coral animate-fade-up"
-    >
+    <h1 class="font-display text-4xl sm:text-6xl font-bold text-accent-coral animate-fade-up">
       Tạo Username ngẫu nhiên
     </h1>
 
@@ -71,10 +69,7 @@ async function copy() {
     <div
       class="mt-8 w-full max-w-md bg-bg-surface border border-border-default p-6 space-y-4 animate-fade-up animate-delay-3"
     >
-      <select
-        v-model="style"
-        class="w-full p-2 bg-bg-deep border border-border-default"
-      >
+      <select v-model="style" class="w-full p-2 bg-bg-deep border border-border-default">
         <option value="gaming">Gaming</option>
         <option value="tech">Tech</option>
         <option value="cute">Cute</option>

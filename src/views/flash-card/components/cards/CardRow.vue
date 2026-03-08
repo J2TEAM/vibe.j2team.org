@@ -30,7 +30,9 @@ const levelLabels: Record<number, string> = {
 </script>
 
 <template>
-  <div class="flex items-center gap-3 border border-border-default bg-bg-surface p-4 transition hover:border-accent-coral/30 group">
+  <div
+    class="flex items-center gap-3 border border-border-default bg-bg-surface p-4 transition hover:border-accent-coral/30 group"
+  >
     <!-- Reorder -->
     <div class="flex flex-col gap-0.5 shrink-0">
       <button
@@ -39,7 +41,19 @@ const levelLabels: Record<number, string> = {
         aria-label="Di chuyển lên"
         @click="emit('moveUp')"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="m18 15-6-6-6 6" />
+        </svg>
       </button>
       <button
         class="p-0.5 text-text-dim hover:text-text-primary transition disabled:opacity-20 disabled:cursor-not-allowed"
@@ -47,7 +61,19 @@ const levelLabels: Record<number, string> = {
         aria-label="Di chuyển xuống"
         @click="emit('moveDown')"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
       </button>
     </div>
 
@@ -58,10 +84,7 @@ const levelLabels: Record<number, string> = {
     </div>
 
     <!-- Level badge -->
-    <span
-      class="shrink-0 px-2 py-0.5 text-xs font-display"
-      :class="levelColors[card.level]"
-    >
+    <span class="shrink-0 px-2 py-0.5 text-xs font-display" :class="levelColors[card.level]">
       {{ levelLabels[card.level] }}
     </span>
 
@@ -72,14 +95,40 @@ const levelLabels: Record<number, string> = {
         aria-label="Sửa thẻ"
         @click="emit('edit')"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+        </svg>
       </button>
       <button
         class="p-1.5 text-text-dim hover:text-accent-coral transition-colors"
         aria-label="Xóa thẻ"
         @click="emit('delete')"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M3 6h18" />
+          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+        </svg>
       </button>
     </div>
   </div>

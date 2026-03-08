@@ -32,19 +32,43 @@ export function useNavigation() {
   }
 
   function goToEditor(folderId: string, setId: string, folderName?: string, setName?: string) {
-    navigateTo({ view: 'card-editor', folderId, setId, folderName: folderName ?? currentNav.value.folderName, setName: setName ?? currentNav.value.setName })
+    navigateTo({
+      view: 'card-editor',
+      folderId,
+      setId,
+      folderName: folderName ?? currentNav.value.folderName,
+      setName: setName ?? currentNav.value.setName,
+    })
   }
 
   function goToStudyConfig(folderId: string, setId: string, folderName?: string, setName?: string) {
-    navigateTo({ view: 'study-config', folderId, setId, folderName: folderName ?? currentNav.value.folderName, setName: setName ?? currentNav.value.setName })
+    navigateTo({
+      view: 'study-config',
+      folderId,
+      setId,
+      folderName: folderName ?? currentNav.value.folderName,
+      setName: setName ?? currentNav.value.setName,
+    })
   }
 
   function goToStudy(folderId: string, setId: string) {
-    navigateTo({ view: 'study-mode', folderId, setId, folderName: currentNav.value.folderName, setName: currentNav.value.setName })
+    navigateTo({
+      view: 'study-mode',
+      folderId,
+      setId,
+      folderName: currentNav.value.folderName,
+      setName: currentNav.value.setName,
+    })
   }
 
   function goToStudyComplete(folderId: string, setId: string) {
-    navigateTo({ view: 'study-complete', folderId, setId, folderName: currentNav.value.folderName, setName: currentNav.value.setName })
+    navigateTo({
+      view: 'study-complete',
+      folderId,
+      setId,
+      folderName: currentNav.value.folderName,
+      setName: currentNav.value.setName,
+    })
   }
 
   const breadcrumbs = computed<BreadcrumbItem[]>(() => {
@@ -62,7 +86,10 @@ export function useNavigation() {
     }
 
     if (nav.setId && nav.setName && nav.view !== 'card-editor') {
-      items.push({ label: nav.setName, action: () => goToEditor(nav.folderId!, nav.setId!, nav.folderName, nav.setName) })
+      items.push({
+        label: nav.setName,
+        action: () => goToEditor(nav.folderId!, nav.setId!, nav.folderName, nav.setName),
+      })
     } else if (nav.view === 'card-editor' && nav.setName) {
       items.push({ label: nav.setName })
     }

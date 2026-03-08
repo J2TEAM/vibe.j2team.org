@@ -58,7 +58,9 @@ const viewComponent = computed(() => {
             >
               {{ crumb.label }}
             </button>
-            <span v-else class="text-sm text-text-secondary truncate max-w-40 sm:max-w-none">{{ crumb.label }}</span>
+            <span v-else class="text-sm text-text-secondary truncate max-w-40 sm:max-w-none">{{
+              crumb.label
+            }}</span>
           </template>
         </div>
       </div>
@@ -90,12 +92,7 @@ const viewComponent = computed(() => {
       />
 
       <!-- All other views -->
-      <component
-        v-else
-        :is="viewComponent"
-        :folder-id="currentFolderId"
-        :set-id="currentSetId"
-      />
+      <component v-else :is="viewComponent" :folder-id="currentFolderId" :set-id="currentSetId" />
     </div>
   </div>
 </template>

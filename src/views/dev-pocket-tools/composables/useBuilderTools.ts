@@ -22,16 +22,32 @@ export function useBuilderTools() {
     message: 'Nhập text và sinh hash bằng Web Crypto API.',
   })
   const caseInput = ref('dev pocket tools v2')
-  const jsonTypeInput = ref('{\n  "id": 1,\n  "name": "J2TEAM",\n  "tags": ["tools", "dev"],\n  "profile": {\n    "active": true,\n    "score": 9.8\n  }\n}')
+  const jsonTypeInput = ref(
+    '{\n  "id": 1,\n  "name": "J2TEAM",\n  "tags": ["tools", "dev"],\n  "profile": {\n    "active": true,\n    "score": 9.8\n  }\n}',
+  )
   const uuidCount = ref(3)
   const uuidList = ref<string[]>([])
 
   const jwtResult = computed(() => {
     const source = jwtInput.value.trim()
-    if (!source) return { tone: 'default' as const, message: 'Dán JWT để decode header và payload.', header: '', payload: '', timeFields: [] as JwtTimeField[] }
+    if (!source)
+      return {
+        tone: 'default' as const,
+        message: 'Dán JWT để decode header và payload.',
+        header: '',
+        payload: '',
+        timeFields: [] as JwtTimeField[],
+      }
 
     const segments = source.split('.')
-    if (segments.length < 2) return { tone: 'error' as const, message: 'JWT phải có ít nhất 2 phần: header.payload.', header: '', payload: '', timeFields: [] as JwtTimeField[] }
+    if (segments.length < 2)
+      return {
+        tone: 'error' as const,
+        message: 'JWT phải có ít nhất 2 phần: header.payload.',
+        header: '',
+        payload: '',
+        timeFields: [] as JwtTimeField[],
+      }
 
     try {
       const headerText = decodeBase64UrlToText(segments[0] ?? '')
@@ -47,7 +63,13 @@ export function useBuilderTools() {
         timeFields: extractJwtTimeFields(payloadJson),
       }
     } catch (error) {
-      return { tone: 'error' as const, message: error instanceof Error ? error.message : 'Không thể decode JWT.', header: '', payload: '', timeFields: [] as JwtTimeField[] }
+      return {
+        tone: 'error' as const,
+        message: error instanceof Error ? error.message : 'Không thể decode JWT.',
+        header: '',
+        payload: '',
+        timeFields: [] as JwtTimeField[],
+      }
     }
   })
 
@@ -64,13 +86,26 @@ export function useBuilderTools() {
 
   const jsonTypeResult = computed(() => {
     const source = jsonTypeInput.value.trim()
-    if (!source) return { tone: 'default' as const, message: 'Nhập JSON mẫu để sinh interface TypeScript.', output: '' }
+    if (!source)
+      return {
+        tone: 'default' as const,
+        message: 'Nhập JSON mẫu để sinh interface TypeScript.',
+        output: '',
+      }
 
     try {
       const parsed = JSON.parse(source) as JsonValue
-      return { tone: 'success' as const, message: 'Đã sinh TypeScript từ JSON mẫu.', output: generateTypeScriptType('RootPayload', parsed) }
+      return {
+        tone: 'success' as const,
+        message: 'Đã sinh TypeScript từ JSON mẫu.',
+        output: generateTypeScriptType('RootPayload', parsed),
+      }
     } catch (error) {
-      return { tone: 'error' as const, message: error instanceof Error ? error.message : 'JSON không hợp lệ.', output: '' }
+      return {
+        tone: 'error' as const,
+        message: error instanceof Error ? error.message : 'JSON không hợp lệ.',
+        output: '',
+      }
     }
   })
 
@@ -84,17 +119,28 @@ export function useBuilderTools() {
 
     if (!('crypto' in window) || !('subtle' in window.crypto)) {
       hashOutput.value = ''
-      hashStatus.value = { tone: 'error', message: 'Trình duyệt hiện tại không hỗ trợ Web Crypto API.' }
+      hashStatus.value = {
+        tone: 'error',
+        message: 'Trình duyệt hiện tại không hỗ trợ Web Crypto API.',
+      }
       return
     }
 
     try {
-      const digest = await window.crypto.subtle.digest(hashAlgorithm.value, new TextEncoder().encode(source))
-      hashOutput.value = Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('')
+      const digest = await window.crypto.subtle.digest(
+        hashAlgorithm.value,
+        new TextEncoder().encode(source),
+      )
+      hashOutput.value = Array.from(new Uint8Array(digest))
+        .map((byte) => byte.toString(16).padStart(2, '0'))
+        .join('')
       hashStatus.value = { tone: 'success', message: `Đã sinh ${hashAlgorithm.value}.` }
     } catch (error) {
       hashOutput.value = ''
-      hashStatus.value = { tone: 'error', message: error instanceof Error ? error.message : 'Không thể sinh hash.' }
+      hashStatus.value = {
+        tone: 'error',
+        message: error instanceof Error ? error.message : 'Không thể sinh hash.',
+      }
     }
   }
 

@@ -21,11 +21,17 @@ function next() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col items-center justify-center px-4 py-12">
-    <h1 class="font-display text-3xl min-[375px]:text-4xl sm:text-5xl font-bold text-accent-coral text-center animate-fade-up">
+  <div
+    class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col items-center justify-center px-4 py-12"
+  >
+    <h1
+      class="font-display text-3xl min-[375px]:text-4xl sm:text-5xl font-bold text-accent-coral text-center animate-fade-up"
+    >
       Coding Confessions
     </h1>
-    <p class="mt-3 text-text-secondary text-sm sm:text-base text-center animate-fade-up animate-delay-2">
+    <p
+      class="mt-3 text-text-secondary text-sm sm:text-base text-center animate-fade-up animate-delay-2"
+    >
       Những tâm sự mà dev nào cũng từng trải qua...
     </p>
 
@@ -35,11 +41,17 @@ function next() {
           :key="currentIndex"
           class="relative border border-border-default bg-bg-surface p-6 sm:p-8"
         >
-          <span class="absolute -top-3 -left-3 font-display text-5xl text-accent-coral leading-none select-none">"</span>
+          <span
+            class="absolute -top-3 -left-3 font-display text-5xl text-accent-coral leading-none select-none"
+            >"</span
+          >
           <p class="text-text-primary text-lg sm:text-xl leading-relaxed pl-4">
             {{ current.text }}
           </p>
-          <span class="absolute -bottom-3 -right-3 font-display text-5xl text-accent-coral leading-none select-none rotate-180">"</span>
+          <span
+            class="absolute -bottom-3 -right-3 font-display text-5xl text-accent-coral leading-none select-none rotate-180"
+            >"</span
+          >
         </div>
       </Transition>
 
@@ -75,7 +87,9 @@ function next() {
 <style scoped>
 .confession-enter-active,
 .confession-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 .confession-enter-from {

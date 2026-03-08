@@ -35,8 +35,14 @@ let animationId = 0
 let particles: Particle[] = []
 
 const colors = [
-  '#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff',
-  '#ff8fb1', '#a855f7', '#06b6d4', '#f97316',
+  '#ff6b6b',
+  '#ffd93d',
+  '#6bcb77',
+  '#4d96ff',
+  '#ff8fb1',
+  '#a855f7',
+  '#06b6d4',
+  '#f97316',
 ]
 
 function createParticles() {
@@ -111,15 +117,14 @@ onUnmounted(() => {
 <template>
   <Teleport to="body">
     <!-- Confetti canvas -->
-    <canvas
-      ref="canvasRef"
-      class="fixed inset-0 z-50 pointer-events-none"
-    />
+    <canvas ref="canvasRef" class="fixed inset-0 z-50 pointer-events-none" />
 
     <!-- Dialog backdrop + content -->
     <div class="fixed inset-0 z-50 flex items-center justify-center px-4">
       <div class="absolute inset-0 bg-bg-deep/60" @click="emit('dismiss')" />
-      <div class="relative z-10 max-w-sm w-full border border-border-default bg-bg-surface p-8 text-center animate-fade-up">
+      <div
+        class="relative z-10 max-w-sm w-full border border-border-default bg-bg-surface p-8 text-center animate-fade-up"
+      >
         <div class="text-5xl mb-3">{{ info.emoji }}</div>
         <h3 class="font-display text-2xl font-bold mb-2" :class="info.color">
           Vòng {{ round }} hoàn thành!
