@@ -21,6 +21,7 @@
     "optimize:images": "node scripts/optimize-image.mjs"
   },
   "dependencies": {
+    "@iconify/vue": "^5.0.0",
     "@unhead/vue": "^2.1.10",
     "html-to-image": "^1.11.13",
     "pinia": "^3.0.4",
