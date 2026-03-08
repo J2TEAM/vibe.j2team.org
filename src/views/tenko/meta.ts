@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description: 'Công cụ trực quan hóa token và tính toán chi phí OpenAI.',
   author: 'ltpppp',
   facebook: 'https://www.facebook.com/groups/j2team.community',
+  category: 'tool',
 }
 
 export default meta

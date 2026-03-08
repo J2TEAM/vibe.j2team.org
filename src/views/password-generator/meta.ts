@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description: 'Tạo mật khẩu mạnh ngẫu nhiên để bảo vệ tài khoản.',
   author: 'Trần Minh Quốc',
   facebook: 'https://www.facebook.com/tranminhquocreal',
+  category: 'tool',
 }
 
 export default meta
