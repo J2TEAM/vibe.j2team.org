@@ -476,6 +476,7 @@ const pastedOffer = ref(''); const pastedAnswer = ref('')
 const isMuted = ref(false); const isCameraOff = ref(false)
 const copied = ref(false); const connError = ref(''); const iceProgress = ref('')
 const hasCamera = ref(false); const spectatorCount = ref(0)
+const remoteMuted = ref(false); const remoteCameraOff = ref(false)
 const spectatorChannels: RTCDataChannel[] = []
 
 let pc: RTCPeerConnection | null = null
@@ -552,6 +553,10 @@ function setupDataChannel(ch: RTCDataChannel) {
         broadcastToSpectators(e.data)
       }
       if (msg.type === 'sync') handleRemoteSync(msg)
+      if (msg.type === 'media-state') {
+        remoteMuted.value = !!msg.muted
+        remoteCameraOff.value = !!msg.cameraOff
+      }
       if (msg.type === 'spectator-join') {
         spectatorCount.value++
         // Send current game state to new spectator
@@ -717,11 +722,17 @@ async function safeCopy(text: string) {
 function toggleMute() {
   const t = localStream.value?.getAudioTracks()[0]
   if (t) { t.enabled = !t.enabled; isMuted.value = !t.enabled }
+  sendMediaState()
 }
 
 function toggleCamera() {
   const t = localStream.value?.getVideoTracks()[0]
   if (t) { t.enabled = !t.enabled; isCameraOff.value = !t.enabled }
+  sendMediaState()
+}
+
+function sendMediaState() {
+  dataChannel?.send(JSON.stringify({ type: 'media-state', muted: isMuted.value, cameraOff: isCameraOff.value }))
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1030,10 +1041,22 @@ watch(board, () => { nextTick(drawBoard) }, { deep: true })
             <div class="flex-1 ancient-panel overflow-hidden relative p-0">
               <video ref="remoteVideoRef" autoplay playsinline muted class="w-full aspect-video object-cover" style="transform: scaleX(-1)" />
               <span class="absolute bottom-1 left-1 text-xs px-1.5 py-0.5 font-display" :class="myColor === 'red' ? 'ancient-silver' : 'text-[#C84B31]'" style="background: rgba(15,10,5,0.8)">{{ myColor === 'red' ? '黑 Đối thủ' : '紅 Đối thủ' }}</span>
+              <span v-if="remoteMuted" class="absolute top-1 right-1 p-1 rounded" style="background: rgba(15,10,5,0.8)">
+                <svg class="w-3.5 h-3.5 text-red-400" viewBox="0 0 24 24" fill="currentColor" v-html="svgIcons.micOff" />
+              </span>
+              <span v-if="remoteCameraOff" class="absolute top-1 right-7 p-1 rounded" style="background: rgba(15,10,5,0.8)">
+                <svg class="w-3.5 h-3.5 text-red-400" viewBox="0 0 24 24" fill="currentColor" v-html="svgIcons.camOff" />
+              </span>
             </div>
             <div class="flex-1 ancient-panel overflow-hidden relative p-0">
               <video ref="localVideoRef" autoplay playsinline muted class="w-full aspect-video object-cover" style="transform: scaleX(-1)" />
               <span class="absolute bottom-1 left-1 text-xs px-1.5 py-0.5 font-display" :class="myColor === 'red' ? 'text-[#C84B31]' : 'ancient-silver'" style="background: rgba(15,10,5,0.8)">{{ myColor === 'red' ? '紅 Bạn' : '黑 Bạn' }}</span>
+              <span v-if="isMuted" class="absolute top-1 right-1 p-1 rounded" style="background: rgba(15,10,5,0.8)">
+                <svg class="w-3.5 h-3.5 text-yellow-400" viewBox="0 0 24 24" fill="currentColor" v-html="svgIcons.micOff" />
+              </span>
+              <span v-if="isCameraOff" class="absolute top-1 right-7 p-1 rounded" style="background: rgba(15,10,5,0.8)">
+                <svg class="w-3.5 h-3.5 text-yellow-400" viewBox="0 0 24 24" fill="currentColor" v-html="svgIcons.camOff" />
+              </span>
             </div>
             <div class="flex lg:flex-col gap-1">
               <button class="flex-1 ancient-btn-sm" @click="toggleMute">
