@@ -194,7 +194,7 @@ onUnmounted(() => {
       <RouterLink to="/" class="text-accent-coral text-sm hover:underline" @pointerdown.stop
         >← Về trang chủ</RouterLink
       >
-      <h1 class="font-display text-base"><span class="text-accent-coral">//</span> FUN 2 RHYME</h1>
+      <h1 class="font-display text-base"><span class="text-accent-coral">//</span> PRESS IT</h1>
       <button
         class="text-text-secondary hover:text-text-primary transition-colors text-lg px-1"
         @pointerdown.stop
@@ -212,9 +212,9 @@ onUnmounted(() => {
       <div class="text-center space-y-2">
         <div class="text-7xl mb-3">🎵</div>
         <h2 class="font-display text-4xl sm:text-5xl">
-          <span class="text-accent-coral">//</span> FUN 2 RHYME
+          <span class="text-accent-coral">//</span> PRESS IT
         </h2>
-        <p class="text-text-tertiary text-sm">Tap theo beat — theo lyric — đừng sai nhịp</p>
+        <p class="text-text-tertiary text-sm">Trust your guts - follow the rhythm!</p>
       </div>
 
       <div class="w-full max-w-xs space-y-2 text-xs text-text-tertiary">
