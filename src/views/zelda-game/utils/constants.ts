@@ -1,0 +1,194 @@
+// --- Grid & Tile ---
+export const TILE_SIZE = 32          // pixels per tile
+export const MAP_COLS = 35  // expanded from 25; map can be larger than viewport — camera scrolls
+export const MAP_ROWS = 28  // expanded from 19
+
+// --- Canvas ---
+export const CANVAS_WIDTH = 800   // viewport width (px); map may be larger — camera scrolls
+export const CANVAS_HEIGHT = 608  // viewport height (px); map may be larger — camera scrolls
+
+// --- Physics ---
+export const PLAYER_SPEED = 120      // pixels/second
+export const ENEMY_SPEED = 60        // pixels/second
+
+// --- Colors (must match src/assets/main.css @theme tokens) ---
+export const COLORS = {
+  bgDeep: '#0F1923',
+  bgSurface: '#162232',
+  bgElevated: '#1E2F42',
+  accentCoral: '#FF6B4A',
+  accentAmber: '#FFB830',
+  accentSky: '#38BDF8',
+  textPrimary: '#F0EDE6',
+  textSecondary: '#8B9DB5',
+  // Game-specific
+  ground: '#4A7A3B',
+  wall: '#5C4033',
+  tree: '#2D5A1E',
+  bush: '#3D8B2F',
+  water: '#2563EB',
+  chest: '#D4A017',
+  gate: '#6B7280',
+  enemyRed: '#DC2626',
+  heartRed: '#EF4444',
+  heartEmpty: '#374151',
+} as const
+
+// --- Player ---
+export const PLAYER_SIZE = 28             // px (fits within 32px tile)
+export const PLAYER_MAX_HEALTH = 3        // hearts (Stage 1)
+export const PLAYER_INVULN_DURATION = 1.0 // seconds of i-frames
+export const PLAYER_BLINK_RATE = 0.1      // seconds per blink toggle
+export const SPRITE_SIZE = 32             // px (sprite canvas size)
+export const WALK_FRAME_DURATION = 0.15   // seconds per walk frame
+
+// --- Enemy ---
+export const ENEMY_SIZE = 28                    // px collision box
+export const ENEMY_SPRITE_SIZE = 32             // px render size
+
+// --- Vision & Stealth ---
+export const VISION_RANGE = 5 * TILE_SIZE       // 160px (5 tiles)
+export const VISION_ANGLE_DEG = 60              // total cone width
+export const VISION_HALF_ANGLE_RAD = Math.PI / 6 // 30° half-width
+export const ALERT_TRANSITION_TIME = 0.3        // seconds before chase
+export const CHASE_TIMEOUT = 3.0                // seconds to lose player
+export const VISION_CHECK_INTERVAL = 3          // check every N frames
+export const BOKOBLIN_HP = 2                    // health points
+export const INTERACT_RADIUS = TILE_SIZE * 1.5  // 48px interaction range
+
+// --- Patrol ---
+/** [RED TEAM #11] Idle pause at waypoints before moving to next */
+export const PATROL_PAUSE_TIME = 0.5            // seconds to idle at each waypoint
+
+// --- Combat Constants ---
+export const SWORD_DAMAGE = 1
+export const SWORD_COOLDOWN = 0.5               // seconds
+export const SWORD_SWING_DURATION = 0.25        // seconds (active hitbox window)
+export const SWORD_RANGE = 1.5 * TILE_SIZE      // ~48px, 1.5 tiles
+export const SWORD_ARC_WIDTH = 1.0 * TILE_SIZE  // width of arc hitbox
+
+export const SHIELD_FLAT_BLOCK = 1              // flat damage reduction (blocks 1 point of damage)
+export const SHIELD_SPEED_MULTIPLIER = 0.5      // 50% movement speed
+
+export const BOW_DAMAGE = 1
+export const BOW_COOLDOWN = 1.5                 // seconds
+export const BOW_SHOOT_DURATION = 0.3           // animation time before arrow spawns
+export const ARROW_SPEED = 250                  // pixels/second
+export const ARROW_SIZE = 6                     // pixels (projectile hitbox)
+
+export const PLAYER_KNOCKBACK_FORCE = 20        // knockback on enemies when hit
+
+// --- Effects ---
+export const DAMAGE_FLASH_DURATION = 0.2    // seconds of red flash
+export const DEATH_ANIM_DURATION = 0.5      // seconds of death animation
+
+// ==================== STAGE 2 ====================
+
+// --- Player Stage 2 ---
+export const STAGE2_PLAYER_MAX_HEALTH = 5
+
+// --- Lynel ---
+export const LYNEL_HP = 10
+export const LYNEL_SIZE = 40               // larger than Bokoblin
+export const LYNEL_SPRITE_SIZE = 48
+export const LYNEL_SPEED = 80              // pixels/sec (pacing)
+export const LYNEL_BERSERK_SPEED = 120     // +50% speed
+
+// Lynel Charge
+export const LYNEL_CHARGE_WINDUP_P1 = 1.0  // seconds (Phase 1)
+export const LYNEL_CHARGE_WINDUP_P2 = 0.7  // seconds (Phase 2+)
+export const LYNEL_CHARGE_SPEED = 250      // pixels/sec
+export const LYNEL_STUN_DURATION = 2.0     // seconds after hitting edge
+
+// Lynel Attacks
+export const LYNEL_SLASH_DAMAGE = 1
+export const LYNEL_SLASH_RANGE = 56        // 1.75 tiles
+export const LYNEL_BERSERK_DAMAGE = 2
+export const LYNEL_SLASH_COOLDOWN = 1.0    // seconds between slashes
+
+// Lynel Fire Breath
+export const LYNEL_FIRE_CONE_RANGE = 5 * TILE_SIZE  // 160px
+export const LYNEL_FIRE_CONE_ANGLE = 60             // degrees
+export const FIRE_TILE_DURATION = 2.0               // seconds fire lingers
+export const FIRE_DAMAGE_PER_TICK = 1               // damage per 0.5s on fire
+export const FIRE_TICK_INTERVAL = 0.5               // seconds between fire damage ticks
+
+// Lynel Phase Thresholds (HP values)
+export const LYNEL_PHASE2_HP = 6   // enters Phase 2 at 6 HP
+export const LYNEL_PHASE3_HP = 3   // enters Phase 3 at 3 HP
+
+// --- Bokoblin Archer ---
+export const ARCHER_FIRE_INTERVAL = 2.0    // seconds between shots
+export const ARCHER_ARROW_SPEED = 200      // pixels/sec
+export const ARCHER_ARROW_DAMAGE = 1
+export const ARCHER_DETECTION_RANGE = 8 * TILE_SIZE  // 256px
+
+// --- Wave System ---
+export const WAVE_BREATHER_TIME = 2.0      // seconds between waves
+export const HEART_HEAL_AMOUNT = 1
+export const HEART_PICKUP_RADIUS = TILE_SIZE * 1.5  // 48px
+
+// --- Boss Arena ---
+export const BOSS_ARENA_LEFT = 38 * TILE_SIZE   // world X where arena starts
+export const BOSS_ARENA_RIGHT = 56 * TILE_SIZE  // world X where arena ends
+
+// ==================== STAGE 3 ====================
+
+// --- Ganon Base Stats ---
+export const GANON_HP = 20
+export const GANON_SIZE = 40                    // collision box (px) — same as Lynel
+export const GANON_SPRITE_SIZE = 48             // render size (px)
+export const GANON_SPEED = 50                   // pacing speed (px/sec) — deliberately slow
+
+// --- Ganon Phase HP Thresholds ---
+// Phase transitions occur when HP drops to or below these values
+export const GANON_PHASE2_HP = 14               // ≤14 HP → Phase 2: Teleportation
+export const GANON_PHASE3_HP = 9                // ≤9 HP  → Phase 3: Calamity Unleashed
+export const GANON_PHASE4_HP = 4                // ≤4 HP  → Phase 4: Final Stand
+
+// --- Dark Orbs (Phase 1+) ---
+export const DARK_ORB_COUNT = 3                 // orbs spawned per cast
+export const DARK_ORB_SPEED = 80                // movement speed (px/sec) — slow, dodge-able
+export const DARK_ORB_FAST_SPEED = 120          // Phase 3+ speed (px/sec)
+export const DARK_ORB_HOMING_DURATION = 3.0     // seconds orb tracks player before going straight
+export const DARK_ORB_SIZE = 10                 // hitbox size (px)
+export const DARK_ORB_DAMAGE = 1                // damage to player on hit
+export const DARK_ORB_REFLECT_DAMAGE = 1        // damage to Ganon when deflected back
+export const DARK_ORB_CAST_COOLDOWN = 3.0       // seconds between orb casts
+export const MAX_DARK_ORBS = 9                  // cap active orbs (3 casts × 3 orbs)
+
+// --- Teleportation (Phase 2+) ---
+export const GANON_TELEPORT_DURATION = 1.5      // seconds Ganon is invisible/intangible
+export const GANON_VULNERABLE_WINDOW = 2.0      // seconds of vulnerability after attack
+
+// --- Dark Slash (Phase 2+) ---
+export const GANON_DARK_SLASH_DAMAGE = 2        // damage per hit
+export const GANON_DARK_SLASH_RANGE = 64        // reach in pixels (2 tiles)
+export const GANON_DARK_SLASH_ARC = 120         // sweep angle in degrees (wide)
+export const GANON_DARK_SLASH_DURATION = 0.3    // seconds for slash animation
+
+// --- Triple Orb Burst (Phase 2+) ---
+export const TRIPLE_ORB_SPEED = 150             // faster than homing orbs (px/sec)
+export const TRIPLE_ORB_SPREAD = 30             // degrees between each orb in the spread
+
+// --- Ground Slam (Phase 3+) ---
+export const GROUND_SLAM_CHARGE_TIME = 1.5      // seconds to charge before slam
+export const GROUND_SLAM_RADIUS = 128           // AoE damage radius (px) — 4 tiles
+export const GROUND_SLAM_DAMAGE = 3             // heavy damage — nearly lethal
+export const GROUND_SLAM_STUN_TIME = 3.0        // seconds Ganon is stunned after slam
+
+// --- Final Stand Phase 4 ---
+export const FINAL_STAND_STUN_TIME = 2.0        // shorter stun window in Phase 4
+export const FINAL_STAND_CYCLE_SPEED = 1.2      // attack speed multiplier for Phase 4
+
+// --- Minion Summoning (Phase 1) ---
+export const MINION_SUMMON_INTERVAL = 15.0      // seconds between summon waves
+export const MINION_COUNT = 2                   // Bokoblins per summon wave
+export const MINION_RESUMMON_DELAY = 5.0        // delay before re-summoning after minions die
+
+// --- Pillar Destruction ---
+export const PILLAR_SHOCKWAVE_RADIUS = 96       // visual shockwave radius (px) — 3 tiles
+
+// --- Victory Sequence ---
+export const VICTORY_SEQUENCE_DURATION = 3.0    // seconds for Ganon dissolve animation
+export const CRYSTAL_SHATTER_DURATION = 1.5     // seconds for crystal break animation
