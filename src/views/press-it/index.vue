@@ -163,7 +163,7 @@ const i18n: Record<Lang, Locale> = {
       basic: {
         label: "BASIC",
         emoji: "🖱️",
-        desc: "Chỉ chuột. Như debug production bằng console.log.",
+        desc: "Chỉ chuột. Như debug production bằng console.log",
         details: [
           "Nhấp chuột (hoặc chạm) theo đúng nhịp",
           "PERFECT ±350ms — Senior nói LGTM: +2 điểm",
@@ -174,7 +174,7 @@ const i18n: Record<Lang, Locale> = {
       medium: {
         label: "MEDIUM",
         emoji: "⌨️",
-        desc: "1 phím + chuột. Đủ để tạo 1 merge conflict.",
+        desc: "1 phím + chuột. Đủ để tạo 1 merge conflict",
         details: [
           "Mỗi beat: 1 trong 4 phím A/W/S/D + chuột",
           "Nhấn đủ combo trong window ±500ms là được",
@@ -185,7 +185,7 @@ const i18n: Record<Lang, Locale> = {
       hard: {
         label: "HARD",
         emoji: "🔥",
-        desc: "1-2 phím ± chuột. Resolve conflict giữa buổi demo.",
+        desc: "1-2 phím ± chuột. Resolve conflict giữa buổi demo",
         details: [
           "Mỗi beat: 1-2 phím A/W/S/D, chuột có hoặc không",
           "Phải nhấn đúng và đủ combo hiển thị",
@@ -196,7 +196,7 @@ const i18n: Record<Lang, Locale> = {
       asian: {
         label: "ASIAN",
         emoji: "🀄",
-        desc: "2-3 phím + giữ. Dành cho ai debug bằng production.",
+        desc: "2-3 phím + giữ. Người dùng là tester",
         details: [
           "Mỗi beat: 2-3 phím A/W/S/D, có thể có chuột",
           "Một số beat yêu cầu GIỮ phím (biểu tượng ⏳)",
@@ -207,7 +207,7 @@ const i18n: Record<Lang, Locale> = {
       customized: {
         label: "CUSTOM",
         emoji: "⚙️",
-        desc: "Tự config như setup .vimrc của senior.",
+        desc: "Tự config như setup .vimrc của senior",
         details: [
           "Bật/tắt cơ chế chuột (feature ai cũng muốn toggle)",
           "Bật/tắt phím A/W/S/D, chọn số phím tối đa",
@@ -291,7 +291,7 @@ const i18n: Record<Lang, Locale> = {
       basic: {
         label: "BASIC",
         emoji: "🖱️",
-        desc: "Just click. Like debugging production with console.log.",
+        desc: "Just click. Like debug production with console.log",
         details: [
           "Click (or tap) on every beat",
           "PERFECT ±350ms — LGTM approved: +2 pts",
@@ -302,7 +302,7 @@ const i18n: Record<Lang, Locale> = {
       medium: {
         label: "MEDIUM",
         emoji: "⌨️",
-        desc: "1 key + click. Like a 2-commit PR with conflicts.",
+        desc: "1 key + click. Like a 2-commit PR with conflicts",
         details: [
           "Each beat: 1 of A/W/S/D + mouse click",
           "Hit the full combo within ±500ms window",
@@ -313,7 +313,7 @@ const i18n: Record<Lang, Locale> = {
       hard: {
         label: "HARD",
         emoji: "🔥",
-        desc: "1-2 keys ± click. Resolving conflicts mid-demo.",
+        desc: "1-2 keys ± click. Resolving conflicts mid-demo",
         details: [
           "Each beat: 1-2 keys, mouse optional",
           "Hit the exact displayed combo",
@@ -324,7 +324,7 @@ const i18n: Record<Lang, Locale> = {
       asian: {
         label: "ASIAN",
         emoji: "🀄",
-        desc: "2-3 keys + hold. For those who debug on production.",
+        desc: "2-3 keys + hold. Your users, our testers",
         details: [
           "Each beat: 2-3 keys, sometimes with mouse",
           "Some beats require HOLDING (⏳)",
