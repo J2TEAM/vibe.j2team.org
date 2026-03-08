@@ -1,74 +1,95 @@
 ﻿<script setup lang="ts">
-import BaseModal from './BaseModal.vue'
-import type { GameMode, GridSize } from '../types'
+import type { GameMode, GridSize, MainMode } from '../types'
 
-interface Props {
+defineProps<{
   open: boolean
-  pendingMode: GameMode
+  surfaceClass: string
+  panelInnerClass: string
+  textMutedClass: string
+  storyTotalLevels: number
+  sizeOptions: readonly GridSize[]
   pendingSize: GridSize
   pendingDifficulty: number
-  sizeOptions: readonly GridSize[]
-  difficultyOptions: number[]
-}
-
-defineProps<Props>()
+  pendingMainMode: MainMode
+  pendingCustomMode: Exclude<GameMode, 'story' | 'gravity'>
+  gravityUnlocked: boolean
+}>()
 
 const emit = defineEmits<{
   close: []
   apply: []
-  'update:pendingMode': [value: GameMode]
   'update:pendingSize': [value: GridSize]
   'update:pendingDifficulty': [value: number]
+  'update:pendingMainMode': [value: MainMode]
+  'update:pendingCustomMode': [value: Exclude<GameMode, 'story' | 'gravity'>]
 }>()
-
-function onModeChange(value: string): void {
-  emit('update:pendingMode', value as GameMode)
-}
-
-function onSizeChange(value: string): void {
-  emit('update:pendingSize', Number(value) as GridSize)
-}
-
-function onDifficultyChange(value: string): void {
-  emit('update:pendingDifficulty', Number(value))
-}
 </script>
 
 <template>
-  <BaseModal :open="open" title="T?o ván m?i" max-width-class="max-w-xl" @close="$emit('close')">
-    <div class="grid gap-4">
-      <label class="grid gap-1 text-sm">
-        <span class="text-text-secondary">Ch? d?</span>
-        <select class="border border-border-default bg-bg-deep px-3 py-2" :value="pendingMode" @change="onModeChange(($event.target as HTMLSelectElement).value)">
-          <option value="classic">Classic</option>
-          <option value="timed">Timed</option>
-          <option value="story">Story (20x20, t? level 1)</option>
-        </select>
-      </label>
+  <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center bg-bg-deep/80 px-4">
+    <div class="w-full max-w-md border p-5" :class="surfaceClass">
+      <h2 class="font-display text-xl font-semibold text-accent-coral">Bắt đầu ván mới</h2>
 
-      <label class="grid gap-1 text-sm" :class="pendingMode === 'story' ? 'opacity-50' : ''">
-        <span class="text-text-secondary">Kích thu?c bàn</span>
-        <select
-          class="border border-border-default bg-bg-deep px-3 py-2"
-          :value="pendingMode === 'story' ? 20 : pendingSize"
-          :disabled="pendingMode === 'story'"
-          @change="onSizeChange(($event.target as HTMLSelectElement).value)"
-        >
-          <option v-for="size in sizeOptions" :key="size" :value="size">{{ size }} x {{ size }}</option>
-        </select>
-      </label>
+      <div class="mt-4 grid gap-3">
+        <div>
+          <p class="mb-1 text-xs font-display tracking-widest" :class="textMutedClass">MODE</p>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" class="border px-2 py-1.5 text-xs transition" :class="[panelInnerClass, pendingMainMode === 'story' ? 'border-accent-coral text-accent-coral' : 'hover:border-accent-amber']" @click="emit('update:pendingMainMode', 'story')">Story</button>
+            <button type="button" class="border px-2 py-1.5 text-xs transition" :class="[panelInnerClass, pendingMainMode === 'custom' ? 'border-accent-coral text-accent-coral' : 'hover:border-accent-amber']" @click="emit('update:pendingMainMode', 'custom')">Custom</button>
+            <button
+              type="button"
+              class="border px-2 py-1.5 text-xs transition"
+              :class="[
+                panelInnerClass,
+                pendingMainMode === 'gravity' ? 'border-accent-coral text-accent-coral' : '',
+                gravityUnlocked ? 'hover:border-accent-amber' : 'cursor-not-allowed opacity-45',
+              ]"
+              @click="gravityUnlocked && emit('update:pendingMainMode', 'gravity')"
+            >
+              Gravity
+            </button>
+          </div>
+          <p v-if="!gravityUnlocked" class="mt-1 text-xs text-accent-amber">Gravity mode đang bị khóa, bạn phải tìm Easter Egg ở đâu đó.</p>
+        </div>
 
-      <label class="grid gap-1 text-sm">
-        <span class="text-text-secondary">Ð? khó</span>
-        <select class="border border-border-default bg-bg-deep px-3 py-2" :value="pendingDifficulty" @change="onDifficultyChange(($event.target as HTMLSelectElement).value)">
-          <option v-for="item in difficultyOptions" :key="item" :value="item">Level {{ item }}</option>
-        </select>
-      </label>
+        <div v-if="pendingMainMode === 'custom'">
+          <p class="mb-1 text-xs font-display tracking-widest" :class="textMutedClass">CUSTOM TYPE</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" class="border px-2 py-1.5 text-xs transition" :class="[panelInnerClass, pendingCustomMode === 'classic' ? 'border-accent-coral text-accent-coral' : 'hover:border-accent-amber']" @click="emit('update:pendingCustomMode', 'classic')">Classic</button>
+            <button type="button" class="border px-2 py-1.5 text-xs transition" :class="[panelInnerClass, pendingCustomMode === 'timed' ? 'border-accent-coral text-accent-coral' : 'hover:border-accent-amber']" @click="emit('update:pendingCustomMode', 'timed')">Timed</button>
+          </div>
+        </div>
 
-      <button type="button" class="mt-1 border border-accent-coral bg-bg-deep px-3 py-2 font-display text-sm transition hover:bg-bg-elevated" @click="$emit('apply')">
-        B?t d?u
-      </button>
+        <div>
+          <p class="mb-1 text-xs font-display tracking-widest" :class="textMutedClass">GRID SIZE</p>
+          <div class="grid grid-cols-3 gap-2">
+            <button
+              v-for="size in sizeOptions"
+              :key="size"
+              type="button"
+              class="border px-2 py-1.5 text-xs transition"
+              :class="[panelInnerClass, pendingSize === size ? 'border-accent-coral text-accent-coral' : 'hover:border-accent-amber', pendingMainMode !== 'custom' ? 'pointer-events-none opacity-50' : '']"
+              @click="emit('update:pendingSize', size)"
+            >
+              {{ size }}
+            </button>
+          </div>
+          <p v-if="pendingMainMode !== 'custom'" class="mt-1 text-xs" :class="textMutedClass">Story/Gravity mode dùng bàn cờ cố định 10x20.</p>
+        </div>
+
+        <div>
+          <p class="mb-1 text-xs font-display tracking-widest" :class="textMutedClass">DIFFICULTY</p>
+          <input :value="pendingDifficulty" type="range" min="0" max="20" step="1" class="w-full accent-accent-coral" :disabled="pendingMainMode !== 'custom'" @input="emit('update:pendingDifficulty', Number(($event.target as HTMLInputElement).value))" />
+          <p class="text-xs" :class="textMutedClass">
+            {{ pendingMainMode === 'custom' ? `Level ${pendingDifficulty}` : `Tự tăng theo ${storyTotalLevels} level` }}
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" class="border px-3 py-2 text-sm transition hover:border-accent-coral" :class="panelInnerClass" @click="emit('apply')">Bắt đầu</button>
+          <button type="button" class="border px-3 py-2 text-sm transition hover:border-accent-amber" :class="panelInnerClass" @click="emit('close')">Đóng</button>
+        </div>
+      </div>
     </div>
-  </BaseModal>
+  </div>
 </template>
-

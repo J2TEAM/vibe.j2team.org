@@ -1,9 +1,9 @@
-export type GameMode = 'classic' | 'timed' | 'story'
-
-export type RankedMode = 'classic' | 'timed'
+export type GameMode = 'classic' | 'timed' | 'story' | 'gravity'
 export type Direction = 0 | 1 | 2 | 3
-export type GridSize = 10 | 20 | 30
+export type GridSize = '10x10' | '20x20' | '30x30' | '10x20' | '10x30' | '20x30'
 export type LeaderboardStep = 'pick' | 'view'
+export type MainMode = 'story' | 'custom' | 'gravity'
+export type LeaderboardCategory = 'story' | 'custom' | 'gravity'
 
 export interface Tile {
   id: number
@@ -45,3 +45,8 @@ export interface RecordItem {
   createdAt: string
 }
 
+export interface GridPreset {
+  key: GridSize
+  rows: number
+  cols: number
+}

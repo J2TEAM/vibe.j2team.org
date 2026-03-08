@@ -1,74 +1,50 @@
 ﻿<script setup lang="ts">
-import BaseModal from './BaseModal.vue'
-import type { GameMode, GridSize } from '../types'
-
-interface Props {
+const props = defineProps<{
   open: boolean
-  pendingMode: GameMode
-  pendingSize: GridSize
-  pendingDifficulty: number
-  sizeOptions: readonly GridSize[]
-  difficultyOptions: number[]
-}
-
-defineProps<Props>()
+  surfaceClass: string
+  panelInnerClass: string
+  textMutedClass: string
+  isLightMode: boolean
+  isBgmOn: boolean
+  isSoundOn: boolean
+  bgmVolume: number
+  sfxVolume: number
+}>()
 
 const emit = defineEmits<{
   close: []
-  apply: []
-  'update:pendingMode': [value: GameMode]
-  'update:pendingSize': [value: GridSize]
-  'update:pendingDifficulty': [value: number]
+  'toggle-light': []
+  'toggle-bgm': []
+  'toggle-sound': []
+  'update:bgmVolume': [value: number]
+  'update:sfxVolume': [value: number]
 }>()
-
-function onModeChange(value: string): void {
-  emit('update:pendingMode', value as GameMode)
-}
-
-function onSizeChange(value: string): void {
-  emit('update:pendingSize', Number(value) as GridSize)
-}
-
-function onDifficultyChange(value: string): void {
-  emit('update:pendingDifficulty', Number(value))
-}
 </script>
 
 <template>
-  <BaseModal :open="open" title="Setting" max-width-class="max-w-xl" @close="$emit('close')">
-    <div class="grid gap-4">
-      <label class="grid gap-1 text-sm">
-        <span class="text-text-secondary">Ch? d?</span>
-        <select class="border border-border-default bg-bg-deep px-3 py-2" :value="pendingMode" @change="onModeChange(($event.target as HTMLSelectElement).value)">
-          <option value="classic">Classic</option>
-          <option value="timed">Timed</option>
-          <option value="story">Story (20x20)</option>
-        </select>
-      </label>
-
-      <label class="grid gap-1 text-sm" :class="pendingMode === 'story' ? 'opacity-50' : ''">
-        <span class="text-text-secondary">Kích thu?c bàn</span>
-        <select
-          class="border border-border-default bg-bg-deep px-3 py-2"
-          :value="pendingMode === 'story' ? 20 : pendingSize"
-          :disabled="pendingMode === 'story'"
-          @change="onSizeChange(($event.target as HTMLSelectElement).value)"
-        >
-          <option v-for="size in sizeOptions" :key="size" :value="size">{{ size }} x {{ size }}</option>
-        </select>
-      </label>
-
-      <label class="grid gap-1 text-sm">
-        <span class="text-text-secondary">Ð? khó</span>
-        <select class="border border-border-default bg-bg-deep px-3 py-2" :value="pendingDifficulty" @change="onDifficultyChange(($event.target as HTMLSelectElement).value)">
-          <option v-for="item in difficultyOptions" :key="item" :value="item">Level {{ item }}</option>
-        </select>
-      </label>
-
-      <button type="button" class="mt-1 border border-accent-amber bg-bg-deep px-3 py-2 font-display text-sm transition hover:bg-bg-elevated" @click="$emit('apply')">
-        Áp d?ng và choi l?i
+  <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center bg-bg-deep/80 px-4">
+    <div class="w-full max-w-sm border p-5" :class="surfaceClass">
+      <h2 class="font-display text-xl font-semibold text-accent-amber">Setting</h2>
+      <button type="button" class="mt-4 w-full border px-3 py-2 text-sm transition hover:border-accent-coral" :class="panelInnerClass" @click="emit('toggle-light')">
+        {{ props.isLightMode ? 'Bật dark mode' : 'Bật light mode' }}
+      </button>
+      <button type="button" class="mt-2 w-full border px-3 py-2 text-sm transition hover:border-accent-sky" :class="panelInnerClass" @click="emit('toggle-bgm')">
+        {{ props.isBgmOn ? 'Tắt nhạc nền' : 'Bật nhạc nền' }}
+      </button>
+      <div class="mt-2 border p-3" :class="panelInnerClass">
+        <p class="text-xs font-display tracking-widest" :class="textMutedClass">ÂM LƯỢNG NHẠC NỀN: {{ props.bgmVolume }}%</p>
+        <input :value="props.bgmVolume" type="range" min="0" max="100" step="1" class="mt-2 w-full accent-accent-coral" @input="emit('update:bgmVolume', Number(($event.target as HTMLInputElement).value))" />
+      </div>
+      <button type="button" class="mt-2 w-full border px-3 py-2 text-sm transition hover:border-accent-amber" :class="panelInnerClass" @click="emit('toggle-sound')">
+        {{ props.isSoundOn ? 'Tắt sound effect' : 'Bật sound effect' }}
+      </button>
+      <div class="mt-2 border p-3" :class="panelInnerClass">
+        <p class="text-xs font-display tracking-widest" :class="textMutedClass">ÂM LƯỢNG HIỆU ỨNG: {{ props.sfxVolume }}%</p>
+        <input :value="props.sfxVolume" type="range" min="0" max="100" step="1" class="mt-2 w-full accent-accent-coral" @input="emit('update:sfxVolume', Number(($event.target as HTMLInputElement).value))" />
+      </div>
+      <button type="button" class="mt-2 w-full border px-3 py-2 text-sm transition hover:border-accent-amber" :class="panelInnerClass" @click="emit('close')">
+        Đóng
       </button>
     </div>
-  </BaseModal>
+  </div>
 </template>
-

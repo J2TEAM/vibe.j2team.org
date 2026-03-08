@@ -1,38 +1,34 @@
 ﻿<script setup lang="ts">
-import BaseModal from './BaseModal.vue'
-
-interface Props {
+defineProps<{
   open: boolean
-  name: string
-}
+  surfaceClass: string
+  panelInnerClass: string
+  textMutedClass: string
+  appliedMode: 'classic' | 'timed' | 'story' | 'gravity'
+  storyTotalLevels: number
+  timeLabel: string
+  playerName: string
+}>()
 
-defineProps<Props>()
-
-defineEmits<{
+const emit = defineEmits<{
   close: []
   save: []
-  'update:name': [value: string]
+  'update:playerName': [value: string]
 }>()
 </script>
 
 <template>
-  <BaseModal :open="open" title="Luu di?m" @close="$emit('close')">
-    <div class="grid gap-3">
-      <label class="grid gap-1 text-sm">
-        <span class="text-text-secondary">Tên ngu?i choi</span>
-        <input
-          type="text"
-          class="border border-border-default bg-bg-deep px-3 py-2"
-          :value="name"
-          maxlength="24"
-          placeholder="Nh?p tên c?a b?n"
-          @input="$emit('update:name', ($event.target as HTMLInputElement).value)"
-        >
-      </label>
-      <button type="button" class="border border-accent-coral bg-bg-deep px-3 py-2 font-display text-sm transition hover:bg-bg-elevated" @click="$emit('save')">
-        Luu di?m
-      </button>
+  <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center bg-bg-deep/80 px-4">
+    <div class="w-full max-w-sm border p-5" :class="surfaceClass">
+      <h2 class="font-display text-xl font-semibold text-accent-coral">Lưu điểm cao</h2>
+      <p class="mt-2 text-sm" :class="textMutedClass">
+        {{ appliedMode === 'story' || appliedMode === 'gravity' ? `Bạn vừa hoàn thành ${appliedMode === 'gravity' ? 'Gravity' : 'Story'} ${storyTotalLevels} level trong ${timeLabel}. Nhập tên để lưu kỷ lục chính.` : 'Nhập tên để lưu bảng xếp hạng theo độ khó/mode hiện tại.' }}
+      </p>
+      <input :value="playerName" type="text" maxlength="20" placeholder="Tên của bạn" class="mt-4 w-full border bg-transparent px-3 py-2 text-sm outline-none focus:border-accent-coral" :class="panelInnerClass" @input="emit('update:playerName', ($event.target as HTMLInputElement).value)" />
+      <div class="mt-4 grid grid-cols-2 gap-2">
+        <button type="button" class="border px-3 py-2 text-sm transition hover:border-accent-coral" :class="panelInnerClass" @click="emit('save')">Lưu</button>
+        <button type="button" class="border px-3 py-2 text-sm transition hover:border-accent-amber" :class="panelInnerClass" @click="emit('close')">Bỏ qua</button>
+      </div>
     </div>
-  </BaseModal>
+  </div>
 </template>
-
