@@ -91,28 +91,48 @@ function accuracy(): number {
         <div class="flex items-center gap-3 text-sm">
           <span class="w-16 text-accent-sky font-display text-xs">Thuộc</span>
           <div class="flex-1 h-2 bg-bg-elevated overflow-hidden">
-            <div class="h-full bg-accent-sky" :style="{ width: totalCards > 0 ? `${(levelBreakdown[3] / totalCards) * 100}%` : '0%' }" />
+            <div
+              class="h-full bg-accent-sky"
+              :style="{
+                width: totalCards > 0 ? `${(levelBreakdown[3] / totalCards) * 100}%` : '0%',
+              }"
+            />
           </div>
           <span class="text-text-dim text-xs w-8 text-right">{{ levelBreakdown[3] }}</span>
         </div>
         <div class="flex items-center gap-3 text-sm">
           <span class="w-16 text-accent-amber font-display text-xs">Lv.2</span>
           <div class="flex-1 h-2 bg-bg-elevated overflow-hidden">
-            <div class="h-full bg-accent-amber" :style="{ width: totalCards > 0 ? `${(levelBreakdown[2] / totalCards) * 100}%` : '0%' }" />
+            <div
+              class="h-full bg-accent-amber"
+              :style="{
+                width: totalCards > 0 ? `${(levelBreakdown[2] / totalCards) * 100}%` : '0%',
+              }"
+            />
           </div>
           <span class="text-text-dim text-xs w-8 text-right">{{ levelBreakdown[2] }}</span>
         </div>
         <div class="flex items-center gap-3 text-sm">
           <span class="w-16 text-accent-coral font-display text-xs">Lv.1</span>
           <div class="flex-1 h-2 bg-bg-elevated overflow-hidden">
-            <div class="h-full bg-accent-coral" :style="{ width: totalCards > 0 ? `${(levelBreakdown[1] / totalCards) * 100}%` : '0%' }" />
+            <div
+              class="h-full bg-accent-coral"
+              :style="{
+                width: totalCards > 0 ? `${(levelBreakdown[1] / totalCards) * 100}%` : '0%',
+              }"
+            />
           </div>
           <span class="text-text-dim text-xs w-8 text-right">{{ levelBreakdown[1] }}</span>
         </div>
         <div class="flex items-center gap-3 text-sm">
           <span class="w-16 text-text-dim font-display text-xs">Mới</span>
           <div class="flex-1 h-2 bg-bg-elevated overflow-hidden">
-            <div class="h-full bg-text-dim" :style="{ width: totalCards > 0 ? `${(levelBreakdown[0] / totalCards) * 100}%` : '0%' }" />
+            <div
+              class="h-full bg-text-dim"
+              :style="{
+                width: totalCards > 0 ? `${(levelBreakdown[0] / totalCards) * 100}%` : '0%',
+              }"
+            />
           </div>
           <span class="text-text-dim text-xs w-8 text-right">{{ levelBreakdown[0] }}</span>
         </div>

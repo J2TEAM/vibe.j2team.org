@@ -343,9 +343,7 @@ const showHints = ref(true)
 <template>
   <div class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col">
     <!-- Top Nav -->
-    <nav
-      class="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-2 animate-fade-up"
-    >
+    <nav class="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-2 animate-fade-up">
       <div class="flex items-center justify-between gap-3">
         <RouterLink
           to="/"
@@ -367,7 +365,9 @@ const showHints = ref(true)
     <header
       class="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-3 sm:pt-4 pb-3 sm:pb-4 animate-fade-up animate-delay-1"
     >
-      <h1 class="font-display text-2xl min-[375px]:text-3xl sm:text-4xl md:text-5xl font-bold text-accent-coral">
+      <h1
+        class="font-display text-2xl min-[375px]:text-3xl sm:text-4xl md:text-5xl font-bold text-accent-coral"
+      >
         🎹 Piano ảo
       </h1>
       <p class="mt-1.5 sm:mt-2 text-text-secondary text-xs sm:text-sm md:text-base">
@@ -376,9 +376,7 @@ const showHints = ref(true)
     </header>
 
     <!-- Controls -->
-    <div
-      class="w-full max-w-5xl mx-auto px-4 sm:px-6 mb-4 sm:mb-6 animate-fade-up animate-delay-2"
-    >
+    <div class="w-full max-w-5xl mx-auto px-4 sm:px-6 mb-4 sm:mb-6 animate-fade-up animate-delay-2">
       <div class="grid grid-cols-3 gap-2 sm:gap-3">
         <!-- Sustain -->
         <button
@@ -404,7 +402,10 @@ const showHints = ref(true)
           "
           @click="toggleRecording"
         >
-          <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shrink-0" :class="isRecording ? 'bg-accent-coral' : 'bg-text-dim'" />
+          <span
+            class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shrink-0"
+            :class="isRecording ? 'bg-accent-coral' : 'bg-text-dim'"
+          />
           <span>{{ isRecording ? 'Đang ghi...' : 'Ghi âm' }}</span>
         </button>
 
@@ -422,7 +423,11 @@ const showHints = ref(true)
           @click="isPlaying ? stopPlayback() : playRecording()"
         >
           <span class="text-sm sm:text-base">{{ isPlaying ? '⏹' : '▶' }}</span>
-          <span>{{ isPlaying ? 'Dừng phát' : `Phát lại${recordedNotes.length ? ` (${recordedNotes.length})` : ''}` }}</span>
+          <span>{{
+            isPlaying
+              ? 'Dừng phát'
+              : `Phát lại${recordedNotes.length ? ` (${recordedNotes.length})` : ''}`
+          }}</span>
         </button>
       </div>
     </div>
@@ -492,21 +497,25 @@ const showHints = ref(true)
         <!-- Octave Labels -->
         <div class="flex mt-1.5 sm:mt-2">
           <div class="flex-1 text-center">
-            <span class="font-display text-[10px] sm:text-xs tracking-widest text-accent-coral">// Octave 4</span>
+            <span class="font-display text-[10px] sm:text-xs tracking-widest text-accent-coral"
+              >// Octave 4</span
+            >
           </div>
           <div class="flex-1 text-center">
-            <span class="font-display text-[10px] sm:text-xs tracking-widest text-accent-amber">// Octave 5</span>
+            <span class="font-display text-[10px] sm:text-xs tracking-widest text-accent-amber"
+              >// Octave 5</span
+            >
           </div>
         </div>
       </div>
     </div>
 
     <!-- Keyboard Guide -->
-    <div
-      class="w-full max-w-5xl mx-auto px-4 sm:px-6 pb-4 sm:pb-8 animate-fade-up animate-delay-3"
-    >
+    <div class="w-full max-w-5xl mx-auto px-4 sm:px-6 pb-4 sm:pb-8 animate-fade-up animate-delay-3">
       <div class="border border-border-default bg-bg-surface p-3 sm:p-6">
-        <h2 class="font-display text-base sm:text-lg font-semibold text-text-primary mb-2 sm:mb-3 flex items-center gap-2 sm:gap-3">
+        <h2
+          class="font-display text-base sm:text-lg font-semibold text-text-primary mb-2 sm:mb-3 flex items-center gap-2 sm:gap-3"
+        >
           <span class="text-accent-sky font-display text-xs sm:text-sm tracking-widest">//</span>
           Hướng dẫn
         </h2>
@@ -531,14 +540,18 @@ const showHints = ref(true)
           </div>
           <div class="flex items-start gap-2">
             <span class="text-accent-coral font-display font-bold shrink-0">🎵</span>
-            <span>Bật <strong class="text-text-primary">Sustain</strong> để giữ nốt vang dài hơn</span>
+            <span
+              >Bật <strong class="text-text-primary">Sustain</strong> để giữ nốt vang dài hơn</span
+            >
           </div>
         </div>
       </div>
     </div>
 
     <!-- Footer -->
-    <footer class="text-center py-4 text-text-dim text-xs font-display tracking-wide animate-fade-up animate-delay-4">
+    <footer
+      class="text-center py-4 text-text-dim text-xs font-display tracking-wide animate-fade-up animate-delay-4"
+    >
       Được tạo bởi cộng đồng J2TEAM 🎶
     </footer>
   </div>

@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import type { Folder, CardSet } from '../../types'
-import { getAllFolders, getFolderById, createFolder, updateFolder, removeFolder, getFolderSetCount } from '../../services/folder-service'
+import {
+  getAllFolders,
+  getFolderById,
+  createFolder,
+  updateFolder,
+  removeFolder,
+  getFolderSetCount,
+} from '../../services/folder-service'
 import { getSetById, getSetsByFolder, createSet } from '../../services/set-service'
 import { getCardsBySet, bulkCreateCards } from '../../services/card-service'
 import { getAllSessions } from '../../services/session-service'
@@ -137,7 +144,12 @@ async function handleExportFolder(folder: Folder) {
     }),
   )
   const data = {
-    folder: { name: folder.name, description: folder.description, color: folder.color, icon: folder.icon },
+    folder: {
+      name: folder.name,
+      description: folder.description,
+      color: folder.color,
+      icon: folder.icon,
+    },
     sets: setsWithCards,
     exportedAt: new Date().toISOString(),
   }
@@ -189,7 +201,10 @@ async function handleImportFolder(event: Event) {
           const validCards = (setData.cards ?? [])
             .filter(
               (c): c is { front: string; back: string; order?: number } =>
-                typeof c.front === 'string' && typeof c.back === 'string' && c.front.trim() !== '' && c.back.trim() !== '',
+                typeof c.front === 'string' &&
+                typeof c.back === 'string' &&
+                c.front.trim() !== '' &&
+                c.back.trim() !== '',
             )
             .map((c) => ({ front: c.front.trim(), back: c.back.trim() }))
           if (validCards.length > 0) {
@@ -224,7 +239,9 @@ async function handleImportFolder(event: Event) {
           @click="goToEditor(r.set.folderId, r.set.id, r.folderName, r.set.name)"
         >
           <div class="flex items-center justify-between gap-2 mb-2">
-            <h3 class="font-display text-base font-semibold text-text-primary group-hover:text-accent-sky transition-colors truncate">
+            <h3
+              class="font-display text-base font-semibold text-text-primary group-hover:text-accent-sky transition-colors truncate"
+            >
               {{ r.set.name }}
             </h3>
             <button
@@ -242,11 +259,15 @@ async function handleImportFolder(event: Event) {
             <div class="flex-1 h-1.5 bg-bg-elevated overflow-hidden flex">
               <div
                 class="h-full bg-accent-sky transition-all"
-                :style="{ width: r.cardCount > 0 ? `${(r.masteredCount / r.cardCount) * 100}%` : '0%' }"
+                :style="{
+                  width: r.cardCount > 0 ? `${(r.masteredCount / r.cardCount) * 100}%` : '0%',
+                }"
               />
               <div
                 class="h-full bg-accent-amber transition-all"
-                :style="{ width: r.cardCount > 0 ? `${(r.inProgressCount / r.cardCount) * 100}%` : '0%' }"
+                :style="{
+                  width: r.cardCount > 0 ? `${(r.inProgressCount / r.cardCount) * 100}%` : '0%',
+                }"
               />
               <div
                 class="h-full bg-text-dim/30 transition-all"

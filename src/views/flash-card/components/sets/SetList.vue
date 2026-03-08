@@ -2,7 +2,13 @@
 import { ref, onMounted } from 'vue'
 import type { CardSet, Folder } from '../../types'
 import { getFolderById } from '../../services/folder-service'
-import { getSetsByFolder, createSet, updateSet, removeSet, getSetLastStudied } from '../../services/set-service'
+import {
+  getSetsByFolder,
+  createSet,
+  updateSet,
+  removeSet,
+  getSetLastStudied,
+} from '../../services/set-service'
 import { getCardsBySet } from '../../services/card-service'
 import { useNavigation } from '../../composables/use-navigation'
 import EmptyState from '../layout/EmptyState.vue'
@@ -35,10 +41,7 @@ async function loadData() {
 
   const results = await Promise.all(
     sets.value.map(async (s) => {
-      const [cards, studied] = await Promise.all([
-        getCardsBySet(s.id),
-        getSetLastStudied(s.id),
-      ])
+      const [cards, studied] = await Promise.all([getCardsBySet(s.id), getSetLastStudied(s.id)])
       let mastered = 0
       let inProgress = 0
       let newCards = 0
@@ -148,12 +151,7 @@ async function handleDelete() {
       />
     </div>
 
-    <SetForm
-      v-if="showForm"
-      :set="editingSet"
-      @save="handleSave"
-      @cancel="showForm = false"
-    />
+    <SetForm v-if="showForm" :set="editingSet" @save="handleSave" @cancel="showForm = false" />
 
     <ConfirmDialog
       v-if="deletingSet"

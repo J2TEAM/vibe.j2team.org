@@ -42,7 +42,9 @@ function handleSubmit() {
   let ngayAm: number, thangAm: number, namAm: number
   let ngayDuong: number | undefined, thangDuong: number | undefined, namDuong: number | undefined
 
-  let adjNgay = ngay.value, adjThang = thang.value, adjNam = nam.value
+  let adjNgay = ngay.value,
+    adjThang = thang.value,
+    adjNam = nam.value
   if (gio.value === 23) {
     if (isDuongLich.value) {
       const d = new Date(nam.value, thang.value - 1, ngay.value)
@@ -84,9 +86,29 @@ function handleSubmit() {
     namDuong = solar.year
   }
 
-  emit('submit',
-    { ngayAm, thangAm, namAm, gio: gio.value, gioiTinh: gioiTinh.value, namXem: namXem.value, ngayDuong, thangDuong, namDuong },
-    { ten: ten.value, gioiTinh: gioiTinh.value, ngay: ngay.value, thang: thang.value, nam: nam.value, isDuongLich: isDuongLich.value, gio: gio.value, namXem: namXem.value }
+  emit(
+    'submit',
+    {
+      ngayAm,
+      thangAm,
+      namAm,
+      gio: gio.value,
+      gioiTinh: gioiTinh.value,
+      namXem: namXem.value,
+      ngayDuong,
+      thangDuong,
+      namDuong,
+    },
+    {
+      ten: ten.value,
+      gioiTinh: gioiTinh.value,
+      ngay: ngay.value,
+      thang: thang.value,
+      nam: nam.value,
+      isDuongLich: isDuongLich.value,
+      gio: gio.value,
+      namXem: namXem.value,
+    },
   )
 }
 
@@ -107,10 +129,15 @@ const gioOptions = [
 ]
 
 const yearOptions = Array.from({ length: currentYear - 1929 }, (_, i) => currentYear - i)
-const viewYearOptions = Array.from({ length: currentYear + 20 - 1929 }, (_, i) => currentYear + 20 - i)
+const viewYearOptions = Array.from(
+  { length: currentYear + 20 - 1929 },
+  (_, i) => currentYear + 20 - i,
+)
 
-const inputClass = 'w-full h-11 px-4 py-2 border border-border-default bg-bg-deep text-text-primary text-base font-medium focus:outline-none focus:border-accent-coral transition-colors'
-const selectClass = 'w-full h-11 px-4 py-2 border border-border-default bg-bg-deep text-text-primary text-base font-medium focus:outline-none focus:border-accent-coral cursor-pointer appearance-none'
+const inputClass =
+  'w-full h-11 px-4 py-2 border border-border-default bg-bg-deep text-text-primary text-base font-medium focus:outline-none focus:border-accent-coral transition-colors'
+const selectClass =
+  'w-full h-11 px-4 py-2 border border-border-default bg-bg-deep text-text-primary text-base font-medium focus:outline-none focus:border-accent-coral cursor-pointer appearance-none'
 const labelClass = 'text-sm font-medium text-text-secondary font-display'
 </script>
 
@@ -139,8 +166,18 @@ const labelClass = 'text-sm font-medium text-text-secondary font-display'
                 <option value="nam">Nam</option>
                 <option value="nu">Nữ</option>
               </select>
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-dim">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current h-4 w-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+              <div
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-dim"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  class="fill-current h-4 w-4"
+                >
+                  <path
+                    d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+                  />
+                </svg>
               </div>
             </div>
           </div>
@@ -153,19 +190,55 @@ const labelClass = 'text-sm font-medium text-text-secondary font-display'
                 <select v-model.number="ngay" required :class="selectClass">
                   <option v-for="d in 31" :key="d" :value="d">{{ d }}</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-dim"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current h-4 w-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg></div>
+                <div
+                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-dim"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    class="fill-current h-4 w-4"
+                  >
+                    <path
+                      d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+                    />
+                  </svg>
+                </div>
               </div>
               <div class="relative">
                 <select v-model.number="thang" required :class="selectClass">
                   <option v-for="m in 12" :key="m" :value="m">{{ m }}</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-dim"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current h-4 w-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg></div>
+                <div
+                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-dim"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    class="fill-current h-4 w-4"
+                  >
+                    <path
+                      d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+                    />
+                  </svg>
+                </div>
               </div>
               <div class="relative">
                 <select v-model.number="nam" required :class="selectClass">
                   <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-dim"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current h-4 w-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg></div>
+                <div
+                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-dim"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    class="fill-current h-4 w-4"
+                  >
+                    <path
+                      d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+                    />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
@@ -174,11 +247,28 @@ const labelClass = 'text-sm font-medium text-text-secondary font-display'
           <div class="flex flex-col gap-1.5 col-span-2 md:col-span-1">
             <label for="calendarTypeSelect" :class="labelClass">Loại lịch</label>
             <div class="relative">
-              <select id="calendarTypeSelect" :value="isDuongLich ? 'duong' : 'am'" :class="selectClass" @change="isDuongLich = ($event.target as HTMLSelectElement).value === 'duong'">
+              <select
+                id="calendarTypeSelect"
+                :value="isDuongLich ? 'duong' : 'am'"
+                :class="selectClass"
+                @change="isDuongLich = ($event.target as HTMLSelectElement).value === 'duong'"
+              >
                 <option value="duong">Dương lịch</option>
                 <option value="am">Âm lịch</option>
               </select>
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-dim"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current h-4 w-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg></div>
+              <div
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-dim"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  class="fill-current h-4 w-4"
+                >
+                  <path
+                    d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
 
@@ -187,9 +277,23 @@ const labelClass = 'text-sm font-medium text-text-secondary font-display'
             <label for="hourSelect" :class="labelClass">Giờ sinh</label>
             <div class="relative">
               <select id="hourSelect" v-model.number="gio" :class="selectClass">
-                <option v-for="opt in gioOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                <option v-for="opt in gioOptions" :key="opt.value" :value="opt.value">
+                  {{ opt.label }}
+                </option>
               </select>
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-dim"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current h-4 w-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg></div>
+              <div
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-dim"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  class="fill-current h-4 w-4"
+                >
+                  <path
+                    d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
 
@@ -200,7 +304,19 @@ const labelClass = 'text-sm font-medium text-text-secondary font-display'
               <select id="viewYearSelect" v-model.number="namXem" :class="selectClass">
                 <option v-for="y in viewYearOptions" :key="y" :value="y">{{ y }}</option>
               </select>
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-dim"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="fill-current h-4 w-4"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg></div>
+              <div
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-dim"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  class="fill-current h-4 w-4"
+                >
+                  <path
+                    d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
@@ -212,8 +328,20 @@ const labelClass = 'text-sm font-medium text-text-secondary font-display'
             class="flex justify-center items-center font-display font-semibold transition-all duration-300 bg-accent-coral text-bg-deep h-11 md:h-14 w-40 md:w-80 gap-2 md:gap-3 hover:bg-accent-coral/80"
           >
             <span class="md:text-lg">Xem kết quả</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 md:w-6 md:h-6">
-              <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-5 h-5 md:w-6 md:h-6"
+            >
+              <path d="M5 12h14" />
+              <path d="m12 5 7 7-7 7" />
             </svg>
           </button>
         </div>

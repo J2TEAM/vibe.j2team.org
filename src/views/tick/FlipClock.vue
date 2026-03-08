@@ -46,10 +46,13 @@ function updateDigit(key: DigitKey, newVal: string) {
   d.animKey++
 
   // After the back flap lands (at 500ms), update the static bottom to new value
-  flipTimers.set(key, setTimeout(() => {
-    d.bottomShown = newVal
-    flipTimers.delete(key)
-  }, 500))
+  flipTimers.set(
+    key,
+    setTimeout(() => {
+      d.bottomShown = newVal
+      flipTimers.delete(key)
+    }, 500),
+  )
 }
 
 function sync() {
@@ -97,7 +100,8 @@ const layout: { key: DigitKey; separator?: boolean }[] = [
         <span
           v-if="item.separator"
           class="text-accent-coral font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mx-0.5 sm:mx-1"
-        >:</span>
+          >:</span
+        >
 
         <div class="flip-unit">
           <!--
@@ -110,28 +114,30 @@ const layout: { key: DigitKey; separator?: boolean }[] = [
 
           <!-- Static top: new value (revealed as front flap moves away) -->
           <div class="half half-top">
-            <div class="digit-wrapper"><span class="digit">{{ digits[item.key].current }}</span></div>
+            <div class="digit-wrapper">
+              <span class="digit">{{ digits[item.key].current }}</span>
+            </div>
           </div>
 
           <!-- Static bottom: old value, switches to new after animation ends -->
           <div class="half half-bottom">
-            <div class="digit-wrapper"><span class="digit">{{ digits[item.key].bottomShown }}</span></div>
+            <div class="digit-wrapper">
+              <span class="digit">{{ digits[item.key].bottomShown }}</span>
+            </div>
           </div>
 
           <!-- Front flap: old value, flips down -->
-          <div
-            :key="digits[item.key].animKey"
-            class="flap flap-front"
-          >
-            <div class="digit-wrapper"><span class="digit">{{ digits[item.key].previous }}</span></div>
+          <div :key="digits[item.key].animKey" class="flap flap-front">
+            <div class="digit-wrapper">
+              <span class="digit">{{ digits[item.key].previous }}</span>
+            </div>
           </div>
 
           <!-- Back flap: new value, unfolds from behind front flap -->
-          <div
-            :key="'b' + digits[item.key].animKey"
-            class="flap flap-back"
-          >
-            <div class="digit-wrapper"><span class="digit">{{ digits[item.key].current }}</span></div>
+          <div :key="'b' + digits[item.key].animKey" class="flap flap-back">
+            <div class="digit-wrapper">
+              <span class="digit">{{ digits[item.key].current }}</span>
+            </div>
           </div>
 
           <!-- Center divider -->
@@ -140,7 +146,9 @@ const layout: { key: DigitKey; separator?: boolean }[] = [
       </template>
     </div>
 
-    <p class="mt-6 sm:mt-8 text-text-secondary text-sm sm:text-base font-display tracking-widest uppercase">
+    <p
+      class="mt-6 sm:mt-8 text-text-secondary text-sm sm:text-base font-display tracking-widest uppercase"
+    >
       {{ date }}
     </p>
   </div>
@@ -181,7 +189,7 @@ const layout: { key: DigitKey; separator?: boolean }[] = [
   font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(2.5rem, 9vw, 6rem);
-  color: #F0EDE6;
+  color: #f0ede6;
   line-height: 1;
   user-select: none;
   padding-top: 0.12em;
@@ -190,7 +198,7 @@ const layout: { key: DigitKey; separator?: boolean }[] = [
 /* ── Static halves ── */
 .half-top {
   top: 0;
-  background: #1E2F42;
+  background: #1e2f42;
   border: 1px solid #253549;
   border-bottom: none;
 }
@@ -215,7 +223,7 @@ const layout: { key: DigitKey; separator?: boolean }[] = [
 
 .flap-front {
   top: 0;
-  background: #1E2F42;
+  background: #1e2f42;
   border: 1px solid #253549;
   border-bottom: none;
   transform-origin: bottom center;
@@ -247,19 +255,27 @@ const layout: { key: DigitKey; separator?: boolean }[] = [
   left: 0;
   width: 100%;
   height: 2px;
-  background: #0F1923;
+  background: #0f1923;
   z-index: 5;
   transform: translateY(-50%);
 }
 
 /* ── Keyframes ── */
 @keyframes flip-front {
-  0% { transform: rotateX(0deg); }
-  100% { transform: rotateX(-180deg); }
+  0% {
+    transform: rotateX(0deg);
+  }
+  100% {
+    transform: rotateX(-180deg);
+  }
 }
 
 @keyframes flip-back {
-  0% { transform: rotateX(180deg); }
-  100% { transform: rotateX(0deg); }
+  0% {
+    transform: rotateX(180deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+  }
 }
 </style>

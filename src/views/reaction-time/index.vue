@@ -14,9 +14,7 @@ let startTime = 0
 let waitTimer: ReturnType<typeof setTimeout> | null = null
 let rippleId = 0
 
-const best = computed(() =>
-  history.value.length ? Math.min(...history.value) : null,
-)
+const best = computed(() => (history.value.length ? Math.min(...history.value) : null))
 const average = computed(() =>
   history.value.length
     ? Math.round(history.value.reduce((a, b) => a + b, 0) / history.value.length)
@@ -26,12 +24,47 @@ const average = computed(() =>
 const ratingConfig = computed(() => {
   if (!history.value.length) return null
   const avg = average.value!
-  if (avg < 180) return { text: 'Phản xạ siêu nhân', barColor: 'bg-accent-sky', textColor: 'text-accent-sky', width: '100%' }
-  if (avg < 220) return { text: 'Phản xạ xuất sắc', barColor: 'bg-accent-sky', textColor: 'text-accent-sky', width: '85%' }
-  if (avg < 270) return { text: 'Phản xạ tốt', barColor: 'bg-accent-amber', textColor: 'text-accent-amber', width: '70%' }
-  if (avg < 330) return { text: 'Bình thường', barColor: 'bg-accent-amber', textColor: 'text-accent-amber', width: '52%' }
-  if (avg < 400) return { text: 'Chậm một chút', barColor: 'bg-accent-coral', textColor: 'text-accent-coral', width: '35%' }
-  return { text: 'Cần luyện tập', barColor: 'bg-accent-coral', textColor: 'text-accent-coral', width: '18%' }
+  if (avg < 180)
+    return {
+      text: 'Phản xạ siêu nhân',
+      barColor: 'bg-accent-sky',
+      textColor: 'text-accent-sky',
+      width: '100%',
+    }
+  if (avg < 220)
+    return {
+      text: 'Phản xạ xuất sắc',
+      barColor: 'bg-accent-sky',
+      textColor: 'text-accent-sky',
+      width: '85%',
+    }
+  if (avg < 270)
+    return {
+      text: 'Phản xạ tốt',
+      barColor: 'bg-accent-amber',
+      textColor: 'text-accent-amber',
+      width: '70%',
+    }
+  if (avg < 330)
+    return {
+      text: 'Bình thường',
+      barColor: 'bg-accent-amber',
+      textColor: 'text-accent-amber',
+      width: '52%',
+    }
+  if (avg < 400)
+    return {
+      text: 'Chậm một chút',
+      barColor: 'bg-accent-coral',
+      textColor: 'text-accent-coral',
+      width: '35%',
+    }
+  return {
+    text: 'Cần luyện tập',
+    barColor: 'bg-accent-coral',
+    textColor: 'text-accent-coral',
+    width: '18%',
+  }
 })
 
 const resultComment = computed(() => {
@@ -56,7 +89,7 @@ function addRipple(x: number, y: number) {
   const id = rippleId++
   ripples.value.push({ id, x, y })
   setTimeout(() => {
-    ripples.value = ripples.value.filter(r => r.id !== id)
+    ripples.value = ripples.value.filter((r) => r.id !== id)
   }, 700)
 }
 
@@ -125,7 +158,9 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
 <template>
   <div class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col">
     <!-- Header -->
-    <header class="flex items-center justify-between px-6 py-4 border-b border-border-default animate-fade-up shrink-0">
+    <header
+      class="flex items-center justify-between px-6 py-4 border-b border-border-default animate-fade-up shrink-0"
+    >
       <RouterLink
         to="/"
         class="inline-flex items-center gap-2 text-sm text-text-secondary transition hover:text-text-primary"
@@ -134,13 +169,14 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
       </RouterLink>
       <div class="flex items-center gap-3">
         <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
-        <span class="font-display text-sm font-semibold tracking-wide text-text-primary">REACTION TIME</span>
+        <span class="font-display text-sm font-semibold tracking-wide text-text-primary"
+          >REACTION TIME</span
+        >
       </div>
     </header>
 
     <!-- Body: click zone + sidebar -->
     <div class="flex-1 flex flex-col lg:flex-row min-h-0">
-
       <!-- Click Zone -->
       <div
         ref="clickZoneRef"
@@ -179,19 +215,32 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
         <!-- State content -->
         <Transition name="fade-state" mode="out-in">
           <!-- Idle -->
-          <div v-if="state === 'idle'" key="idle" class="flex flex-col items-center gap-4 text-center px-6">
-            <div class="font-display text-[5rem] sm:text-[8rem] font-bold leading-none text-border-default">
+          <div
+            v-if="state === 'idle'"
+            key="idle"
+            class="flex flex-col items-center gap-4 text-center px-6"
+          >
+            <div
+              class="font-display text-[5rem] sm:text-[8rem] font-bold leading-none text-border-default"
+            >
               TAP
             </div>
             <p class="text-text-secondary text-sm">
               Nhấn hoặc bấm
-              <kbd class="inline-block border border-border-default bg-bg-surface px-1.5 py-0.5 font-display text-xs leading-none mx-1">SPACE</kbd>
+              <kbd
+                class="inline-block border border-border-default bg-bg-surface px-1.5 py-0.5 font-display text-xs leading-none mx-1"
+                >SPACE</kbd
+              >
               để bắt đầu
             </p>
           </div>
 
           <!-- Waiting -->
-          <div v-else-if="state === 'waiting'" key="waiting" class="flex flex-col items-center gap-5 text-center px-6">
+          <div
+            v-else-if="state === 'waiting'"
+            key="waiting"
+            class="flex flex-col items-center gap-5 text-center px-6"
+          >
             <div class="font-display text-4xl sm:text-6xl font-bold text-accent-amber leading-none">
               Hãy chờ...
             </div>
@@ -207,7 +256,11 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
           </div>
 
           <!-- Ready -->
-          <div v-else-if="state === 'ready'" key="ready" class="flex flex-col items-center gap-3 text-center px-6">
+          <div
+            v-else-if="state === 'ready'"
+            key="ready"
+            class="flex flex-col items-center gap-3 text-center px-6"
+          >
             <div class="font-display text-5xl sm:text-8xl font-bold text-accent-sky leading-none">
               NHẤN!
             </div>
@@ -215,7 +268,11 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
           </div>
 
           <!-- Result -->
-          <div v-else-if="state === 'result'" key="result" class="flex flex-col items-center gap-3 text-center px-6">
+          <div
+            v-else-if="state === 'result'"
+            key="result"
+            class="flex flex-col items-center gap-3 text-center px-6"
+          >
             <div
               v-if="isNewBest"
               class="bg-accent-coral text-bg-deep font-display font-bold text-xs tracking-widest px-3 py-1.5 rotate-1 mb-1"
@@ -223,15 +280,23 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
               ★ KỶ LỤC MỚI
             </div>
             <div class="flex items-end gap-2 leading-none">
-              <span class="font-display text-7xl sm:text-9xl font-bold text-accent-coral">{{ reactionTime }}</span>
+              <span class="font-display text-7xl sm:text-9xl font-bold text-accent-coral">{{
+                reactionTime
+              }}</span>
               <span class="font-display text-2xl text-text-secondary pb-2 sm:pb-4">ms</span>
             </div>
-            <p class="text-text-secondary font-display text-base sm:text-xl tracking-wide">{{ resultComment }}</p>
+            <p class="text-text-secondary font-display text-base sm:text-xl tracking-wide">
+              {{ resultComment }}
+            </p>
             <p class="text-text-dim text-xs mt-2">Nhấn để thử lại</p>
           </div>
 
           <!-- Too soon -->
-          <div v-else-if="state === 'too-soon'" key="too-soon" class="flex flex-col items-center gap-3 text-center px-6">
+          <div
+            v-else-if="state === 'too-soon'"
+            key="too-soon"
+            class="flex flex-col items-center gap-3 text-center px-6"
+          >
             <div class="font-display text-5xl sm:text-7xl font-bold text-accent-coral leading-none">
               Quá sớm!
             </div>
@@ -247,12 +312,14 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
 
       <!-- Sidebar -->
       <aside class="w-full lg:w-72 xl:w-80 bg-bg-surface flex flex-col overflow-y-auto shrink-0">
-
         <!-- Stats -->
         <section class="p-5 border-b border-border-default">
           <div class="flex items-center gap-3 mb-4">
             <span class="text-accent-amber font-display text-sm tracking-widest">//</span>
-            <span class="font-display text-xs font-semibold text-text-primary tracking-widest uppercase">Thống kê</span>
+            <span
+              class="font-display text-xs font-semibold text-text-primary tracking-widest uppercase"
+              >Thống kê</span
+            >
             <button
               v-if="history.length"
               class="ml-auto text-xs text-text-dim hover:text-accent-coral transition-colors"
@@ -263,7 +330,9 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
           </div>
           <div v-if="history.length" class="grid grid-cols-3 gap-2">
             <div class="border border-border-default p-3 text-center">
-              <div class="font-display text-2xl font-bold text-text-primary">{{ history.length }}</div>
+              <div class="font-display text-2xl font-bold text-text-primary">
+                {{ history.length }}
+              </div>
               <div class="text-xs text-text-dim mt-1 leading-none">Lần thử</div>
             </div>
             <div class="border border-border-default p-3 text-center">
@@ -275,19 +344,22 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
               <div class="text-xs text-text-dim mt-1 leading-none">Tốt nhất</div>
             </div>
           </div>
-          <div v-else class="text-xs text-text-dim text-center py-6">
-            Chưa có dữ liệu
-          </div>
+          <div v-else class="text-xs text-text-dim text-center py-6">Chưa có dữ liệu</div>
         </section>
 
         <!-- Rating -->
         <section v-if="ratingConfig" class="p-5 border-b border-border-default">
           <div class="flex items-center gap-3 mb-3">
             <span class="text-accent-sky font-display text-sm tracking-widest">//</span>
-            <span class="font-display text-xs font-semibold text-text-primary tracking-widest uppercase">Đánh giá</span>
+            <span
+              class="font-display text-xs font-semibold text-text-primary tracking-widest uppercase"
+              >Đánh giá</span
+            >
           </div>
           <div class="flex items-center justify-between mb-2">
-            <span class="font-display text-sm font-semibold" :class="ratingConfig.textColor">{{ ratingConfig.text }}</span>
+            <span class="font-display text-sm font-semibold" :class="ratingConfig.textColor">{{
+              ratingConfig.text
+            }}</span>
           </div>
           <div class="w-full h-1 bg-border-default">
             <div
@@ -302,7 +374,10 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
         <section v-if="history.length > 1" class="p-5">
           <div class="flex items-center gap-3 mb-4">
             <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
-            <span class="font-display text-xs font-semibold text-text-primary tracking-widest uppercase">Lịch sử</span>
+            <span
+              class="font-display text-xs font-semibold text-text-primary tracking-widest uppercase"
+              >Lịch sử</span
+            >
           </div>
           <div class="space-y-2">
             <div
@@ -310,7 +385,9 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
               :key="i"
               class="flex items-center gap-2"
             >
-              <span class="w-5 text-right font-display text-xs text-text-dim shrink-0">{{ history.length - i }}</span>
+              <span class="w-5 text-right font-display text-xs text-text-dim shrink-0">{{
+                history.length - i
+              }}</span>
               <div class="flex-1 h-6 bg-bg-elevated relative overflow-hidden">
                 <div
                   class="h-full transition-all duration-500 ease-out"
@@ -332,26 +409,43 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
         <section v-if="!history.length" class="p-5">
           <div class="flex items-center gap-3 mb-4">
             <span class="text-accent-sky font-display text-sm tracking-widest">//</span>
-            <span class="font-display text-xs font-semibold text-text-primary tracking-widest uppercase">Hướng dẫn</span>
+            <span
+              class="font-display text-xs font-semibold text-text-primary tracking-widest uppercase"
+              >Hướng dẫn</span
+            >
           </div>
           <ol class="space-y-4">
             <li class="flex gap-3 items-start">
-              <span class="text-accent-coral font-display font-bold text-sm leading-none mt-0.5 shrink-0">01</span>
-              <span class="text-text-secondary text-sm leading-snug">Nhấn vào vùng bên trái (hoặc SPACE) để bắt đầu</span>
+              <span
+                class="text-accent-coral font-display font-bold text-sm leading-none mt-0.5 shrink-0"
+                >01</span
+              >
+              <span class="text-text-secondary text-sm leading-snug"
+                >Nhấn vào vùng bên trái (hoặc SPACE) để bắt đầu</span
+              >
             </li>
             <li class="flex gap-3 items-start">
-              <span class="text-accent-amber font-display font-bold text-sm leading-none mt-0.5 shrink-0">02</span>
-              <span class="text-text-secondary text-sm leading-snug">Chờ màu nền chuyển xanh và chữ "NHẤN!" xuất hiện</span>
+              <span
+                class="text-accent-amber font-display font-bold text-sm leading-none mt-0.5 shrink-0"
+                >02</span
+              >
+              <span class="text-text-secondary text-sm leading-snug"
+                >Chờ màu nền chuyển xanh và chữ "NHẤN!" xuất hiện</span
+              >
             </li>
             <li class="flex gap-3 items-start">
-              <span class="text-accent-sky font-display font-bold text-sm leading-none mt-0.5 shrink-0">03</span>
-              <span class="text-text-secondary text-sm leading-snug">Nhấn ngay lúc đó — càng nhanh càng tốt!</span>
+              <span
+                class="text-accent-sky font-display font-bold text-sm leading-none mt-0.5 shrink-0"
+                >03</span
+              >
+              <span class="text-text-secondary text-sm leading-snug"
+                >Nhấn ngay lúc đó — càng nhanh càng tốt!</span
+              >
             </li>
           </ol>
           <div class="mt-5 border border-border-default p-3 text-xs text-text-dim leading-relaxed">
             Thời gian phản xạ trung bình của người bình thường là khoảng
-            <span class="text-text-secondary">250ms</span>.
-            Vận động viên chuyên nghiệp đạt dưới
+            <span class="text-text-secondary">250ms</span>. Vận động viên chuyên nghiệp đạt dưới
             <span class="text-text-secondary">200ms</span>.
           </div>
         </section>
@@ -371,10 +465,14 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
 
 <style scoped>
 .fade-state-enter-active {
-  transition: opacity 0.12s ease, transform 0.12s ease;
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
 }
 .fade-state-leave-active {
-  transition: opacity 0.08s ease, transform 0.08s ease;
+  transition:
+    opacity 0.08s ease,
+    transform 0.08s ease;
 }
 .fade-state-enter-from {
   opacity: 0;

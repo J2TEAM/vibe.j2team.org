@@ -43,14 +43,14 @@ async function handleStart() {
     <h2 class="font-display text-2xl font-semibold text-text-primary text-center mb-2">
       {{ set?.name ?? 'Chuẩn bị học' }}
     </h2>
-    <p class="text-text-secondary text-sm text-center mb-8">
-      {{ cardCount }} thẻ trong bộ này
-    </p>
+    <p class="text-text-secondary text-sm text-center mb-8">{{ cardCount }} thẻ trong bộ này</p>
 
     <div class="space-y-6">
       <!-- Card side config -->
       <div class="border border-border-default bg-bg-surface p-5">
-        <p class="font-display text-sm font-semibold text-text-primary mb-3">Hiển thị mặt nào trước?</p>
+        <p class="font-display text-sm font-semibold text-text-primary mb-3">
+          Hiển thị mặt nào trước?
+        </p>
         <div class="space-y-2">
           <label class="flex items-center gap-3 text-sm text-text-secondary cursor-pointer">
             <input v-model="cardSide" type="radio" value="front" class="accent-accent-coral" />
@@ -72,7 +72,12 @@ async function handleStart() {
         <p class="font-display text-sm font-semibold text-text-primary mb-3">Thứ tự thẻ</p>
         <div class="space-y-2">
           <label class="flex items-center gap-3 text-sm text-text-secondary cursor-pointer">
-            <input v-model="cardOrder" type="radio" value="sequential" class="accent-accent-coral" />
+            <input
+              v-model="cardOrder"
+              type="radio"
+              value="sequential"
+              class="accent-accent-coral"
+            />
             Theo thứ tự
           </label>
           <label class="flex items-center gap-3 text-sm text-text-secondary cursor-pointer">
@@ -83,7 +88,9 @@ async function handleStart() {
       </div>
 
       <!-- Reset progress -->
-      <label class="flex items-center gap-3 text-sm text-text-secondary cursor-pointer border border-border-default bg-bg-surface p-4">
+      <label
+        class="flex items-center gap-3 text-sm text-text-secondary cursor-pointer border border-border-default bg-bg-surface p-4"
+      >
         <input v-model="resetProgress" type="checkbox" class="accent-accent-coral" />
         Học lại từ đầu (xóa tiến trình cũ)
       </label>

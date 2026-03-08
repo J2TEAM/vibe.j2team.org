@@ -13,7 +13,9 @@
         class="group flex flex-col items-center justify-center border border-dashed border-border-default px-8 py-5 transition-all duration-300 hover:-translate-y-1 hover:border-accent-sky hover:bg-bg-elevated animate-pulse-border"
       >
         <span class="text-accent-sky text-lg">&#9829;</span>
-        <span class="text-xs text-text-dim font-display tracking-wide mt-1 group-hover:text-accent-sky transition-colors">
+        <span
+          class="text-xs text-text-dim font-display tracking-wide mt-1 group-hover:text-accent-sky transition-colors"
+        >
           Trở thành nhà tài trợ
         </span>
       </a>

@@ -1,5 +1,14 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import type { Bullet, EnemyTank, Tank, Direction, GameState, Wall, Particle, PowerUp } from './types'
+import type {
+  Bullet,
+  EnemyTank,
+  Tank,
+  Direction,
+  GameState,
+  Wall,
+  Particle,
+  PowerUp,
+} from './types'
 import { generateMap } from './mapGenerator'
 import { LEVELS } from './levels'
 
@@ -62,7 +71,9 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
   // Load high score
   try {
     highScore.value = Number(localStorage.getItem(HIGH_SCORE_KEY)) || 0
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   function saveHighScore() {
     try {
@@ -70,16 +81,23 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
         highScore.value = score.value
         localStorage.setItem(HIGH_SCORE_KEY, String(score.value))
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   function createPlayer(px: number, py: number): Tank {
     return {
-      x: px, y: py,
-      width: TILE - 4, height: TILE - 4,
-      direction: 'up', speed: PLAYER_SPEED,
-      health: 3, maxHealth: 3,
-      lastShot: 0, shotInterval: PLAYER_SHOT_COOLDOWN,
+      x: px,
+      y: py,
+      width: TILE - 4,
+      height: TILE - 4,
+      direction: 'up',
+      speed: PLAYER_SPEED,
+      health: 3,
+      maxHealth: 3,
+      lastShot: 0,
+      shotInterval: PLAYER_SHOT_COOLDOWN,
     }
   }
 
@@ -91,16 +109,21 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
     const cfg = ENEMY_CONFIGS[type]
     const mult = levelMultiplier()
     return {
-      id, x, y,
-      width: TILE - 4, height: TILE - 4,
+      id,
+      x,
+      y,
+      width: TILE - 4,
+      height: TILE - 4,
       direction: 'down',
       speed: cfg.speed * (0.9 + currentLevel.value * 0.15),
       health: type === 'heavy' ? cfg.health + currentLevel.value : cfg.health,
       maxHealth: type === 'heavy' ? cfg.health + currentLevel.value : cfg.health,
       lastShot: Date.now() + Math.random() * 1000,
       shotInterval: Math.max(800, cfg.shotInterval / mult),
-      alive: true, pathTimer: 0,
-      type, flashTimer: 0,
+      alive: true,
+      pathTimer: 0,
+      type,
+      flashTimer: 0,
     }
   }
 
@@ -109,7 +132,8 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
       const angle = Math.random() * Math.PI * 2
       const speed = 1 + Math.random() * spread
       particles.push({
-        x, y,
+        x,
+        y,
         dx: Math.cos(angle) * speed,
         dy: Math.sin(angle) * speed,
         life: 20 + Math.random() * 20,
@@ -149,8 +173,15 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
     bullets = []
     particles = []
     powerUps = []
-    walls = generateMap(COLS, ROWS, TILE, lvl.princessPos, lvl.playerPos,
-      lvl.enemies.map((e) => ({ x: e.x, y: e.y })), levelIndex)
+    walls = generateMap(
+      COLS,
+      ROWS,
+      TILE,
+      lvl.princessPos,
+      lvl.playerPos,
+      lvl.enemies.map((e) => ({ x: e.x, y: e.y })),
+      levelIndex,
+    )
     enemiesLeft.value = enemies.length
     levelName.value = lvl.name
     currentLevel.value = levelIndex
@@ -197,12 +228,19 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
 
   function collidesWithWalls(x: number, y: number, w: number, h: number): boolean {
     for (const wall of walls) {
-      if (x < wall.x + wall.width && x + w > wall.x && y < wall.y + wall.height && y + h > wall.y) return true
+      if (x < wall.x + wall.width && x + w > wall.x && y < wall.y + wall.height && y + h > wall.y)
+        return true
     }
     return false
   }
 
-  function collidesWithEnemies(x: number, y: number, w: number, h: number, excludeId?: number): boolean {
+  function collidesWithEnemies(
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    excludeId?: number,
+  ): boolean {
     for (const e of enemies) {
       if (!e.alive || e.id === excludeId) continue
       if (x < e.x + e.width && x + w > e.x && y < e.y + e.height && y + h > e.y) return true
@@ -214,7 +252,9 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
     a: { x: number; y: number; width: number; height: number },
     b: { x: number; y: number; width: number; height: number },
   ) {
-    return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y
+    return (
+      a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y
+    )
   }
 
   function moveTank(tank: Tank, dir: Direction, excludeEnemyId?: number): boolean {
@@ -223,17 +263,30 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
     tank.direction = dir
     const s = tank.speed
     switch (dir) {
-      case 'up': ny -= s; break
-      case 'down': ny += s; break
-      case 'left': nx -= s; break
-      case 'right': nx += s; break
+      case 'up':
+        ny -= s
+        break
+      case 'down':
+        ny += s
+        break
+      case 'left':
+        nx -= s
+        break
+      case 'right':
+        nx += s
+        break
     }
     if (nx < 0 || ny < 0 || nx + tank.width > MAP_W || ny + tank.height > MAP_H) return false
     if (collidesWithWalls(nx, ny, tank.width, tank.height)) return false
     if (collidesWithEnemies(nx, ny, tank.width, tank.height, excludeEnemyId)) return false
     if (excludeEnemyId !== undefined) {
-      if (nx < player.x + player.width && nx + tank.width > player.x &&
-          ny < player.y + player.height && ny + tank.height > player.y) return false
+      if (
+        nx < player.x + player.width &&
+        nx + tank.width > player.x &&
+        ny < player.y + player.height &&
+        ny + tank.height > player.y
+      )
+        return false
     }
     tank.x = nx
     tank.y = ny
@@ -244,17 +297,28 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
     const now = Date.now()
     if (now - tank.lastShot < tank.shotInterval) return
     tank.lastShot = now
-    let dx = 0, dy = 0
+    let dx = 0,
+      dy = 0
     switch (tank.direction) {
-      case 'up': dy = -BULLET_SPEED; break
-      case 'down': dy = BULLET_SPEED; break
-      case 'left': dx = -BULLET_SPEED; break
-      case 'right': dx = BULLET_SPEED; break
+      case 'up':
+        dy = -BULLET_SPEED
+        break
+      case 'down':
+        dy = BULLET_SPEED
+        break
+      case 'left':
+        dx = -BULLET_SPEED
+        break
+      case 'right':
+        dx = BULLET_SPEED
+        break
     }
     bullets.push({
       x: tank.x + tank.width / 2 - 3,
       y: tank.y + tank.height / 2 - 3,
-      dx, dy, owner,
+      dx,
+      dy,
+      owner,
     })
     if (owner === 'player') {
       spawnParticles(tank.x + tank.width / 2, tank.y + tank.height / 2, 4, '#facc15', 1.5)
@@ -330,7 +394,8 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
           if (dist < TILE * 4) {
             // Retreat perpendicular or away
             if (Math.random() > 0.4) {
-              e.direction = Math.abs(dx) > Math.abs(dy) ? (dy > 0 ? 'up' : 'down') : (dx > 0 ? 'left' : 'right')
+              e.direction =
+                Math.abs(dx) > Math.abs(dy) ? (dy > 0 ? 'up' : 'down') : dx > 0 ? 'left' : 'right'
             } else {
               e.direction = dx > 0 ? 'left' : 'right'
             }
@@ -339,7 +404,8 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
           } else if (Math.abs(dy) < TILE) {
             e.direction = dx > 0 ? 'right' : 'left'
           } else {
-            e.direction = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')
+            e.direction =
+              Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up'
           }
           e.pathTimer = 35 + Math.floor(Math.random() * 25)
         } else if (e.type === 'heavy') {
@@ -374,8 +440,8 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
         const dirs: Direction[] = ['up', 'down', 'left', 'right']
         // Shuffle to avoid always picking same fallback
         for (let i = dirs.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [dirs[i]!, dirs[j]!] = [dirs[j]!, dirs[i]!]
+          const j = Math.floor(Math.random() * (i + 1))
+          ;[dirs[i]!, dirs[j]!] = [dirs[j]!, dirs[i]!]
         }
         let escaped = false
         for (const d of dirs) {
@@ -415,8 +481,12 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
       let hitWall = false
       for (let w = walls.length - 1; w >= 0; w--) {
         const wall = walls[w]!
-        if (b.x < wall.x + wall.width && b.x + BULLET_SIZE > wall.x &&
-            b.y < wall.y + wall.height && b.y + BULLET_SIZE > wall.y) {
+        if (
+          b.x < wall.x + wall.width &&
+          b.x + BULLET_SIZE > wall.x &&
+          b.y < wall.y + wall.height &&
+          b.y + BULLET_SIZE > wall.y
+        ) {
           if (wall.destructible) {
             wall.health--
             spawnParticles(b.x, b.y, 5, '#8B6914', 1.5)
@@ -434,8 +504,12 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
       if (hitWall) continue
 
       if (b.owner === 'enemy') {
-        if (b.x < player.x + player.width && b.x + BULLET_SIZE > player.x &&
-            b.y < player.y + player.height && b.y + BULLET_SIZE > player.y) {
+        if (
+          b.x < player.x + player.width &&
+          b.x + BULLET_SIZE > player.x &&
+          b.y < player.y + player.height &&
+          b.y + BULLET_SIZE > player.y
+        ) {
           if (shieldTimer > 0) {
             // Shield blocks damage, bullet consumed
             spawnParticles(b.x, b.y, 8, '#60a5fa', 2)
@@ -443,7 +517,13 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
             player.health--
             playerHealth.value = player.health
             triggerShake(4, 10)
-            spawnParticles(player.x + player.width / 2, player.y + player.height / 2, 10, '#ef4444', 2)
+            spawnParticles(
+              player.x + player.width / 2,
+              player.y + player.height / 2,
+              10,
+              '#ef4444',
+              2,
+            )
             if (player.health <= 0) {
               spawnExplosion(player.x + player.width / 2, player.y + player.height / 2)
               saveHighScore()
@@ -458,8 +538,12 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
       if (b.owner === 'player') {
         for (const e of enemies) {
           if (!e.alive) continue
-          if (b.x < e.x + e.width && b.x + BULLET_SIZE > e.x &&
-              b.y < e.y + e.height && b.y + BULLET_SIZE > e.y) {
+          if (
+            b.x < e.x + e.width &&
+            b.x + BULLET_SIZE > e.x &&
+            b.y < e.y + e.height &&
+            b.y + BULLET_SIZE > e.y
+          ) {
             e.health--
             e.flashTimer = 6
             spawnParticles(b.x, b.y, 6, ENEMY_CONFIGS[e.type].turret, 2)
@@ -504,12 +588,18 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
     if (rapidFireTimer > 0) {
       rapidFireTimer--
       rapidFirePercent.value = Math.round((rapidFireTimer / rapidFireMax) * 100)
-      if (rapidFireTimer <= 0) { hasRapidFire.value = false; rapidFirePercent.value = 0 }
+      if (rapidFireTimer <= 0) {
+        hasRapidFire.value = false
+        rapidFirePercent.value = 0
+      }
     }
     if (shieldTimer > 0) {
       shieldTimer--
       shieldPercent.value = Math.round((shieldTimer / shieldMax) * 100)
-      if (shieldTimer <= 0) { hasShield.value = false; shieldPercent.value = 0 }
+      if (shieldTimer <= 0) {
+        hasShield.value = false
+        shieldPercent.value = 0
+      }
     }
   }
 
@@ -528,11 +618,13 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
     ctx.fillStyle = '#333'
     const treadW = 5
     switch (t.direction) {
-      case 'up': case 'down':
+      case 'up':
+      case 'down':
         ctx.fillRect(t.x - 1, t.y + 2, treadW, t.height - 4)
         ctx.fillRect(t.x + t.width - treadW + 1, t.y + 2, treadW, t.height - 4)
         break
-      case 'left': case 'right':
+      case 'left':
+      case 'right':
         ctx.fillRect(t.x + 2, t.y - 1, t.width - 4, treadW)
         ctx.fillRect(t.x + 2, t.y + t.height - treadW + 1, t.width - 4, treadW)
         break
@@ -560,10 +652,18 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
     ctx.translate(cx, cy)
     let angle = 0
     switch (t.direction) {
-      case 'up': angle = -Math.PI / 2; break
-      case 'down': angle = Math.PI / 2; break
-      case 'left': angle = Math.PI; break
-      case 'right': angle = 0; break
+      case 'up':
+        angle = -Math.PI / 2
+        break
+      case 'down':
+        angle = Math.PI / 2
+        break
+      case 'left':
+        angle = Math.PI
+        break
+      case 'right':
+        angle = 0
+        break
     }
     ctx.rotate(angle)
     ctx.fillStyle = turretColor
@@ -606,8 +706,12 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
       ctx.save()
       ctx.globalAlpha = 0.3 + Math.sin(princessBob * 2) * 0.15
       const grd = ctx.createRadialGradient(
-        px + princess.width / 2, py + princess.height / 2, 5,
-        px + princess.width / 2, py + princess.height / 2, TILE,
+        px + princess.width / 2,
+        py + princess.height / 2,
+        5,
+        px + princess.width / 2,
+        py + princess.height / 2,
+        TILE,
       )
       grd.addColorStop(0, '#f8b4c8')
       grd.addColorStop(1, 'transparent')
@@ -642,7 +746,11 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
     ctx.fillStyle = unlocked ? '#ff1493' : '#aaa'
     ctx.font = 'bold 12px serif'
     ctx.textAlign = 'center'
-    ctx.fillText(unlocked ? '\u2665' : '\uD83D\uDD12', px + princess.width / 2, py + princess.height - 2)
+    ctx.fillText(
+      unlocked ? '\u2665' : '\uD83D\uDD12',
+      px + princess.width / 2,
+      py + princess.height - 2,
+    )
   }
 
   function drawPowerUp(p: PowerUp) {
@@ -696,10 +804,16 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
     ctx.strokeStyle = 'rgba(255,255,255,0.025)'
     ctx.lineWidth = 1
     for (let x = 0; x <= MAP_W; x += TILE) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, MAP_H); ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(x, 0)
+      ctx.lineTo(x, MAP_H)
+      ctx.stroke()
     }
     for (let y = 0; y <= MAP_H; y += TILE) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(MAP_W, y); ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(0, y)
+      ctx.lineTo(MAP_W, y)
+      ctx.stroke()
     }
 
     for (const wall of walls) {
@@ -732,10 +846,18 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
         ctx.fillRect(wall.x + 4, wall.y + 4, wall.width - 8, wall.height - 8)
         ctx.fillStyle = '#64748b'
         const r = 2
-        ctx.beginPath(); ctx.arc(wall.x + 5, wall.y + 5, r, 0, Math.PI * 2); ctx.fill()
-        ctx.beginPath(); ctx.arc(wall.x + wall.width - 5, wall.y + 5, r, 0, Math.PI * 2); ctx.fill()
-        ctx.beginPath(); ctx.arc(wall.x + 5, wall.y + wall.height - 5, r, 0, Math.PI * 2); ctx.fill()
-        ctx.beginPath(); ctx.arc(wall.x + wall.width - 5, wall.y + wall.height - 5, r, 0, Math.PI * 2); ctx.fill()
+        ctx.beginPath()
+        ctx.arc(wall.x + 5, wall.y + 5, r, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(wall.x + wall.width - 5, wall.y + 5, r, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(wall.x + 5, wall.y + wall.height - 5, r, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(wall.x + wall.width - 5, wall.y + wall.height - 5, r, 0, Math.PI * 2)
+        ctx.fill()
       }
     }
 
@@ -883,9 +1005,22 @@ export function useGameEngine(canvas: () => HTMLCanvasElement | null) {
   })
 
   return {
-    gameState, score, playerHealth, playerMaxHealth, enemiesLeft,
-    currentLevel, levelName, hasShield, hasRapidFire,
-    shieldPercent, rapidFirePercent, highScore,
-    start, resume, togglePause, setTouchDir, setTouchShoot,
+    gameState,
+    score,
+    playerHealth,
+    playerMaxHealth,
+    enemiesLeft,
+    currentLevel,
+    levelName,
+    hasShield,
+    hasRapidFire,
+    shieldPercent,
+    rapidFirePercent,
+    highScore,
+    start,
+    resume,
+    togglePause,
+    setTouchDir,
+    setTouchShoot,
   }
 }

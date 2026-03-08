@@ -9,7 +9,9 @@ import { padIndex } from '@/data/homepage'
     <h2 class="font-display text-2xl font-semibold text-text-primary mb-8 flex items-center gap-3">
       <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
       Các trang đã tạo
-      <span class="ml-2 inline-flex items-center justify-center rounded-full bg-accent-coral/10 px-3 py-0.5 text-sm font-medium text-accent-coral">
+      <span
+        class="ml-2 inline-flex items-center justify-center rounded-full bg-accent-coral/10 px-3 py-0.5 text-sm font-medium text-accent-coral"
+      >
         {{ pages.length }}
       </span>
     </h2>
@@ -34,7 +36,9 @@ import { padIndex } from '@/data/homepage'
         >
           {{ page.name }}
         </h3>
-        <p class="mt-2 text-sm text-text-secondary line-clamp-2" :title="page.description">{{ page.description }}</p>
+        <p class="mt-2 text-sm text-text-secondary line-clamp-2" :title="page.description">
+          {{ page.description }}
+        </p>
         <p class="mt-auto pt-4 text-xs text-text-dim font-display tracking-wide">
           bởi
           <a
