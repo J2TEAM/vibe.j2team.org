@@ -6,17 +6,22 @@ export const createInstruments = (Tone: any) => {
 
   const reverb = new Tone.Reverb({ decay: 6, wet: 0.6 }).connect(masterVol);
 
+  // Clean low-end: Add high-pass filters to prevent mud buildup
+  const padHPF = new Tone.Filter(100, "highpass").connect(reverb);
   const pad = new Tone.PolySynth(Tone.Synth, {
+    maxPolyphony: 12,
     oscillator: { type: "fatsawtooth", count: 3, spread: 20 },
     envelope: { attack: 1.5, decay: 1, sustain: 0.8, release: 3 },
-  }).connect(reverb);
-  pad.volume.value = -10;
+  }).connect(padHPF);
+  pad.volume.value = -12;
 
+  const droneHPF = new Tone.Filter(80, "highpass").connect(reverb);
   const cosmicDrone = new Tone.PolySynth(Tone.Synth, {
+    maxPolyphony: 12,
     oscillator: { type: "sine" },
     envelope: { attack: 5, decay: 2, sustain: 1, release: 8 },
-  }).connect(reverb);
-  cosmicDrone.volume.value = -14;
+  }).connect(droneHPF);
+  cosmicDrone.volume.value = -16;
 
   const bioPulse = new Tone.MembraneSynth({
     pitchDecay: 0.05,
@@ -27,6 +32,7 @@ export const createInstruments = (Tone: any) => {
   bioPulse.volume.value = -10;
 
   const digitalCrystal = new Tone.PolySynth(Tone.FMSynth, {
+    maxPolyphony: 12,
     harmonicity: 3,
     modulationIndex: 8,
     oscillator: { type: "sine" },
@@ -38,7 +44,7 @@ export const createInstruments = (Tone: any) => {
     noise: { type: "white" },
     envelope: { attack: 0.01, decay: 0.4, sustain: 0.0, release: 0.6 },
   }).connect(masterVol);
-  shatterNoise.volume.value = -10;
+  shatterNoise.volume.value = -15;
 
   const arpeggio = new Tone.PolySynth(Tone.Synth, {
     oscillator: { type: "triangle" },
@@ -62,19 +68,22 @@ export const createInstruments = (Tone: any) => {
 
   const pulseBass = new Tone.Synth({
     oscillator: { type: "square" },
-    envelope: { attack: 0.01, decay: 0.2, sustain: 0.3, release: 0.8 },
+    envelope: { attack: 0.05, decay: 0.2, sustain: 0.3, release: 1.2 },
   }).connect(reverb);
-  pulseBass.volume.value = -20;
+  pulseBass.volume.value = -24;
 
   const vibrato = new Tone.Vibrato({ frequency: 0.5, depth: 0.1 }).connect(reverb);
 
   const bioPad = new Tone.PolySynth(Tone.Synth, {
+    maxPolyphony: 12,
     oscillator: { type: "fatsawtooth", count: 2, spread: 15 },
     envelope: { attack: 1.0, decay: 0.8, sustain: 0.9, release: 2.0 },
   }).connect(vibrato);
-  bioPad.volume.value = -14;
+  // Also HPF the bioPad via the same padHPF or locally
+  bioPad.volume.value = -16;
 
   const padDigital = new Tone.PolySynth(Tone.Synth, {
+    maxPolyphony: 12,
     oscillator: { type: "fatsawtooth", count: 2, spread: 15 },
     envelope: { attack: 0.3, decay: 0.8, sustain: 0.7, release: 1.5 },
   }).connect(reverb);
@@ -92,7 +101,7 @@ export const createInstruments = (Tone: any) => {
     release: 1,
     baseUrl: "https://tonejs.github.io/audio/salamander/",
   }).connect(reverb);
-  piano.volume.value = -2;
+  piano.volume.value = -8;
 
   return {
     masterVol,

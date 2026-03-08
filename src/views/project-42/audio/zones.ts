@@ -32,7 +32,7 @@ let _lastMasterVol = -999;
 function setMasterVol(instruments: any, vol: number) {
   if (!instruments.masterVol) return;
   if (Math.abs(_lastMasterVol - vol) < 0.2) return;
-  instruments.masterVol.volume.value = vol;
+  instruments.masterVol.volume.rampTo(vol, 0.1);
   _lastMasterVol = vol;
 }
 
@@ -102,7 +102,7 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
   if (progress >= 20.0 && progress < 24.5) {
     const tension = (progress - 20.0) / 4.5;
     setMasterVol(instruments, -10 + tension * 5);
-    instruments.cosmicDrone?.set({ detune: tension * 100 });
+    instruments.cosmicDrone?.detune.rampTo(tension * 100, 0.05);
     const pulseTick = Math.floor(progress * 4) % 2;
     if (pulseTick === 0 && !instruments._pulseLock) {
       instruments.pulseBass?.triggerAttackRelease("F1", "16n", Tone.now(), 0.3 * tension);
@@ -153,11 +153,10 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
   const earthProgress = Math.floor((progress - 45) / 8);
   if (progress >= 45.0 && progress < 62.0 && earthProgress !== _lastEarthIndex) {
     _lastEarthIndex = earthProgress;
-    if (earthProgress === 0) {
-      instruments.cosmicDrone?.releaseAll();
-      instruments.sweep?.triggerRelease();
-      _droneStarted = false;
-    }
+    instruments.cosmicDrone?.releaseAll();
+    instruments.sweep?.triggerRelease();
+    _droneStarted = false;
+
     setMasterVol(instruments, -18);
     playChord(instruments, Tone, CHORDS.earth, "1n", 0.35);
     if (earthProgress === 0) instruments.sweep?.triggerAttack("F2");
@@ -165,13 +164,19 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
 
   if (progress >= 62.0 && progress < 62.5 && _lastEarthIndex !== -1) {
     instruments.sweep?.triggerRelease();
+    instruments.cosmicDrone?.releaseAll();
     instruments.pad?.releaseAll();
+    _droneStarted = false;
   }
 
   const bioChords = [CHORDS.bio1, CHORDS.bio2, CHORDS.bio3, CHORDS.bio4];
   const bioProgress = Math.floor((progress - 62) / 12);
   if (progress >= 62.0 && progress < 95.0 && bioProgress !== _lastBioIndex) {
     _lastBioIndex = bioProgress;
+    instruments.cosmicDrone?.releaseAll();
+    instruments.sweep?.triggerRelease();
+    _droneStarted = false;
+
     const chord = bioChords[bioProgress % bioChords.length];
     if (chord) {
       const currentIdx = bioProgress;

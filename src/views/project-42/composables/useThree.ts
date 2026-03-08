@@ -159,6 +159,8 @@ export function useThree() {
 
   const updateProgress = (delta: number) => {
     if (isLoading.value) return;
+    // Strictly block upward scrolling (only allow progress to increase)
+    if (delta <= 0) return;
     scrollProgress.value = Math.max(0, scrollProgress.value + delta * 0.002);
 
     let activeIdx = 0;
@@ -239,6 +241,21 @@ export function useThree() {
     const positions = posAttr.array as Float32Array;
     const time = Date.now() * 0.0005;
     if (points.material.uniforms) points.material.uniforms.uTime.value = time;
+
+    // Robust Earth Visibility Cleanup (Fix for fast-scrolling frame skips)
+    if (earth && gsap) {
+      if (scrollProgress.value < 32.0 || scrollProgress.value >= 56.0) {
+        if (earth.material.opacity > 0) {
+          earth.material.opacity = 0;
+          const clouds = earth.children.find((c: any) => c.name === "clouds");
+          if (clouds) clouds.material.opacity = 0;
+          const atmosphere = earth.children.find((c: any) => c.name === "atmosphere");
+          if (atmosphere && atmosphere.material.uniforms) {
+            atmosphere.material.uniforms.uIntensity.value = 0;
+          }
+        }
+      }
+    }
 
     if (scrollProgress.value < 17.0) {
       prologueScene.update(positions, particlesCount, time, scrollProgress.value);
