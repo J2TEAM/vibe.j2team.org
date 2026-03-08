@@ -9,6 +9,7 @@ const isPlaying = ref(false);
 const showFakeLoading = ref(false);
 const loadingProgress = ref(0);
 const showFailMessage = ref(false);
+const failMessage = ref("");
 
 // Bug position
 const bugX = ref(50);
@@ -80,6 +81,39 @@ const gaslightQuotes = [
   "Code clean lắm, không có bug đâu!",
   "Thằng dev trước viết thế mà!",
   "Tôi tưởng đã fix rồi?!",
+  "Check lại Logic đi, có học căn bản không đấy?",
+  "Chắc do ăn ở nên Bug nó mới nhảy...",
+  "Lương nghìn đô mà fix con Bug này không xong?",
+  "Đừng đập nữa, đập cũng có trúng đâu mà.",
+  "Để tôi gọi Intern vào fix hộ cho nhé?",
+  "Code như này mà cũng đòi qua vòng Review à?",
+  "Thôi reset máy đi, hy vọng là nó hết.",
+  "Nhìn bạn click mà tôi thấy tội cho con chuột.",
+  "Bug này không khó, chỉ là bạn không đủ trình.",
+  "Bạn có đang dùng đúng tay thuận không đấy?",
+  "Clear Cache chưa? Hay là do... trình độ?",
+  "Ủa, nãy giờ bạn đang thực sự cố gắng đấy à?",
+  "Hay là chuyển sang làm Tester đi cho nhàn?",
+  "Google không tính phí, sao không lên đó mà tìm?",
+  "Code chạy bằng niềm tin à mà đòi fix?",
+  "Mắt bạn có bị cận không? Nó nằm lù lù ra đó!",
+  "Tắt máy đi ngủ đi, mai Bug nó tự hết (đùa đấy).",
+  "Bạn mà fix được con này tôi đi bằng đầu!",
+  "Càng fix càng hỏng, đúng là 'bàn tay vàng' trong làng tạo Bug.",
+  "Bình tĩnh, hít thở sâu... rồi chấp nhận mình kém đi.",
+];
+// Fail message quotes - more roasting
+const failQuotes = [
+  "Chúc mừng! Bạn đã tạo thêm được một đống bug! 🎉",
+  "Code của bạn đẹp lắm... đẹp như một đống hỗn độn!",
+  "Feature mới của bạn đây - bug nè! 🐛",
+  "Commit đi, PR đi, có bug thì người ta fix!",
+  "Merge xong rồi, giờ thì enjoy cái bug của bạn nhé!",
+  "Dev không có bug như pizza không có phô mai - không thể nào!",
+  "Test ở đâu? Production chính là test environment!",
+  "Code sạch sẽ như cuộc đời bạn vậy... à không, có bug đấy!",
+  "Pull request: ❌, Bug report: ✅",
+  "Fix một bug = Tạo hai bug mới. Toán học lừa đảo!",
 ];
 const currentQuote = ref("");
 const showQuote = ref(false);
@@ -240,6 +274,7 @@ const handleBugHit = () => {
       // Show fail message after "completing"
       setTimeout(() => {
         showFailMessage.value = true;
+        failMessage.value = failQuotes[Math.floor(Math.random() * failQuotes.length)] ?? "";
         bugsCreated.value += Math.floor(Math.random() * 50) + 100;
 
         // Delete a random line from the fake code
@@ -493,7 +528,7 @@ onUnmounted(() => {
             <p class="text-3xl font-display font-bold text-red-500 mb-2 animate-pulse">
               ✨ New {{ bugsCreated }} bugs created!
             </p>
-            <p class="text-text-secondary">Congratulations! You're a bug creator now!</p>
+            <p class="text-text-secondary">{{ failMessage }}</p>
           </div>
         </Transition>
       </div>
