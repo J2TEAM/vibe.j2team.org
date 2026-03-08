@@ -1,8 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/**
- * Project 42 - Audio Zones
- * Key: F major / D minor — neosoul ambient + sci-fi
- */
 
 const CHORDS = {
   void: ["F1", "C2"],
@@ -21,7 +17,6 @@ const ARP_VOID = ["F2", "C3", "F3", "G3", "C4"];
 const ARP_DIGITAL = ["D3", "F3", "Ab3", "C4", "Ab3", "F3"];
 const ARP_MERGE = ["D3", "A3", "E4", "A3", "D4", "F4"];
 
-// Zone-specific indices to prevent state conflicts
 let _lastEarthIndex = -1;
 let _lastBioIndex = -1;
 let _lastDigitalIndex = -1;
@@ -86,13 +81,12 @@ function playChord(instruments: any, Tone: any, notes: string[], duration = "2n"
   });
   setTimeout(() => {
     _chordLock = false;
-  }, 400); // Debounce duration for rapid scrolling
+  }, 400);
 }
 
 export const updateAudioZones = (progress: number, instruments: any, Tone: any) => {
   if (!instruments) return;
 
-  // --- ZONE 1: VOID / PROLOGUE (0 → 20) ---
   if (progress >= 0 && progress < 20.0) {
     if (Tone.Transport.state !== "started") Tone.Transport.start();
     if (!_droneStarted) {
@@ -105,7 +99,6 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
     setMasterVol(instruments, vol);
   }
 
-  // --- ZONE 2: COMPRESSION (20 → 24.5) ---
   if (progress >= 20.0 && progress < 24.5) {
     const tension = (progress - 20.0) / 4.5;
     setMasterVol(instruments, -10 + tension * 5);
@@ -120,7 +113,6 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
     }
   }
 
-  // --- ZONE 3: BIG BANG (24.5 → 25.5) ---
   const isBang = progress >= 24.5 && progress < 25.5;
   if (isBang && !instruments._bangTriggered) {
     stopArp();
@@ -143,7 +135,6 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
   }
   if (progress < 20.0) instruments._bangTriggered = false;
 
-  // --- ZONE 4: SHOCKWAVE (25.5 → 45) ---
   if (progress >= 25.5 && progress < 45.0) {
     const decay = (progress - 25.5) / 19.5;
     setMasterVol(instruments, -5 - decay * 13);
@@ -159,7 +150,6 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
     }
   }
 
-  // --- ZONE 5: EARTH (45 → 62) ---
   const earthProgress = Math.floor((progress - 45) / 8);
   if (progress >= 45.0 && progress < 62.0 && earthProgress !== _lastEarthIndex) {
     _lastEarthIndex = earthProgress;
@@ -178,8 +168,6 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
     instruments.pad?.releaseAll();
   }
 
-  // --- ZONE 6: BIOLOGICAL / DNA (62 → 95) ---
-  // DNA helix formation — warm, organic, breathing texture
   const bioChords = [CHORDS.bio1, CHORDS.bio2, CHORDS.bio3, CHORDS.bio4];
   const bioProgress = Math.floor((progress - 62) / 12);
   if (progress >= 62.0 && progress < 95.0 && bioProgress !== _lastBioIndex) {
@@ -203,8 +191,6 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
     }
   }
 
-  // --- ZONE 6.1: DNA SHATTER (95 → 105) ---
-  // Particles separating from helix — stop arp, minor noise burst
   if (progress >= 95.0 && progress < 105.0) {
     if (!instruments._dnaShatterTriggered) {
       stopArp();
@@ -219,12 +205,10 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
   }
   if (progress < 93.0) instruments._dnaShatterTriggered = false;
 
-  // --- ZONE 6.2 DRIFT → ATGC (105 → 230) ---
   if (progress >= 105.0 && progress < 230.0) {
     const drift = (progress - 105.0) / 125.0;
-    setMasterVol(instruments, -14 - drift * 6); // -14 → -20dB
+    setMasterVol(instruments, -14 - drift * 6);
 
-    // ATGC snap sequence at 125 — 4 consecutive notes as letters lock in
     if (progress >= 125.0 && !instruments._atgcSnapTriggered) {
       instruments.digitalCrystal?.triggerAttackRelease("A4", "8n", Tone.now(), 0.35);
       setTimeout(
@@ -255,14 +239,12 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
     }
   }
 
-  // --- ZONE 7: TRANSITION (210 → 230) ---
   if (progress >= 210.0 && progress < 230.0) {
     const coldness = (progress - 210.0) / 20.0;
     setMasterVol(instruments, -18 - coldness * 5);
     if (coldness > 0.5) stopArp();
   }
 
-  // --- ZONE 8A: MATRIX RAIN (230 → 300) ---
   const digital8AProgress = Math.floor((progress - 230) / 10);
   if (progress >= 230.0 && progress < 300.0 && digital8AProgress !== _lastDigitalIndex) {
     _lastDigitalIndex = digital8AProgress;
@@ -280,7 +262,6 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
     setMasterVol(instruments, -18);
   }
 
-  // --- ZONE 8B: MATRIX SATURATE (300 → 345) ---
   const digital8BProgress = Math.floor((progress - 300) / 15);
   if (progress >= 300.0 && progress < 345.0 && digital8BProgress !== _lastDigitalIndex) {
     _lastDigitalIndex = digital8BProgress;
@@ -306,7 +287,6 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
     setMasterVol(instruments, -14);
   }
 
-  // --- ZONE 8C: CUBE (345 → 405) ---
   const digital8CProgress = Math.floor((progress - 345) / 12);
   if (progress >= 345.0 && progress < 405.0 && digital8CProgress !== _lastDigitalIndex) {
     _lastDigitalIndex = digital8CProgress;
@@ -331,7 +311,6 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
     setMasterVol(instruments, -12);
   }
 
-  // --- ZONE 8D: DIGITAL DNA HELIX (405 → 535) ---
   const digital8DProgress = Math.floor((progress - 405) / 10);
   if (progress >= 405.0 && progress < 535.0 && digital8DProgress !== _lastDigitalIndex) {
     _lastDigitalIndex = digital8DProgress;
@@ -362,8 +341,6 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
   }
   if (progress < 403.0) instruments._cubeShatterTriggered = false;
 
-  // --- ZONE 8E: COLLISION (535 → 555) ---
-  // 2 DNA strands colliding — shattering before merge
   if (!instruments._collisionTriggered && progress >= 535.0) {
     stopArp();
     instruments.pad?.releaseAll();
@@ -384,7 +361,6 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
   }
   if (progress < 533.0) instruments._collisionTriggered = false;
 
-  // --- ZONE 9A: COLLISION CHAOS (555 → 585) ---
   const mergeProgress = Math.floor((progress - 555) / 10);
   if (progress >= 555.0 && progress < 585.0 && mergeProgress !== _lastMergeIndex) {
     _lastMergeIndex = mergeProgress;
@@ -401,8 +377,6 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
     }
   }
 
-  // --- ZONE 9B: UNIFIED (585 → 665) ---
-  // 2 DNA merged — warmer, resolved, breathing rhythm
   if (!instruments._mergeUnifiedTriggered && progress >= 585.0) {
     stopArp();
     instruments.pad?.releaseAll();
@@ -432,7 +406,6 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
     stopArp();
   }
 
-  // --- ZONE 10: DISSOLUTION (665 → 900) ---
   if (progress >= 665.0 && progress < 900.0) {
     const dissolve = (progress - 665.0) / 235.0;
     setMasterVol(instruments, -14 - dissolve * 8);
@@ -467,15 +440,12 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
     }
   }
 
-  // --- ZONE 11: WHAT IS A SOUL? (900 → 1060) ---
   if (progress >= 900.0 && progress < 1060.0) {
     stopArp();
-    const soul = (progress - 900.0) / 160.0; // 0 → 1
+    const soul = (progress - 900.0) / 160.0;
 
-    // Increasing volume for climax
-    if (instruments.masterVol) instruments.masterVol.volume.value = -24 + soul * 20; // -24 → -4
+    if (instruments.masterVol) instruments.masterVol.volume.value = -24 + soul * 20;
 
-    // Subtle background pad
     if (soul > 0.6) {
       const padTick = Math.floor(progress / 20);
       if (padTick !== _lastSoulIndex) {
@@ -485,17 +455,12 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
       }
     }
 
-    // Piano composition — 3 distinct phases
-    // Phase 1 (0→0.3): Sparse, atmospheric intro
-    // Phase 2 (0.3→0.7): Rhythmic melody
-    // Phase 3 (0.7→1.0): Climax, full melodic density
     const tickInterval = soul < 0.3 ? 10 : soul < 0.7 ? 6 : 3;
     const pianoTick = Math.floor(progress / tickInterval);
 
     if (pianoTick !== instruments._pianoTick) {
       instruments._pianoTick = pianoTick;
 
-      // Cinematic Dm9 melody sequence
       const melodyFull = [
         "D4",
         "F4",
@@ -519,16 +484,12 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
         "C5",
       ];
 
-      // Phase 1 — Sparse low notes
       const seqPhase1 = ["D4", "F4", "A4", "F4", "D4", "A3"];
-      // Phase 2 — Defined melody
       const seqPhase2 = ["D4", "F4", "A4", "C5", "A4", "F4", "E5", "C5"];
-      // Phase 3 — Full climax melody
       const seqPhase3 = melodyFull;
 
       const seq = soul < 0.3 ? seqPhase1 : soul < 0.7 ? seqPhase2 : seqPhase3;
 
-      // Density pattern — Phase 1 sparse, Phase 3 constant
       const p1 = [1, 0, 1, 0, 0, 1, 0, 1, 0, 0];
       const p2 = [1, 1, 0, 1, 1, 0, 1, 0, 1, 1];
       const p3 = [1, 1, 1, 0, 1, 1, 1, 1, 0, 1];
@@ -539,14 +500,13 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
         const note = seq[pianoTick % seq.length];
         const vel =
           soul < 0.3
-            ? 0.08 + soul * 0.1 // 0.08 → 0.11
+            ? 0.08 + soul * 0.1
             : soul < 0.7
-              ? 0.12 + soul * 0.15 // 0.16 → 0.22
-              : 0.22 + (soul - 0.7) * 0.5; // 0.22 → 0.37 — climax
+              ? 0.12 + soul * 0.15
+              : 0.22 + (soul - 0.7) * 0.5;
         if (note)
           instruments.piano?.triggerAttackRelease(note, "8n", Tone.now(), Math.min(vel, 0.4));
 
-        // Phase 3 — Add bass notes for chordal depth
         if (soul > 0.75 && pianoTick % 4 === 0) {
           setTimeout(() => {
             if (_lastSoulIndex !== -1) {
@@ -558,16 +518,13 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
     }
   }
 
-  // --- Last Zone: 42 (1060 → 1120) ---
   const is42 = progress >= 1060.0 && progress < 1060.5;
   if (is42 && !instruments._42Triggered) {
-    // Return to D2 root
     instruments.pad?.triggerAttackRelease("D2", "2n", Tone.now(), 0.08);
     setTimeout(() => {
       instruments.arpeggio?.triggerAttackRelease("D5", "4n", Tone.now(), 0.06);
     }, 500);
 
-    // Final solitaire piano notes
     setTimeout(() => {
       instruments.piano?.triggerAttackRelease("D3", "1n", Tone.now(), 0.05);
     }, 1200);
@@ -579,7 +536,6 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
   }
   if (progress < 1058.0) instruments._42Triggered = false;
 
-  // --- Last Zone: CREDITS (1120+) ---
   if (progress >= 1120.0) {
     stopArp();
     setMasterVol(instruments, -45);

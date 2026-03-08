@@ -1,7 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/**
- * Project 42 - Audio Instruments
- */
 
 export const createInstruments = (Tone: any) => {
   const limiter = new Tone.Limiter(-3).toDestination();
@@ -37,7 +34,6 @@ export const createInstruments = (Tone: any) => {
   }).connect(reverb);
   digitalCrystal.volume.value = -12;
 
-  // Impact - High intensity noise burst
   const shatterNoise = new Tone.NoiseSynth({
     noise: { type: "white" },
     envelope: { attack: 0.01, decay: 0.4, sustain: 0.0, release: 0.6 },

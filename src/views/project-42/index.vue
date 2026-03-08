@@ -1,9 +1,5 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/**
- * PROJECT 42 - Immersive Scroll-driven 3D Web Experience
- * Author: sanghynh
- */
 import { onMounted, onUnmounted, watch } from "vue";
 import { RouterLink } from "vue-router";
 import { useThree } from "./composables/useThree";
@@ -29,20 +25,17 @@ const startAudio = () => {
     });
   });
 
-  // Cleanup all possible triggers
   window.removeEventListener("click", startAudio);
   window.removeEventListener("keydown", startAudio);
   window.removeEventListener("wheel", startAudio);
   window.removeEventListener("touchstart", startAudio);
 };
 
-// Bind global triggers for first interaction — Click and Keydown are safe
 window.addEventListener("click", startAudio, { once: true });
 window.addEventListener("keydown", startAudio, { once: true });
 
 const handleBegin = () => {
   startAudio();
-  // Smoothly exit loading screen
   setTimeout(() => {
     isLoading.value = false;
   }, 400);
@@ -53,7 +46,6 @@ watch(scrollProgress, (val) => {
 });
 
 onMounted(async () => {
-  // Song song: 3D engine + Tone CDN preload
   await Promise.all([init(), preloadAudio()]);
 });
 

@@ -41,9 +41,6 @@ export function useThree() {
   let catTargets: Float32Array | null = null;
   let touchStartY = 0;
 
-  /**
-   * Initialize Core Engine with Realistic Loading Feel
-   */
   const init = async () => {
     try {
       let targetProgress = 0;
@@ -70,7 +67,6 @@ export function useThree() {
 
       if (!canvasRef.value || !THREE || !gsap) return;
 
-      // 1. Scene Setup
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x000000);
       scene.fog = new THREE.FogExp2(0x000000, 0.04);
@@ -84,7 +80,6 @@ export function useThree() {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       targetProgress = 75;
 
-      // 2. Entities Creation
       const stardust = createStardust(THREE, particlesCount);
       points = stardust.points;
       _originalPositions = stardust.originalPositions;
@@ -144,7 +139,6 @@ export function useThree() {
     if (isLoading.value) return;
     scrollProgress.value = Math.max(0, scrollProgress.value + delta * 0.002);
 
-    // Scene Determination: Find the last passed threshold
     let activeIdx = 0;
     if (SCENES && SCENES.length > 0) {
       for (let i = SCENES.length - 1; i >= 0; i--) {
@@ -157,7 +151,6 @@ export function useThree() {
     }
     currentScene.value = activeIdx;
 
-    // Global transitions
     if (points?.material?.uniforms && gsap) {
       const targetOpacity = currentScene.value === 0 ? 0 : 0.5;
       gsap.to(points.material.uniforms.uOpacity, {
@@ -225,7 +218,6 @@ export function useThree() {
     const time = Date.now() * 0.0005;
     if (points.material.uniforms) points.material.uniforms.uTime.value = time;
 
-    // --- Scene Orchestration (Updated to match config.ts) ---
     if (scrollProgress.value < 17.0) {
       prologueScene.update(positions, particlesCount, time, scrollProgress.value);
     } else if (scrollProgress.value < 33.0) {
@@ -260,8 +252,6 @@ export function useThree() {
 
     posAttr.needsUpdate = true;
 
-    // Rotation: alive during DNA, decays after
-    // Rotation: Only active after Prologue
     if (scrollProgress.value >= 17.0 && scrollProgress.value < 61.0) {
       points.rotation.y += 0.0004;
     } else if (scrollProgress.value >= 61.0) {
