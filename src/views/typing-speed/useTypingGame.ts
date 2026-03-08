@@ -1,12 +1,7 @@
 import { ref, computed, onUnmounted, onMounted, nextTick } from 'vue'
 import { getRandomWords } from './wordList'
 import type { GameState, WordItem, TypingRecord } from './types'
-import {
-  WORD_COUNT,
-  HISTORY_STORAGE_KEY,
-  HISTORY_MAX,
-  ROW_HEIGHT_THRESHOLD,
-} from './types'
+import { WORD_COUNT, HISTORY_STORAGE_KEY, HISTORY_MAX, ROW_HEIGHT_THRESHOLD } from './types'
 
 export function useTypingGame(selectedTime: { value: number }) {
   const gameState = ref<GameState>('idle')

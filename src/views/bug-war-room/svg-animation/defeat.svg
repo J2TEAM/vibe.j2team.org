@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="320" height="320" style="overflow: visible;">
+    <style>
+        /* Chuyển động cơ thể xẹp lép xuống (Splat / Deflate) */
+        .defeat-body {
+            transform-origin: 100px 165px;
+            animation: body-melt 4s infinite;
+        }
+        @keyframes body-melt {
+            0% { transform: scale(1, 1); }
+            10% { transform: scale(0.9, 1.1) translateY(-5px); } /* Rướn lên một chút (Gasp) */
+            15% { transform: scale(1.5, 0.3) translateY(0); } /* Đập xẹp xuống đất (Splat) */
+            18% { transform: scale(1.3, 0.45); } /* Nảy nhẹ lên (Rebound) */
+            22% { transform: scale(1.4, 0.35); } /* Nằm bẹp */
+            
+            /* Thở cực kỳ yếu ớt khi nằm bẹp */
+            40% { transform: scale(1.42, 0.33); }
+            60% { transform: scale(1.38, 0.37); }
+            80% { transform: scale(1.4, 0.35); }
+            
+            85% { transform: scale(1.4, 0.35); }
+            95% { transform: scale(0.95, 1.05); } /* Phồng lại (để loop preview) */
+            100% { transform: scale(1, 1); }
+        }
+
+        /* Đổi màu từ Xanh lá sang Xám xịt (Mất HP) */
+        .slime-base {
+            animation: color-fade 4s infinite;
+        }
+        @keyframes color-fade {
+            0%, 10% { fill: #34d399; }
+            18%, 85% { fill: #94a3b8; } /* Slate 400 - Màu xám xỉn */
+            95%, 100% { fill: #34d399; }
+        }
+
+        /* Điểm bắt sáng mờ dần đi (Mất sức sống) */
+        .slime-highlight {
+            animation: highlight-fade 4s infinite;
+        }
+        @keyframes highlight-fade {
+            0%, 10% { opacity: 0.4; }
+            18%, 85% { opacity: 0.05; } /* Gần như mất hẳn độ bóng */
+            95%, 100% { opacity: 0.4; }
+        }
+
+        /* Bóng đổ lan rộng ra khi cơ thể xẹp xuống */
+        .defeat-shadow {
+            transform-origin: 100px 165px;
+            animation: shadow-melt 4s infinite;
+        }
+        @keyframes shadow-melt {
+            0% { transform: scale(1); opacity: 0.3; }
+            10% { transform: scale(0.85); opacity: 0.2; }
+            15% { transform: scale(1.6); opacity: 0.6; }
+            18% { transform: scale(1.3); opacity: 0.4; }
+            22%, 85% { transform: scale(1.5); opacity: 0.5; }
+            95% { transform: scale(0.9); opacity: 0.2; }
+            100% { transform: scale(1); opacity: 0.3; }
+        }
+
+        /* Khuôn mặt chìm xuống theo cơ thể */
+        .defeat-face {
+            animation: face-melt 4s infinite;
+        }
+        @keyframes face-melt {
+            0% { transform: translateY(0); opacity: 1; }
+            10% { transform: translateY(-5px); opacity: 1; }
+            15% { transform: translateY(48px); opacity: 0.5; }
+            18% { transform: translateY(38px); opacity: 0.6; }
+            22% { transform: translateY(45px); opacity: 0.5; }
+            
+            /* Chìm nổi nhẹ theo nhịp thở yếu */
+            40% { transform: translateY(46px); opacity: 0.45; }
+            60% { transform: translateY(43px); opacity: 0.55; }
+            80%, 85% { transform: translateY(45px); opacity: 0.5; }
+            
+            95% { transform: translateY(-2px); opacity: 1; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Hiệu ứng hồn lìa khỏi xác (Game Over Soul) */
+        .soul-effect {
+            animation: soul-fly 4s infinite ease-out;
+            transform-origin: 100px 130px;
+        }
+        @keyframes soul-fly {
+            0%, 12% { opacity: 0; transform: translate(0, 10px) scale(0); }
+            22% { opacity: 0.8; transform: translate(0, -10px) scale(1) rotate(5deg); }
+            45% { opacity: 0.5; transform: translate(-15px, -45px) scale(1.2) rotate(-5deg); }
+            70%, 100% { opacity: 0; transform: translate(20px, -90px) scale(1.5) rotate(15deg); }
+        }
+    </style>
+
+    <!-- Bóng dưới mặt đất -->
+    <ellipse class="defeat-shadow" cx="100" cy="165" rx="55" ry="12" fill="#000000" />
+
+    <!-- Nhóm điều khiển cơ thể xẹp xuống -->
+    <g class="defeat-body">
+        
+        <!-- Thân hình Slime (Sẽ chuyển từ Xanh sang Xám) -->
+        <path class="slime-base" d="M 50 145 C 50 85, 70 50, 100 50 C 130 50, 150 85, 150 145 C 160 145, 160 165, 100 165 C 40 165, 40 145, 50 145 Z" />
+
+        <!-- Điểm nhấn bắt sáng -->
+        <path class="slime-highlight" d="M 70 75 Q 100 55 130 75" stroke="#ffffff" stroke-width="6" stroke-linecap="round" fill="none" />
+    </g>
+
+    <!-- KHUÔN MẶT MỆT MỎI (Tired / Game Over Face) -->
+    <!-- Nằm ngoài defeat-body để không bị kéo giãn biến dạng khi cơ thể xẹp -->
+    <g class="defeat-face">
+        <!-- Mắt trái (Mí sụp, tròng mắt lờ đờ) -->
+        <path d="M 72 98 C 72 106, 86 106, 86 98 Z" fill="#0f172a" />
+        <path d="M 68 96 L 88 100" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round" />
+        <circle cx="76" cy="101" r="1.5" fill="#ffffff" /> <!-- Con ngươi nhìn lệch -->
+        
+        <!-- Mắt phải (Mí sụp, tròng mắt lờ đờ) -->
+        <path d="M 114 98 C 114 106, 128 106, 128 98 Z" fill="#0f172a" />
+        <path d="M 132 96 L 112 100" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round" />
+        <circle cx="124" cy="101" r="1.5" fill="#ffffff" /> <!-- Con ngươi nhìn lệch hướng ngược lại -->
+        
+        <!-- Miệng mếu xệch, kiệt sức -->
+        <path d="M 92 115 Q 100 106 108 115" stroke="#0f172a" stroke-width="3" fill="none" stroke-linecap="round" />
+    </g>
+
+    <!-- LINH HỒN BAY RA (Soul / Ghost) -->
+    <g class="soul-effect" opacity="0">
+        <!-- Thân linh hồn -->
+        <path d="M 90 140 C 90 120, 110 120, 110 140 Q 110 152 100 146 Q 90 152 90 140 Z" fill="#f8fafc" />
+        
+        <!-- Mắt linh hồn (Nhắm mắt ra đi thanh thản) -->
+        <path d="M 94 132 L 98 132" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" />
+        <path d="M 102 132 L 106 132" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" />
+        
+        <!-- Miệng linh hồn (Há nhỏ chữ o) -->
+        <ellipse cx="100" cy="138" rx="2" ry="3" fill="#0f172a" />
+    </g>
+</svg>

@@ -26,8 +26,12 @@ function handleBack() {
     <div class="max-w-5xl mx-auto px-6 py-8">
       <!-- Header -->
       <div class="text-center mb-8 animate-fade-up">
-        <h1 class="font-display text-4xl md:text-5xl font-bold tracking-tight text-accent-coral">CanChi</h1>
-        <p class="text-sm text-text-secondary mt-2">Lập lá số Tử Vi Đẩu Số theo ngày tháng năm sinh</p>
+        <h1 class="font-display text-4xl md:text-5xl font-bold tracking-tight text-accent-coral">
+          CanChi
+        </h1>
+        <p class="text-sm text-text-secondary mt-2">
+          Lập lá số Tử Vi Đẩu Số theo ngày tháng năm sinh
+        </p>
       </div>
 
       <!-- Form view -->
@@ -42,7 +46,20 @@ function handleBack() {
             class="flex items-center gap-1.5 text-sm font-medium text-text-secondary hover:text-accent-coral transition-colors"
             @click="handleBack"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m12 19-7-7 7-7" />
+              <path d="M19 12H5" />
+            </svg>
             Quay lại
           </button>
         </div>
@@ -66,10 +83,10 @@ function handleBack() {
 /* CanChi CSS Variables — mapped to vibe design tokens */
 .canchi-page {
   --background: #162232;
-  --foreground: #F0EDE6;
-  --primary: #FF6B4A;
-  --primary-foreground: #0F1923;
-  --muted-foreground: #8B9DB5;
+  --foreground: #f0ede6;
+  --primary: #ff6b4a;
+  --primary-foreground: #0f1923;
+  --muted-foreground: #8b9db5;
   --border: #253549;
 }
 
@@ -86,7 +103,9 @@ function handleBack() {
   overflow: visible;
   background-color: #162232;
 }
-.cung-cell:hover { background-color: #1E2F42; }
+.cung-cell:hover {
+  background-color: #1e2f42;
+}
 .cung-header {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -95,14 +114,18 @@ function handleBack() {
   font-weight: 500;
   overflow: visible;
 }
-.cung-header > *:first-child { justify-self: start; }
-.cung-header > *:last-child { justify-self: end; }
+.cung-header > *:first-child {
+  justify-self: start;
+}
+.cung-header > *:last-child {
+  justify-self: end;
+}
 .cung-name {
   text-transform: uppercase;
   font-weight: 700;
   font-size: 1.0625rem;
   text-align: center;
-  color: #F0EDE6;
+  color: #f0ede6;
   font-family: var(--font-display, 'Anybody', sans-serif);
 }
 .cung-footer {
@@ -112,10 +135,14 @@ function handleBack() {
   font-size: 0.875rem;
   margin-top: auto;
   overflow: visible;
-  color: #8B9DB5;
+  color: #8b9db5;
 }
-.cung-footer > *:first-child { justify-self: start; }
-.cung-footer > *:last-child { justify-self: end; }
+.cung-footer > *:first-child {
+  justify-self: start;
+}
+.cung-footer > *:last-child {
+  justify-self: end;
+}
 
 /* Dimmed highlight */
 .cung-dimmed::after {
@@ -134,7 +161,7 @@ function handleBack() {
   grid-template-rows: repeat(4, minmax(0, 1fr));
   grid-template-columns: repeat(4, minmax(0, 1fr));
   border: 1px solid #253549;
-  background-color: #0F1923;
+  background-color: #0f1923;
   width: 960px;
   transform-origin: top left;
 }
@@ -165,9 +192,11 @@ function handleBack() {
   min-width: 240px;
   max-width: 300px;
   padding: 0.625rem 0.75rem;
-  background: #1E2F42;
+  background: #1e2f42;
   border: 1px solid #253549;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.2);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    0 1px 4px rgba(0, 0, 0, 0.2);
   pointer-events: none;
   animation: canchiTooltipFadeIn 0.15s ease-out;
 }
@@ -179,17 +208,23 @@ function handleBack() {
   min-width: 180px;
   max-width: 260px;
   padding: 0.5rem 0.625rem;
-  background: #1E2F42;
+  background: #1e2f42;
   border: 1px solid #253549;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.2);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    0 1px 4px rgba(0, 0, 0, 0.2);
   pointer-events: none;
   animation: canchiTooltipFadeIn 0.15s ease-out;
   white-space: normal;
   text-align: left;
 }
 @keyframes canchiTooltipFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Đại Hạn Timeline */
@@ -213,43 +248,51 @@ function handleBack() {
   transition: all 0.15s ease;
   background: #162232;
   min-width: 0;
-  color: #8B9DB5;
+  color: #8b9db5;
 }
 .dai-han-item:hover {
-  background-color: #1E2F42;
-  border-color: #FF6B4A;
+  background-color: #1e2f42;
+  border-color: #ff6b4a;
   z-index: 1;
 }
 .dai-han-active {
-  background-color: #FF6B4A !important;
-  color: #0F1923 !important;
-  border-color: #FF6B4A !important;
+  background-color: #ff6b4a !important;
+  color: #0f1923 !important;
+  border-color: #ff6b4a !important;
   z-index: 2;
 }
-.dai-han-active span { color: #0F1923 !important; }
+.dai-han-active span {
+  color: #0f1923 !important;
+}
 .dai-han-current {
   background-color: rgba(255, 184, 48, 0.15) !important;
-  border-color: #FFB830 !important;
+  border-color: #ffb830 !important;
 }
 .dai-han-current.dai-han-active {
-  background-color: #FF6B4A !important;
-  color: #0F1923 !important;
-  border-color: #FF6B4A !important;
+  background-color: #ff6b4a !important;
+  color: #0f1923 !important;
+  border-color: #ff6b4a !important;
 }
-.dai-han-selected { border-bottom: 2px solid #FF6B4A !important; }
+.dai-han-selected {
+  border-bottom: 2px solid #ff6b4a !important;
+}
 
 /* Tiểu Hạn */
 .tieu-han-wrapper {
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
-  transition: grid-template-rows 0.3s ease, opacity 0.25s ease;
+  transition:
+    grid-template-rows 0.3s ease,
+    opacity 0.25s ease;
 }
 .tieu-han-wrapper.tieu-han-open {
   grid-template-rows: 1fr;
   opacity: 1;
 }
-.tieu-han-inner { overflow: hidden; }
+.tieu-han-inner {
+  overflow: hidden;
+}
 .tieu-han-sub {
   padding-top: 0.5rem;
   border-top: 1px dashed #253549;
@@ -264,16 +307,19 @@ function handleBack() {
   border: 1px solid #253549;
   cursor: pointer;
   transition: all 0.15s ease;
-  background: #0F1923;
+  background: #0f1923;
   min-width: 0;
-  color: #8B9DB5;
+  color: #8b9db5;
 }
-.tieu-han-item:hover { z-index: 1; background-color: #1E2F42; }
+.tieu-han-item:hover {
+  z-index: 1;
+  background-color: #1e2f42;
+}
 .tieu-han-current {
   background-color: rgba(255, 184, 48, 0.15) !important;
-  border-color: #FFB830 !important;
+  border-color: #ffb830 !important;
   font-weight: 700;
-  color: #FFB830 !important;
+  color: #ffb830 !important;
 }
 
 /* Legend */
@@ -281,13 +327,17 @@ function handleBack() {
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
-  transition: grid-template-rows 0.3s ease, opacity 0.25s ease;
+  transition:
+    grid-template-rows 0.3s ease,
+    opacity 0.25s ease;
 }
 .legend-wrapper.legend-open {
   grid-template-rows: 1fr;
   opacity: 1;
 }
-.legend-inner { overflow: hidden; }
+.legend-inner {
+  overflow: hidden;
+}
 .legend-panel {
   padding: 1rem 1.25rem;
   background: #162232;
@@ -304,13 +354,13 @@ function handleBack() {
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  color: #8B9DB5;
+  color: #8b9db5;
   background: #162232;
 }
 .canchi-btn:hover {
-  background-color: #FF6B4A;
-  color: #0F1923;
-  border-color: #FF6B4A;
+  background-color: #ff6b4a;
+  color: #0f1923;
+  border-color: #ff6b4a;
 }
 .canchi-btn:disabled {
   opacity: 0.5;
@@ -318,17 +368,36 @@ function handleBack() {
 }
 
 /* Utility overrides for the canchi page */
-.canchi-page .text-muted-foreground { color: #8B9DB5; }
-.canchi-page .bg-primary { background-color: #FF6B4A; }
-.canchi-page .text-primary-foreground { color: #0F1923; }
-.canchi-page .border-border { border-color: #253549; }
+.canchi-page .text-muted-foreground {
+  color: #8b9db5;
+}
+.canchi-page .bg-primary {
+  background-color: #ff6b4a;
+}
+.canchi-page .text-primary-foreground {
+  color: #0f1923;
+}
+.canchi-page .border-border {
+  border-color: #253549;
+}
 
 /* Mobile */
 @media (max-width: 767px) {
-  .dai-han-timeline { padding: 0.5rem; }
-  .dai-han-item { min-width: 4rem; flex: 0 0 auto; padding: 0.25rem 0.125rem; }
-  .tieu-han-item { min-width: 3.5rem; flex: 0 0 auto; }
-  .legend-panel { padding: 0.75rem; }
+  .dai-han-timeline {
+    padding: 0.5rem;
+  }
+  .dai-han-item {
+    min-width: 4rem;
+    flex: 0 0 auto;
+    padding: 0.25rem 0.125rem;
+  }
+  .tieu-han-item {
+    min-width: 3.5rem;
+    flex: 0 0 auto;
+  }
+  .legend-panel {
+    padding: 0.75rem;
+  }
 }
 
 /* ── Custom scrollbar (design system) ── */
@@ -337,20 +406,20 @@ function handleBack() {
   height: 4px;
 }
 .canchi-page ::-webkit-scrollbar-track {
-  background: #0F1923;
+  background: #0f1923;
 }
 .canchi-page ::-webkit-scrollbar-thumb {
   background: #253549;
 }
 .canchi-page ::-webkit-scrollbar-thumb:hover {
-  background: #FF6B4A;
+  background: #ff6b4a;
 }
 .canchi-page {
   scrollbar-width: thin;
-  scrollbar-color: #253549 #0F1923;
+  scrollbar-color: #253549 #0f1923;
 }
 .canchi-page * {
   scrollbar-width: thin;
-  scrollbar-color: #253549 #0F1923;
+  scrollbar-color: #253549 #0f1923;
 }
 </style>

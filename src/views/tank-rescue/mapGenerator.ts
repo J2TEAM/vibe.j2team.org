@@ -21,11 +21,25 @@ export function generateMap(
   // Border walls (indestructible)
   for (let x = 0; x < cols; x++) {
     walls.push({ x: x * tile, y: 0, width: tile, height: tile, destructible: false, health: 999 })
-    walls.push({ x: x * tile, y: (rows - 1) * tile, width: tile, height: tile, destructible: false, health: 999 })
+    walls.push({
+      x: x * tile,
+      y: (rows - 1) * tile,
+      width: tile,
+      height: tile,
+      destructible: false,
+      health: 999,
+    })
   }
   for (let y = 1; y < rows - 1; y++) {
     walls.push({ x: 0, y: y * tile, width: tile, height: tile, destructible: false, health: 999 })
-    walls.push({ x: (cols - 1) * tile, y: y * tile, width: tile, height: tile, destructible: false, health: 999 })
+    walls.push({
+      x: (cols - 1) * tile,
+      y: y * tile,
+      width: tile,
+      height: tile,
+      destructible: false,
+      health: 999,
+    })
   }
 
   const clearZones: ClearZone[] = [

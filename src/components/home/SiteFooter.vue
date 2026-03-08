@@ -17,7 +17,10 @@ import { RouterLink } from 'vue-router'
       </a>
     </p>
     <p class="mt-3 text-xs text-text-dim">
-      <RouterLink to="/content-policy" class="text-text-dim hover:text-text-secondary transition-colors link-underline">
+      <RouterLink
+        to="/content-policy"
+        class="text-text-dim hover:text-text-secondary transition-colors link-underline"
+      >
         Chính sách nội dung
       </RouterLink>
     </p>

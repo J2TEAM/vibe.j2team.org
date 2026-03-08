@@ -228,16 +228,18 @@ export class Game {
           const lives = this.player.lives
           const score = this.player.score
           const coins = this.player.coins
-          this.player.reset(
-            this.level.data.playerStart.x,
-            this.level.data.playerStart.y,
-          )
+          this.player.reset(this.level.data.playerStart.x, this.level.data.playerStart.y)
           this.player.lives = lives
           this.player.score = score
           this.player.coins = coins
         }
       }
-      this.camera.follow(this.player.x, this.player.y, this.level.pixelWidth, this.level.pixelHeight)
+      this.camera.follow(
+        this.player.x,
+        this.player.y,
+        this.level.pixelWidth,
+        this.level.pixelHeight,
+      )
       return
     }
 

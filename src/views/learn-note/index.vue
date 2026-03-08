@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { RouterLink } from "vue-router";
+import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
 import {
   useLearnNote,
   ALL_NOTES_FOR_PIANO,
   NATURAL_NOTES_FOR_PIANO,
   DIFFICULTY_RANGES,
-} from "./useLearnNote";
-import type { NoteInfo, SessionStats } from "./useLearnNote";
-import StaffDisplay from "./StaffDisplay.vue";
-import PianoAnswer from "./PianoAnswer.vue";
+} from './useLearnNote'
+import type { NoteInfo, SessionStats } from './useLearnNote'
+import StaffDisplay from './StaffDisplay.vue'
+import PianoAnswer from './PianoAnswer.vue'
 
 const {
   screen,
@@ -34,79 +34,79 @@ const {
   cancelSession,
   answerNote,
   formatTime,
-} = useLearnNote();
+} = useLearnNote()
 
-const DURATION_OPTIONS = [1, 3, 5, 10];
+const DURATION_OPTIONS = [1, 3, 5, 10]
 const DIFFICULTY_LABELS: Record<string, string> = {
-  easy: "Dễ",
-  medium: "Trung bình",
-  hard: "Khó",
-  custom: "Tuỳ chọn",
-};
+  easy: 'Dễ',
+  medium: 'Trung bình',
+  hard: 'Khó',
+  custom: 'Tuỳ chọn',
+}
 const CLEF_LABELS: Record<string, string> = {
-  treble: "Khoá Sol",
-  bass: "Khoá Fa",
-};
+  treble: 'Khoá Sol',
+  bass: 'Khoá Fa',
+}
 const ACCIDENTAL_LABELS: Record<string, string> = {
-  natural: "Bình thường",
-  sharp: "Thăng (♯)",
-  flat: "Giáng (♭)",
-  all: "Tất cả",
-};
+  natural: 'Bình thường',
+  sharp: 'Thăng (♯)',
+  flat: 'Giáng (♭)',
+  all: 'Tất cả',
+}
 
-const naturalNotes = NATURAL_NOTES_FOR_PIANO;
-const allNotes = ALL_NOTES_FOR_PIANO;
+const naturalNotes = NATURAL_NOTES_FOR_PIANO
+const allNotes = ALL_NOTES_FOR_PIANO
 
 // Note options for custom range selector
 const customNoteOptions = computed<NoteInfo[]>(() => {
-  if (selectedAccidental.value === "natural") return naturalNotes;
-  return allNotes;
-});
+  if (selectedAccidental.value === 'natural') return naturalNotes
+  return allNotes
+})
 
 function noteDisplayName(n: NoteInfo): string {
-  const acc = n.accidental === "#" ? "♯" : n.accidental === "b" ? "♭" : "";
-  return `${n.name}${acc}${n.octave}`;
+  const acc = n.accidental === '#' ? '♯' : n.accidental === 'b' ? '♭' : ''
+  return `${n.name}${acc}${n.octave}`
 }
 
 function difficultyRangeLabel(d: string): string {
-  if (d === "custom") return "";
-  const r = DIFFICULTY_RANGES[d as keyof typeof DIFFICULTY_RANGES];
-  if (!r) return "";
-  const clefRange = r[selectedClef.value];
-  return `${noteDisplayName(clefRange.low)} – ${noteDisplayName(clefRange.high)}`;
+  if (d === 'custom') return ''
+  const r = DIFFICULTY_RANGES[d as keyof typeof DIFFICULTY_RANGES]
+  if (!r) return ''
+  const clefRange = r[selectedClef.value]
+  return `${noteDisplayName(clefRange.low)} – ${noteDisplayName(clefRange.high)}`
 }
 
 const canStart = computed(() => {
-  if (selectedDifficulty.value !== "custom") return true;
-  return customLowNote.value.midiNumber < customHighNote.value.midiNumber;
-});
+  if (selectedDifficulty.value !== 'custom') return true
+  return customLowNote.value.midiNumber < customHighNote.value.midiNumber
+})
 
-const CHART_W = 400;
-const CHART_H = 80;
-const BAR_GAP = 4;
+const CHART_W = 400
+const CHART_H = 80
+const BAR_GAP = 4
 
 const chartData = computed(() => {
-  const sessions: SessionStats[] = history.value.slice(-20);
-  if (sessions.length === 0) return null;
-  const count = sessions.length;
-  const barW = Math.max(4, (CHART_W - BAR_GAP * (count - 1)) / count);
+  const sessions: SessionStats[] = history.value.slice(-20)
+  if (sessions.length === 0) return null
+  const count = sessions.length
+  const barW = Math.max(4, (CHART_W - BAR_GAP * (count - 1)) / count)
   return sessions.map((s, i) => {
-    const x = i * (barW + BAR_GAP);
-    const barH = Math.max(2, (s.accuracy / 100) * CHART_H);
-    const y = CHART_H - barH;
+    const x = i * (barW + BAR_GAP)
+    const barH = Math.max(2, (s.accuracy / 100) * CHART_H)
+    const y = CHART_H - barH
     const color =
       s.accuracy >= 80
-        ? "var(--color-accent-sky)"
+        ? 'var(--color-accent-sky)'
         : s.accuracy >= 50
-          ? "var(--color-accent-amber)"
-          : "var(--color-accent-coral)";
-    const date = new Date(s.timestamp).toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-    });
-    return { x, y, barW, barH, color, accuracy: s.accuracy, date, total: s.total };
-  });
-});
+          ? 'var(--color-accent-amber)'
+          : 'var(--color-accent-coral)'
+    const date = new Date(s.timestamp).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+    })
+    return { x, y, barW, barH, color, accuracy: s.accuracy, date, total: s.total }
+  })
+})
 </script>
 
 <template>
@@ -122,7 +122,9 @@ const chartData = computed(() => {
     </nav>
 
     <!-- Header -->
-    <header class="mt-4 w-full max-w-2xl mx-auto px-4 sm:px-6 pt-2 pb-4 animate-fade-up animate-delay-1">
+    <header
+      class="mt-4 w-full max-w-2xl mx-auto px-4 sm:px-6 pt-2 pb-4 animate-fade-up animate-delay-1"
+    >
       <h1 class="font-display text-2xl sm:text-4xl font-bold text-accent-coral">
         🎼 Học note nhạc
       </h1>
@@ -476,7 +478,7 @@ const chartData = computed(() => {
         <div class="flex items-center gap-2 mb-2">
           <span class="font-display text-xs tracking-widest text-accent-amber">//</span>
           <span class="font-display text-xs tracking-widest text-text-dim uppercase">
-            {{ selectedClef === "treble" ? "Khoá Sol" : "Khoá Fa" }}
+            {{ selectedClef === 'treble' ? 'Khoá Sol' : 'Khoá Fa' }}
           </span>
         </div>
         <StaffDisplay :note="currentNote" :clef="selectedClef" :feedback="lastAnswerCorrect" />
@@ -497,8 +499,8 @@ const chartData = computed(() => {
           ✗ SAI — đáp án:
           {{
             currentNote
-              ? `${currentNote.name}${currentNote.accidental === "#" ? "♯" : currentNote.accidental === "b" ? "♭" : ""}${currentNote.octave}`
-              : ""
+              ? `${currentNote.name}${currentNote.accidental === '#' ? '♯' : currentNote.accidental === 'b' ? '♭' : ''}${currentNote.octave}`
+              : ''
           }}
         </div>
         <div v-else class="text-text-dim text-xs font-display tracking-wide">

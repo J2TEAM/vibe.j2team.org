@@ -112,13 +112,19 @@ function calculatePIT(taxableIncome: number, brackets: [number, number][]): numb
   return tax
 }
 
-function calculateDetails(grossSalary: number, region: 1|2|3|4, deps: number, insPercent: number, p: Period) {
+function calculateDetails(
+  grossSalary: number,
+  region: 1 | 2 | 3 | 4,
+  deps: number,
+  insPercent: number,
+  p: Period,
+) {
   grossSalary = Math.round(grossSalary)
   const config = PERIOD_CONFIG[p]
   const regionInfo = config.regions[region]
 
   const rawInsSalary = grossSalary * (insPercent / 100)
-  
+
   // Tách riêng trần bảo hiểm theo luật
   const maxBhxhBhyt = config.baseSalary * 20
   const maxBhtn = regionInfo.min * 20
@@ -154,10 +160,10 @@ function calculateDetails(grossSalary: number, region: 1|2|3|4, deps: number, in
 
 function solveGrossFromNet(
   targetNet: number,
-  region: 1|2|3|4,
+  region: 1 | 2 | 3 | 4,
   deps: number,
   insPercent: number,
-  p: Period
+  p: Period,
 ): number {
   targetNet = Math.round(targetNet)
   let low = targetNet
@@ -187,10 +193,28 @@ const result = computed(() => {
   if (salary <= 0) return null
 
   if (mode.value === 'net_to_gross') {
-    const gross = solveGrossFromNet(salary, regionId.value, dependents.value, insurancePercent.value, period.value)
-    return calculateDetails(gross, regionId.value, dependents.value, insurancePercent.value, period.value)
+    const gross = solveGrossFromNet(
+      salary,
+      regionId.value,
+      dependents.value,
+      insurancePercent.value,
+      period.value,
+    )
+    return calculateDetails(
+      gross,
+      regionId.value,
+      dependents.value,
+      insurancePercent.value,
+      period.value,
+    )
   }
-  return calculateDetails(salary, regionId.value, dependents.value, insurancePercent.value, period.value)
+  return calculateDetails(
+    salary,
+    regionId.value,
+    dependents.value,
+    insurancePercent.value,
+    period.value,
+  )
 })
 
 const insPreview = computed(() => {
@@ -251,7 +275,9 @@ onUnmounted(() => {
       </RouterLink>
     </nav>
 
-    <header class="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-3 sm:pt-4 pb-4 animate-fade-up animate-delay-1">
+    <header
+      class="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-3 sm:pt-4 pb-4 animate-fade-up animate-delay-1"
+    >
       <h1 class="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-accent-coral">
         Tính Lương Gross &#8596; Net
       </h1>
@@ -261,9 +287,10 @@ onUnmounted(() => {
     </header>
 
     <main class="flex-1 w-full max-w-2xl mx-auto px-4 sm:px-6 pb-8">
-      
       <div class="mb-4 animate-fade-up animate-delay-2">
-        <label class="block text-xs font-display font-semibold text-text-dim tracking-wider uppercase mb-2">
+        <label
+          class="block text-xs font-display font-semibold text-text-dim tracking-wider uppercase mb-2"
+        >
           Giai đoạn áp dụng pháp lý
         </label>
         <div class="relative">
@@ -274,11 +301,15 @@ onUnmounted(() => {
             <option value="before_2026">{{ PERIOD_CONFIG.before_2026.label }}</option>
             <option value="after_2026">{{ PERIOD_CONFIG.after_2026.label }}</option>
           </select>
-          <span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-dim pointer-events-none">&#9662;</span>
+          <span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-dim pointer-events-none"
+            >&#9662;</span
+          >
         </div>
       </div>
 
-      <div class="flex gap-1 p-1 border border-border-default bg-bg-surface mb-6 animate-fade-up animate-delay-3">
+      <div
+        class="flex gap-1 p-1 border border-border-default bg-bg-surface mb-6 animate-fade-up animate-delay-3"
+      >
         <button
           class="flex-1 px-4 py-2.5 text-sm font-display font-semibold transition-all duration-200"
           :class="
@@ -303,9 +334,13 @@ onUnmounted(() => {
         </button>
       </div>
 
-      <div class="border border-border-default bg-bg-surface p-4 sm:p-6 mb-4 animate-fade-up animate-delay-4">
+      <div
+        class="border border-border-default bg-bg-surface p-4 sm:p-6 mb-4 animate-fade-up animate-delay-4"
+      >
         <div class="mb-5">
-          <label class="block text-xs font-display font-semibold text-text-dim tracking-wider uppercase mb-2">
+          <label
+            class="block text-xs font-display font-semibold text-text-dim tracking-wider uppercase mb-2"
+          >
             {{ mode === 'gross_to_net' ? 'Thu nhập Gross' : 'Thu nhập Net mong muốn' }}
           </label>
           <div class="relative">
@@ -317,13 +352,17 @@ onUnmounted(() => {
               placeholder="Nhập số tiền..."
               @input="onSalaryInput"
             />
-            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-dim font-semibold">&#8363;</span>
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-dim font-semibold"
+              >&#8363;</span
+            >
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3 mb-5">
           <div>
-            <label class="block text-xs font-display font-semibold text-text-dim tracking-wider uppercase mb-2">
+            <label
+              class="block text-xs font-display font-semibold text-text-dim tracking-wider uppercase mb-2"
+            >
               Vùng
             </label>
             <div class="flex items-center gap-2">
@@ -346,7 +385,9 @@ onUnmounted(() => {
           </div>
 
           <div>
-            <label class="block text-xs font-display font-semibold text-text-dim tracking-wider uppercase mb-2">
+            <label
+              class="block text-xs font-display font-semibold text-text-dim tracking-wider uppercase mb-2"
+            >
               Phụ thuộc
             </label>
             <div class="flex items-center border border-border-default bg-bg-elevated">
@@ -391,11 +432,15 @@ onUnmounted(() => {
           <div class="mt-3 space-y-1 text-xs">
             <div class="flex justify-between">
               <span class="text-text-dim">Lương đóng BHXH, BHYT</span>
-              <span class="font-display font-semibold text-text-secondary">{{ insPreview.bhxhBhyt }}</span>
+              <span class="font-display font-semibold text-text-secondary">{{
+                insPreview.bhxhBhyt
+              }}</span>
             </div>
             <div class="flex justify-between">
               <span class="text-text-dim">Lương đóng BHTN</span>
-              <span class="font-display font-semibold text-text-secondary">{{ insPreview.bhtn }}</span>
+              <span class="font-display font-semibold text-text-secondary">{{
+                insPreview.bhtn
+              }}</span>
             </div>
           </div>
         </div>
@@ -415,14 +460,18 @@ onUnmounted(() => {
           </h2>
           <div class="flex items-center gap-2 mt-2 text-sm text-text-dim">
             <span>Gross:</span>
-            <span class="text-text-primary font-display font-semibold">{{ formatCurrency(result.gross) }}</span>
+            <span class="text-text-primary font-display font-semibold">{{
+              formatCurrency(result.gross)
+            }}</span>
           </div>
         </div>
 
         <div class="p-4 sm:p-5 space-y-3">
           <div class="border border-border-default bg-bg-elevated p-3">
             <div class="flex justify-between items-center mb-2">
-              <div class="flex items-center gap-2 text-text-secondary font-display font-semibold text-sm">
+              <div
+                class="flex items-center gap-2 text-text-secondary font-display font-semibold text-sm"
+              >
                 <span class="text-accent-coral text-xs tracking-widest">//</span>
                 Bảo hiểm (10.5%)
               </div>
@@ -433,22 +482,30 @@ onUnmounted(() => {
             <div class="grid grid-cols-3 gap-2 text-xs">
               <div class="border border-border-default bg-bg-deep p-2 text-center">
                 <div class="text-text-dim">BHXH (8%)</div>
-                <div class="font-display font-semibold text-accent-coral">-{{ formatNumber(result.bhxh) }}</div>
+                <div class="font-display font-semibold text-accent-coral">
+                  -{{ formatNumber(result.bhxh) }}
+                </div>
               </div>
               <div class="border border-border-default bg-bg-deep p-2 text-center">
                 <div class="text-text-dim">BHYT (1.5%)</div>
-                <div class="font-display font-semibold text-accent-coral">-{{ formatNumber(result.bhyt) }}</div>
+                <div class="font-display font-semibold text-accent-coral">
+                  -{{ formatNumber(result.bhyt) }}
+                </div>
               </div>
               <div class="border border-border-default bg-bg-deep p-2 text-center">
                 <div class="text-text-dim">BHTN (1%)</div>
-                <div class="font-display font-semibold text-accent-coral">-{{ formatNumber(result.bhtn) }}</div>
+                <div class="font-display font-semibold text-accent-coral">
+                  -{{ formatNumber(result.bhtn) }}
+                </div>
               </div>
             </div>
           </div>
 
           <div class="border border-border-default bg-bg-elevated p-3">
             <div class="flex justify-between items-center">
-              <div class="flex items-center gap-2 text-text-secondary font-display font-semibold text-sm">
+              <div
+                class="flex items-center gap-2 text-text-secondary font-display font-semibold text-sm"
+              >
                 <span class="text-accent-amber text-xs tracking-widest">//</span>
                 Thuế TNCN
               </div>
@@ -458,68 +515,126 @@ onUnmounted(() => {
             </div>
             <div class="mt-2 pt-2 border-t border-border-default flex justify-between text-xs">
               <span class="text-text-dim">Thu nhập chịu thuế</span>
-              <span class="font-display font-semibold text-text-secondary">{{ formatCurrency(result.taxableIncome) }}</span>
+              <span class="font-display font-semibold text-text-secondary">{{
+                formatCurrency(result.taxableIncome)
+              }}</span>
             </div>
           </div>
 
-          <div class="border border-border-default bg-bg-elevated p-3 flex justify-between items-center">
+          <div
+            class="border border-border-default bg-bg-elevated p-3 flex justify-between items-center"
+          >
             <div class="flex items-center gap-2">
               <span class="text-accent-sky text-xs font-display tracking-widest">//</span>
               <span class="text-text-secondary font-display font-bold text-sm">Tổng giảm trừ</span>
             </div>
-            <div class="font-display font-bold text-accent-sky">{{ formatCurrency(result.deduction) }}</div>
+            <div class="font-display font-bold text-accent-sky">
+              {{ formatCurrency(result.deduction) }}
+            </div>
           </div>
         </div>
       </div>
-      
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 animate-fade-up animate-delay-5">
-        
         <div class="border border-border-default bg-bg-surface p-4">
-          <h3 class="font-display font-semibold text-text-primary text-sm mb-3 flex items-center gap-2">
+          <h3
+            class="font-display font-semibold text-text-primary text-sm mb-3 flex items-center gap-2"
+          >
             <span class="text-accent-sky text-xs tracking-widest">//</span>
             Căn cứ pháp lý
           </h3>
-          
-          <ul v-if="period === 'before_2026'" class="text-xs text-text-secondary space-y-2 list-none">
+
+          <ul
+            v-if="period === 'before_2026'"
+            class="text-xs text-text-secondary space-y-2 list-none"
+          >
             <li class="flex gap-2">
               <span class="text-text-dim">&bull;</span>
-              <span>Lương tối thiểu vùng: <a href="https://thuvienphapluat.vn/van-ban/Lao-dong-Tien-luong/Nghi-dinh-74-2024-ND-CP-muc-luong-toi-thieu-doi-voi-nguoi-lao-dong-lam-viec-theo-hop-dong-lao-dong-605282.aspx" target="_blank" rel="noopener noreferrer" class="text-accent-sky hover:underline">Nghị định 74/2024/NĐ-CP</a></span>
+              <span
+                >Lương tối thiểu vùng:
+                <a
+                  href="https://thuvienphapluat.vn/van-ban/Lao-dong-Tien-luong/Nghi-dinh-74-2024-ND-CP-muc-luong-toi-thieu-doi-voi-nguoi-lao-dong-lam-viec-theo-hop-dong-lao-dong-605282.aspx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-accent-sky hover:underline"
+                  >Nghị định 74/2024/NĐ-CP</a
+                ></span
+              >
             </li>
             <li class="flex gap-2">
               <span class="text-text-dim">&bull;</span>
-              <span>Mức lương cơ sở: <a href="https://thuvienphapluat.vn/van-ban/Lao-dong-Tien-luong/Nghi-dinh-73-2024-ND-CP-muc-luong-co-so-che-do-tien-thuong-doi-voi-can-bo-cong-chuc-vien-chuc-605281.aspx" target="_blank" rel="noopener noreferrer" class="text-accent-sky hover:underline">Nghị định 73/2024/NĐ-CP</a></span>
+              <span
+                >Mức lương cơ sở:
+                <a
+                  href="https://thuvienphapluat.vn/van-ban/Lao-dong-Tien-luong/Nghi-dinh-73-2024-ND-CP-muc-luong-co-so-che-do-tien-thuong-doi-voi-can-bo-cong-chuc-vien-chuc-605281.aspx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-accent-sky hover:underline"
+                  >Nghị định 73/2024/NĐ-CP</a
+                ></span
+              >
             </li>
             <li class="flex gap-2">
               <span class="text-text-dim">&bull;</span>
-              <span>Giảm trừ gia cảnh: <a href="https://thuvienphapluat.vn/van-ban/Thue-Phi-Le-Phi/Nghi-quyet-954-2020-UBTVQH14-dieu-chinh-muc-giam-tru-gia-canh-thue-thu-nhap-ca-nhan-444053.aspx" target="_blank" rel="noopener noreferrer" class="text-accent-sky hover:underline">Nghị quyết 954/2020/UBTVQH14</a></span>
+              <span
+                >Giảm trừ gia cảnh:
+                <a
+                  href="https://thuvienphapluat.vn/van-ban/Thue-Phi-Le-Phi/Nghi-quyet-954-2020-UBTVQH14-dieu-chinh-muc-giam-tru-gia-canh-thue-thu-nhap-ca-nhan-444053.aspx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-accent-sky hover:underline"
+                  >Nghị quyết 954/2020/UBTVQH14</a
+                ></span
+              >
             </li>
           </ul>
-          
+
           <ul v-else class="text-xs text-text-secondary space-y-2 list-none">
             <li class="flex gap-2">
               <span class="text-text-dim">&bull;</span>
-              <span>Lương tối thiểu vùng: <span class="text-accent-coral font-medium">Nghị định 293/2025/NĐ-CP</span></span>
+              <span
+                >Lương tối thiểu vùng:
+                <span class="text-accent-coral font-medium">Nghị định 293/2025/NĐ-CP</span></span
+              >
             </li>
             <li class="flex gap-2">
               <span class="text-text-dim">&bull;</span>
-              <span>Luật Bảo hiểm xã hội: <a href="https://thuvienphapluat.vn/van-ban/Bao-hiem/Luat-Bao-hiem-xa-hoi-2024-41-2024-QH15-594248.aspx" target="_blank" rel="noopener noreferrer" class="text-accent-sky hover:underline">Luật số 41/2024/QH15</a> (Hiệu lực 01/07/2025)</span>
+              <span
+                >Luật Bảo hiểm xã hội:
+                <a
+                  href="https://thuvienphapluat.vn/van-ban/Bao-hiem/Luat-Bao-hiem-xa-hoi-2024-41-2024-QH15-594248.aspx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-accent-sky hover:underline"
+                  >Luật số 41/2024/QH15</a
+                >
+                (Hiệu lực 01/07/2025)</span
+              >
             </li>
             <li class="flex gap-2">
               <span class="text-text-dim">&bull;</span>
-              <span>Thuế TNCN & Giảm trừ: <span class="text-accent-coral font-medium">Luật Thuế TNCN (sửa đổi) 2025</span></span>
+              <span
+                >Thuế TNCN & Giảm trừ:
+                <span class="text-accent-coral font-medium"
+                  >Luật Thuế TNCN (sửa đổi) 2025</span
+                ></span
+              >
             </li>
           </ul>
         </div>
 
         <div class="border border-border-default bg-bg-surface p-4">
           <div class="flex items-start gap-2">
-            <span class="text-accent-amber font-display text-xs tracking-widest shrink-0 mt-0.5">//</span>
+            <span class="text-accent-amber font-display text-xs tracking-widest shrink-0 mt-0.5"
+              >//</span
+            >
             <div class="text-xs text-text-dim leading-relaxed">
               <p>
                 <span class="text-text-secondary font-semibold">Lưu ý:</span>
-                Kết quả chỉ mang tính chất tham khảo, được tổng hợp từ các quy định pháp luật hiện hành.
-                Chúng tôi không chịu trách nhiệm về tính chính xác tuyệt đối của số liệu.
-                Vui lòng đối chiếu với cơ quan thuế hoặc chuyên gia tài chính trước khi sử dụng cho mục đích chính thức.
+                Kết quả chỉ mang tính chất tham khảo, được tổng hợp từ các quy định pháp luật hiện
+                hành. Chúng tôi không chịu trách nhiệm về tính chính xác tuyệt đối của số liệu. Vui
+                lòng đối chiếu với cơ quan thuế hoặc chuyên gia tài chính trước khi sử dụng cho mục
+                đích chính thức.
               </p>
               <p class="mt-2 pt-2 border-t border-border-default">
                 Nếu phát hiện sai sót, vui lòng
@@ -528,24 +643,27 @@ onUnmounted(() => {
                   target="_blank"
                   rel="noopener noreferrer"
                   class="text-accent-sky hover:underline font-semibold"
-                >tạo issue trên GitHub</a>
+                  >tạo issue trên GitHub</a
+                >
                 để chúng tôi cập nhật kịp thời.
               </p>
             </div>
           </div>
         </div>
-
       </div>
     </main>
 
-    <footer class="text-center py-4 text-xs text-text-dim font-display tracking-wide animate-fade-up animate-delay-6">
+    <footer
+      class="text-center py-4 text-xs text-text-dim font-display tracking-wide animate-fade-up animate-delay-6"
+    >
       Made with love by
       <a
         href="https://www.facebook.com/nosiaht"
         target="_blank"
         rel="noopener noreferrer"
         class="text-accent-coral font-semibold link-underline"
-      >sondt</a>
+        >sondt</a
+      >
     </footer>
 
     <Teleport to="body">
@@ -554,7 +672,9 @@ onUnmounted(() => {
         <div
           class="absolute bottom-0 sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 w-full sm:w-[500px] bg-bg-surface border-2 border-border-default flex flex-col max-h-[90vh]"
         >
-          <div class="p-4 border-b border-border-default flex justify-between items-center bg-bg-elevated">
+          <div
+            class="p-4 border-b border-border-default flex justify-between items-center bg-bg-elevated"
+          >
             <h3 class="font-display font-bold text-text-primary flex items-center gap-2">
               <span class="text-accent-sky text-xs tracking-widest">//</span>
               Tra cứu vùng lương ({{ period === 'after_2026' ? 'Từ 2026' : 'Trước 2026' }})
@@ -577,7 +697,7 @@ onUnmounted(() => {
                   ? 'bg-bg-deep text-accent-coral'
                   : 'text-text-dim hover:text-text-secondary'
               "
-              @click="modalRegion = i as 1|2|3|4"
+              @click="modalRegion = i as 1 | 2 | 3 | 4"
             >
               Vùng {{ i }}
             </button>
@@ -585,27 +705,35 @@ onUnmounted(() => {
 
           <div class="p-4 overflow-y-auto flex-1">
             <div>
-              <h4 class="text-xs font-display font-semibold text-text-dim tracking-wider uppercase mb-2">
+              <h4
+                class="text-xs font-display font-semibold text-text-dim tracking-wider uppercase mb-2"
+              >
                 Khu vực áp dụng
               </h4>
               <p class="text-text-secondary text-sm leading-relaxed mb-4">
                 {{ REGION_LABELS[modalRegion] }}
               </p>
-              
+
               <div class="space-y-3">
-                <div class="border border-border-default bg-bg-elevated p-3 flex justify-between items-center">
+                <div
+                  class="border border-border-default bg-bg-elevated p-3 flex justify-between items-center"
+                >
                   <div class="text-xs text-text-dim">Lương tối thiểu</div>
                   <p class="text-base font-display font-bold text-text-primary">
                     {{ formatNumber(currentConfig.regions[modalRegion].min) }} &#8363;
                   </p>
                 </div>
-                <div class="border border-border-default bg-bg-elevated p-3 flex justify-between items-center">
+                <div
+                  class="border border-border-default bg-bg-elevated p-3 flex justify-between items-center"
+                >
                   <div class="text-xs text-accent-sky">Trần đóng BHXH, BHYT</div>
                   <p class="text-base font-display font-bold text-accent-sky">
                     {{ formatNumber(currentConfig.baseSalary * 20) }} &#8363;
                   </p>
                 </div>
-                <div class="border border-border-default bg-bg-elevated p-3 flex justify-between items-center">
+                <div
+                  class="border border-border-default bg-bg-elevated p-3 flex justify-between items-center"
+                >
                   <div class="text-xs text-accent-amber">Trần đóng BHTN</div>
                   <p class="text-base font-display font-bold text-accent-amber">
                     {{ formatNumber(currentConfig.regions[modalRegion].min * 20) }} &#8363;

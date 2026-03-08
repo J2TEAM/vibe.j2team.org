@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description: 'Tự mix âm thanh thư giãn. Cắm tai nghe vào và bay thôi!',
   author: 'Kichirou',
   facebook: 'https://www.facebook.com/kichirou244',
+  category: 'fun',
 }
 
 export default meta

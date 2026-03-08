@@ -182,9 +182,7 @@ function triggerFileInput() {
       <!-- Header -->
       <div class="mb-10 animate-fade-up">
         <div class="flex items-center gap-3 mb-2">
-          <h1 class="font-display text-4xl sm:text-5xl font-bold text-accent-coral">
-            Peer Drop
-          </h1>
+          <h1 class="font-display text-4xl sm:text-5xl font-bold text-accent-coral">Peer Drop</h1>
           <button
             class="border border-border-default bg-bg-surface px-3 py-1 text-xs font-display text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
             @click="showGuideline = true"
@@ -206,8 +204,10 @@ function triggerFileInput() {
       </div>
 
       <!-- STATE: IDLE — File picker + drag-drop -->
-      <div v-if="state === 'idle' || state === 'files-ready'" class="space-y-6 animate-fade-up animate-delay-2">
-
+      <div
+        v-if="state === 'idle' || state === 'files-ready'"
+        class="space-y-6 animate-fade-up animate-delay-2"
+      >
         <!-- Receiver from URL (has offer) -->
         <div v-if="hasOfferFromUrl && state === 'idle'" class="space-y-6">
           <h2 class="font-display text-2xl font-semibold flex items-center gap-3">
@@ -225,7 +225,9 @@ function triggerFileInput() {
                 class="flex items-center justify-between text-sm border border-border-default bg-bg-deep px-3 py-2"
               >
                 <span class="text-text-primary truncate mr-3">{{ file.name }}</span>
-                <span class="text-text-dim text-xs whitespace-nowrap">{{ formatBytes(file.size) }}</span>
+                <span class="text-text-dim text-xs whitespace-nowrap">{{
+                  formatBytes(file.size)
+                }}</span>
               </div>
             </div>
           </div>
@@ -249,24 +251,30 @@ function triggerFileInput() {
           <!-- Drop zone -->
           <div
             class="border-2 border-dashed p-8 text-center transition-all duration-300 cursor-pointer"
-            :class="isDragOver
-              ? 'border-accent-coral bg-accent-coral/5'
-              : 'border-border-default bg-bg-surface hover:border-accent-coral/50'"
+            :class="
+              isDragOver
+                ? 'border-accent-coral bg-accent-coral/5'
+                : 'border-border-default bg-bg-surface hover:border-accent-coral/50'
+            "
             @dragover="onDragOver"
             @dragleave="onDragLeave"
             @drop="onDrop"
             @click="triggerFileInput"
           >
-            <input
-              ref="fileInput"
-              type="file"
-              multiple
-              class="hidden"
-              @change="onFileSelect"
-            />
+            <input ref="fileInput" type="file" multiple class="hidden" @change="onFileSelect" />
             <div class="space-y-2">
-              <svg class="mx-auto w-12 h-12 text-text-dim" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              <svg
+                class="mx-auto w-12 h-12 text-text-dim"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                />
               </svg>
               <p class="text-text-secondary text-sm">
                 Kéo thả file vào đây hoặc <span class="text-accent-coral">bấm để chọn</span>
@@ -319,9 +327,7 @@ function triggerFileInput() {
           <!-- Manual join section -->
           <div class="border border-border-default bg-bg-surface p-6 mt-4">
             <p class="font-display text-lg font-semibold text-text-primary mb-2">Nhận file</p>
-            <p class="text-sm text-text-secondary mb-3">
-              Dán mã kết nối từ người gửi.
-            </p>
+            <p class="text-sm text-text-secondary mb-3">Dán mã kết nối từ người gửi.</p>
             <textarea
               v-model="pastedOffer"
               placeholder="Dán mã mời tại đây..."
@@ -339,7 +345,10 @@ function triggerFileInput() {
       </div>
 
       <!-- STATE: CREATING-OFFER / WAITING-ANSWER -->
-      <div v-if="state === 'creating-offer' || state === 'waiting-answer'" class="space-y-6 animate-fade-up">
+      <div
+        v-if="state === 'creating-offer' || state === 'waiting-answer'"
+        class="space-y-6 animate-fade-up"
+      >
         <h2 class="font-display text-2xl font-semibold flex items-center gap-3">
           <span class="text-accent-amber font-display text-sm tracking-widest">//</span>
           Bước 1: Gửi link này cho người nhận
@@ -362,7 +371,9 @@ function triggerFileInput() {
             </button>
 
             <details class="mt-3">
-              <summary class="text-xs text-text-dim cursor-pointer hover:text-text-secondary transition">
+              <summary
+                class="text-xs text-text-dim cursor-pointer hover:text-text-secondary transition"
+              >
                 Hoặc copy mã thủ công
               </summary>
               <textarea
@@ -463,7 +474,10 @@ function triggerFileInput() {
         </h2>
 
         <!-- Sender progress -->
-        <div v-if="selectedFiles.length > 0" class="border border-border-default bg-bg-surface p-4 space-y-3">
+        <div
+          v-if="selectedFiles.length > 0"
+          class="border border-border-default bg-bg-surface p-4 space-y-3"
+        >
           <div class="flex items-center justify-between text-sm">
             <span class="text-text-secondary">Đang gửi...</span>
             <span class="text-accent-coral font-display">{{ sendProgress }}%</span>
@@ -478,7 +492,10 @@ function triggerFileInput() {
         </div>
 
         <!-- Receiver progress -->
-        <div v-if="incomingFiles.length > 0" class="border border-border-default bg-bg-surface p-4 space-y-3">
+        <div
+          v-if="incomingFiles.length > 0"
+          class="border border-border-default bg-bg-surface p-4 space-y-3"
+        >
           <div class="flex items-center justify-between text-sm">
             <span class="text-text-secondary">Đang nhận...</span>
             <span class="text-accent-sky font-display">{{ receiveProgress }}%</span>
@@ -513,15 +530,23 @@ function triggerFileInput() {
         </h2>
 
         <!-- Sender complete -->
-        <div v-if="selectedFiles.length > 0 && !downloadReady" class="border border-accent-coral/30 bg-accent-coral/5 p-6 text-center">
-          <p class="text-lg text-accent-coral font-display font-semibold mb-2">Đã gửi thành công!</p>
+        <div
+          v-if="selectedFiles.length > 0 && !downloadReady"
+          class="border border-accent-coral/30 bg-accent-coral/5 p-6 text-center"
+        >
+          <p class="text-lg text-accent-coral font-display font-semibold mb-2">
+            Đã gửi thành công!
+          </p>
           <p class="text-sm text-text-secondary">
             {{ selectedFiles.length }} file ({{ formatBytes(totalBytes) }}) đã được gửi.
           </p>
         </div>
 
         <!-- Receiver complete -->
-        <div v-if="downloadReady" class="border border-accent-sky/30 bg-accent-sky/5 p-6 text-center space-y-4">
+        <div
+          v-if="downloadReady"
+          class="border border-accent-sky/30 bg-accent-sky/5 p-6 text-center space-y-4"
+        >
           <p class="text-lg text-accent-sky font-display font-semibold mb-2">Đã nhận thành công!</p>
           <p class="text-sm text-text-secondary">
             {{ incomingFiles.length }} file ({{ formatBytes(receiveTotalBytes) }})

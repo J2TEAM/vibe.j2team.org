@@ -65,7 +65,13 @@ function polarToCartesian(cx: number, cy: number, radius: number, angleDeg: numb
   return { x: cx + radius * Math.cos(rad), y: cy + radius * Math.sin(rad) }
 }
 
-function describeArc(cx: number, cy: number, radius: number, startAngle: number, endAngle: number): string {
+function describeArc(
+  cx: number,
+  cy: number,
+  radius: number,
+  startAngle: number,
+  endAngle: number,
+): string {
   const start = polarToCartesian(cx, cy, radius, endAngle)
   const end = polarToCartesian(cx, cy, radius, startAngle)
   const largeArc = endAngle - startAngle > 180 ? 1 : 0
@@ -161,7 +167,7 @@ const translations = {
     chosenOne: 'Bạn là người được chọn!',
     close: 'Đóng',
     spinAgain: 'Quay tiếp',
-    createdBy: 'Được tạo bởi'
+    createdBy: 'Được tạo bởi',
   },
   en: {
     title: '🎰 Lucky Spin',
@@ -185,11 +191,11 @@ const translations = {
     chosenOne: 'You are the chosen one!',
     close: 'Close',
     spinAgain: 'Spin again',
-    createdBy: 'Created by'
-  }
+    createdBy: 'Created by',
+  },
 }
 
-function t(key: keyof typeof translations['vi']): string {
+function t(key: keyof (typeof translations)['vi']): string {
   return translations[locale.value][key]
 }
 
@@ -221,8 +227,7 @@ const segments = computed(() => {
       textRotation += 180
     }
     const maxChars = list.length > 12 ? 6 : list.length > 6 ? 10 : 14
-    const displayName =
-      p.name.length > maxChars ? p.name.slice(0, maxChars - 1) + '…' : p.name
+    const displayName = p.name.length > maxChars ? p.name.slice(0, maxChars - 1) + '…' : p.name
     const fontSize = list.length > 20 ? 10 : list.length > 10 ? 12 : 14
     return {
       ...p,
@@ -260,7 +265,8 @@ function spin(): void {
   // We rotate clockwise, so target = 360 - segmentCenter + extraFullRotations
   const segmentCenter = winnerIndex * anglePerSegment + anglePerSegment / 2
   const fullRotations = (5 + Math.floor(Math.random() * 4)) * 360 // 5-8 full rotations
-  const targetAngle = currentRotation.value + fullRotations + (360 - segmentCenter) - (currentRotation.value % 360)
+  const targetAngle =
+    currentRotation.value + fullRotations + (360 - segmentCenter) - (currentRotation.value % 360)
 
   isSpinning.value = true
   winner.value = null
@@ -301,7 +307,18 @@ function spin(): void {
 }
 
 // ── Confetti ───────────────────────────────────────────
-const CONFETTI_COLORS = ['#FF6B4A', '#FFB830', '#38BDF8', '#E63946', '#F77F00', '#6A4C93', '#2A9D8F', '#FFD60A', '#D62828', '#FF8800']
+const CONFETTI_COLORS = [
+  '#FF6B4A',
+  '#FFB830',
+  '#38BDF8',
+  '#E63946',
+  '#F77F00',
+  '#6A4C93',
+  '#2A9D8F',
+  '#FFD60A',
+  '#D62828',
+  '#FF8800',
+]
 
 function createConfettiParticles(): ConfettiParticle[] {
   const particles: ConfettiParticle[] = []
@@ -431,10 +448,7 @@ onUnmounted(() => {
 <template>
   <div class="lucky-spin-page min-h-screen bg-bg-deep text-text-primary font-body">
     <!-- Confetti canvas -->
-    <canvas
-      ref="confettiCanvas"
-      class="pointer-events-none fixed inset-0 z-50"
-    />
+    <canvas ref="confettiCanvas" class="pointer-events-none fixed inset-0 z-50" />
 
     <!-- Header -->
     <header class="border-b border-border-default bg-bg-surface/80 backdrop-blur-sm">
@@ -444,10 +458,16 @@ onUnmounted(() => {
           class="inline-flex items-center gap-2 text-sm text-text-secondary transition hover:text-accent-coral"
           :aria-label="t('back')"
         >
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
-         <span class="max-sm:hidden">{{ t('back') }}</span>
+          <span class="max-sm:hidden">{{ t('back') }}</span>
         </RouterLink>
         <h1 class="font-display text-lg font-bold tracking-tight text-accent-coral sm:text-xl">
           {{ t('title') }}
@@ -458,7 +478,7 @@ onUnmounted(() => {
         >
           <option value="vi">Tiếng Việt</option>
           <option value="en">English</option>
-          </select>
+        </select>
       </div>
     </header>
 
@@ -468,7 +488,10 @@ onUnmounted(() => {
         <!-- Left Panel: Input -->
         <div class="space-y-5 animate-fade-up">
           <div class="border border-border-default bg-bg-surface p-5">
-            <label for="name-input" class="mb-2 block font-display text-sm font-semibold tracking-wide text-text-secondary">
+            <label
+              for="name-input"
+              class="mb-2 block font-display text-sm font-semibold tracking-wide text-text-secondary"
+            >
               <span class="text-accent-coral mr-1">//</span> {{ t('inputLabel') }}
             </label>
             <textarea
@@ -485,7 +508,9 @@ onUnmounted(() => {
           </div>
 
           <!-- Participant count -->
-          <div class="flex items-center justify-between border border-border-default bg-bg-surface px-5 py-3">
+          <div
+            class="flex items-center justify-between border border-border-default bg-bg-surface px-5 py-3"
+          >
             <span class="font-display text-sm text-text-secondary">
               <span class="text-accent-amber mr-1">//</span> {{ t('participantCount') }}
             </span>
@@ -505,13 +530,15 @@ onUnmounted(() => {
 
           <!-- Options -->
           <div class="space-y-3 border border-border-default bg-bg-surface p-5">
-            <label class="flex cursor-pointer items-center gap-3 text-sm text-text-secondary transition hover:text-text-primary">
+            <label
+              class="flex cursor-pointer items-center gap-3 text-sm text-text-secondary transition hover:text-text-primary"
+            >
               <input
                 v-model="removeWinners"
                 type="checkbox"
                 :disabled="isSpinning"
                 class="accent-accent-coral h-4 w-4"
-              >
+              />
               {{ t('removeWinners') }}
             </label>
 
@@ -530,7 +557,9 @@ onUnmounted(() => {
                 @click="showHistory = !showHistory"
               >
                 {{ showHistory ? t('hideHistory') : t('history') }}
-                <span v-if="history.length" class="ml-1 text-accent-amber">({{ history.length }})</span>
+                <span v-if="history.length" class="ml-1 text-accent-amber"
+                  >({{ history.length }})</span
+                >
               </button>
             </div>
           </div>
@@ -551,9 +580,7 @@ onUnmounted(() => {
               >
                 <span class="text-lg">{{ entry.fruit }}</span>
                 <span class="text-sm text-text-primary">{{ entry.name }}</span>
-                <span class="ml-auto text-xs text-text-dim">
-                  #{{ history.length - i }}
-                </span>
+                <span class="ml-auto text-xs text-text-dim"> #{{ history.length - i }} </span>
               </li>
             </ul>
           </div>
@@ -584,7 +611,9 @@ onUnmounted(() => {
           <!-- Wheel container -->
           <div class="wheel-wrapper relative">
             <!-- Pointer -->
-            <div class="pointer-container absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1">
+            <div
+              class="pointer-container absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1"
+            >
               <svg width="30" height="30" viewBox="0 0 30 30">
                 <polygon points="15,28 4,4 26,4" fill="#FF6B4A" stroke="#0F1923" stroke-width="2" />
               </svg>
@@ -621,8 +650,12 @@ onUnmounted(() => {
                       dominant-baseline="central"
                       :transform="`rotate(${seg.textRotation}, ${seg.textX}, ${seg.textY})`"
                     >
-                      <tspan :x="seg.textX" :font-size="seg.emojiSize" dy="-0.4em">{{ seg.fruit }}</tspan>
-                      <tspan :x="seg.textX" :font-size="seg.fontSize" dy="1.7em">{{ seg.displayName }}</tspan>
+                      <tspan :x="seg.textX" :font-size="seg.emojiSize" dy="-0.4em">
+                        {{ seg.fruit }}
+                      </tspan>
+                      <tspan :x="seg.textX" :font-size="seg.fontSize" dy="1.7em">
+                        {{ seg.displayName }}
+                      </tspan>
                     </text>
                   </g>
                 </template>
@@ -641,7 +674,14 @@ onUnmounted(() => {
                 </template>
               </g>
               <!-- Center dot -->
-              <circle :cx="WHEEL_CENTER" :cy="WHEEL_CENTER" r="14" fill="#0F1923" stroke="#253549" stroke-width="3" />
+              <circle
+                :cx="WHEEL_CENTER"
+                :cy="WHEEL_CENTER"
+                r="14"
+                fill="#0F1923"
+                stroke="#253549"
+                stroke-width="3"
+              />
               <circle :cx="WHEEL_CENTER" :cy="WHEEL_CENTER" r="6" fill="#FF6B4A" />
             </svg>
           </div>
@@ -659,8 +699,19 @@ onUnmounted(() => {
           >
             <span v-if="isSpinning" class="inline-flex items-center gap-2">
               <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                />
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
               </svg>
               {{ t('spinning') }}
             </span>
@@ -763,15 +814,21 @@ onUnmounted(() => {
 }
 
 @keyframes wheel-scale-pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.04); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* ── Spin Button ────────────────────────────────────── */
 .spin-button {
-  background: linear-gradient(135deg, #FF6B4A, #FF8800);
-  color: #0F1923;
+  background: linear-gradient(135deg, #ff6b4a, #ff8800);
+  color: #0f1923;
   padding: 14px 48px;
   border: none;
   cursor: pointer;

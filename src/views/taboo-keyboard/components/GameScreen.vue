@@ -1,62 +1,62 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from "vue";
-import type { Feedback, RoundStats } from "../composables/useGameLogic";
+import { ref, computed, watch, nextTick } from 'vue'
+import type { Feedback, RoundStats } from '../composables/useGameLogic'
 
 const props = defineProps<{
-  round: number;
-  timer: number;
-  bannedLetters: string[];
-  acceptedWords: string[];
-  allUsedWords: string[];
-  currentWord: string;
-  feedback: Feedback | null;
-  isValidating: boolean;
-  roundPassed: boolean | null;
-  roundStats: RoundStats | null;
-  showRoundOverlay: boolean;
-  minWordsToPass: number;
-}>();
+  round: number
+  timer: number
+  bannedLetters: string[]
+  acceptedWords: string[]
+  allUsedWords: string[]
+  currentWord: string
+  feedback: Feedback | null
+  isValidating: boolean
+  roundPassed: boolean | null
+  roundStats: RoundStats | null
+  showRoundOverlay: boolean
+  minWordsToPass: number
+}>()
 
 const emit = defineEmits<{
-  (e: "update:currentWord", value: string): void;
-  (e: "submitWord"): void;
-}>();
+  (e: 'update:currentWord', value: string): void
+  (e: 'submitWord'): void
+}>()
 
-const inputRef = ref<HTMLInputElement | null>(null);
+const inputRef = ref<HTMLInputElement | null>(null)
 
 // Full keyboard layout for visual keyboard
 const keyboardRows = [
-  ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-  ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-  ["Z", "X", "C", "V", "B", "N", "M"],
-];
+  ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+  ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+  ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
+]
 
 const timerPercent = computed(() => {
-  const total = 30 + Math.floor((props.round - 1) / 5) * 10;
-  return Math.max(0, (props.timer / total) * 100);
-});
+  const total = 30 + Math.floor((props.round - 1) / 5) * 10
+  return Math.max(0, (props.timer / total) * 100)
+})
 
 const timerColor = computed(() => {
-  if (props.timer <= 5) return "bg-accent-coral";
-  if (props.timer <= 10) return "bg-accent-amber";
-  return "bg-accent-sky";
-});
+  if (props.timer <= 5) return 'bg-accent-coral'
+  if (props.timer <= 10) return 'bg-accent-amber'
+  return 'bg-accent-sky'
+})
 
 function handleKeyDown(e: KeyboardEvent) {
-  if (e.key === "Enter" && !props.isValidating) {
-    e.preventDefault();
-    emit("submitWord");
+  if (e.key === 'Enter' && !props.isValidating) {
+    e.preventDefault()
+    emit('submitWord')
   }
 }
 
 function handleKeyboardClick(letter: string) {
-  if (props.bannedLetters.includes(letter)) return;
-  emit("update:currentWord", props.currentWord + letter.toLowerCase());
-  inputRef.value?.focus();
+  if (props.bannedLetters.includes(letter)) return
+  emit('update:currentWord', props.currentWord + letter.toLowerCase())
+  inputRef.value?.focus()
 }
 
 function handleInput(e: Event) {
-  emit("update:currentWord", (e.target as HTMLInputElement).value);
+  emit('update:currentWord', (e.target as HTMLInputElement).value)
 }
 
 // Auto focus input after validation
@@ -64,10 +64,10 @@ watch(
   () => [props.isValidating, props.feedback],
   () => {
     if (!props.isValidating) {
-      nextTick(() => inputRef.value?.focus());
+      nextTick(() => inputRef.value?.focus())
     }
   },
-);
+)
 </script>
 
 <template>
@@ -205,7 +205,7 @@ watch(
         class="px-5 md:px-7 text-base md:text-lg font-display font-bold border-none bg-accent-coral text-bg-deep cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-coral/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 tracking-wide"
         @click="$emit('submitWord')"
       >
-        {{ isValidating ? "..." : "Gửi" }}
+        {{ isValidating ? '...' : 'Gửi' }}
       </button>
     </div>
 
@@ -297,7 +297,7 @@ watch(
             class="text-3xl md:text-4xl font-display font-bold mb-4"
             :class="roundPassed ? 'text-accent-sky' : 'text-accent-coral'"
           >
-            {{ roundPassed ? "VƯỢT QUA!" : "THẤT BẠI" }}
+            {{ roundPassed ? 'VƯỢT QUA!' : 'THẤT BẠI' }}
           </h2>
           <p class="text-xl text-text-secondary font-display">
             {{ roundStats.wordsSubmitted }}/{{ roundStats.minRequired }} từ

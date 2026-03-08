@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="320" height="320" style="overflow: visible;">
+    <style>
+        /* Rung giật loạn xạ (Jitter) tốc độ cực cao */
+        .chaos-body {
+            transform-origin: 100px 165px;
+            animation: glitch-jitter 0.08s infinite;
+        }
+
+        @keyframes glitch-jitter {
+            0% { transform: translate(0, 0) skewX(0deg); }
+            20% { transform: translate(-4px, 2px) skewX(-4deg); }
+            40% { transform: translate(3px, -3px) skewX(3deg); }
+            60% { transform: translate(-2px, -4px) skewX(-2deg); }
+            80% { transform: translate(4px, 1px) skewX(4deg); }
+            100% { transform: translate(0, 0) skewX(0deg); }
+        }
+
+        /* Bóng đổ cũng giật theo */
+        .chaos-shadow {
+            transform-origin: 100px 165px;
+            animation: shadow-jitter 0.08s infinite;
+        }
+
+        @keyframes shadow-jitter {
+            0%, 100% { transform: scale(1) translate(0, 0); opacity: 0.3; }
+            50% { transform: scale(1.05) translate(-2px, 1px); opacity: 0.2; }
+        }
+
+        /* Outline nhấp nháy đổi màu (Flashing Outline) */
+        .flashing-outline {
+            transform-origin: 100px 165px;
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            animation: outline-pulse 0.15s infinite;
+        }
+
+        @keyframes outline-pulse {
+            0% { stroke: #ef4444; transform: scale(1.04); opacity: 0.9; } /* Red */
+            33% { stroke: #a855f7; transform: scale(1.07); opacity: 0.6; } /* Purple */
+            66% { stroke: #eab308; transform: scale(1.02); opacity: 0.8; } /* Yellow */
+            100% { stroke: #ef4444; transform: scale(1.04); opacity: 0.9; }
+        }
+
+        /* Hiệu ứng tách bóng màu (Chromatic Aberration / Glitch) */
+        .glitch-cyan {
+            fill: #06b6d4;
+            animation: split-cyan 0.12s infinite;
+        }
+        .glitch-magenta {
+            fill: #ec4899;
+            animation: split-magenta 0.17s infinite;
+        }
+
+        @keyframes split-cyan {
+            0%, 100% { transform: translate(0, 0); opacity: 0; }
+            50% { transform: translate(-6px, 2px); opacity: 0.7; }
+        }
+        @keyframes split-magenta {
+            0%, 100% { transform: translate(0, 0); opacity: 0; }
+            50% { transform: translate(6px, -2px); opacity: 0.7; }
+        }
+
+        /* Mắt giật bất đối xứng */
+        .crazy-eye-l {
+            transform-origin: 80px 100px;
+            animation: eye-twitch-l 0.2s infinite;
+        }
+        .crazy-eye-r {
+            transform-origin: 120px 95px;
+            animation: eye-twitch-r 0.25s infinite;
+        }
+
+        @keyframes eye-twitch-l {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1) translate(-1px, 1px); }
+        }
+        @keyframes eye-twitch-r {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.85) translate(1px, -2px); }
+        }
+
+        /* Tia nhiễu loạn bay xung quanh (Chaos Sparks) */
+        .chaos-spark {
+            stroke-width: 3.5;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            animation: spark-fly 0.4s infinite linear;
+        }
+
+        .spark-1 { stroke: #ef4444; transform-origin: 50px 70px; animation-delay: 0s; }
+        .spark-2 { stroke: #a855f7; transform-origin: 150px 80px; animation-delay: 0.2s; }
+        .spark-3 { stroke: #eab308; transform-origin: 100px 30px; animation-delay: 0.1s; }
+
+        @keyframes spark-fly {
+            0% { opacity: 0; transform: translateY(0) scale(0.5); }
+            20% { opacity: 1; transform: translateY(-10px) scale(1.2); }
+            80% { opacity: 1; transform: translateY(-30px) scale(0.8); }
+            100% { opacity: 0; transform: translateY(-40px) scale(0.2); }
+        }
+    </style>
+
+    <!-- Bóng dưới mặt đất -->
+    <ellipse class="chaos-shadow" cx="100" cy="165" rx="55" ry="12" fill="#000000" />
+
+    <!-- TIA NHIỄU LOẠN BAY RA (Sparks) -->
+    <path class="chaos-spark spark-1" d="M 60 70 L 52 75 L 58 85 L 45 90" />
+    <path class="chaos-spark spark-2" d="M 140 80 L 148 75 L 142 65 L 155 60" />
+    <path class="chaos-spark spark-3" d="M 95 40 L 105 32 L 98 22 L 110 15" />
+
+    <!-- NHÓM CƠ THỂ SLIME RUNG GIẬT (JITTER) -->
+    <g class="chaos-body">
+        
+        <!-- Outline nhấp nháy đổi màu bao quanh (Flashing Outline) -->
+        <path class="flashing-outline" d="M 50 145 C 50 85, 70 50, 100 50 C 130 50, 150 85, 150 145 C 160 145, 160 165, 100 165 C 40 165, 40 145, 50 145 Z" />
+
+        <!-- Bóng Glitch (Màu Cyan & Magenta tách ra) -->
+        <path class="glitch-cyan" d="M 50 145 C 50 85, 70 50, 100 50 C 130 50, 150 85, 150 145 C 160 145, 160 165, 100 165 C 40 165, 40 145, 50 145 Z" />
+        <path class="glitch-magenta" d="M 50 145 C 50 85, 70 50, 100 50 C 130 50, 150 85, 150 145 C 160 145, 160 165, 100 165 C 40 165, 40 145, 50 145 Z" />
+
+        <!-- Thân hình Slime màu xanh lá chính -->
+        <path d="M 50 145 C 50 85, 70 50, 100 50 C 130 50, 150 85, 150 145 C 160 145, 160 165, 100 165 C 40 165, 40 145, 50 145 Z" fill="#34d399" />
+
+        <!-- Điểm nhấn bắt sáng bị méo mó -->
+        <path d="M 65 78 Q 100 50 135 78" stroke="#ffffff" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.6" />
+
+        <!-- KHUÔN MẶT HỖN LOẠN (CHAOS FACE) -->
+        <g>
+            <!-- Mắt trái: Mở to hoảng hốt, con ngươi nhỏ -->
+            <g class="crazy-eye-l">
+                <circle cx="76" cy="100" r="11" fill="#0f172a" />
+                <circle cx="76" cy="100" r="2.5" fill="#ffffff" />
+            </g>
+            
+            <!-- Mắt phải: Nhỏ xíu, con ngươi co rút -->
+            <g class="crazy-eye-r">
+                <circle cx="124" cy="94" r="5" fill="#0f172a" />
+                <circle cx="124" cy="94" r="1.5" fill="#ffffff" />
+            </g>
+
+            <!-- Đường gân/Stress marks (Biểu hiện sự quá tải) -->
+            <path d="M 55 85 L 62 92 L 55 98" stroke="#0f172a" stroke-width="2.5" fill="none" stroke-linejoin="round" opacity="0.7" />
+            <path d="M 145 80 L 138 87 L 145 93" stroke="#0f172a" stroke-width="2.5" fill="none" stroke-linejoin="round" opacity="0.7" />
+
+            <!-- Miệng zigzag méo mó -->
+            <path d="M 82 115 L 88 108 L 95 118 L 102 110 L 109 119 L 115 112 L 120 116" stroke="#0f172a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+        </g>
+    </g>
+</svg>
