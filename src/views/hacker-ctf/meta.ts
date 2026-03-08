@@ -1,8 +1,10 @@
-import type { RouteMeta } from 'vue-router'
+import type { PageMeta } from '@/types/page'
 
-export default {
+const meta: PageMeta = {
   name: 'Hacker CTF',
   description: 'Thử thách giải mã Front-end dành cho cộng đồng J2Team',
   author: 'Đặng Trí Thức',
   facebook: 'https://www.facebook.com/ThucDang64',
-} as RouteMeta
+}
+
+export default meta
