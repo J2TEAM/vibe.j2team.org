@@ -115,7 +115,15 @@ function generateConnectedWalls(rows: number, cols: number, targetWalls: number)
   return walls
 }
 
-function isWalkable(x: number, y: number, from: Tile, to: Tile, grid: Tile[][], rows: number, cols: number): boolean {
+function isWalkable(
+  x: number,
+  y: number,
+  from: Tile,
+  to: Tile,
+  grid: Tile[][],
+  rows: number,
+  cols: number,
+): boolean {
   if ((x === from.x && y === from.y) || (x === to.x && y === to.y)) {
     return true
   }
@@ -172,10 +180,18 @@ function compressPath(points: Point[]): Point[] {
   return compact
 }
 
-export function buildBoard(rows: number, cols: number, difficulty: number, iconSet: ReadonlyArray<string>): Tile[][] {
+export function buildBoard(
+  rows: number,
+  cols: number,
+  difficulty: number,
+  iconSet: ReadonlyArray<string>,
+): Tile[][] {
   const totalCells = rows * cols
 
-  let obstacles = Math.min(obstacleCountByDifficulty(totalCells, difficulty), Math.max(0, totalCells - 2))
+  let obstacles = Math.min(
+    obstacleCountByDifficulty(totalCells, difficulty),
+    Math.max(0, totalCells - 2),
+  )
   if ((totalCells - obstacles) % 2 !== 0) {
     obstacles = Math.max(0, obstacles - 1)
   }
@@ -234,8 +250,21 @@ export function buildBoard(rows: number, cols: number, difficulty: number, iconS
   return next
 }
 
-export function findConnectionPath(from: Tile, to: Tile, grid: Tile[][], rows: number, cols: number): Point[] | null {
-  if (from.kind !== 'icon' || to.kind !== 'icon' || from.type < 0 || to.type < 0 || from.type !== to.type || from.id === to.id) {
+export function findConnectionPath(
+  from: Tile,
+  to: Tile,
+  grid: Tile[][],
+  rows: number,
+  cols: number,
+): Point[] | null {
+  if (
+    from.kind !== 'icon' ||
+    to.kind !== 'icon' ||
+    from.type < 0 ||
+    to.type < 0 ||
+    from.type !== to.type ||
+    from.id === to.id
+  ) {
     return null
   }
 
@@ -254,7 +283,8 @@ export function findConnectionPath(from: Tile, to: Tile, grid: Tile[][], rows: n
     for (let i = 0; i < directions.length; i++) {
       const dir = i as Direction
       const vector = directions[dir] as readonly [number, number]
-      const nextTurns = current.dir === -1 || current.dir === dir ? current.turns : current.turns + 1
+      const nextTurns =
+        current.dir === -1 || current.dir === dir ? current.turns : current.turns + 1
       if (nextTurns > 2) {
         continue
       }
@@ -262,7 +292,10 @@ export function findConnectionPath(from: Tile, to: Tile, grid: Tile[][], rows: n
       let nx = current.x + vector[0]
       let ny = current.y + vector[1]
 
-      while (inExtendedBounds(nx, ny, cols, rows) && isWalkable(nx, ny, from, to, grid, rows, cols)) {
+      while (
+        inExtendedBounds(nx, ny, cols, rows) &&
+        isWalkable(nx, ny, from, to, grid, rows, cols)
+      ) {
         const key = `${nx},${ny},${dir}`
         const seenTurns = visited.get(key)
 

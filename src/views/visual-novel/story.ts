@@ -25,7 +25,7 @@ const story: StoryData = {
   scenes: [
     {
       id: 'scene1',
-      background: '/visual-novel/bg-bamboo-forest.png',
+      background: '/visual-novel/bg-bamboo-forest.webp',
       bgTransition: 'fade-through-black',
       stage: [{ characterId: 'minh', sprite: 'neutral', position: 'center', animation: 'fade-in' }],
       dialogue: [
@@ -44,7 +44,7 @@ const story: StoryData = {
     },
     {
       id: 'scene2',
-      background: '/visual-novel/bg-bamboo-forest.png',
+      background: '/visual-novel/bg-bamboo-forest.webp',
       effect: 'shake',
       stage: [{ characterId: 'minh', sprite: 'serious', position: 'center' }],
       dialogue: [
@@ -61,7 +61,7 @@ const story: StoryData = {
     },
     {
       id: 'scene3',
-      background: '/visual-novel/bg-bamboo-forest.png',
+      background: '/visual-novel/bg-bamboo-forest.webp',
       stage: [
         { characterId: 'minh', sprite: 'serious', position: 'left' },
         { characterId: 'linh', sprite: 'scared', position: 'right', animation: 'slide-in' },
@@ -146,7 +146,7 @@ const story: StoryData = {
     },
     {
       id: 'scene4b',
-      background: '/visual-novel/bg-bamboo-forest.png',
+      background: '/visual-novel/bg-bamboo-forest.webp',
       stage: [
         { characterId: 'minh', sprite: 'serious', position: 'left' },
         { characterId: 'linh', sprite: 'serious', position: 'right' },

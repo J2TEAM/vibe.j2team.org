@@ -17,7 +17,8 @@
     "lint:ci": "run-s lint:ci:*",
     "lint:ci:oxlint": "oxlint .",
     "lint:ci:eslint": "eslint . --cache",
-    "prepare": "simple-git-hooks"
+    "prepare": "simple-git-hooks",
+    "optimize:images": "node scripts/optimize-image.mjs"
   },
   "dependencies": {
     "@unhead/vue": "^2.1.10",
@@ -48,6 +49,7 @@
     "npm-run-all2": "^8.0.4",
     "oxfmt": "^0.35.0",
     "oxlint": "~1.50.0",
+    "sharp": "^0.34.5",
     "simple-git-hooks": "^2.13.1",
     "tailwindcss": "^4.2.1",
     "typescript": "~5.9.3",
@@ -71,6 +73,9 @@
     ],
     "*.{js,jsx,mjs,cjs}": [
       "oxlint --fix"
+    ],
+    "*.{png,jpg,jpeg,webp}": [
+      "node scripts/optimize-image.mjs"
     ]
   },
   "commitlint": {
@@ -81,6 +86,7 @@
   "packageManager": "pnpm@10.31.0",
   "pnpm": {
     "onlyBuiltDependencies": [
+      "sharp",
       "simple-git-hooks"
     ]
   }

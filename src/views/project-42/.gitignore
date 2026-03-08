@@ -1,0 +1,11 @@
+# Ignore planning and scratch files (Keep them local-only)
+docs/
+prompt.txt
+PROJECT_VIBE.md
+*.log
+
+# Ignore heavy assets
+assets/*.mp3
+assets/*.wav
+assets/*.glb
+assets/*.hdr
