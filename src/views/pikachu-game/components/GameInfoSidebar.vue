@@ -34,9 +34,7 @@ const emit = defineEmits<{
       </div>
       <div class="border p-2.5" :class="panelInnerClass">
         <p class="font-display text-[10px] tracking-widest" :class="textMutedClass">TIME</p>
-        <p class="font-display text-xl font-semibold text-accent-sky">
-          {{ appliedMode === 'timed' ? timeLabel : '∞' }}
-        </p>
+        <p class="font-display text-xl font-semibold text-accent-sky">{{ appliedMode === 'timed' ? timeLabel : '∞' }}</p>
       </div>
       <div class="border p-2.5" :class="panelInnerClass">
         <p class="font-display text-[10px] tracking-widest" :class="textMutedClass">MODE</p>
@@ -51,9 +49,7 @@ const emit = defineEmits<{
         </p>
       </div>
       <div class="border p-2.5" :class="panelInnerClass">
-        <p class="font-display text-[10px] tracking-widest" :class="textMutedClass">
-          {{ isStoryMode ? 'STORY LEVEL' : 'DIFFICULTY' }}
-        </p>
+        <p class="font-display text-[10px] tracking-widest" :class="textMutedClass">{{ isStoryMode ? 'STORY LEVEL' : 'DIFFICULTY' }}</p>
         <p class="font-display text-sm font-semibold text-accent-coral">
           {{ isStoryMode ? `${storyLevel}/${storyTotalLevels}` : `LEVEL ${appliedDifficulty}` }}
         </p>
@@ -65,26 +61,10 @@ const emit = defineEmits<{
       Trợ giúp (Power-up)
     </h3>
 
-    <p class="mt-1 text-xs" :class="textMutedClass">
-      Lượt còn lại: <span class="text-accent-amber">{{ assistsLeft }}</span>
-    </p>
+    <p class="mt-1 text-xs" :class="textMutedClass">Lượt còn lại: <span class="text-accent-amber">{{ assistsLeft }}</span></p>
     <div class="mt-2 grid grid-cols-2 gap-2">
-      <button
-        type="button"
-        class="border px-2 py-2 text-xs transition hover:border-accent-amber"
-        :class="panelInnerClass"
-        @click="emit('use-hint')"
-      >
-        Gợi ý
-      </button>
-      <button
-        type="button"
-        class="border px-2 py-2 text-xs transition hover:border-accent-coral"
-        :class="panelInnerClass"
-        @click="emit('use-reload')"
-      >
-        Tải lại
-      </button>
+      <button type="button" class="border px-2 py-2 text-xs transition hover:border-accent-amber" :class="panelInnerClass" @click="emit('use-hint')">Gợi ý</button>
+      <button type="button" class="border px-2 py-2 text-xs transition hover:border-accent-coral" :class="panelInnerClass" @click="emit('use-reload')">Tải lại</button>
     </div>
 
     <p class="mt-3 text-xs" :class="textMutedClass">{{ message }}</p>

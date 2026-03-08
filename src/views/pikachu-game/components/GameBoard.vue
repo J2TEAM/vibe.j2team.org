@@ -26,13 +26,7 @@ const emit = defineEmits<{
   <div class="animate-fade-up animate-delay-2 border p-3 sm:p-4" :class="surfaceClass">
     <div class="flex justify-center overflow-x-auto">
       <div class="relative overflow-visible">
-        <div
-          class="grid gap-[2px]"
-          :style="{
-            gridTemplateColumns: `repeat(${extCols}, minmax(0, 1fr))`,
-            width: 'fit-content',
-          }"
-        >
+        <div class="grid gap-[2px]" :style="{ gridTemplateColumns: `repeat(${extCols}, minmax(0, 1fr))`, width: 'fit-content' }">
           <div
             v-for="cell in displayCells"
             :key="cell.key"
@@ -41,37 +35,21 @@ const emit = defineEmits<{
               portraitCellSizeClass,
               cell.isOuter ? 'border-transparent bg-transparent' : '',
               !cell.isOuter && cell.tile?.kind === 'wall' ? 'border-[#707070] bg-[#707070]' : '',
-              !cell.isOuter && cell.tile?.kind === 'icon' && cell.tile.isVisible
-                ? 'cursor-pointer border-border-default bg-bg-deep hover:border-accent-amber hover:bg-bg-elevated flex items-center justify-center'
-                : '',
-              !cell.isOuter && cell.tile?.kind === 'icon' && !cell.tile.isVisible
-                ? 'border-border-default/40 bg-bg-deep/30'
-                : '',
-              cell.tile && firstSelected?.id === cell.tile.id
-                ? '!border-accent-amber !bg-accent-amber/45 ring-2 ring-accent-amber/80 shadow-[0_0_10px_rgba(255,184,48,0.65)]'
-                : '',
-              cell.tile && secondSelected?.id === cell.tile.id
-                ? 'border-accent-amber bg-accent-amber/25'
-                : '',
-              cell.tile && failedPairIds.includes(cell.tile.id)
-                ? 'tile-fail-shake border-accent-coral bg-accent-amber/25'
-                : '',
+              !cell.isOuter && cell.tile?.kind === 'icon' && cell.tile.isVisible ? 'cursor-pointer border-border-default bg-bg-deep hover:border-accent-amber hover:bg-bg-elevated flex items-center justify-center' : '',
+              !cell.isOuter && cell.tile?.kind === 'icon' && !cell.tile.isVisible ? 'border-border-default/40 bg-bg-deep/30' : '',
+              cell.tile && firstSelected?.id === cell.tile.id ? '!border-accent-amber !bg-accent-amber/45 ring-2 ring-accent-amber/80 shadow-[0_0_10px_rgba(255,184,48,0.65)]' : '',
+              cell.tile && secondSelected?.id === cell.tile.id ? 'border-accent-amber bg-accent-amber/25' : '',
+              cell.tile && failedPairIds.includes(cell.tile.id) ? 'tile-fail-shake border-accent-coral bg-accent-amber/25' : '',
               isPaused || isGameOver ? 'pointer-events-none opacity-80' : '',
               isResolvingPair ? 'pointer-events-none' : '',
             ]"
             @click="cell.tile && emit('select-tile', cell.tile)"
           >
-            <template v-if="cell.tile?.kind === 'icon' && cell.tile.isVisible">{{
-              cell.tile.icon
-            }}</template>
+            <template v-if="cell.tile?.kind === 'icon' && cell.tile.isVisible">{{ cell.tile.icon }}</template>
           </div>
         </div>
 
-        <svg
-          class="pointer-events-none absolute inset-0 h-full w-full"
-          :viewBox="`0 0 ${extCols} ${extRows}`"
-          preserveAspectRatio="none"
-        >
+        <svg class="pointer-events-none absolute inset-0 h-full w-full" :viewBox="`0 0 ${extCols} ${extRows}`" preserveAspectRatio="none">
           <polyline
             v-if="flashPath.length > 1"
             :points="pathPolylinePoints"

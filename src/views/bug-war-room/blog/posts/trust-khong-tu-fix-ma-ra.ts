@@ -4,15 +4,13 @@ export const trustKhongTuFixMaRaPost: BlogPost = {
   id: 'post-trust-comms-002',
   slug: 'trust-khong-tu-fix-ma-ra',
   title: 'Trust Không Tự Sinh Từ Việc Fix: Truyền Thông Sự Cố Rõ Ràng Và Có Kỷ Luật',
-  excerpt:
-    'Người dùng không chỉ quan tâm hệ thống đã phục hồi hay chưa, họ còn quan tâm đội vận hành đang xử lý minh bạch và có trách nhiệm hay không. Bài viết này tập trung vào cách truyền thông hiệu quả khi có sự cố.',
+  excerpt: 'Người dùng không chỉ quan tâm hệ thống đã phục hồi hay chưa, họ còn quan tâm đội vận hành đang xử lý minh bạch và có trách nhiệm hay không. Bài viết này tập trung vào cách truyền thông hiệu quả khi có sự cố.',
   author: 'TranQui004',
   publishedAt: '2026-03-07',
   updatedAt: '2026-03-07',
   tags: ['communication', 'trust', 'postmortem'],
   readMinutes: 14,
-  coverImageUrl:
-    'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=80',
+  coverImageUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=80',
   coverImageAlt: 'Đội vận hành đang họp nhanh để cập nhật trạng thái sự cố',
   imageLinks: [
     {

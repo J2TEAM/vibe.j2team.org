@@ -34,32 +34,8 @@ const emit = defineEmits<{
         <div>
           <p class="mb-1 text-xs font-display tracking-widest" :class="textMutedClass">MODE</p>
           <div class="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              class="border px-2 py-1.5 text-xs transition"
-              :class="[
-                panelInnerClass,
-                pendingMainMode === 'story'
-                  ? 'border-accent-coral text-accent-coral'
-                  : 'hover:border-accent-amber',
-              ]"
-              @click="emit('update:pendingMainMode', 'story')"
-            >
-              Story
-            </button>
-            <button
-              type="button"
-              class="border px-2 py-1.5 text-xs transition"
-              :class="[
-                panelInnerClass,
-                pendingMainMode === 'custom'
-                  ? 'border-accent-coral text-accent-coral'
-                  : 'hover:border-accent-amber',
-              ]"
-              @click="emit('update:pendingMainMode', 'custom')"
-            >
-              Custom
-            </button>
+            <button type="button" class="border px-2 py-1.5 text-xs transition" :class="[panelInnerClass, pendingMainMode === 'story' ? 'border-accent-coral text-accent-coral' : 'hover:border-accent-amber']" @click="emit('update:pendingMainMode', 'story')">Story</button>
+            <button type="button" class="border px-2 py-1.5 text-xs transition" :class="[panelInnerClass, pendingMainMode === 'custom' ? 'border-accent-coral text-accent-coral' : 'hover:border-accent-amber']" @click="emit('update:pendingMainMode', 'custom')">Custom</button>
             <button
               type="button"
               class="border px-2 py-1.5 text-xs transition"
@@ -73,42 +49,14 @@ const emit = defineEmits<{
               Gravity
             </button>
           </div>
-          <p v-if="!gravityUnlocked" class="mt-1 text-xs text-accent-amber">
-            Gravity mode đang bị khóa, bạn phải tìm Easter Egg ở đâu đó.
-          </p>
+          <p v-if="!gravityUnlocked" class="mt-1 text-xs text-accent-amber">Gravity mode đang bị khóa, bạn phải tìm Easter Egg ở đâu đó.</p>
         </div>
 
         <div v-if="pendingMainMode === 'custom'">
-          <p class="mb-1 text-xs font-display tracking-widest" :class="textMutedClass">
-            CUSTOM TYPE
-          </p>
+          <p class="mb-1 text-xs font-display tracking-widest" :class="textMutedClass">CUSTOM TYPE</p>
           <div class="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              class="border px-2 py-1.5 text-xs transition"
-              :class="[
-                panelInnerClass,
-                pendingCustomMode === 'classic'
-                  ? 'border-accent-coral text-accent-coral'
-                  : 'hover:border-accent-amber',
-              ]"
-              @click="emit('update:pendingCustomMode', 'classic')"
-            >
-              Classic
-            </button>
-            <button
-              type="button"
-              class="border px-2 py-1.5 text-xs transition"
-              :class="[
-                panelInnerClass,
-                pendingCustomMode === 'timed'
-                  ? 'border-accent-coral text-accent-coral'
-                  : 'hover:border-accent-amber',
-              ]"
-              @click="emit('update:pendingCustomMode', 'timed')"
-            >
-              Timed
-            </button>
+            <button type="button" class="border px-2 py-1.5 text-xs transition" :class="[panelInnerClass, pendingCustomMode === 'classic' ? 'border-accent-coral text-accent-coral' : 'hover:border-accent-amber']" @click="emit('update:pendingCustomMode', 'classic')">Classic</button>
+            <button type="button" class="border px-2 py-1.5 text-xs transition" :class="[panelInnerClass, pendingCustomMode === 'timed' ? 'border-accent-coral text-accent-coral' : 'hover:border-accent-amber']" @click="emit('update:pendingCustomMode', 'timed')">Timed</button>
           </div>
         </div>
 
@@ -120,65 +68,26 @@ const emit = defineEmits<{
               :key="size"
               type="button"
               class="border px-2 py-1.5 text-xs transition"
-              :class="[
-                panelInnerClass,
-                pendingSize === size
-                  ? 'border-accent-coral text-accent-coral'
-                  : 'hover:border-accent-amber',
-                pendingMainMode !== 'custom' ? 'pointer-events-none opacity-50' : '',
-              ]"
+              :class="[panelInnerClass, pendingSize === size ? 'border-accent-coral text-accent-coral' : 'hover:border-accent-amber', pendingMainMode !== 'custom' ? 'pointer-events-none opacity-50' : '']"
               @click="emit('update:pendingSize', size)"
             >
               {{ size }}
             </button>
           </div>
-          <p v-if="pendingMainMode !== 'custom'" class="mt-1 text-xs" :class="textMutedClass">
-            Story/Gravity mode dùng bàn cờ cố định 10x20.
-          </p>
+          <p v-if="pendingMainMode !== 'custom'" class="mt-1 text-xs" :class="textMutedClass">Story/Gravity mode dùng bàn cờ cố định 10x20.</p>
         </div>
 
         <div>
-          <p class="mb-1 text-xs font-display tracking-widest" :class="textMutedClass">
-            DIFFICULTY
-          </p>
-          <input
-            :value="pendingDifficulty"
-            type="range"
-            min="0"
-            max="20"
-            step="1"
-            class="w-full accent-accent-coral"
-            :disabled="pendingMainMode !== 'custom'"
-            @input="
-              emit('update:pendingDifficulty', Number(($event.target as HTMLInputElement).value))
-            "
-          />
+          <p class="mb-1 text-xs font-display tracking-widest" :class="textMutedClass">DIFFICULTY</p>
+          <input :value="pendingDifficulty" type="range" min="0" max="20" step="1" class="w-full accent-accent-coral" :disabled="pendingMainMode !== 'custom'" @input="emit('update:pendingDifficulty', Number(($event.target as HTMLInputElement).value))" />
           <p class="text-xs" :class="textMutedClass">
-            {{
-              pendingMainMode === 'custom'
-                ? `Level ${pendingDifficulty}`
-                : `Tự tăng theo ${storyTotalLevels} level`
-            }}
+            {{ pendingMainMode === 'custom' ? `Level ${pendingDifficulty}` : `Tự tăng theo ${storyTotalLevels} level` }}
           </p>
         </div>
 
         <div class="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            class="border px-3 py-2 text-sm transition hover:border-accent-coral"
-            :class="panelInnerClass"
-            @click="emit('apply')"
-          >
-            Bắt đầu
-          </button>
-          <button
-            type="button"
-            class="border px-3 py-2 text-sm transition hover:border-accent-amber"
-            :class="panelInnerClass"
-            @click="emit('close')"
-          >
-            Đóng
-          </button>
+          <button type="button" class="border px-3 py-2 text-sm transition hover:border-accent-coral" :class="panelInnerClass" @click="emit('apply')">Bắt đầu</button>
+          <button type="button" class="border px-3 py-2 text-sm transition hover:border-accent-amber" :class="panelInnerClass" @click="emit('close')">Đóng</button>
         </div>
       </div>
     </div>

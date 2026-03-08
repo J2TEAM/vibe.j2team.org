@@ -66,11 +66,7 @@ watch(
         @touchend="emit('stop-boost')"
         @touchcancel="emit('stop-boost')"
       >
-        <div
-          ref="localContentRef"
-          class="credits-scroll px-4 py-3 text-center text-sm"
-          :style="creditsTransformStyle"
-        >
+        <div ref="localContentRef" class="credits-scroll px-4 py-3 text-center text-sm" :style="creditsTransformStyle">
           <p class="font-display text-accent-amber">// Pikachu Puzzle</p>
           <p class="mt-4 text-accent-coral">Ý tưởng</p>
           <p>Gemini</p>
@@ -107,12 +103,7 @@ watch(
         <p v-if="easterMessage" class="mt-2 text-xs text-accent-amber">{{ easterMessage }}</p>
       </div>
 
-      <button
-        type="button"
-        class="mt-4 w-full border px-3 py-2 text-sm transition hover:border-accent-coral"
-        :class="panelInnerClass"
-        @click="emit('close')"
-      >
+      <button type="button" class="mt-4 w-full border px-3 py-2 text-sm transition hover:border-accent-coral" :class="panelInnerClass" @click="emit('close')">
         Đóng
       </button>
     </div>

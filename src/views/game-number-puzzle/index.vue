@@ -106,9 +106,7 @@ const statusMessage = ref('Bấm "Bắt đầu" để chơi.')
 const previewCountdown = ref(PREVIEW_SECONDS)
 const selectedIdsOrder = ref<string[]>([])
 const showConfetti = ref(false)
-const confettiParticles = ref<
-  { id: number; left: number; delay: number; color: string; size: number }[]
->([])
+const confettiParticles = ref<{ id: number; left: number; delay: number; color: string; size: number }[]>([])
 
 let timerId: ReturnType<typeof setInterval> | null = null
 let previewTimerId: ReturnType<typeof setInterval> | null = null
@@ -117,7 +115,7 @@ let confettiTimeoutId: ReturnType<typeof setTimeout> | null = null
 const selectedCardsOrdered = computed(() =>
   selectedIdsOrder.value
     .map((id) => board.value.find((c) => c.id === id))
-    .filter((c): c is CardItem => c != null),
+    .filter((c): c is CardItem => c != null)
 )
 
 const timeFormatted = computed(() => {
@@ -129,7 +127,11 @@ const timeFormatted = computed(() => {
 const isLowTime = computed(() => gameStatus.value === 'playing' && timeLeft.value <= 30)
 
 function canAddToSelection(card: CardItem): boolean {
-  return gameStatus.value === 'playing' && !card.isSelected && selectedIdsOrder.value.length < 3
+  return (
+    gameStatus.value === 'playing' &&
+    !card.isSelected &&
+    selectedIdsOrder.value.length < 3
+  )
 }
 
 function triggerConfetti() {
@@ -178,7 +180,9 @@ function evaluateSelection() {
   if (first == null || second == null || third == null) return
   gameStatus.value = 'checking'
   const isValidFormula =
-    first.type === 'number' && second.type === 'operator' && third.type === 'number'
+    first.type === 'number' &&
+    second.type === 'operator' &&
+    third.type === 'number'
   if (!isValidFormula) {
     statusMessage.value = 'Sai phép tính. Cần: số → phép toán → số.'
     setTimeout(resetSelection, CHECK_DELAY_MS)
@@ -267,7 +271,7 @@ watch(
   () => gameStatus.value,
   (s) => {
     if (s === 'idle' || s === 'won' || s === 'lost') stopTimer()
-  },
+  }
 )
 </script>
 
@@ -295,42 +299,28 @@ watch(
         />
       </div>
     </Teleport>
-    <header
-      class="border-b border-border-default bg-bg-surface px-4 py-3 flex flex-wrap items-center justify-between gap-3 animate-fade-up"
-    >
-      <h1 class="font-display text-xl sm:text-2xl font-semibold text-accent-coral">
-        Number Puzzle
-      </h1>
+    <header class="border-b border-border-default bg-bg-surface px-4 py-3 flex flex-wrap items-center justify-between gap-3 animate-fade-up">
+      <h1 class="font-display text-xl sm:text-2xl font-semibold text-accent-coral">Number Puzzle</h1>
       <div class="flex items-center gap-4 text-sm">
-        <span class="text-text-secondary"
-          >Điểm: <strong class="text-text-primary">{{ score }}/{{ WIN_SCORE }}</strong></span
+        <span class="text-text-secondary">Điểm: <strong class="text-text-primary">{{ score }}/{{ WIN_SCORE }}</strong></span>
+        <span
+          :class="isLowTime ? 'text-accent-coral font-semibold' : 'text-text-secondary'"
         >
-        <span :class="isLowTime ? 'text-accent-coral font-semibold' : 'text-text-secondary'">
           Thời gian: {{ timeFormatted }}
         </span>
       </div>
     </header>
 
-    <main
-      class="flex-1 flex flex-col items-center justify-center px-4 py-6 max-w-lg mx-auto w-full"
-    >
+    <main class="flex-1 flex flex-col items-center justify-center px-4 py-6 max-w-lg mx-auto w-full">
       <!-- Idle: cách chơi + start button -->
       <template v-if="gameStatus === 'idle'">
-        <div
-          class="text-text-secondary text-sm max-w-md mb-6 animate-fade-up animate-delay-2 border border-border-default bg-bg-surface p-4"
-        >
+        <div class="text-text-secondary text-sm max-w-md mb-6 animate-fade-up animate-delay-2 border border-border-default bg-bg-surface p-4">
           <p class="font-display text-accent-coral text-base font-semibold mb-2">// Cách chơi</p>
           <ul class="list-disc list-inside space-y-1">
             <li>Xem 16 thẻ mở trong 5 giây rồi ghi nhớ vị trí.</li>
-            <li>
-              Chọn 3 ô theo thứ tự bấm (ô nào cũng được). Phép tính hợp lệ phải là
-              <strong class="text-text-primary">số → phép toán (+ − ×) → số</strong>.
-            </li>
+            <li>Chọn 3 ô theo thứ tự bấm (ô nào cũng được). Phép tính hợp lệ phải là <strong class="text-text-primary">số → phép toán (+ − ×) → số</strong>.</li>
             <li>Sai phép tính hoặc sai kết quả thì 3 ô sẽ reset, chọn lại.</li>
-            <li>
-              Đạt <strong class="text-text-primary">5 điểm</strong> trong
-              <strong class="text-text-primary">3 phút</strong> để thắng.
-            </li>
+            <li>Đạt <strong class="text-text-primary">5 điểm</strong> trong <strong class="text-text-primary">3 phút</strong> để thắng.</li>
           </ul>
         </div>
         <button
@@ -344,9 +334,7 @@ watch(
 
       <!-- Preview -->
       <template v-else-if="gameStatus === 'preview'">
-        <p class="text-accent-amber font-display text-lg mb-4">
-          Ghi nhớ trong {{ previewCountdown }} giây...
-        </p>
+        <p class="text-accent-amber font-display text-lg mb-4">Ghi nhớ trong {{ previewCountdown }} giây...</p>
         <div class="grid grid-cols-4 gap-2 w-full max-w-[280px] sm:max-w-[320px] mb-4">
           <button
             v-for="card in board"
@@ -413,12 +401,8 @@ watch(
         </div>
 
         <!-- Số mục tiêu: nổi bật phía dưới bàn -->
-        <div
-          class="w-full max-w-[280px] sm:max-w-[320px] border-2 border-accent-amber bg-bg-surface py-3 px-4 mb-4 text-center"
-        >
-          <p class="text-text-secondary text-xs sm:text-sm font-display tracking-widest mb-0.5">
-            SỐ MỤC TIÊU
-          </p>
+        <div class="w-full max-w-[280px] sm:max-w-[320px] border-2 border-accent-amber bg-bg-surface py-3 px-4 mb-4 text-center">
+          <p class="text-text-secondary text-xs sm:text-sm font-display tracking-widest mb-0.5">SỐ MỤC TIÊU</p>
           <p class="font-display text-4xl sm:text-5xl font-bold text-accent-amber">{{ target }}</p>
         </div>
 

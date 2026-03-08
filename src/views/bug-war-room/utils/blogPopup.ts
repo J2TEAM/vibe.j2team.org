@@ -69,36 +69,18 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
     const homeList = blogTab.document.getElementById('blog-home-list') as HTMLElement | null
     const detailSection = blogTab.document.getElementById('blog-detail') as HTMLElement | null
     const detailToc = blogTab.document.getElementById('blog-detail-toc') as HTMLElement | null
-    const detailContent = blogTab.document.getElementById(
-      'blog-detail-content',
-    ) as HTMLElement | null
-    const searchInput = blogTab.document.getElementById(
-      'blog-search-input',
-    ) as HTMLInputElement | null
-    const tagCombobox = blogTab.document.getElementById(
-      'blog-tag-combobox',
-    ) as HTMLInputElement | null
-    const tagOptions = blogTab.document.getElementById(
-      'blog-tag-options',
-    ) as HTMLDataListElement | null
-    const sortCombobox = blogTab.document.getElementById(
-      'blog-sort-combobox',
-    ) as HTMLInputElement | null
-    const clearTagFilterBtn = blogTab.document.getElementById(
-      'blog-clear-tag-filter-btn',
-    ) as HTMLButtonElement | null
-    const resetAllFilterBtn = blogTab.document.getElementById(
-      'blog-reset-all-filter-btn',
-    ) as HTMLButtonElement | null
-    const homeResultCount = blogTab.document.getElementById(
-      'blog-home-result-count',
-    ) as HTMLElement | null
+    const detailContent = blogTab.document.getElementById('blog-detail-content') as HTMLElement | null
+    const searchInput = blogTab.document.getElementById('blog-search-input') as HTMLInputElement | null
+    const tagCombobox = blogTab.document.getElementById('blog-tag-combobox') as HTMLInputElement | null
+    const tagOptions = blogTab.document.getElementById('blog-tag-options') as HTMLDataListElement | null
+    const sortCombobox = blogTab.document.getElementById('blog-sort-combobox') as HTMLInputElement | null
+    const clearTagFilterBtn = blogTab.document.getElementById('blog-clear-tag-filter-btn') as HTMLButtonElement | null
+    const resetAllFilterBtn = blogTab.document.getElementById('blog-reset-all-filter-btn') as HTMLButtonElement | null
+    const homeResultCount = blogTab.document.getElementById('blog-home-result-count') as HTMLElement | null
     const signalList = blogTab.document.getElementById('blog-signal-list') as HTMLElement | null
     const signalEmpty = blogTab.document.getElementById('blog-signal-empty') as HTMLElement | null
     const homeBtn = blogTab.document.getElementById('blog-home-btn') as HTMLButtonElement | null
-    const backListBtn = blogTab.document.getElementById(
-      'blog-back-list-btn',
-    ) as HTMLButtonElement | null
+    const backListBtn = blogTab.document.getElementById('blog-back-list-btn') as HTMLButtonElement | null
 
     let currentSectionIds: string[] = []
     let activeBlogView: 'home' | 'detail' = 'home'
@@ -109,11 +91,9 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
     let activeSortMode = 'newest'
 
     const storage = popupSourceWindow.localStorage
-    const allTags = Array.from(
-      new Set(
-        posts.flatMap((post) => post.tags.map((tag) => tag.trim())).filter((tag) => tag.length > 0),
-      ),
-    ).sort((a, b) => a.localeCompare(b, 'vi'))
+    const allTags = Array.from(new Set(
+      posts.flatMap((post) => post.tags.map((tag) => tag.trim())).filter((tag) => tag.length > 0),
+    )).sort((a, b) => a.localeCompare(b, 'vi'))
 
     const syncTagOptions = (): void => {
       if (!tagOptions) {
@@ -127,9 +107,7 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
       tagOptions.innerHTML = optionsHtml.join('')
     }
 
-    const parseBlogUiState = (
-      raw: string | null,
-    ): {
+    const parseBlogUiState = (raw: string | null): {
       searchKeyword: string
       activeTagInput: string
       activeSortMode: string
@@ -155,18 +133,10 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
           activeBlogSlug?: string
         }
 
-        const acceptedModes = [
-          'newest',
-          'oldest',
-          'read-long',
-          'read-short',
-          'title-az',
-          'title-za',
-        ]
-        const mode =
-          parsed.activeSortMode && acceptedModes.includes(parsed.activeSortMode)
-            ? parsed.activeSortMode
-            : 'newest'
+        const acceptedModes = ['newest', 'oldest', 'read-long', 'read-short', 'title-az', 'title-za']
+        const mode = parsed.activeSortMode && acceptedModes.includes(parsed.activeSortMode)
+          ? parsed.activeSortMode
+          : 'newest'
 
         return {
           searchKeyword: typeof parsed.searchKeyword === 'string' ? parsed.searchKeyword : '',
@@ -188,16 +158,13 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
 
     const saveBlogUiState = (): void => {
       try {
-        storage.setItem(
-          blogUiStateStorageKey,
-          JSON.stringify({
-            searchKeyword,
-            activeTagInput,
-            activeSortMode,
-            activeBlogView,
-            activeBlogSlug,
-          }),
-        )
+        storage.setItem(blogUiStateStorageKey, JSON.stringify({
+          searchKeyword,
+          activeTagInput,
+          activeSortMode,
+          activeBlogView,
+          activeBlogSlug,
+        }))
       } catch {
         // Storage can be disabled in strict privacy modes.
       }
@@ -206,10 +173,9 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
     const restoredBlogUi = parseBlogUiState(storage.getItem(blogUiStateStorageKey))
     searchKeyword = restoredBlogUi.searchKeyword
     activeTagInput = restoredBlogUi.activeTagInput
-    activeTagQuery =
-      activeTagInput && normalizeSearchText(activeTagInput) !== 'all'
-        ? normalizeSearchText(activeTagInput)
-        : ''
+    activeTagQuery = activeTagInput && normalizeSearchText(activeTagInput) !== 'all'
+      ? normalizeSearchText(activeTagInput)
+      : ''
     activeSortMode = restoredBlogUi.activeSortMode
     activeBlogView = restoredBlogUi.activeBlogView
     activeBlogSlug = restoredBlogUi.activeBlogSlug
@@ -248,10 +214,7 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
       const keyword = normalizeSearchText(searchKeyword)
 
       const filtered = posts.filter((post) => {
-        if (
-          activeTagQuery &&
-          !post.tags.some((tag) => normalizeSearchText(tag).includes(activeTagQuery))
-        ) {
+        if (activeTagQuery && !post.tags.some((tag) => normalizeSearchText(tag).includes(activeTagQuery))) {
           return false
         }
 
@@ -259,17 +222,13 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
           return true
         }
 
-        const textToSearch = normalizeSearchText(
-          [
-            post.title,
-            post.excerpt,
-            post.author,
-            post.tags.join(' '),
-            post.sections
-              .map((section) => `${section.heading} ${section.paragraphs.join(' ')}`)
-              .join(' '),
-          ].join(' '),
-        )
+        const textToSearch = normalizeSearchText([
+          post.title,
+          post.excerpt,
+          post.author,
+          post.tags.join(' '),
+          post.sections.map((section) => `${section.heading} ${section.paragraphs.join(' ')}`).join(' '),
+        ].join(' '))
 
         return textToSearch.includes(keyword)
       })
@@ -290,11 +249,9 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
       }
 
       signalEmpty.classList.add('hidden')
-      signalList.innerHTML = entries
-        .map((entry) => {
-          return `<li><strong>${escapeHtml(entry.severity)}</strong> - ${escapeHtml(entry.note)} (${escapeHtml(entry.createdAt)})</li>`
-        })
-        .join('')
+      signalList.innerHTML = entries.map((entry) => {
+        return `<li><strong>${escapeHtml(entry.severity)}</strong> - ${escapeHtml(entry.note)} (${escapeHtml(entry.createdAt)})</li>`
+      }).join('')
     }
 
     const renderHome = (): void => {
@@ -312,31 +269,23 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
 
       const filteredPosts = getFilteredPosts()
       if (homeResultCount) {
-        const suffix =
-          filteredPosts.length === posts.length && !searchKeyword && !activeTagQuery
-            ? `${filteredPosts.length} bài`
-            : `${filteredPosts.length}/${posts.length} bài phù hợp`
+        const suffix = filteredPosts.length === posts.length && !searchKeyword && !activeTagQuery
+          ? `${filteredPosts.length} bài`
+          : `${filteredPosts.length}/${posts.length} bài phù hợp`
         homeResultCount.textContent = suffix
       }
 
       if (filteredPosts.length === 0) {
-        homeList.innerHTML =
-          '<div class="home-empty">Không tìm thấy bài viết phù hợp. Hãy thử từ khóa khác hoặc bỏ lọc tag.</div>'
+        homeList.innerHTML = '<div class="home-empty">Không tìm thấy bài viết phù hợp. Hãy thử từ khóa khác hoặc bỏ lọc tag.</div>'
         return
       }
 
-      homeList.innerHTML = filteredPosts
-        .map((post) => {
-          const coverImageHtml = post.coverImageUrl
-            ? `<img class="post-cover" src="${escapeHtml(post.coverImageUrl)}" alt="${escapeHtml(post.coverImageAlt ?? post.title)}" loading="lazy" />`
-            : ''
-          const tagsHtml = post.tags
-            .map(
-              (tag) =>
-                `<button type="button" class="tag tag-clickable" data-filter-tag="${escapeHtml(tag)}">${escapeHtml(tag)}</button>`,
-            )
-            .join('')
-          return `<article class="post-card">
+      homeList.innerHTML = filteredPosts.map((post) => {
+        const coverImageHtml = post.coverImageUrl
+          ? `<img class="post-cover" src="${escapeHtml(post.coverImageUrl)}" alt="${escapeHtml(post.coverImageAlt ?? post.title)}" loading="lazy" />`
+          : ''
+        const tagsHtml = post.tags.map((tag) => `<button type="button" class="tag tag-clickable" data-filter-tag="${escapeHtml(tag)}">${escapeHtml(tag)}</button>`).join('')
+        return `<article class="post-card">
           <p class="post-kicker">BUG WAR ROOM BLOG</p>
           ${coverImageHtml}
           <button type="button" class="post-title-btn" data-blog-slug="${escapeHtml(post.slug)}">${escapeHtml(post.title)}</button>
@@ -344,16 +293,11 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
           <p class="post-excerpt">${escapeHtml(post.excerpt)}</p>
           <div class="tags">${tagsHtml}</div>
         </article>`
-        })
-        .join('')
+      }).join('')
     }
 
     const updateActiveTocLink = (): void => {
-      if (
-        !detailToc ||
-        currentSectionIds.length === 0 ||
-        detailSection?.classList.contains('hidden')
-      ) {
+      if (!detailToc || currentSectionIds.length === 0 || detailSection?.classList.contains('hidden')) {
         return
       }
 
@@ -400,23 +344,18 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
       const coverImageHtml = post.coverImageUrl
         ? `<img class="detail-cover" src="${escapeHtml(post.coverImageUrl)}" alt="${escapeHtml(post.coverImageAlt ?? post.title)}" loading="lazy" />`
         : ''
-      const tagsHtml = post.tags
-        .map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`)
-        .join('')
-      const imageLinksHtml =
-        post.imageLinks && post.imageLinks.length > 0
-          ? `<div class="image-links">
+      const tagsHtml = post.tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join('')
+      const imageLinksHtml = post.imageLinks && post.imageLinks.length > 0
+        ? `<div class="image-links">
             <p>Link ảnh tham khảo theo chủ đề bài viết:</p>
             <ul>
               ${post.imageLinks.map((item) => `<li><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.label)}</a></li>`).join('')}
             </ul>
           </div>`
-          : ''
+        : ''
       const sectionBlocks = post.sections.map((section, sectionIndex) => {
         const sectionId = `blog-post-${post.slug}-section-${sectionIndex + 1}`
-        const paragraphsHtml = section.paragraphs
-          .map((paragraph) => `<li>${escapeHtml(paragraph)}</li>`)
-          .join('')
+        const paragraphsHtml = section.paragraphs.map((paragraph) => `<li>${escapeHtml(paragraph)}</li>`).join('')
         return `<section class="blog-section" id="${escapeHtml(sectionId)}">
           <h3 class="blog-section-heading">
             <span class="section-index">${sectionIndex + 1}</span>
@@ -438,15 +377,11 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
         ${sectionBlocks.join('')}
       `
 
-      currentSectionIds = post.sections.map(
-        (_, sectionIndex) => `blog-post-${post.slug}-section-${sectionIndex + 1}`,
-      )
-      detailToc.innerHTML = post.sections
-        .map((section, sectionIndex) => {
-          const sectionId = `blog-post-${post.slug}-section-${sectionIndex + 1}`
-          return `<a href="#${escapeHtml(sectionId)}" data-target="${escapeHtml(sectionId)}" class="toc-side-link">${sectionIndex + 1}. ${escapeHtml(section.heading)}</a>`
-        })
-        .join('')
+      currentSectionIds = post.sections.map((_, sectionIndex) => `blog-post-${post.slug}-section-${sectionIndex + 1}`)
+      detailToc.innerHTML = post.sections.map((section, sectionIndex) => {
+        const sectionId = `blog-post-${post.slug}-section-${sectionIndex + 1}`
+        return `<a href="#${escapeHtml(sectionId)}" data-target="${escapeHtml(sectionId)}" class="toc-side-link">${sectionIndex + 1}. ${escapeHtml(section.heading)}</a>`
+      }).join('')
 
       detailToc.querySelectorAll('.toc-side-link').forEach((node) => {
         node.addEventListener('click', (event) => {
@@ -561,14 +496,7 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
 
       sortCombobox.addEventListener('input', () => {
         const mode = normalizeSearchText(sortCombobox.value)
-        const acceptedModes = [
-          'newest',
-          'oldest',
-          'read-long',
-          'read-short',
-          'title-az',
-          'title-za',
-        ]
+        const acceptedModes = ['newest', 'oldest', 'read-long', 'read-short', 'title-az', 'title-za']
         activeSortMode = acceptedModes.includes(mode) ? mode : 'newest'
         if (!acceptedModes.includes(mode)) {
           sortCombobox.value = 'newest'
@@ -612,9 +540,7 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
 
     syncTagOptions()
 
-    const exportBtn = blogTab.document.getElementById(
-      'blog-export-pdf-btn',
-    ) as HTMLButtonElement | null
+    const exportBtn = blogTab.document.getElementById('blog-export-pdf-btn') as HTMLButtonElement | null
     if (exportBtn) {
       exportBtn.addEventListener('click', () => {
         blogTab.focus()
@@ -622,9 +548,7 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
       })
     }
 
-    const backTopBtn = blogTab.document.getElementById(
-      'blog-back-to-top',
-    ) as HTMLButtonElement | null
+    const backTopBtn = blogTab.document.getElementById('blog-back-to-top') as HTMLButtonElement | null
     if (backTopBtn) {
       backTopBtn.addEventListener('click', () => {
         blogTab.scrollTo({ top: 0, behavior: 'smooth' })
@@ -644,6 +568,7 @@ export function hydrateLearningBlogPopup(options: LearningBlogPopupOptions): voi
     } else {
       renderHome()
     }
+
   } catch {
     if (!targetTab) {
       blogTab.close()

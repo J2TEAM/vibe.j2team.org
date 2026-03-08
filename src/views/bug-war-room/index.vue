@@ -137,10 +137,8 @@ const slimeSpamAnnoyedThreshold = 6
 const slimeClickReactionDurationMs = 3200
 const slimeAnnoyedDurationMs = 1200
 const resultHistoryLimit = 40
-const repoIssueBugUrl =
-  'https://github.com/J2TEAM/vibe.j2team.org/issues/new?template=bug_report.md'
-const repoIssueFeatureUrl =
-  'https://github.com/J2TEAM/vibe.j2team.org/issues/new?template=feature_request.md'
+const repoIssueBugUrl = 'https://github.com/J2TEAM/vibe.j2team.org/issues/new?template=bug_report.md'
+const repoIssueFeatureUrl = 'https://github.com/J2TEAM/vibe.j2team.org/issues/new?template=feature_request.md'
 const repoForkUrl = 'https://github.com/J2TEAM/vibe.j2team.org/fork'
 const repoContributingUrl = 'https://github.com/J2TEAM/vibe.j2team.org/blob/main/CONTRIBUTING.md'
 
@@ -259,6 +257,7 @@ function randomizeDeck(): Incident[] {
   return output.slice(0, targetRounds)
 }
 
+
 function pushLearningEntry(incident: Incident, choice: Choice): void {
   const newEntry: LearningEntry = {
     id: `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`,
@@ -273,13 +272,11 @@ function pushLearningEntry(incident: Incident, choice: Choice): void {
   localStorage.setItem(learningJournalStorageKey, JSON.stringify(learningJournal.value))
 
   const baseXp = incident.severity === 'SEV-1' ? 5 : incident.severity === 'SEV-2' ? 3 : 2
-  const performanceXp = Math.max(
-    0,
-    Math.round((choice.effect.stability + choice.effect.trust - choice.effect.chaos) / 8),
-  )
+  const performanceXp = Math.max(0, Math.round((choice.effect.stability + choice.effect.trust - choice.effect.chaos) / 8))
   careerLearningXp.value += baseXp + performanceXp
   localStorage.setItem(careerLearningXpStorageKey, String(careerLearningXp.value))
 }
+
 
 function updateDailyBestFromStorage(seed: string, gameMode: GameMode): void {
   const stored = Number(localStorage.getItem(dailyBestStorageKey(seed, gameMode)))
@@ -287,9 +284,7 @@ function updateDailyBestFromStorage(seed: string, gameMode: GameMode): void {
 }
 
 function updateDailyLeaderboardFromStorage(seed: string, gameMode: GameMode): void {
-  dailyLeaderboard.value = parseDailyLeaderboard(
-    localStorage.getItem(dailyLeaderboardStorageKey(seed, gameMode)),
-  )
+  dailyLeaderboard.value = parseDailyLeaderboard(localStorage.getItem(dailyLeaderboardStorageKey(seed, gameMode)))
 }
 
 function persistCurrentRunToDailyLeaderboard(): void {
@@ -310,10 +305,7 @@ function persistCurrentRunToDailyLeaderboard(): void {
   const sorted = upsertDailyLeaderboardEntry(dailyLeaderboard.value, entry, 5)
 
   dailyLeaderboard.value = sorted
-  localStorage.setItem(
-    dailyLeaderboardStorageKey(currentDailySeed.value, mode.value),
-    JSON.stringify(sorted),
-  )
+  localStorage.setItem(dailyLeaderboardStorageKey(currentDailySeed.value, mode.value), JSON.stringify(sorted))
   leaderboardPersisted.value = true
 }
 
@@ -382,8 +374,7 @@ function dismissRandomEvent(): void {
       action: 'Random Event',
       note: event.description,
       impact: 'Sự cố phụ',
-      deltaScore:
-        event.effect.stability + event.effect.trust + event.effect.energy - event.effect.chaos,
+      deltaScore: event.effect.stability + event.effect.trust + event.effect.energy - event.effect.chaos,
       chaosDelta: event.effect.chaos,
     },
     ...logs.value,
@@ -454,11 +445,7 @@ function applyChoice(choice: Choice): void {
   const comboBoost = streak.value >= 2 ? 3 : 0
   const stabilization = choice.effect.stability + choice.effect.trust
   const nextStreak = stabilization > 0 ? streak.value + 1 : 0
-  const decisionDelta =
-    choice.effect.stability +
-    choice.effect.trust +
-    choice.effect.energy -
-    (choice.effect.chaos + pressure)
+  const decisionDelta = choice.effect.stability + choice.effect.trust + choice.effect.energy - (choice.effect.chaos + pressure)
   const chaosDelta = choice.effect.chaos + pressure
 
   const next: Metrics = {
@@ -516,13 +503,12 @@ function scrollPageToTop(): void {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-function openPopupRoute(
-  mode: 'knowledge-blog' | 'animation-catalog' | 'share-card',
-): Window | null {
+function openPopupRoute(mode: 'knowledge-blog' | 'animation-catalog' | 'share-card'): Window | null {
   const popupUrl = new URL(window.location.href)
   popupUrl.searchParams.set('bugWarRoomPopup', mode)
   return window.open(popupUrl.toString(), '_blank')
 }
+
 
 function buildCurrentSharePayload(): SharePayload {
   return {
@@ -554,10 +540,7 @@ function persistResultHistoryEntry(payload: SharePayload, missionBonusFromPayloa
   localStorage.setItem(resultHistoryStorageKey, JSON.stringify(resultHistory.value))
 }
 
-async function exportSharePayload(
-  payload: SharePayload,
-  missionBonusFromPayload: number,
-): Promise<void> {
+async function exportSharePayload(payload: SharePayload, missionBonusFromPayload: number): Promise<void> {
   const message = buildShareText(payload, missionBonusFromPayload)
 
   try {
@@ -569,8 +552,7 @@ async function exportSharePayload(
       throw new Error('tab_blocked')
     }
 
-    const isLocal =
-      window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     shareResultNotice.value = isLocal
       ? `Đã mở share card. Link public sau approve: ${PUBLIC_SHARE_URL}`
       : 'Đã mở tab share card mới.'
@@ -623,9 +605,7 @@ async function copyHistoryEntryText(entry: ResultHistoryEntry): Promise<void> {
 }
 
 function clearAllRuntimeDataKeepHistory(): void {
-  const ok = window.confirm(
-    'Xóa toàn bộ dữ liệu chơi hiện tại và cài đặt? Lịch sử kết quả sẽ được giữ nguyên.',
-  )
+  const ok = window.confirm('Xóa toàn bộ dữ liệu chơi hiện tại và cài đặt? Lịch sử kết quả sẽ được giữ nguyên.')
   if (!ok) {
     return
   }
@@ -749,8 +729,7 @@ function hydrateAnimationCatalog(targetTab?: Window): void {
     popupSourceWindow: window,
     items: animationCatalogItems,
     onBlocked: () => {
-      shareResultNotice.value =
-        'Không mở được tab Animation Catalog. Hãy cho phép pop-up và thử lại.'
+      shareResultNotice.value = 'Không mở được tab Animation Catalog. Hãy cho phép pop-up và thử lại.'
     },
     onInitError: () => {
       shareResultNotice.value = 'Không thể khởi tạo tab Animation Catalog trên trình duyệt này.'
@@ -893,25 +872,22 @@ watch(resultHistoryCollapsed, (value) => {
   localStorage.setItem(resultHistoryCollapsedStorageKey, value ? '1' : '0')
 })
 
-watch(
-  () => metrics.value.chaos,
-  (newChaos) => {
-    if (newChaos >= 85 && lastChaosThreshold.value < 85) {
-      pushAlert('CHAOS ĐẠT 85+! Hệ thống đang MELTDOWN! Hành động ngay!', 'meltdown')
-      lastChaosThreshold.value = 85
-    } else if (newChaos >= 70 && lastChaosThreshold.value < 70) {
-      pushAlert('CẢNH BÁO: Chaos vượt 70! Nguy cơ mất kiểm soát.', 'critical')
-      lastChaosThreshold.value = 70
-    } else if (newChaos >= 50 && lastChaosThreshold.value < 50) {
-      pushAlert('Chaos đang tăng nhanh. Cân nhắc ưu tiên giảm chaos.', 'warning')
-      lastChaosThreshold.value = 50
-    }
+watch(() => metrics.value.chaos, (newChaos) => {
+  if (newChaos >= 85 && lastChaosThreshold.value < 85) {
+    pushAlert('CHAOS ĐẠT 85+! Hệ thống đang MELTDOWN! Hành động ngay!', 'meltdown')
+    lastChaosThreshold.value = 85
+  } else if (newChaos >= 70 && lastChaosThreshold.value < 70) {
+    pushAlert('CẢNH BÁO: Chaos vượt 70! Nguy cơ mất kiểm soát.', 'critical')
+    lastChaosThreshold.value = 70
+  } else if (newChaos >= 50 && lastChaosThreshold.value < 50) {
+    pushAlert('Chaos đang tăng nhanh. Cân nhắc ưu tiên giảm chaos.', 'warning')
+    lastChaosThreshold.value = 50
+  }
 
-    if (newChaos < 50 && lastChaosThreshold.value >= 50) {
-      lastChaosThreshold.value = 0
-    }
-  },
-)
+  if (newChaos < 50 && lastChaosThreshold.value >= 50) {
+    lastChaosThreshold.value = 0
+  }
+})
 
 onMounted(() => {
   const stored = Number(localStorage.getItem(bugWarRoomStorageKeys.bestScore))
@@ -1029,8 +1005,7 @@ onMounted(() => {
   if (popupMode === 'share-card') {
     const draftPayload = parseShareDraft(localStorage.getItem(shareDraftStorageKey))
     if (!draftPayload) {
-      window.document.body.innerHTML =
-        '<div style="font-family:Segoe UI,Tahoma,sans-serif;padding:20px;background:#0f1923;color:#f3f6fa;">Không tìm thấy dữ liệu share card. Hãy quay lại game và mở lại share card.</div>'
+      window.document.body.innerHTML = '<div style="font-family:Segoe UI,Tahoma,sans-serif;padding:20px;background:#0f1923;color:#f3f6fa;">Không tìm thấy dữ liệu share card. Hãy quay lại game và mở lại share card.</div>'
       return
     }
 
@@ -1038,15 +1013,12 @@ onMounted(() => {
     const messageFromDraft = buildShareText(draftPayload, missionBonusFromDraft)
 
     setTimeout(() => {
-      openShareCard(
-        {
-          payload: draftPayload,
-          message: messageFromDraft,
-          draftKey: shareDraftStorageKey,
-          draftAtKey: shareDraftAtStorageKey,
-        },
-        window,
-      )
+      openShareCard({
+        payload: draftPayload,
+        message: messageFromDraft,
+        draftKey: shareDraftStorageKey,
+        draftAtKey: shareDraftAtStorageKey,
+      }, window)
     }, 0)
     return
   }
@@ -1080,10 +1052,7 @@ resetGame()
 </script>
 
 <template>
-  <div
-    class="relative min-h-screen bg-bg-deep px-3 py-6 font-body text-text-primary sm:px-6 sm:py-10"
-    :class="{ 'chaos-atmosphere': metrics.chaos >= 70 }"
-  >
+  <div class="relative min-h-screen bg-bg-deep px-3 py-6 font-body text-text-primary sm:px-6 sm:py-10" :class="{ 'chaos-atmosphere': metrics.chaos >= 70 }">
     <a
       href="https://github.com/TranQui004"
       target="_blank"
@@ -1095,10 +1064,8 @@ resetGame()
         src="https://github.com/TranQui004.png?size=64"
         alt="TranQui004 GitHub Avatar"
         class="h-5 w-5 rounded-full border border-border-default"
-      />
-      <span class="hidden sm:inline"
-        >Made by <span class="text-accent-amber">TranQui004</span></span
       >
+      <span class="hidden sm:inline">Made by <span class="text-accent-amber">TranQui004</span></span>
     </a>
 
     <!-- Chaos Alerts Toast Stack -->
@@ -1111,8 +1078,7 @@ resetGame()
           :class="{
             'border-accent-amber bg-accent-amber/15 text-accent-amber': alert.level === 'warning',
             'border-accent-coral bg-accent-coral/15 text-accent-coral': alert.level === 'critical',
-            'border-accent-coral bg-accent-coral/25 text-accent-coral animate-pulse-fast':
-              alert.level === 'meltdown',
+            'border-accent-coral bg-accent-coral/25 text-accent-coral animate-pulse-fast': alert.level === 'meltdown',
           }"
         >
           <span v-if="alert.level === 'meltdown'" class="mr-1">🔥</span>
@@ -1125,40 +1091,24 @@ resetGame()
 
     <!-- Random Event Overlay -->
     <transition name="event-fade">
-      <div
-        v-if="showRandomEvent && activeRandomEvent"
-        class="fixed inset-0 z-40 flex items-center justify-center bg-bg-deep/80 backdrop-blur-sm"
-      >
-        <div
-          class="mx-4 w-full max-w-lg animate-fade-up border-2 border-accent-amber bg-bg-surface p-6 shadow-[0_0_40px_rgba(255,184,48,0.15)]"
-        >
+      <div v-if="showRandomEvent && activeRandomEvent" class="fixed inset-0 z-40 flex items-center justify-center bg-bg-deep/80 backdrop-blur-sm">
+        <div class="mx-4 w-full max-w-lg animate-fade-up border-2 border-accent-amber bg-bg-surface p-6 shadow-[0_0_40px_rgba(255,184,48,0.15)]">
           <div class="flex items-center gap-3">
             <span class="animate-pulse-fast text-2xl">⚡</span>
-            <p class="font-display text-xs tracking-[0.2em] text-accent-amber">
-              // RANDOM EVENT — SỰ CỐ PHỤ
-            </p>
+            <p class="font-display text-xs tracking-[0.2em] text-accent-amber">// RANDOM EVENT — SỰ CỐ PHỤ</p>
           </div>
-          <h3 class="mt-3 font-display text-2xl text-text-primary">
-            {{ activeRandomEvent.title }}
-          </h3>
-          <p
-            class="mt-2 inline-flex border px-2 py-1 text-xs tracking-widest"
-            :class="severityClass(activeRandomEvent.severity)"
-          >
+          <h3 class="mt-3 font-display text-2xl text-text-primary">{{ activeRandomEvent.title }}</h3>
+          <p class="mt-2 inline-flex border px-2 py-1 text-xs tracking-widest" :class="severityClass(activeRandomEvent.severity)">
             {{ activeRandomEvent.severity }}
           </p>
           <p class="mt-3 text-sm text-text-secondary">{{ activeRandomEvent.description }}</p>
           <div class="mt-4 border border-border-default bg-bg-deep p-3 text-xs text-text-dim">
             Tác động:
             <span class="ml-1 text-accent-coral">
-              S{{ activeRandomEvent.effect.stability >= 0 ? '+' : ''
-              }}{{ activeRandomEvent.effect.stability }} / T{{
-                activeRandomEvent.effect.trust >= 0 ? '+' : ''
-              }}{{ activeRandomEvent.effect.trust }} / E{{
-                activeRandomEvent.effect.energy >= 0 ? '+' : ''
-              }}{{ activeRandomEvent.effect.energy }} / C{{
-                activeRandomEvent.effect.chaos >= 0 ? '+' : ''
-              }}{{ activeRandomEvent.effect.chaos }}
+              S{{ activeRandomEvent.effect.stability >= 0 ? '+' : '' }}{{ activeRandomEvent.effect.stability }}
+              / T{{ activeRandomEvent.effect.trust >= 0 ? '+' : '' }}{{ activeRandomEvent.effect.trust }}
+              / E{{ activeRandomEvent.effect.energy >= 0 ? '+' : '' }}{{ activeRandomEvent.effect.energy }}
+              / C{{ activeRandomEvent.effect.chaos >= 0 ? '+' : '' }}{{ activeRandomEvent.effect.chaos }}
             </span>
           </div>
           <button
@@ -1174,24 +1124,15 @@ resetGame()
 
     <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <!-- Ticker -->
-      <div
-        v-if="!isMinimalFocus"
-        class="ticker-shell animate-fade-up border border-border-default bg-bg-surface text-xs tracking-wider text-text-secondary"
-      >
+      <div v-if="!isMinimalFocus" class="ticker-shell animate-fade-up border border-border-default bg-bg-surface text-xs tracking-wider text-text-secondary">
         <div class="ticker-track">
-          <span class="ticker-segment" v-for="segment in tickerItems" :key="segment">{{
-            segment
-          }}</span>
-          <span class="ticker-segment" v-for="segment in tickerItems" :key="segment + '-mirror'">{{
-            segment
-          }}</span>
+          <span class="ticker-segment" v-for="segment in tickerItems" :key="segment">{{ segment }}</span>
+          <span class="ticker-segment" v-for="segment in tickerItems" :key="segment + '-mirror'">{{ segment }}</span>
         </div>
       </div>
 
       <!-- Live Feed -->
-      <div
-        class="animate-fade-up border border-border-default bg-bg-surface p-3 text-xs tracking-wider text-text-secondary"
-      >
+      <div class="animate-fade-up border border-border-default bg-bg-surface p-3 text-xs tracking-wider text-text-secondary">
         <span class="text-accent-coral">// LIVE FEED</span>
         <span class="ml-2">{{ feedMessage }}</span>
       </div>
@@ -1207,22 +1148,18 @@ resetGame()
 
         <div class="relative z-10 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p class="font-display text-xs tracking-[0.2em] text-accent-coral">
-              // INCIDENT SIMULATOR
-            </p>
+            <p class="font-display text-xs tracking-[0.2em] text-accent-coral">// INCIDENT SIMULATOR</p>
             <h1 class="mt-2 font-display text-2xl font-bold sm:text-5xl">Bug War Room</h1>
             <p class="mt-3 max-w-2xl text-sm text-text-secondary sm:text-base">
-              Bạn là incident commander. Mỗi vòng là một sự cố production. Chọn chiến thuật đủ nhanh
-              để giữ ổn định hệ thống, niềm tin người dùng và năng lượng team.
+              Bạn là incident commander. Mỗi vòng là một sự cố production. Chọn chiến thuật đủ nhanh để giữ
+              ổn định hệ thống, niềm tin người dùng và năng lượng team.
             </p>
             <p class="mt-2 max-w-2xl text-xs text-text-dim sm:text-sm">
-              Luồng chơi: đọc incident - chọn 1 phương án - nhận tác động lên 4 chỉ số - qua vòng
-              mới. Nếu Chaos lên 100 hoặc hết thời gian thì chiến dịch thất thủ ngay.
+              Luồng chơi: đọc incident - chọn 1 phương án - nhận tác động lên 4 chỉ số - qua vòng mới.
+              Nếu Chaos lên 100 hoặc hết thời gian thì chiến dịch thất thủ ngay.
             </p>
           </div>
-          <div
-            class="border border-accent-amber bg-accent-amber/10 px-3 py-2 font-display text-xs tracking-widest text-accent-amber"
-          >
+          <div class="border border-accent-amber bg-accent-amber/10 px-3 py-2 font-display text-xs tracking-widest text-accent-amber">
             VOL.01 / WAR ROOM
           </div>
         </div>
@@ -1233,26 +1170,14 @@ resetGame()
               type="button"
               class="border px-3 py-2 text-xs font-display tracking-wider transition-colors"
               :disabled="!canChangeMode"
-              :class="
-                mode === 'normal'
-                  ? 'border-accent-amber bg-accent-amber/10 text-accent-amber'
-                  : 'border-border-default text-text-secondary hover:text-text-primary disabled:opacity-50'
-              "
-              @click="
-                mode = 'normal'
-                resetGame()
-              "
+              :class="mode === 'normal' ? 'border-accent-amber bg-accent-amber/10 text-accent-amber' : 'border-border-default text-text-secondary hover:text-text-primary disabled:opacity-50'"
+              @click="mode = 'normal'; resetGame()"
             >
               NORMAL
             </button>
             <span class="info-tip">
-              <button type="button" class="info-tip-button" aria-label="Giải thích Normal mode">
-                ?
-              </button>
-              <span class="info-tip-panel"
-                >Normal: nhịp chơi cân bằng hơn, thời gian và energy khởi điểm cao hơn để làm quen
-                chiến thuật.</span
-              >
+              <button type="button" class="info-tip-button" aria-label="Giải thích Normal mode">?</button>
+              <span class="info-tip-panel">Normal: nhịp chơi cân bằng hơn, thời gian và energy khởi điểm cao hơn để làm quen chiến thuật.</span>
             </span>
           </div>
 
@@ -1261,32 +1186,18 @@ resetGame()
               type="button"
               class="border px-3 py-2 text-xs font-display tracking-wider transition-colors"
               :disabled="!canChangeMode"
-              :class="
-                mode === 'hardcore'
-                  ? 'border-accent-coral bg-accent-coral/10 text-accent-coral'
-                  : 'border-border-default text-text-secondary hover:text-text-primary disabled:opacity-50'
-              "
-              @click="
-                mode = 'hardcore'
-                resetGame()
-              "
+              :class="mode === 'hardcore' ? 'border-accent-coral bg-accent-coral/10 text-accent-coral' : 'border-border-default text-text-secondary hover:text-text-primary disabled:opacity-50'"
+              @click="mode = 'hardcore'; resetGame()"
             >
               HARDCORE
             </button>
             <span class="info-tip">
-              <button type="button" class="info-tip-button" aria-label="Giải thích Hardcore mode">
-                ?
-              </button>
-              <span class="info-tip-panel"
-                >Hardcore: ít thời gian và energy hơn, chaos khởi điểm cao hơn. Phù hợp khi đã quen
-                game loop.</span
-              >
+              <button type="button" class="info-tip-button" aria-label="Giải thích Hardcore mode">?</button>
+              <span class="info-tip-panel">Hardcore: ít thời gian và energy hơn, chaos khởi điểm cao hơn. Phù hợp khi đã quen game loop.</span>
             </span>
           </div>
 
-          <div
-            class="border border-border-default bg-bg-deep px-3 py-2 text-xs tracking-wider text-text-secondary"
-          >
+          <div class="border border-border-default bg-bg-deep px-3 py-2 text-xs tracking-wider text-text-secondary">
             Clock: <span class="text-accent-sky">{{ formatClock(missionClockSeconds) }}</span>
           </div>
 
@@ -1295,59 +1206,34 @@ resetGame()
               type="button"
               class="border px-3 py-2 text-xs font-display tracking-wider transition-colors"
               :disabled="!canChangeMode"
-              :class="
-                dailySeedEnabled
-                  ? 'border-accent-sky bg-accent-sky/10 text-accent-sky'
-                  : 'border-border-default text-text-secondary hover:text-text-primary disabled:opacity-50'
-              "
-              @click="
-                dailySeedEnabled = !dailySeedEnabled
-                resetGame()
-              "
+              :class="dailySeedEnabled ? 'border-accent-sky bg-accent-sky/10 text-accent-sky' : 'border-border-default text-text-secondary hover:text-text-primary disabled:opacity-50'"
+              @click="dailySeedEnabled = !dailySeedEnabled; resetGame()"
             >
               DAILY SEED {{ dailySeedEnabled ? 'ON' : 'OFF' }}
             </button>
             <span class="info-tip">
-              <button type="button" class="info-tip-button" aria-label="Giải thích Daily Seed">
-                ?
-              </button>
-              <span class="info-tip-panel"
-                >Daily Seed ON: mọi người chơi cùng một bộ incident mỗi ngày để so leaderboard công
-                bằng. OFF: run ngẫu nhiên tự do.</span
-              >
+              <button type="button" class="info-tip-button" aria-label="Giải thích Daily Seed">?</button>
+              <span class="info-tip-panel">Daily Seed ON: mọi người chơi cùng một bộ incident mỗi ngày để so leaderboard công bằng. OFF: run ngẫu nhiên tự do.</span>
             </span>
           </div>
 
           <div class="setting-item">
-            <div
-              class="border border-border-default bg-bg-deep px-3 py-2 text-xs tracking-wider text-text-secondary"
-            >
+            <div class="border border-border-default bg-bg-deep px-3 py-2 text-xs tracking-wider text-text-secondary">
               Seed: <span class="text-accent-amber">{{ dailySeedLabel }}</span>
             </div>
             <span class="info-tip">
-              <button type="button" class="info-tip-button" aria-label="Giải thích Seed hiện tại">
-                ?
-              </button>
-              <span class="info-tip-panel"
-                >Mã seed của ngày hiện tại. Seed giống nhau sẽ tạo cùng thứ tự incident và random
-                event khi Daily Seed bật.</span
-              >
+              <button type="button" class="info-tip-button" aria-label="Giải thích Seed hiện tại">?</button>
+              <span class="info-tip-panel">Mã seed của ngày hiện tại. Seed giống nhau sẽ tạo cùng thứ tự incident và random event khi Daily Seed bật.</span>
             </span>
           </div>
 
           <div class="setting-item">
-            <div
-              class="border border-border-default bg-bg-deep px-3 py-2 text-xs tracking-wider text-text-secondary"
-            >
+            <div class="border border-border-default bg-bg-deep px-3 py-2 text-xs tracking-wider text-text-secondary">
               Daily Best: <span class="text-accent-amber">{{ dailyBestScore }}</span>
             </div>
             <span class="info-tip">
-              <button type="button" class="info-tip-button" aria-label="Giải thích Daily Best">
-                ?
-              </button>
-              <span class="info-tip-panel"
-                >Điểm campaign cao nhất của bạn trong ngày với mode hiện tại và seed hiện tại.</span
-              >
+              <button type="button" class="info-tip-button" aria-label="Giải thích Daily Best">?</button>
+              <span class="info-tip-panel">Điểm campaign cao nhất của bạn trong ngày với mode hiện tại và seed hiện tại.</span>
             </span>
           </div>
 
@@ -1355,11 +1241,7 @@ resetGame()
             <button
               type="button"
               class="border px-3 py-2 text-xs font-display tracking-wider transition-colors"
-              :class="
-                uiFocusMode === 'full'
-                  ? 'border-accent-sky bg-accent-sky/10 text-accent-sky'
-                  : 'border-border-default text-text-secondary hover:text-text-primary'
-              "
+              :class="uiFocusMode === 'full' ? 'border-accent-sky bg-accent-sky/10 text-accent-sky' : 'border-border-default text-text-secondary hover:text-text-primary'"
               @click="uiFocusMode = 'full'"
             >
               VIEW FULL
@@ -1367,23 +1249,14 @@ resetGame()
             <button
               type="button"
               class="border px-3 py-2 text-xs font-display tracking-wider transition-colors"
-              :class="
-                uiFocusMode === 'minimal'
-                  ? 'border-accent-amber bg-accent-amber/10 text-accent-amber'
-                  : 'border-border-default text-text-secondary hover:text-text-primary'
-              "
+              :class="uiFocusMode === 'minimal' ? 'border-accent-amber bg-accent-amber/10 text-accent-amber' : 'border-border-default text-text-secondary hover:text-text-primary'"
               @click="uiFocusMode = 'minimal'"
             >
               VIEW MINIMAL
             </button>
             <span class="info-tip">
-              <button type="button" class="info-tip-button" aria-label="Giải thích Focus View">
-                ?
-              </button>
-              <span class="info-tip-panel"
-                >Minimal sẽ thu gọn các panel phụ để tập trung vào chỉ số chính, incident hiện tại
-                và quyết định cần chọn.</span
-              >
+              <button type="button" class="info-tip-button" aria-label="Giải thích Focus View">?</button>
+              <span class="info-tip-panel">Minimal sẽ thu gọn các panel phụ để tập trung vào chỉ số chính, incident hiện tại và quyết định cần chọn.</span>
             </span>
           </div>
 
@@ -1391,23 +1264,14 @@ resetGame()
             <button
               type="button"
               class="border px-3 py-2 text-xs font-display tracking-wider transition-colors"
-              :class="
-                characterAnimationEnabled
-                  ? 'border-accent-coral bg-accent-coral/10 text-accent-coral'
-                  : 'border-border-default text-text-secondary hover:text-text-primary'
-              "
+              :class="characterAnimationEnabled ? 'border-accent-coral bg-accent-coral/10 text-accent-coral' : 'border-border-default text-text-secondary hover:text-text-primary'"
               @click="characterAnimationEnabled = !characterAnimationEnabled"
             >
               CHARACTER FX {{ characterAnimationEnabled ? 'ON' : 'OFF' }}
             </button>
             <span class="info-tip">
-              <button type="button" class="info-tip-button" aria-label="Giải thích Character FX">
-                ?
-              </button>
-              <span class="info-tip-panel"
-                >Character FX: bật/tắt animation của Slime để giảm nhiễu khi tập trung số liệu hoặc
-                cải thiện hiệu năng máy yếu.</span
-              >
+              <button type="button" class="info-tip-button" aria-label="Giải thích Character FX">?</button>
+              <span class="info-tip-panel">Character FX: bật/tắt animation của Slime để giảm nhiễu khi tập trung số liệu hoặc cải thiện hiệu năng máy yếu.</span>
             </span>
           </div>
         </div>
@@ -1418,63 +1282,35 @@ resetGame()
             <p class="text-xs tracking-widest text-text-dim">STABILITY</p>
             <p class="mt-1 font-display text-2xl text-accent-coral">{{ liveMetrics.stability }}</p>
             <div class="mt-2 h-1 bg-bg-elevated">
-              <div
-                class="h-1 bg-accent-coral transition-all duration-500"
-                :style="{ width: `${progress(liveMetrics.stability)}%` }"
-              />
+              <div class="h-1 bg-accent-coral transition-all duration-500" :style="{ width: `${progress(liveMetrics.stability)}%` }" />
             </div>
           </div>
           <div class="metric-card border border-border-default bg-bg-deep p-3">
             <p class="text-xs tracking-widest text-text-dim">TRUST</p>
             <p class="mt-1 font-display text-2xl text-accent-amber">{{ liveMetrics.trust }}</p>
             <div class="mt-2 h-1 bg-bg-elevated">
-              <div
-                class="h-1 bg-accent-amber transition-all duration-500"
-                :style="{ width: `${progress(liveMetrics.trust)}%` }"
-              />
+              <div class="h-1 bg-accent-amber transition-all duration-500" :style="{ width: `${progress(liveMetrics.trust)}%` }" />
             </div>
           </div>
           <div class="metric-card border border-border-default bg-bg-deep p-3">
             <p class="text-xs tracking-widest text-text-dim">TEAM ENERGY</p>
             <p class="mt-1 font-display text-2xl text-accent-sky">{{ liveMetrics.energy }}</p>
             <div class="mt-2 h-1 bg-bg-elevated">
-              <div
-                class="h-1 bg-accent-sky transition-all duration-500"
-                :style="{ width: `${progress(liveMetrics.energy)}%` }"
-              />
+              <div class="h-1 bg-accent-sky transition-all duration-500" :style="{ width: `${progress(liveMetrics.energy)}%` }" />
             </div>
           </div>
           <div class="metric-card border border-border-default bg-bg-deep p-3">
             <p class="text-xs tracking-widest text-text-dim">TIME LEFT</p>
             <p class="mt-1 font-display text-2xl text-text-primary">{{ metrics.timeLeft }}m</p>
           </div>
-          <div
-            class="metric-card col-span-2 border border-border-default bg-bg-deep p-3 sm:col-span-1"
-            :class="{ 'chaos-card-pulse': metrics.chaos >= 70 }"
-          >
+          <div class="metric-card col-span-2 border border-border-default bg-bg-deep p-3 sm:col-span-1" :class="{ 'chaos-card-pulse': metrics.chaos >= 70 }">
             <p class="text-xs tracking-widest text-text-dim">CHAOS</p>
-            <p
-              class="mt-1 font-display text-2xl"
-              :class="liveMetrics.chaos >= 70 ? 'text-accent-coral' : 'text-text-primary'"
-            >
-              {{ liveMetrics.chaos }}
-            </p>
-            <p
-              class="mt-1 text-xs"
-              :class="
-                metrics.chaos >= 85
-                  ? 'text-accent-coral font-bold animate-pulse-fast'
-                  : 'text-text-secondary'
-              "
-            >
-              {{ warState }}
-            </p>
+            <p class="mt-1 font-display text-2xl" :class="liveMetrics.chaos >= 70 ? 'text-accent-coral' : 'text-text-primary'">{{ liveMetrics.chaos }}</p>
+            <p class="mt-1 text-xs" :class="metrics.chaos >= 85 ? 'text-accent-coral font-bold animate-pulse-fast' : 'text-text-secondary'">{{ warState }}</p>
           </div>
         </div>
 
-        <div
-          class="priority-strip relative z-10 mt-4 border border-accent-coral/45 bg-bg-deep/85 p-3 sm:p-4"
-        >
+        <div class="priority-strip relative z-10 mt-4 border border-accent-coral/45 bg-bg-deep/85 p-3 sm:p-4">
           <p class="text-[11px] tracking-[0.14em] text-accent-coral">// PRIORITY BRIEF</p>
           <p class="mt-1 text-sm text-text-primary sm:text-base">{{ priorityHeadline }}</p>
           <p
@@ -1488,9 +1324,7 @@ resetGame()
       </header>
 
       <!-- Guide + Docs Section -->
-      <section
-        class="animate-fade-up animate-delay-1 border border-border-default bg-bg-surface p-5 sm:p-6"
-      >
+      <section class="animate-fade-up animate-delay-1 border border-border-default bg-bg-surface p-5 sm:p-6">
         <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
           <h2 class="flex items-center gap-3 font-display text-xl font-semibold sm:text-2xl">
             <span class="font-display text-sm tracking-widest text-accent-sky">//</span>
@@ -1499,19 +1333,11 @@ resetGame()
           <button
             type="button"
             class="border border-border-default bg-bg-deep px-3 py-1.5 text-[11px] tracking-wider"
-            :class="
-              isMinimalFocus ? 'cursor-not-allowed text-text-dim opacity-70' : 'text-text-secondary'
-            "
+            :class="isMinimalFocus ? 'cursor-not-allowed text-text-dim opacity-70' : 'text-text-secondary'"
             :disabled="isMinimalFocus"
             @click="docsCollapsed = !docsCollapsed"
           >
-            {{
-              isMinimalFocus
-                ? 'MINIMAL MODE: GIỮ CHẾ ĐỘ QUICK GUIDE'
-                : docsCollapsed
-                  ? 'MỞ TOÀN BỘ DOCS'
-                  : 'THU GỌN CHỈ CÒN HƯỚNG DẪN NHANH'
-            }}
+            {{ isMinimalFocus ? 'MINIMAL MODE: GIỮ CHẾ ĐỘ QUICK GUIDE' : (docsCollapsed ? 'MỞ TOÀN BỘ DOCS' : 'THU GỌN CHỈ CÒN HƯỚNG DẪN NHANH') }}
           </button>
         </div>
 
@@ -1519,10 +1345,8 @@ resetGame()
           <div class="border border-border-default bg-bg-deep p-4">
             <p class="font-display text-sm text-accent-coral">1. Mục tiêu</p>
             <p class="mt-2 text-sm text-text-secondary">
-              Giữ <span class="text-text-primary">Stability</span>,
-              <span class="text-text-primary">Trust</span>,
-              <span class="text-text-primary">Energy</span> cao và đẩy
-              <span class="text-text-primary">Chaos</span> thấp.
+              Giữ <span class="text-text-primary">Stability</span>, <span class="text-text-primary">Trust</span>,
+              <span class="text-text-primary">Energy</span> cao và đẩy <span class="text-text-primary">Chaos</span> thấp.
             </p>
           </div>
           <div class="border border-border-default bg-bg-deep p-4">
@@ -1545,126 +1369,72 @@ resetGame()
           </div>
         </div>
 
-        <div
-          class="mt-4 border border-accent-sky/40 bg-accent-sky/10 p-3 text-sm text-text-secondary"
-        >
+        <div class="mt-4 border border-accent-sky/40 bg-accent-sky/10 p-3 text-sm text-text-secondary">
           Mặc định hiển thị phần hướng dẫn nhanh. Bấm nút ở trên để mở toàn bộ docs chi tiết.
         </div>
 
         <div class="collapsible-mobile mt-4" :class="{ 'collapsed-mobile': docsCollapsed }">
           <div class="grid gap-3 lg:grid-cols-2">
-            <div
-              class="docs-card border border-border-default bg-bg-deep p-4 text-sm text-text-secondary"
-            >
+            <div class="docs-card border border-border-default bg-bg-deep p-4 text-sm text-text-secondary">
               <p class="font-display text-sm text-accent-coral">Chỉ số cốt lõi</p>
-              <p class="mt-2">
-                <span class="text-text-primary">Stability</span>: mức ổn định kỹ thuật của hệ thống.
-              </p>
-              <p class="mt-1">
-                <span class="text-text-primary">Trust</span>: niềm tin người dùng/doanh nghiệp.
-              </p>
-              <p class="mt-1">
-                <span class="text-text-primary">Energy</span>: sức bền của team xử lý sự cố.
-              </p>
-              <p class="mt-1">
-                <span class="text-text-primary">Chaos</span>: độ hỗn loạn tổng thể, càng thấp càng
-                tốt.
-              </p>
-              <p class="mt-1">
-                <span class="text-text-primary">Time Left</span>: thời gian còn lại của chiến dịch.
-              </p>
+              <p class="mt-2"><span class="text-text-primary">Stability</span>: mức ổn định kỹ thuật của hệ thống.</p>
+              <p class="mt-1"><span class="text-text-primary">Trust</span>: niềm tin người dùng/doanh nghiệp.</p>
+              <p class="mt-1"><span class="text-text-primary">Energy</span>: sức bền của team xử lý sự cố.</p>
+              <p class="mt-1"><span class="text-text-primary">Chaos</span>: độ hỗn loạn tổng thể, càng thấp càng tốt.</p>
+              <p class="mt-1"><span class="text-text-primary">Time Left</span>: thời gian còn lại của chiến dịch.</p>
             </div>
 
-            <div
-              class="docs-card border border-border-default bg-bg-deep p-4 text-sm text-text-secondary"
-            >
+            <div class="docs-card border border-border-default bg-bg-deep p-4 text-sm text-text-secondary">
               <p class="font-display text-sm text-accent-amber">Điều kiện thắng/thua</p>
-              <p class="mt-2">
-                Thua ngay nếu <span class="text-text-primary">Chaos = 100</span> hoặc
-                <span class="text-text-primary">Time Left = 0</span>.
-              </p>
+              <p class="mt-2">Thua ngay nếu <span class="text-text-primary">Chaos = 100</span> hoặc <span class="text-text-primary">Time Left = 0</span>.</p>
               <p class="mt-1">Vượt qua đủ số vòng sẽ vào màn tổng kết chiến dịch.</p>
               <p class="mt-1">Điểm cao khi giữ Stability/Trust/Energy tốt và Chaos thấp.</p>
             </div>
           </div>
 
           <div class="mt-3 grid gap-3 lg:grid-cols-2">
-            <div
-              class="docs-card border border-border-default bg-bg-deep p-4 text-sm text-text-secondary"
-            >
+            <div class="docs-card border border-border-default bg-bg-deep p-4 text-sm text-text-secondary">
               <p class="font-display text-sm text-accent-sky">Công thức điểm</p>
-              <p class="mt-2">
-                Base Score =
-                <span class="text-accent-amber"
-                  >(Stability + Trust + Energy + (100 - Chaos)) / 4</span
-                >
-              </p>
-              <p class="mt-1">
-                Campaign Score =
-                <span class="text-accent-amber">Base Score + Contract Bonus</span> (tối đa 100).
-              </p>
+              <p class="mt-2">Base Score = <span class="text-accent-amber">(Stability + Trust + Energy + (100 - Chaos)) / 4</span></p>
+              <p class="mt-1">Campaign Score = <span class="text-accent-amber">Base Score + Contract Bonus</span> (tối đa 100).</p>
             </div>
-            <div
-              class="docs-card border border-border-default bg-bg-deep p-4 text-sm text-text-secondary"
-            >
+            <div class="docs-card border border-border-default bg-bg-deep p-4 text-sm text-text-secondary">
               <p class="font-display text-sm text-accent-coral">Thông số nâng cao</p>
-              <p class="mt-2">
-                <span class="text-text-primary">Pressure Index</span>: tổng hợp từ Chaos, Stability
-                và Energy để phản ánh mức căng thẳng.
-              </p>
-              <p class="mt-1">
-                <span class="text-text-primary">Operation Phase</span>: phase vận hành đổi theo
-                ngưỡng chaos và tiến độ vòng.
-              </p>
-              <p class="mt-1">
-                <span class="text-text-primary">Random Event</span>: sự cố phụ có xác suất theo mode
-                và trọng số event.
-              </p>
+              <p class="mt-2"><span class="text-text-primary">Pressure Index</span>: tổng hợp từ Chaos, Stability và Energy để phản ánh mức căng thẳng.</p>
+              <p class="mt-1"><span class="text-text-primary">Operation Phase</span>: phase vận hành đổi theo ngưỡng chaos và tiến độ vòng.</p>
+              <p class="mt-1"><span class="text-text-primary">Random Event</span>: sự cố phụ có xác suất theo mode và trọng số event.</p>
             </div>
           </div>
 
-          <div
-            class="docs-card mt-3 border border-border-default bg-bg-deep p-4 text-sm text-text-secondary"
-          >
+          <div class="docs-card mt-3 border border-border-default bg-bg-deep p-4 text-sm text-text-secondary">
             <p class="font-display text-sm text-accent-amber">Mẹo nhanh</p>
-            <p class="mt-2">
-              Nếu Chaos vượt 70: ưu tiên giảm Chaos trước, kể cả phải hy sinh điểm ngắn hạn.
-            </p>
-            <p class="mt-1">
-              Nếu Energy xuống thấp: chọn phương án an toàn vận hành để tránh domino incident.
-            </p>
+            <p class="mt-2">Nếu Chaos vượt 70: ưu tiên giảm Chaos trước, kể cả phải hy sinh điểm ngắn hạn.</p>
+            <p class="mt-1">Nếu Energy xuống thấp: chọn phương án an toàn vận hành để tránh domino incident.</p>
             <p class="mt-1">Contract Bonus nhỏ nhưng rất hữu ích khi bạn đang sát mốc rank.</p>
           </div>
 
-          <div
-            class="docs-card mt-3 border border-accent-coral/50 bg-accent-coral/10 p-4 text-sm text-text-secondary"
-          >
+          <div class="docs-card mt-3 border border-accent-coral/50 bg-accent-coral/10 p-4 text-sm text-text-secondary">
             <p class="font-display text-sm text-accent-coral">Disclaimer - AI-generated Content</p>
             <p class="mt-2">
-              Nội dung lesson, gợi ý chiến lược và phân tích trong trang này được sinh bởi AI để
-              phục vụ mô phỏng học tập. Thông tin có thể không đầy đủ hoặc không phù hợp mọi ngữ
-              cảnh production thực tế.
+              Nội dung lesson, gợi ý chiến lược và phân tích trong trang này được sinh bởi AI để phục vụ mô phỏng học tập.
+              Thông tin có thể không đầy đủ hoặc không phù hợp mọi ngữ cảnh production thực tế.
             </p>
             <p class="mt-1">
-              Vui lòng <span class="text-text-primary">double-check</span> với tài liệu chính thức,
-              runbook nội bộ, và ý kiến chuyên gia trước khi áp dụng vào hệ thống thật.
+              Vui lòng <span class="text-text-primary">double-check</span> với tài liệu chính thức, runbook nội bộ,
+              và ý kiến chuyên gia trước khi áp dụng vào hệ thống thật.
             </p>
           </div>
         </div>
       </section>
 
-      <div
-        class="animate-fade-up animate-delay-2 flex flex-wrap items-center justify-between gap-2 border border-border-default bg-bg-surface p-3"
-      >
+      <div class="animate-fade-up animate-delay-2 flex flex-wrap items-center justify-between gap-2 border border-border-default bg-bg-surface p-3">
         <p class="font-display text-xs tracking-[0.14em] text-accent-sky">// TACTICAL PANELS</p>
         <button
           type="button"
           class="border border-border-default bg-bg-deep px-3 py-1.5 text-[11px] tracking-wider text-text-secondary"
           @click="tacticalPanelCollapsed = !tacticalPanelCollapsed"
         >
-          {{
-            tacticalPanelCollapsed ? 'MỞ PHÂN TÍCH CHIẾN THUẬT' : 'THU GỌN PHÂN TÍCH CHIẾN THUẬT'
-          }}
+          {{ tacticalPanelCollapsed ? 'MỞ PHÂN TÍCH CHIẾN THUẬT' : 'THU GỌN PHÂN TÍCH CHIẾN THUẬT' }}
         </button>
       </div>
 
@@ -1675,43 +1445,28 @@ resetGame()
         <div class="border border-border-default bg-bg-surface p-4">
           <p class="font-display text-xs tracking-[0.16em] text-accent-coral">// COMMAND PHASE</p>
           <p class="mt-2 font-display text-2xl text-text-primary">{{ operationPhase }}</p>
-          <p class="mt-2 text-sm text-text-secondary">
-            Phase hiện tại thay đổi theo chaos và tiến độ chiến dịch.
-          </p>
+          <p class="mt-2 text-sm text-text-secondary">Phase hiện tại thay đổi theo chaos và tiến độ chiến dịch.</p>
         </div>
         <div class="border border-border-default bg-bg-surface p-4">
           <p class="font-display text-xs tracking-[0.16em] text-accent-amber">// PRESSURE INDEX</p>
           <p class="mt-2 font-display text-2xl text-accent-amber">{{ pressureIndex }}</p>
           <div class="mt-2 h-1 bg-bg-elevated">
-            <div
-              class="h-1 bg-accent-amber transition-all duration-500"
-              :style="{ width: `${pressureIndex}%` }"
-            />
+            <div class="h-1 bg-accent-amber transition-all duration-500" :style="{ width: `${pressureIndex}%` }" />
           </div>
-          <p class="mt-2 text-sm text-text-secondary">
-            Chỉ số tổng hợp từ chaos, stability và năng lượng team.
-          </p>
+          <p class="mt-2 text-sm text-text-secondary">Chỉ số tổng hợp từ chaos, stability và năng lượng team.</p>
         </div>
         <div class="border border-border-default bg-bg-surface p-4">
           <p class="font-display text-xs tracking-[0.16em] text-accent-sky">// FRONTLINES</p>
           <div class="mt-2 space-y-1 text-sm">
-            <p
-              v-for="front in frontlineStatus"
-              :key="front.name"
-              class="flex items-center justify-between gap-2 text-text-secondary"
-            >
+            <p v-for="front in frontlineStatus" :key="front.name" class="flex items-center justify-between gap-2 text-text-secondary">
               <span>{{ front.name }}</span>
-              <span class="font-display text-xs tracking-wider" :class="front.tone">{{
-                front.status
-              }}</span>
+              <span class="font-display text-xs tracking-wider" :class="front.tone">{{ front.status }}</span>
             </p>
           </div>
         </div>
       </section>
 
-      <section
-        class="section-learning animate-fade-up animate-delay-2 border border-border-default bg-bg-surface p-4 sm:p-6"
-      >
+      <section class="section-learning animate-fade-up animate-delay-2 border border-border-default bg-bg-surface p-4 sm:p-6">
         <h2 class="mb-4 flex items-center gap-3 font-display text-xl font-semibold sm:text-2xl">
           <span class="font-display text-sm tracking-widest text-accent-amber">//</span>
           Learning Progress
@@ -1732,31 +1487,19 @@ resetGame()
               <div class="border border-border-default bg-bg-deep p-4">
                 <p class="text-xs tracking-widest text-text-dim">CAREER LEARNING XP</p>
                 <p class="mt-1 font-display text-3xl text-accent-amber">{{ careerLearningXp }}</p>
-                <p class="mt-2 text-xs text-text-secondary">
-                  Level {{ currentLearningLevel }} - Next at {{ nextLearningLevelXp }} XP
-                </p>
+                <p class="mt-2 text-xs text-text-secondary">Level {{ currentLearningLevel }} - Next at {{ nextLearningLevelXp }} XP</p>
                 <div class="mt-2 h-1 bg-bg-elevated">
-                  <div
-                    class="h-1 bg-accent-amber transition-all duration-500"
-                    :style="{ width: `${learningLevelProgress}%` }"
-                  />
+                  <div class="h-1 bg-accent-amber transition-all duration-500" :style="{ width: `${learningLevelProgress}%` }" />
                 </div>
               </div>
 
               <div class="learning-coach border border-accent-sky/35 bg-bg-deep p-4">
                 <div class="learning-coach-visual">
-                  <img
-                    :src="slimeTeachingSvg"
-                    alt="Slime Teaching Coach"
-                    class="learning-teach-svg"
-                  />
+                  <img :src="slimeTeachingSvg" alt="Slime Teaching Coach" class="learning-teach-svg">
                 </div>
-                <p class="mt-2 text-xs tracking-widest text-accent-sky">
-                  SLIME COACH / KNOWLEDGE MODE
-                </p>
+                <p class="mt-2 text-xs tracking-widest text-accent-sky">SLIME COACH / KNOWLEDGE MODE</p>
                 <p class="mt-1 text-xs text-text-secondary">
-                  Tổng hợp chiến thuật và bài học theo dữ liệu trận hiện tại. Mở tab blog để đọc chi
-                  tiết như mini playbook.
+                  Tổng hợp chiến thuật và bài học theo dữ liệu trận hiện tại. Mở tab blog để đọc chi tiết như mini playbook.
                 </p>
                 <button
                   type="button"
@@ -1772,27 +1515,19 @@ resetGame()
               <div class="grid gap-2 sm:grid-cols-2">
                 <div class="border border-border-default bg-bg-deep p-3">
                   <p class="text-[10px] tracking-widest text-text-dim">MASTERY SCORE</p>
-                  <p class="mt-1 font-display text-2xl text-accent-amber">
-                    {{ learningMasteryScore }}
-                  </p>
+                  <p class="mt-1 font-display text-2xl text-accent-amber">{{ learningMasteryScore }}</p>
                 </div>
                 <div class="border border-border-default bg-bg-deep p-3">
                   <p class="text-[10px] tracking-widest text-text-dim">LESSONS / 7 DAYS</p>
-                  <p class="mt-1 font-display text-2xl text-accent-sky">
-                    {{ learningRecent7dCount }}
-                  </p>
+                  <p class="mt-1 font-display text-2xl text-accent-sky">{{ learningRecent7dCount }}</p>
                 </div>
                 <div class="border border-border-default bg-bg-deep p-3">
                   <p class="text-[10px] tracking-widest text-text-dim">SEV-1 LESSONS</p>
-                  <p class="mt-1 font-display text-2xl text-accent-coral">
-                    {{ learningBySeverity['SEV-1'] }}
-                  </p>
+                  <p class="mt-1 font-display text-2xl text-accent-coral">{{ learningBySeverity['SEV-1'] }}</p>
                 </div>
                 <div class="border border-border-default bg-bg-deep p-3">
                   <p class="text-[10px] tracking-widest text-text-dim">TOTAL LESSONS</p>
-                  <p class="mt-1 font-display text-2xl text-text-primary">
-                    {{ learningJournal.length }}
-                  </p>
+                  <p class="mt-1 font-display text-2xl text-text-primary">{{ learningJournal.length }}</p>
                 </div>
               </div>
 
@@ -1811,11 +1546,7 @@ resetGame()
                   <button
                     type="button"
                     class="border px-2 py-1 text-[10px] tracking-wider"
-                    :class="
-                      learningSeverityFilter === 'all'
-                        ? 'border-accent-amber text-accent-amber bg-accent-amber/10'
-                        : 'border-border-default text-text-dim'
-                    "
+                    :class="learningSeverityFilter === 'all' ? 'border-accent-amber text-accent-amber bg-accent-amber/10' : 'border-border-default text-text-dim'"
                     @click="learningSeverityFilter = 'all'"
                   >
                     ALL
@@ -1823,11 +1554,7 @@ resetGame()
                   <button
                     type="button"
                     class="border px-2 py-1 text-[10px] tracking-wider"
-                    :class="
-                      learningSeverityFilter === 'SEV-1'
-                        ? 'border-accent-coral text-accent-coral bg-accent-coral/10'
-                        : 'border-border-default text-text-dim'
-                    "
+                    :class="learningSeverityFilter === 'SEV-1' ? 'border-accent-coral text-accent-coral bg-accent-coral/10' : 'border-border-default text-text-dim'"
                     @click="learningSeverityFilter = 'SEV-1'"
                   >
                     SEV-1
@@ -1835,11 +1562,7 @@ resetGame()
                   <button
                     type="button"
                     class="border px-2 py-1 text-[10px] tracking-wider"
-                    :class="
-                      learningSeverityFilter === 'SEV-2'
-                        ? 'border-accent-amber text-accent-amber bg-accent-amber/10'
-                        : 'border-border-default text-text-dim'
-                    "
+                    :class="learningSeverityFilter === 'SEV-2' ? 'border-accent-amber text-accent-amber bg-accent-amber/10' : 'border-border-default text-text-dim'"
                     @click="learningSeverityFilter = 'SEV-2'"
                   >
                     SEV-2
@@ -1847,11 +1570,7 @@ resetGame()
                   <button
                     type="button"
                     class="border px-2 py-1 text-[10px] tracking-wider"
-                    :class="
-                      learningSeverityFilter === 'SEV-3'
-                        ? 'border-accent-sky text-accent-sky bg-accent-sky/10'
-                        : 'border-border-default text-text-dim'
-                    "
+                    :class="learningSeverityFilter === 'SEV-3' ? 'border-accent-sky text-accent-sky bg-accent-sky/10' : 'border-border-default text-text-dim'"
                     @click="learningSeverityFilter = 'SEV-3'"
                   >
                     SEV-3
@@ -1860,15 +1579,9 @@ resetGame()
               </div>
 
               <div class="mt-2 flex flex-wrap gap-2 text-[10px] tracking-wider text-text-dim">
-                <span class="border border-border-default px-2 py-1"
-                  >SEV-1 {{ learningBySeverity['SEV-1'] }}</span
-                >
-                <span class="border border-border-default px-2 py-1"
-                  >SEV-2 {{ learningBySeverity['SEV-2'] }}</span
-                >
-                <span class="border border-border-default px-2 py-1"
-                  >SEV-3 {{ learningBySeverity['SEV-3'] }}</span
-                >
+                <span class="border border-border-default px-2 py-1">SEV-1 {{ learningBySeverity['SEV-1'] }}</span>
+                <span class="border border-border-default px-2 py-1">SEV-2 {{ learningBySeverity['SEV-2'] }}</span>
+                <span class="border border-border-default px-2 py-1">SEV-3 {{ learningBySeverity['SEV-3'] }}</span>
               </div>
 
               <div v-if="filteredLearningJournal.length > 0" class="mt-3 space-y-2">
@@ -1878,23 +1591,17 @@ resetGame()
                   class="border border-border-default bg-bg-surface px-3 py-2"
                 >
                   <p class="text-xs text-accent-amber">{{ entry.severity }} • {{ entry.note }}</p>
-                  <p class="mt-1 text-[11px] text-text-dim">
-                    {{ entry.title }} • {{ entry.createdAt }}
-                  </p>
+                  <p class="mt-1 text-[11px] text-text-dim">{{ entry.title }} • {{ entry.createdAt }}</p>
                   <p class="mt-1 text-xs text-text-secondary">{{ entry.lesson }}</p>
                 </div>
               </div>
-              <p v-else class="mt-2 text-xs text-text-dim">
-                Không có lesson cho bộ lọc hiện tại. Thử chuyển filter hoặc chơi thêm vòng.
-              </p>
+              <p v-else class="mt-2 text-xs text-text-dim">Không có lesson cho bộ lọc hiện tại. Thử chuyển filter hoặc chơi thêm vòng.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section
-        class="section-mission animate-fade-up animate-delay-3 border border-border-default bg-bg-surface p-5 sm:p-6"
-      >
+      <section class="section-mission animate-fade-up animate-delay-3 border border-border-default bg-bg-surface p-5 sm:p-6">
         <h2 class="mb-4 flex items-center gap-3 font-display text-xl font-semibold sm:text-2xl">
           <span class="font-display text-sm tracking-widest text-accent-amber">//</span>
           Mission Contract
@@ -1907,10 +1614,7 @@ resetGame()
               class="flex items-center justify-between border border-border-default bg-bg-deep px-3 py-2 text-sm"
             >
               <span class="text-text-secondary">{{ item.label }}</span>
-              <span
-                class="font-display text-xs tracking-wider"
-                :class="item.done ? 'text-accent-amber' : 'text-text-dim'"
-              >
+              <span class="font-display text-xs tracking-wider" :class="item.done ? 'text-accent-amber' : 'text-text-dim'">
                 {{ item.done ? `+${item.bonus}` : '+0' }}
               </span>
             </div>
@@ -1918,9 +1622,7 @@ resetGame()
           <div class="border border-border-default bg-bg-deep p-4">
             <p class="text-xs tracking-widest text-text-dim">CONTRACT BONUS</p>
             <p class="mt-1 font-display text-3xl text-accent-amber">+{{ missionBonus }}</p>
-            <p class="mt-2 text-xs text-text-secondary">
-              Campaign score = Base score + Contract bonus
-            </p>
+            <p class="mt-2 text-xs text-text-secondary">Campaign score = Base score + Contract bonus</p>
           </div>
         </div>
       </section>
@@ -1953,10 +1655,7 @@ resetGame()
           </div>
 
           <div class="mb-5 border border-border-default bg-bg-deep p-4">
-            <p
-              class="inline-flex border px-2 py-1 text-xs tracking-widest"
-              :class="severityClass(currentIncident.severity)"
-            >
+            <p class="inline-flex border px-2 py-1 text-xs tracking-widest" :class="severityClass(currentIncident.severity)">
               {{ currentIncident.severity }}
             </p>
             <h3 class="mt-1 font-display text-2xl">{{ currentIncident.title }}</h3>
@@ -1976,20 +1675,16 @@ resetGame()
               <p class="mt-2 text-xs text-text-dim">
                 Tác động:
                 <span class="ml-1 text-text-primary">
-                  S{{ choice.effect.stability >= 0 ? '+' : '' }}{{ choice.effect.stability }} / T{{
-                    choice.effect.trust >= 0 ? '+' : ''
-                  }}{{ choice.effect.trust }} / E{{ choice.effect.energy >= 0 ? '+' : ''
-                  }}{{ choice.effect.energy }} / C{{ choice.effect.chaos >= 0 ? '+' : ''
-                  }}{{ choice.effect.chaos }}
+                  S{{ choice.effect.stability >= 0 ? '+' : '' }}{{ choice.effect.stability }}
+                  / T{{ choice.effect.trust >= 0 ? '+' : '' }}{{ choice.effect.trust }}
+                  / E{{ choice.effect.energy >= 0 ? '+' : '' }}{{ choice.effect.energy }}
+                  / C{{ choice.effect.chaos >= 0 ? '+' : '' }}{{ choice.effect.chaos }}
                 </span>
               </p>
             </button>
           </div>
 
-          <div
-            v-if="showRandomEvent"
-            class="mt-4 border border-accent-amber/40 bg-accent-amber/5 p-4 text-sm text-accent-amber"
-          >
+          <div v-if="showRandomEvent" class="mt-4 border border-accent-amber/40 bg-accent-amber/5 p-4 text-sm text-accent-amber">
             ⚡ Sự cố phụ đang chờ xử lý — xem overlay phía trên.
           </div>
         </article>
@@ -2004,37 +1699,27 @@ resetGame()
             Kết quả chiến dịch
           </h2>
           <p class="mt-4 text-sm text-text-secondary">Campaign score</p>
-          <p class="mt-1 font-display text-4xl sm:text-5xl" :class="scoreTone">
-            {{ campaignScore }}
-          </p>
+          <p class="mt-1 font-display text-4xl sm:text-5xl" :class="scoreTone">{{ campaignScore }}</p>
           <p class="mt-2 text-xs text-text-dim">Base {{ score }} + Bonus {{ missionBonus }}</p>
           <div class="mt-2 flex flex-wrap gap-2">
-            <p
-              class="inline-flex border border-accent-sky bg-accent-sky/10 px-2 py-1 font-display text-xs tracking-widest text-accent-sky"
-            >
+            <p class="inline-flex border border-accent-sky bg-accent-sky/10 px-2 py-1 font-display text-xs tracking-widest text-accent-sky">
               {{ campaignRank }}
             </p>
-            <p
-              class="inline-flex border border-accent-amber bg-accent-amber/10 px-2 py-1 font-display text-xs tracking-widest text-accent-amber"
-            >
+            <p class="inline-flex border border-accent-amber bg-accent-amber/10 px-2 py-1 font-display text-xs tracking-widest text-accent-amber">
               DAILY SEED {{ dailySeedLabel }}
             </p>
           </div>
           <p class="mt-4 text-sm text-text-primary">{{ verdict }}</p>
           <div class="mt-4 border border-border-default bg-bg-deep p-3 text-xs text-text-secondary">
-            Chaos kết thúc: <span class="text-text-primary">{{ metrics.chaos }}</span> | Thời gian
-            còn lại: <span class="text-text-primary">{{ metrics.timeLeft }}m</span> | Streak cuối:
-            <span class="text-text-primary">x{{ streak }}</span> | Best score:
-            <span class="text-accent-amber">{{ bestScore }}</span> | Daily best:
-            <span class="text-accent-sky">{{ dailyBestScore }}</span>
+            Chaos kết thúc: <span class="text-text-primary">{{ metrics.chaos }}</span>
+            | Thời gian còn lại: <span class="text-text-primary">{{ metrics.timeLeft }}m</span>
+            | Streak cuối: <span class="text-text-primary">x{{ streak }}</span>
+            | Best score: <span class="text-accent-amber">{{ bestScore }}</span>
+            | Daily best: <span class="text-accent-sky">{{ dailyBestScore }}</span>
           </div>
 
-          <div
-            class="mt-4 flex flex-wrap items-center justify-between gap-2 border border-border-default bg-bg-deep px-3 py-2"
-          >
-            <p class="font-display text-xs tracking-widest text-accent-sky">
-              // POSTMORTEM CHI TIẾT
-            </p>
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-2 border border-border-default bg-bg-deep px-3 py-2">
+            <p class="font-display text-xs tracking-widest text-accent-sky">// POSTMORTEM CHI TIẾT</p>
             <button
               type="button"
               class="border border-border-default bg-bg-surface px-3 py-1.5 text-[11px] tracking-wider text-text-secondary"
@@ -2044,42 +1729,25 @@ resetGame()
             </button>
           </div>
 
-          <div
-            class="collapsible-mobile mt-3 border border-border-default bg-bg-deep p-4 text-sm text-text-secondary"
-            :class="{ 'collapsed-mobile': postmortemCollapsed }"
-          >
+          <div class="collapsible-mobile mt-3 border border-border-default bg-bg-deep p-4 text-sm text-text-secondary" :class="{ 'collapsed-mobile': postmortemCollapsed }">
             <div class="grid gap-3 md:grid-cols-2">
               <div class="border border-border-default bg-bg-surface p-3">
                 <p class="text-xs tracking-widest text-text-dim">BEST DECISION</p>
-                <p class="mt-1 text-text-primary">
-                  {{ bestDecision?.action || 'Chưa có dữ liệu' }}
-                </p>
+                <p class="mt-1 text-text-primary">{{ bestDecision?.action || 'Chưa có dữ liệu' }}</p>
                 <p class="mt-1 text-xs text-text-dim">{{ bestDecision?.incident || '-' }}</p>
-                <p class="mt-2 text-xs text-accent-amber">
-                  Impact delta: {{ bestDecision?.deltaScore ?? '-' }} (weighted:
-                  {{ bestDecision?.weightedDelta ?? '-' }})
-                </p>
+                <p class="mt-2 text-xs text-accent-amber">Impact delta: {{ bestDecision?.deltaScore ?? '-' }} (weighted: {{ bestDecision?.weightedDelta ?? '-' }})</p>
               </div>
               <div class="border border-border-default bg-bg-surface p-3">
                 <p class="text-xs tracking-widest text-text-dim">RISKIEST DECISION</p>
-                <p class="mt-1 text-text-primary">
-                  {{ riskiestDecision?.action || 'Chưa có dữ liệu' }}
-                </p>
+                <p class="mt-1 text-text-primary">{{ riskiestDecision?.action || 'Chưa có dữ liệu' }}</p>
                 <p class="mt-1 text-xs text-text-dim">{{ riskiestDecision?.incident || '-' }}</p>
-                <p class="mt-2 text-xs text-accent-coral">
-                  Impact delta: {{ riskiestDecision?.deltaScore ?? '-' }} (weighted:
-                  {{ riskiestDecision?.weightedDelta ?? '-' }})
-                </p>
+                <p class="mt-2 text-xs text-accent-coral">Impact delta: {{ riskiestDecision?.deltaScore ?? '-' }} (weighted: {{ riskiestDecision?.weightedDelta ?? '-' }})</p>
               </div>
             </div>
 
             <div class="mt-3 border border-border-default bg-bg-surface p-3">
               <p class="text-xs tracking-widest text-text-dim">ACTION ITEMS</p>
-              <p
-                v-for="item in postmortemActions"
-                :key="item"
-                class="mt-2 text-xs text-text-secondary"
-              >
+              <p v-for="item in postmortemActions" :key="item" class="mt-2 text-xs text-text-secondary">
                 - {{ item }}
               </p>
             </div>
@@ -2092,12 +1760,8 @@ resetGame()
                   :key="entry.id"
                   class="flex flex-wrap items-center gap-2 border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary sm:flex-nowrap sm:justify-between"
                 >
-                  <span class="break-all text-text-primary"
-                    >#{{ index + 1 }} {{ entry.player }}</span
-                  >
-                  <span class="w-full text-text-dim sm:w-auto sm:text-text-secondary"
-                    >Score {{ entry.score }} | {{ entry.rank }} | Chaos {{ entry.chaos }}</span
-                  >
+                  <span class="break-all text-text-primary">#{{ index + 1 }} {{ entry.player }}</span>
+                  <span class="w-full text-text-dim sm:w-auto sm:text-text-secondary">Score {{ entry.score }} | {{ entry.rank }} | Chaos {{ entry.chaos }}</span>
                 </p>
               </div>
               <p v-else class="mt-2 text-xs text-text-dim">Chưa có dữ liệu cho seed hôm nay.</p>
@@ -2106,21 +1770,10 @@ resetGame()
 
           <div class="mt-4 border border-border-default bg-bg-deep p-3">
             <div class="flex items-center gap-1.5">
-              <label class="text-[11px] tracking-widest text-text-dim"
-                >TÊN CỦA BẠN TRƯỚC KHI SHARE</label
-              >
+              <label class="text-[11px] tracking-widest text-text-dim">TÊN CỦA BẠN TRƯỚC KHI SHARE</label>
               <span class="info-tip">
-                <button
-                  type="button"
-                  class="info-tip-button"
-                  aria-label="Giải thích tên trước khi share"
-                >
-                  ?
-                </button>
-                <span class="info-tip-panel"
-                  >Tên này sẽ xuất hiện trên share card, leaderboard và file PNG khi bạn export kết
-                  quả.</span
-                >
+                <button type="button" class="info-tip-button" aria-label="Giải thích tên trước khi share">?</button>
+                <span class="info-tip-panel">Tên này sẽ xuất hiện trên share card, leaderboard và file PNG khi bạn export kết quả.</span>
               </span>
             </div>
             <input
@@ -2129,7 +1782,7 @@ resetGame()
               maxlength="40"
               placeholder="Ví dụ: TranQui004"
               class="mt-2 w-full border border-border-default bg-bg-surface px-3 py-2 text-sm text-text-primary outline-none placeholder:text-text-dim focus:border-accent-amber"
-            />
+            >
           </div>
           <div class="mt-6 flex flex-wrap gap-2">
             <button
@@ -2153,15 +1806,11 @@ resetGame()
             </button>
           </div>
 
-          <p v-if="shareResultNotice" class="mt-3 text-xs text-accent-amber">
-            {{ shareResultNotice }}
-          </p>
+          <p v-if="shareResultNotice" class="mt-3 text-xs text-accent-amber">{{ shareResultNotice }}</p>
         </article>
 
         <!-- Right: Slime Operator + Log -->
-        <aside
-          class="animate-fade-up animate-delay-3 border border-border-default bg-bg-surface p-6 sm:p-8"
-        >
+        <aside class="animate-fade-up animate-delay-3 border border-border-default bg-bg-surface p-6 sm:p-8">
           <h2 class="mb-4 flex items-center gap-3 font-display text-xl font-semibold sm:text-2xl">
             <span class="font-display text-sm tracking-widest text-accent-amber">//</span>
             Slime Operator
@@ -2182,28 +1831,23 @@ resetGame()
                   :src="currentSlimeAsset"
                   :alt="`Bug War Room Slime - ${currentSlimeMoodLabel}`"
                   class="slime-layer slime-layer-visible"
-                />
+                >
               </div>
             </div>
             <div class="slime-preload" aria-hidden="true">
-              <img v-for="asset in slimeOverlayAssets" :key="asset" :src="asset" alt="" />
+              <img v-for="asset in slimeOverlayAssets" :key="asset" :src="asset" alt="">
             </div>
           </div>
 
           <div class="mt-3 border border-border-default bg-bg-deep p-3">
             <p class="text-xs tracking-widest text-text-dim">CURRENT ANIMATION</p>
-            <p class="mt-1 font-display text-sm text-accent-amber sm:text-base">
-              {{ currentSlimeMoodLabel }}
-            </p>
+            <p class="mt-1 font-display text-sm text-accent-amber sm:text-base">{{ currentSlimeMoodLabel }}</p>
             <p class="mt-1 text-xs text-text-secondary sm:text-sm">
               Trạng thái slime phản ánh chaos, energy và action gần nhất trong trận hiện tại.
             </p>
-            <p class="mt-2 text-xs text-text-dim">
-              Character FX: {{ characterAnimationEnabled ? 'ON' : 'OFF' }}
-            </p>
+            <p class="mt-2 text-xs text-text-dim">Character FX: {{ characterAnimationEnabled ? 'ON' : 'OFF' }}</p>
             <p class="mt-1 text-[11px] text-accent-sky">
-              Click reaction note: sau mỗi lần click vào Slime Operator, nên chờ khoảng
-              {{ clickReactionWaitSeconds }} giây để animation hiển thị trọn vẹn.
+              Click reaction note: sau mỗi lần click vào Slime Operator, nên chờ khoảng {{ clickReactionWaitSeconds }} giây để animation hiển thị trọn vẹn.
             </p>
             <p class="mt-1 text-[11px] text-text-dim">
               Animation Credits: Bộ Slime animated SVG được thiết kế bởi
@@ -2232,14 +1876,8 @@ resetGame()
             </button>
           </div>
 
-          <div
-            class="collapsible-mobile mt-3"
-            :class="{ 'collapsed-mobile': actionLogCollapsedMobile }"
-          >
-            <div
-              class="action-log-scroll max-h-80 space-y-3 overflow-y-auto"
-              v-if="logs.length > 0"
-            >
+          <div class="collapsible-mobile mt-3" :class="{ 'collapsed-mobile': actionLogCollapsedMobile }">
+            <div class="action-log-scroll max-h-80 space-y-3 overflow-y-auto" v-if="logs.length > 0">
               <div
                 v-for="(entry, index) in logs"
                 :key="entry.incident + index.toString()"
@@ -2247,10 +1885,7 @@ resetGame()
               >
                 <div class="flex items-center justify-between gap-2">
                   <p class="text-xs tracking-widest text-text-dim">{{ entry.incident }}</p>
-                  <span
-                    class="border px-2 py-0.5 text-[10px] tracking-widest"
-                    :class="severityClass(entry.severity)"
-                  >
+                  <span class="border px-2 py-0.5 text-[10px] tracking-widest" :class="severityClass(entry.severity)">
                     {{ entry.severity }}
                   </span>
                 </div>
@@ -2268,72 +1903,37 @@ resetGame()
       </section>
 
       <!-- Footer -->
-      <footer
-        class="animate-fade-up animate-delay-4 flex flex-wrap items-center justify-between gap-4 border border-border-default bg-bg-surface p-4 sm:p-5"
-      >
+      <footer class="animate-fade-up animate-delay-4 flex flex-wrap items-center justify-between gap-4 border border-border-default bg-bg-surface p-4 sm:p-5">
         <p class="text-xs text-text-secondary sm:text-sm">
-          Tip: Khi chaos vượt 70, ưu tiên giảm chaos ngay cả khi mất trust ngắn hạn. Cẩn thận random
-          event!
+          Tip: Khi chaos vượt 70, ưu tiên giảm chaos ngay cả khi mất trust ngắn hạn. Cẩn thận random event!
         </p>
         <p class="w-full text-[11px] text-text-dim sm:w-auto sm:max-w-xl">
-          Disclaimer: Nội dung học tập/khuyến nghị trên trang được AI tạo tự động, chỉ mang tính
-          tham khảo. Luôn xác minh lại bằng nguồn đáng tin cậy trước khi áp dụng thực tế.
+          Disclaimer: Nội dung học tập/khuyến nghị trên trang được AI tạo tự động, chỉ mang tính tham khảo.
+          Luôn xác minh lại bằng nguồn đáng tin cậy trước khi áp dụng thực tế.
         </p>
-        <div
-          class="w-full border border-border-default bg-bg-deep p-3 text-[11px] text-text-secondary sm:max-w-3xl"
-        >
-          <p class="font-display tracking-[0.08em] text-accent-sky">
-            // BÁO LỖI HOẶC ĐÓNG GÓP KHI ĐANG CHƠI
-          </p>
+        <div class="w-full border border-border-default bg-bg-deep p-3 text-[11px] text-text-secondary sm:max-w-3xl">
+          <p class="font-display tracking-[0.08em] text-accent-sky">// BÁO LỖI HOẶC ĐÓNG GÓP KHI ĐANG CHƠI</p>
           <p class="mt-1">Nếu phát hiện lỗi hoặc muốn đề xuất cải tiến, dùng các đường dẫn sau:</p>
           <p class="mt-1">
             Bug report:
-            <a
-              :href="repoIssueBugUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-accent-sky underline underline-offset-2"
-              >{{ repoIssueBugUrl }}</a
-            >
+            <a :href="repoIssueBugUrl" target="_blank" rel="noopener noreferrer" class="text-accent-sky underline underline-offset-2">{{ repoIssueBugUrl }}</a>
           </p>
           <p class="mt-1">
             Feature request:
-            <a
-              :href="repoIssueFeatureUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-accent-sky underline underline-offset-2"
-              >{{ repoIssueFeatureUrl }}</a
-            >
+            <a :href="repoIssueFeatureUrl" target="_blank" rel="noopener noreferrer" class="text-accent-sky underline underline-offset-2">{{ repoIssueFeatureUrl }}</a>
           </p>
           <p class="mt-1">
             Fork để commit/PR:
-            <a
-              :href="repoForkUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-accent-amber underline underline-offset-2"
-              >{{ repoForkUrl }}</a
-            >
+            <a :href="repoForkUrl" target="_blank" rel="noopener noreferrer" class="text-accent-amber underline underline-offset-2">{{ repoForkUrl }}</a>
           </p>
           <p class="mt-1">
             Hướng dẫn đóng góp:
-            <a
-              :href="repoContributingUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-accent-amber underline underline-offset-2"
-              >{{ repoContributingUrl }}</a
-            >
+            <a :href="repoContributingUrl" target="_blank" rel="noopener noreferrer" class="text-accent-amber underline underline-offset-2">{{ repoContributingUrl }}</a>
           </p>
         </div>
-        <div
-          class="w-full border border-border-default bg-bg-deep p-3 text-[11px] text-text-secondary sm:max-w-3xl"
-        >
+        <div class="w-full border border-border-default bg-bg-deep p-3 text-[11px] text-text-secondary sm:max-w-3xl">
           <p class="font-display tracking-[0.08em] text-accent-coral">// DATA CONTROLS</p>
-          <p class="mt-1">
-            Dọn toàn bộ dữ liệu chơi/cài đặt để bắt đầu mới, nhưng vẫn giữ lịch sử kết quả.
-          </p>
+          <p class="mt-1">Dọn toàn bộ dữ liệu chơi/cài đặt để bắt đầu mới, nhưng vẫn giữ lịch sử kết quả.</p>
           <div class="mt-2 flex flex-wrap gap-2">
             <button
               type="button"
@@ -2355,9 +1955,7 @@ resetGame()
         </RouterLink>
       </footer>
 
-      <section
-        class="animate-fade-up animate-delay-4 border border-border-default bg-bg-surface p-4 sm:p-5"
-      >
+      <section class="animate-fade-up animate-delay-4 border border-border-default bg-bg-surface p-4 sm:p-5">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <h2 class="flex items-center gap-3 font-display text-lg font-semibold sm:text-xl">
             <span class="font-display text-xs tracking-widest text-accent-amber">//</span>
@@ -2382,19 +1980,10 @@ resetGame()
           </div>
         </div>
 
-        <p class="mt-2 text-xs text-text-dim">
-          Lịch sử lưu kết quả campaign trước đây để bạn xem lại và export lại share card bất cứ lúc
-          nào.
-        </p>
+        <p class="mt-2 text-xs text-text-dim">Lịch sử lưu kết quả campaign trước đây để bạn xem lại và export lại share card bất cứ lúc nào.</p>
 
-        <div
-          class="collapsible-mobile mt-3"
-          :class="{ 'collapsed-mobile': resultHistoryCollapsed }"
-        >
-          <div
-            v-if="resultHistory.length === 0"
-            class="border border-dashed border-border-default bg-bg-deep p-3 text-xs text-text-dim"
-          >
+        <div class="collapsible-mobile mt-3" :class="{ 'collapsed-mobile': resultHistoryCollapsed }">
+          <div v-if="resultHistory.length === 0" class="border border-dashed border-border-default bg-bg-deep p-3 text-xs text-text-dim">
             Chưa có lịch sử kết quả. Hoàn thành một campaign để hệ thống tự lưu vào đây.
           </div>
 
@@ -2413,13 +2002,10 @@ resetGame()
                 </p>
               </div>
               <p class="mt-1 text-sm text-text-primary">
-                {{ entry.payload.player }} - {{ entry.payload.rank }} - Score
-                {{ entry.payload.campaignScore }}
+                {{ entry.payload.player }} - {{ entry.payload.rank }} - Score {{ entry.payload.campaignScore }}
               </p>
               <p class="mt-1 text-xs text-text-dim">
-                Base {{ entry.payload.rawScore }} + Bonus {{ entry.missionBonus }} | Chaos
-                {{ entry.payload.chaos }} | Time {{ entry.payload.timeLeft }}m |
-                {{ entry.payload.rounds }}
+                Base {{ entry.payload.rawScore }} + Bonus {{ entry.missionBonus }} | Chaos {{ entry.payload.chaos }} | Time {{ entry.payload.timeLeft }}m | {{ entry.payload.rounds }}
               </p>
               <p class="mt-1 text-xs text-text-secondary">{{ entry.payload.verdict }}</p>
 
@@ -2662,9 +2248,7 @@ resetGame()
   pointer-events: none;
   opacity: 0;
   z-index: 35;
-  transition:
-    opacity 0.16s ease,
-    transform 0.16s ease;
+  transition: opacity 0.16s ease, transform 0.16s ease;
 }
 
 .info-tip:hover .info-tip-panel,
@@ -2702,9 +2286,7 @@ resetGame()
 
 .collapsible-mobile {
   overflow: hidden;
-  transition:
-    max-height 0.28s ease,
-    opacity 0.28s ease;
+  transition: max-height 0.28s ease, opacity 0.28s ease;
   max-height: 2200px;
   opacity: 1;
 }
@@ -2741,11 +2323,7 @@ resetGame()
 
 /* ---- Chaos atmosphere ---- */
 .chaos-atmosphere {
-  background-image: radial-gradient(
-    ellipse at 50% 0%,
-    rgba(255, 107, 74, 0.04) 0%,
-    transparent 60%
-  );
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(255, 107, 74, 0.04) 0%, transparent 60%);
 }
 
 /* ---- Alert toast transitions ---- */
@@ -2787,24 +2365,13 @@ resetGame()
 
 /* ---- Keyframes ---- */
 @keyframes ticker-slide {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 @keyframes chaos-pulse {
-  0%,
-  100% {
-    box-shadow: inset 0 0 0 1px rgba(255, 107, 74, 0.2);
-  }
-  50% {
-    box-shadow:
-      inset 0 0 0 2px rgba(255, 107, 74, 0.5),
-      0 0 16px rgba(255, 107, 74, 0.15);
-  }
+  0%, 100% { box-shadow: inset 0 0 0 1px rgba(255, 107, 74, 0.2); }
+  50% { box-shadow: inset 0 0 0 2px rgba(255, 107, 74, 0.5), 0 0 16px rgba(255, 107, 74, 0.15); }
 }
 
 .animate-pulse-fast {
@@ -2812,13 +2379,8 @@ resetGame()
 }
 
 @keyframes pulse-fast {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 @media (max-width: 640px) {

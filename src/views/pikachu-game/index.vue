@@ -93,10 +93,7 @@ const {
           </p>
         </div>
         <div class="h-2 w-full border border-border-default bg-bg-deep">
-          <div
-            class="h-full bg-accent-coral transition-all duration-300"
-            :style="{ width: `${timeProgress}%` }"
-          />
+          <div class="h-full bg-accent-coral transition-all duration-300" :style="{ width: `${timeProgress}%` }" />
         </div>
       </header>
 
@@ -105,9 +102,7 @@ const {
         class="animate-fade-up border px-3 py-2 text-center text-xs sm:hidden"
         :class="surfaceClass"
       >
-        <p class="font-display tracking-wide text-accent-amber">
-          • Xoay ngang điện thoại để có trải nghiệm tốt nhất
-        </p>
+        <p class="font-display tracking-wide text-accent-amber">• Xoay ngang điện thoại để có trải nghiệm tốt nhất</p>
       </div>
 
       <section class="grid gap-4 lg:grid-cols-[210px_1fr_280px] lg:items-start">
@@ -161,18 +156,11 @@ const {
         />
       </section>
 
-      <RouterLink
-        to="/"
-        class="mx-auto inline-flex w-full max-w-[220px] items-center justify-center border px-2.5 py-1.5 text-xs transition hover:border-accent-amber"
-        :class="panelInnerClass"
-      >
+      <RouterLink to="/" class="mx-auto inline-flex w-full max-w-[220px] items-center justify-center border px-2.5 py-1.5 text-xs transition hover:border-accent-amber" :class="panelInnerClass">
         ← Về trang chủ
       </RouterLink>
 
-      <footer
-        class="animate-fade-up animate-delay-3 border px-3 py-2 text-center text-xs sm:text-sm"
-        :class="surfaceClass"
-      >
+      <footer class="animate-fade-up animate-delay-3 border px-3 py-2 text-center text-xs sm:text-sm" :class="surfaceClass">
         <p class="font-display text-accent-amber">// {{ pageMeta.name }}</p>
         <p class="mt-1" :class="textMutedClass">{{ pageMeta.description }}</p>
         <p class="mt-1 text-[11px]" :class="textMutedClass">Tác giả: {{ pageMeta.author }}</p>
