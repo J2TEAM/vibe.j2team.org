@@ -1,6 +1,18 @@
 import type { DailyOracleInfo } from './types'
 
-export const LUCKY_NUMBERS = [3, 7, 21, 42, 64, 88, 101, 108, 256, 404, 500]
+export const LUCKY_NUMBERS = [
+    8080,
+    3000,
+    3306,
+    400,
+    401,
+    403,
+    404,
+    419,
+    429,
+    500,
+    503
+];
 
 export const DEITIES = [
     'Anh Shipper chăm chỉ',
@@ -47,7 +59,7 @@ function hashString(input: string): number {
 }
 
 function pickByDate<T>(items: readonly T[], date: Date, salt: string): T {
-    const key = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}-${salt}-${date.getHours()}`
+    const key = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}-${salt}-${date.getMinutes()}`
     const index = hashString(key) % items.length
     return items[index]!
 }
@@ -108,19 +120,13 @@ export const SHOULD_NOT_DO = [
  * Return guidance for a hexagram identified by id or binary string.
  * Uses deterministic hashing so the mapping is stable per-hexagram.
  */
-export function getHexagramGuidance(identifier: string | number) {
-    const key = typeof identifier === 'number' ? String(identifier) : identifier
-    const base = hashString(key)
-
-    const auspIndex = base % AUSPICIOUS_HOURS.length
-    const inauspIndex = (base + 3) % INAUSPICIOUS_HOURS.length
-    const doIndex = (base + 7) % SHOULD_DO.length
-    const dontIndex = (base + 11) % SHOULD_NOT_DO.length
+export function getHexagramGuidance() {
+    const date = new Date();
 
     return {
-        auspicious: AUSPICIOUS_HOURS[auspIndex],
-        inauspicious: INAUSPICIOUS_HOURS[inauspIndex],
-        shouldDo: SHOULD_DO[doIndex],
-        shouldNotDo: SHOULD_NOT_DO[dontIndex],
+        auspicious: pickByDate(AUSPICIOUS_HOURS, date, 'auspicious-hour'),
+        inauspicious: pickByDate(INAUSPICIOUS_HOURS, date, 'inauspicious-hour'),
+        shouldDo: pickByDate(SHOULD_DO, date, 'should-do'),
+        shouldNotDo: pickByDate(SHOULD_NOT_DO, date, 'should-not-do'),
     }
 }

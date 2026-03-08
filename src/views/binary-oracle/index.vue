@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import { RouterLink } from 'vue-router'
 import batquaiImg from './batquai.png'
 
@@ -12,6 +12,7 @@ const TOTAL_LINES = 6
 const isCasting = ref(false)
 const lines = ref<number[]>([])
 const currentHexagram = ref<Hexagram | null>(null)
+const resultRef = ref<HTMLElement | null>(null)
 const revealTick = ref(0)
 // per-coin spinning state and last coin results for current throw
 const coinSpinning = ref<boolean[]>([false, false, false])
@@ -20,7 +21,7 @@ const coinResults = ref<Array<number | null>>([null, null, null])
 const dailyInfo = getDailyOracleInfo()
 const guidance = computed(() => {
   if (!currentHexagram.value) return null
-  return getHexagramGuidance(currentHexagram.value.id)
+  return getHexagramGuidance()
 })
 const displayBinary = computed(() => {
   const padded = Array.from({ length: TOTAL_LINES }, (_, index) => {
@@ -78,8 +79,8 @@ async function castOracle() {
     // For each of the 3 coins: show gif 1s then reveal result
       for (let coinIndex = 0; coinIndex < 3; coinIndex += 1) {
         coinSpinning.value[coinIndex] = true
-        // show icon spin for 0.5s
-        await sleep(500)
+        // show icon spin for 1s
+        await sleep(1000)
         coinSpinning.value[coinIndex] = false
 
         // determine coin result (0 = Âm, 1 = Dương)
@@ -100,6 +101,11 @@ async function castOracle() {
   const binary = lines.value.join('')
   currentHexagram.value = findHexagramByBinary(binary)
   isCasting.value = false
+
+  await nextTick()
+  if (resultRef.value) {
+    resultRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 }
 </script>
 
@@ -187,11 +193,8 @@ async function castOracle() {
             >
               <p class="font-display text-xs tracking-widest text-accent-sky">COIN {{ index + 1 }}</p>
               <div class="mt-2">
-                  <div v-if="coinSpinning[index]" class="mx-auto w-12 h-12 flex items-center justify-center">
-                    <!-- simple coin icon with rotate animation when spinning -->
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center shadow-lg">
-                      <div class="w-6 h-6 rounded-full border-4 border-t-transparent border-white animate-spin" aria-hidden="true"></div>
-                    </div>
+                  <div v-if="coinSpinning[index]" class="mx-auto flex items-center justify-center">
+                    <span class="typing font-mono text-sm text-text-primary">Gieo hào...</span>
                   </div>
                   <p v-else class="text-sm text-text-primary">{{ face }}</p>
                 </div>
@@ -210,6 +213,7 @@ async function castOracle() {
 
       <section
         v-if="currentHexagram"
+        ref="resultRef"
         class="mt-5 border border-border-default bg-bg-surface p-6 sm:p-8 animate-fade-up animate-delay-4"
       >
         <div class="flex flex-wrap items-start justify-between gap-3">
@@ -257,3 +261,18 @@ async function castOracle() {
     </div>
   </div>
 </template>
+
+<style scoped>
+.typing{
+  display:inline-block;
+  overflow:hidden;
+  white-space:nowrap;
+  width:0;
+  border-right: .12em solid rgba(255,255,255,0.0);
+  animation: typing 1s steps(15,end) forwards;
+}
+@keyframes typing{
+  from{ width: 0; }
+  to{ width: 100%; }
+}
+</style>
