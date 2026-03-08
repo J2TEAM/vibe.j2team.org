@@ -8,7 +8,8 @@ import { RouterLink } from 'vue-router'
 
 type PieceType = 'K' | 'A' | 'E' | 'H' | 'R' | 'C' | 'P'
 type PieceColor = 'red' | 'black'
-type GameMode = 'menu' | 'local' | 'online-setup' | 'online-play' | 'spectator'
+type GameMode = 'menu' | 'local' | 'ai' | 'online-setup' | 'online-play' | 'spectator'
+type AiDifficulty = 'medium'
 type Turn = 'red' | 'black'
 type ConnectionState = 'idle' | 'creating-offer' | 'waiting-answer' | 'joining' | 'connected'
 
@@ -178,6 +179,127 @@ function isCheckmate(board: Board, color: PieceColor): boolean {
   for (let r = 0; r < 10; r++) for (let c = 0; c < 9; c++)
     if (board[r]![c]?.color === color && getLegalMoves(board, r, c).length > 0) return false
   return true
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AI ENGINE — Minimax with Alpha-Beta Pruning
+// ═══════════════════════════════════════════════════════════════════════════
+
+const PIECE_VALUE: Record<PieceType, number> = { K: 10000, A: 20, E: 25, H: 45, R: 90, C: 45, P: 10 }
+
+// Position bonuses (simplified for medium difficulty)
+const CENTER_BONUS = [
+  [0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],
+  [0,0,0,1,1,1,0,0,0],[0,0,1,2,2,2,1,0,0],[0,0,1,2,2,2,1,0,0],
+  [0,0,0,1,1,1,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0],
+]
+
+function evaluateBoard(b: Board, forColor: PieceColor): number {
+  let score = 0
+  const enemy = forColor === 'red' ? 'black' : 'red'
+  for (let r = 0; r < 10; r++) for (let c = 0; c < 9; c++) {
+    const p = b[r]?.[c]
+    if (!p) continue
+    const base = PIECE_VALUE[p.type]! + (CENTER_BONUS[r]?.[c] ?? 0)
+    // Pawn bonus after crossing river
+    let bonus = 0
+    if (p.type === 'P') {
+      const crossed = p.color === 'red' ? r <= 4 : r >= 5
+      if (crossed) bonus += 15
+    }
+    // Rook on open column
+    if (p.type === 'R') bonus += 5
+    // Horse in center
+    if (p.type === 'H' && c >= 2 && c <= 6 && r >= 2 && r <= 7) bonus += 5
+    if (p.color === forColor) score += base + bonus
+    else score -= base + bonus
+  }
+  // Check bonus
+  if (isInCheck(b, enemy)) score += 30
+  if (isInCheck(b, forColor)) score -= 30
+  return score
+}
+
+function getAllMoves(b: Board, color: PieceColor): { fr: number; fc: number; tr: number; tc: number }[] {
+  const moves: { fr: number; fc: number; tr: number; tc: number }[] = []
+  for (let r = 0; r < 10; r++) for (let c = 0; c < 9; c++) {
+    if (b[r]?.[c]?.color === color) {
+      for (const [tr, tc] of getLegalMoves(b, r, c))
+        moves.push({ fr: r, fc: c, tr, tc })
+    }
+  }
+  return moves
+}
+
+function minimax(b: Board, depth: number, alpha: number, beta: number, maximizing: boolean, aiColor: PieceColor): number {
+  const enemy = aiColor === 'red' ? 'black' : 'red'
+  const currentColor = maximizing ? aiColor : enemy
+
+  if (depth === 0) return evaluateBoard(b, aiColor)
+  if (isCheckmate(b, currentColor)) return maximizing ? -99999 + (3 - depth) : 99999 - (3 - depth)
+
+  const moves = getAllMoves(b, currentColor)
+  if (moves.length === 0) return maximizing ? -99999 : 99999
+
+  // Move ordering: captures first for better pruning
+  moves.sort((a, x) => {
+    const aCap = b[a.tr]?.[a.tc] ? 1 : 0
+    const xCap = b[x.tr]?.[x.tc] ? 1 : 0
+    return xCap - aCap
+  })
+
+  if (maximizing) {
+    let best = -Infinity
+    for (const m of moves) {
+      const nb = cloneBoard(b)
+      nb[m.tr]![m.tc] = nb[m.fr]![m.fc]; nb[m.fr]![m.fc] = null
+      const val = minimax(nb, depth - 1, alpha, beta, false, aiColor)
+      best = Math.max(best, val); alpha = Math.max(alpha, val)
+      if (beta <= alpha) break
+    }
+    return best
+  } else {
+    let best = Infinity
+    for (const m of moves) {
+      const nb = cloneBoard(b)
+      nb[m.tr]![m.tc] = nb[m.fr]![m.fc]; nb[m.fr]![m.fc] = null
+      const val = minimax(nb, depth - 1, alpha, beta, true, aiColor)
+      best = Math.min(best, val); beta = Math.min(beta, val)
+      if (beta <= alpha) break
+    }
+    return best
+  }
+}
+
+function findBestMove(b: Board, aiColor: PieceColor): { fr: number; fc: number; tr: number; tc: number } | null {
+  const moves = getAllMoves(b, aiColor)
+  if (moves.length === 0) return null
+  let bestScore = -Infinity
+  let bestMove = moves[0]!
+  const depth = 3 // medium difficulty
+
+  for (const m of moves) {
+    const nb = cloneBoard(b)
+    nb[m.tr]![m.tc] = nb[m.fr]![m.fc]; nb[m.fr]![m.fc] = null
+    const score = minimax(nb, depth - 1, -Infinity, Infinity, false, aiColor)
+    if (score > bestScore) { bestScore = score; bestMove = m }
+  }
+  return bestMove
+}
+
+const aiThinking = ref(false)
+const aiColor = ref<PieceColor>('black')
+
+function triggerAiMove() {
+  if (gameOver.value || turn.value !== aiColor.value) return
+  aiThinking.value = true
+  // Use setTimeout to avoid blocking UI
+  setTimeout(() => {
+    const best = findBestMove(board.value, aiColor.value)
+    if (best) makeMove(best.fr, best.fc, best.tr, best.tc)
+    aiThinking.value = false
+  }, 300)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -537,11 +659,12 @@ function resetGame() {
 }
 
 function handleCanvasClick(e: MouseEvent | TouchEvent) {
-  if (gameOver.value) return
+  if (gameOver.value || aiThinking.value) return
   if (gameMode.value === 'spectator') return
 
-  // Online: only move on your turn
+  // Online/AI: only move on your turn
   if (gameMode.value === 'online-play' && turn.value !== myColor.value) return
+  if (gameMode.value === 'ai' && turn.value === aiColor.value) return
 
   const ev = 'touches' in e ? e.touches[0]! : e
   const pos = canvasToBoard(ev.clientX, ev.clientY)
@@ -593,6 +716,11 @@ function makeMove(fr: number, fc: number, tr: number, tc: number) {
     winner.value = turn.value === 'red' ? 'black' : 'red'
   }
   nextTick(drawBoard)
+
+  // Trigger AI move if it's AI's turn
+  if (gameMode.value === 'ai' && turn.value === aiColor.value && !gameOver.value) {
+    nextTick(triggerAiMove)
+  }
 }
 
 function handleRemoteMove(from: [number, number], to: [number, number]) {
@@ -617,6 +745,7 @@ function resign() {
 }
 
 function startLocal() { gameMode.value = 'local'; resetGame(); nextTick(drawBoard) }
+function startAi() { gameMode.value = 'ai'; aiColor.value = 'black'; myColor.value = 'red'; isFlipped.value = false; resetGame(); nextTick(drawBoard) }
 function startOnline() { gameMode.value = 'online-setup'; resetGame() }
 function backToMenu() { disconnectRTC(); gameMode.value = 'menu'; resetGame() }
 function flipBoard() { isFlipped.value = !isFlipped.value; nextTick(drawBoard) }
@@ -651,6 +780,7 @@ const svgIcons = {
   home: '<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>',
   play: '<path d="M8 5v14l11-7z"/>',
   scroll: '<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5 0 1.52-.98 2.82-2.34 3.3C14.81 13.56 16 15.03 16 17H8c0-1.97 1.19-3.44 2.84-4.2C9.48 12.32 8.5 11.02 8.5 9.5 8.5 7.57 10.07 6 12 6z"/>',
+  robot: '<path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3s1.34 3 3 3v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4c1.66 0 3-1.34 3-3s-1.34-3-3-3zM7.5 11.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5S9.83 13 9 13s-1.5-.67-1.5-1.5zM16 17H8v-2h8v2zm-1-4c-.83 0-1.5-.67-1.5-1.5S14.17 10 15 10s1.5.67 1.5 1.5S15.83 13 15 13z"/>',
 }
 
 onMounted(() => { window.addEventListener('resize', () => { if (gameMode.value !== 'menu') drawBoard() }) })
@@ -680,11 +810,16 @@ watch(board, () => { nextTick(drawBoard) }, { deep: true })
           <p class="ancient-dim text-xs font-display tracking-[0.3em] mb-10">XIANGQI · CANVAS · WEBRTC</p>
         </div>
 
-        <div class="grid gap-5 sm:grid-cols-2 max-w-md w-full animate-fade-up animate-delay-1">
+        <div class="grid gap-5 sm:grid-cols-3 max-w-2xl w-full animate-fade-up animate-delay-1">
           <button class="ancient-card group" @click="startLocal">
             <svg class="w-8 h-8 mx-auto ancient-gold mb-3 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor" v-html="svgIcons.local" />
             <p class="font-display text-lg font-semibold mb-1 ancient-gold">Đối Ẩm Kỳ Cuộc</p>
             <p class="text-sm ancient-dim">Hai người, một bàn cờ</p>
+          </button>
+          <button class="ancient-card group" @click="startAi">
+            <svg class="w-8 h-8 mx-auto ancient-gold mb-3 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor" v-html="svgIcons.robot" />
+            <p class="font-display text-lg font-semibold mb-1 ancient-gold">Tập Dợt</p>
+            <p class="text-sm ancient-dim">Đấu với máy · Trung bình</p>
           </button>
           <button class="ancient-card group" @click="startOnline">
             <svg class="w-8 h-8 mx-auto ancient-gold mb-3 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="currentColor" v-html="svgIcons.online" />
@@ -780,7 +915,7 @@ watch(board, () => { nextTick(drawBoard) }, { deep: true })
       </div>
 
       <!-- ═══════ GAME BOARD ═══════ -->
-      <div v-if="gameMode === 'local' || gameMode === 'online-play' || gameMode === 'spectator'" class="animate-fade-up">
+      <div v-if="gameMode === 'local' || gameMode === 'ai' || gameMode === 'online-play' || gameMode === 'spectator'" class="animate-fade-up">
         <!-- Top bar -->
         <div class="flex items-center justify-between mb-4">
           <button class="ancient-dim hover:text-[#C8A96E] transition text-sm flex items-center gap-1" @click="backToMenu">
@@ -789,6 +924,7 @@ watch(board, () => { nextTick(drawBoard) }, { deep: true })
           <div class="flex items-center gap-3">
             <span class="font-display text-sm font-semibold tracking-wider" :class="turn === 'red' ? 'text-[#C84B31]' : 'ancient-silver'">{{ turnLabel }}</span>
             <span v-if="check && !gameOver" class="text-xs ancient-alert-badge">將 CHIẾU</span>
+            <span v-if="aiThinking" class="text-xs ancient-thinking-badge"><span class="ice-spinner inline-block w-3 h-3 align-middle mr-1" /> Suy nghĩ...</span>
           </div>
           <span class="ancient-dim text-xs font-display tracking-wider">第 {{ moveCount }} 手</span>
         </div>
@@ -1026,6 +1162,16 @@ watch(board, () => { nextTick(drawBoard) }, { deep: true })
   font-family: 'Anybody', sans-serif;
   letter-spacing: 0.1em;
   animation: pulse-glow 1.5s ease-in-out infinite;
+}
+
+.ancient-thinking-badge {
+  font-size: 0.65rem;
+  background: #2A1F14;
+  color: #C8A96E;
+  padding: 0.15rem 0.5rem;
+  font-family: 'Anybody', sans-serif;
+  letter-spacing: 0.05em;
+  border: 1px solid #C8A96E44;
 }
 
 /* Board frame */
