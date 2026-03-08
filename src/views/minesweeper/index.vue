@@ -144,7 +144,7 @@ const getLevelImageId = (lv: number): number => {
   const usedIds = Object.values(levelMap)
   
   // Tạo danh sách ảnh khả dụng từ 1-55
-  const availableIds = []
+  const availableIds: number[] = []
   for (let i = 1; i <= 55; i++) {
     if (!usedIds.includes(i)) {
       availableIds.push(i)
@@ -156,7 +156,7 @@ const getLevelImageId = (lv: number): number => {
     for (let i = 1; i <= 55; i++) availableIds.push(i)
   }
 
-  const randomId = availableIds[Math.floor(Math.random() * availableIds.length)]
+  const randomId: number = availableIds[Math.floor(Math.random() * availableIds.length)] || 1
   
   // Lưu lại vào map và save localStorage
   levelMap[lv] = randomId
@@ -348,7 +348,8 @@ const useHint = () => {
   if (firstClick.value) {
     const r = Math.floor(rows.value / 2)
     const c = Math.floor(cols.value / 2)
-    handleLeftClick(board.value[r][c])
+    const centerCell = board.value[r]?.[c]
+    if (centerCell) handleLeftClick(centerCell)
   }
 
   const safeCells: Cell[] = []
@@ -364,6 +365,8 @@ const useHint = () => {
   const targetArray = zeroCells.length > 0 ? zeroCells : safeCells
 
   const target = targetArray[Math.floor(Math.random() * targetArray.length)]
+
+  if (!target) return
 
   hintTarget.value = target
   hints.value--
@@ -389,20 +392,22 @@ const placeMines = (firstR: number, firstC: number) => {
     const isSafeZone = Math.abs(r - firstR) <= 1 && Math.abs(c - firstC) <= 1
     const strictSafe = attempts > maxAttempts / 2 ? (r === firstR && c === firstC) : isSafeZone
 
-    if (!board.value[r][c].isMine && !strictSafe) {
-      board.value[r][c].isMine = true
+    const cellAtPos = board.value[r]?.[c]
+    if (cellAtPos && !cellAtPos.isMine && !strictSafe) {
+      cellAtPos.isMine = true
       minesPlaced++
     }
   }
 
   for (let r = 0; r < rows.value; r++) {
     for (let c = 0; c < cols.value; c++) {
-      if (!board.value[r][c].isMine) {
+      const cell = board.value[r]?.[c]
+      if (cell && !cell.isMine) {
         let count = 0
         getNeighbors(r, c).forEach(n => {
-          if (n.isMine) count++
+          if (n && n.isMine) count++
         })
-        board.value[r][c].neighborMines = count
+        cell.neighborMines = count
       }
     }
   }
@@ -416,7 +421,10 @@ const getNeighbors = (r: number, c: number) => {
       const nr = r + i
       const nc = c + j
       if (nr >= 0 && nr < rows.value && nc >= 0 && nc < cols.value) {
-        neighbors.push(board.value[nr][nc])
+        const neighborCell = board.value[nr]?.[nc]
+        if (neighborCell) {
+          neighbors.push(neighborCell)
+        }
       }
     }
   }
@@ -454,8 +462,8 @@ const handleRightClick = (cell: Cell) => {
 }
 
 const revealCell = (r: number, c: number) => {
-  const cell = board.value[r][c]
-  if (cell.isRevealed || cell.isFlagged) return
+  const cell = board.value[r]?.[c]
+  if (!cell || cell.isRevealed || cell.isFlagged) return
 
   cell.isRevealed = true
 
@@ -470,14 +478,16 @@ const revealCell = (r: number, c: number) => {
       const curr = stack.pop()
       if (!curr) continue
       const [cr, cc] = curr
-      getNeighbors(cr, cc).forEach(n => {
-        if (!n.isRevealed && !n.isFlagged) {
-          n.isRevealed = true
-          if (n.neighborMines === 0 && !n.isMine) {
-            stack.push([n.r, n.c])
+      if (cr !== undefined && cc !== undefined) {
+        getNeighbors(cr, cc).forEach(n => {
+          if (n && !n.isRevealed && !n.isFlagged) {
+            n.isRevealed = true
+            if (n.neighborMines === 0 && !n.isMine) {
+              stack.push([n.r, n.c])
+            }
           }
-        }
-      })
+        })
+      }
     }
   }
 }
