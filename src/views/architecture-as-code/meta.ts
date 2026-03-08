@@ -5,7 +5,7 @@ const meta: PageMeta = {
   description:
     'Trình kéo thả kiến trúc hệ thống trên SVG, sync realtime P2P qua WebRTC và xuất Mermaid/YAML.',
   author: 'tchoa1102',
-  facebook: 'https://www.facebook.com/tchoa1102',
+  facebook: 'https://www.facebook.com/profile.php?id=100037883584505',
 }
 
 export default meta
