@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description: 'Tạo username ngẫu nhiên theo nhiều phong cách.',
   author: 'Trần Minh Quốc',
   facebook: 'https://www.facebook.com/tranminhquocreal',
+  category: 'tool',
 }
 
 export default meta

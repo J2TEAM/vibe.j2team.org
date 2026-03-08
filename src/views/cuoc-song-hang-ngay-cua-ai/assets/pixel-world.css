@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+.font-pixel {
+  font-family: 'VT323', monospace;
+}
+
+.image-pixelated {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #253549 #0f1923;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #0f1923;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #253549;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #ff6b4a;
+}
+
+input::placeholder {
+  color: #4a6180;
+}

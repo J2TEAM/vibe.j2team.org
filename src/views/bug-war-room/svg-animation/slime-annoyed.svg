@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="320" height="320" style="overflow: visible;">
+    <style>
+        /* CSS Variables cho màu sắc */
+        :root {
+            --text-color: #1e293b;
+            --anger-color: #ef4444;
+        }
+
+        /* 1. Chuyển động nén người tức giận (Kéo dài 4s/chu kỳ) */
+        .annoyed-huff {
+            transform-origin: 100px 165px;
+            animation: huff-anim 4s infinite;
+        }
+
+        @keyframes huff-anim {
+            0%, 100% { transform: scale(1, 1) translateY(0); }
+            /* Hít một hơi (lấy đà) */
+            5% { transform: scale(0.95, 1.05) translateY(-2px); }
+            /* Ép xẹp xuống, bành ra và giữ nguyên tư thế bực tức */
+            10%, 85% { transform: scale(1.06, 0.94) translateY(5px); }
+            /* Nhả ra */
+            90% { transform: scale(0.98, 1.02) translateY(-1px); }
+        }
+
+        /* 2. Hiệu ứng rung bần bật (Thể hiện sự kìm nén) */
+        .annoyed-shake {
+            animation: shake-anim 4s infinite;
+        }
+
+        @keyframes shake-anim {
+            0%, 9%, 86%, 100% { transform: translateX(0); }
+            /* Rung giật liên tục trong lúc đang ép người (10% -> 85%) */
+            12%, 20%, 28%, 36%, 44%, 52%, 60%, 68%, 76%, 84% { transform: translateX(-1.5px); }
+            16%, 24%, 32%, 40%, 48%, 56%, 64%, 72%, 80% { transform: translateX(1.5px); }
+        }
+
+        /* 3. Bóng đổ dưới mặt đất tương tác với cơ thể */
+        .annoyed-shadow {
+            transform-origin: 100px 165px;
+            animation: shadow-huff 4s infinite;
+        }
+
+        @keyframes shadow-huff {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            5% { transform: scale(0.9); opacity: 0.25; }
+            10%, 85% { transform: scale(1.15); opacity: 0.45; }
+            90% { transform: scale(0.95); opacity: 0.25; }
+        }
+
+        /* 4. Bong bóng thoại Pop-up */
+        .speech-bubble {
+            transform-origin: 105px 75px; /* Tâm bung ra từ đuôi bong bóng */
+            animation: pop-bubble 4s infinite cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+        }
+
+        @keyframes pop-bubble {
+            0%, 8% { transform: scale(0) translateY(20px); opacity: 0; }
+            12%, 82% { transform: scale(1) translateY(0); opacity: 1; }
+            86%, 100% { transform: scale(0) translateY(20px); opacity: 0; }
+        }
+
+        /* 5. Dấu hiệu tức giận (Irk Mark) */
+        .anger-pop {
+            transform-origin: 135px 75px;
+            animation: pop-anger 4s infinite;
+        }
+        .anger-pulse {
+            transform-origin: 135px 75px;
+            animation: pulse-anger 0.3s infinite alternate;
+        }
+
+        @keyframes pop-anger {
+            0%, 9% { transform: scale(0); opacity: 0; }
+            12%, 85% { transform: scale(1); opacity: 1; }
+            88%, 100% { transform: scale(0); opacity: 0; }
+        }
+        @keyframes pulse-anger {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
+        }
+
+        /* 6. Miệng mấp máy khi nói chuyện */
+        .talking-mouth {
+            transform-origin: 100px 116px;
+            animation: talk 4s infinite;
+        }
+
+        @keyframes talk {
+            0%, 11%, 86%, 100% { transform: scaleY(1); }
+            /* Liên tục mở to/thu nhỏ miệng trong lúc bong bóng thoại hiện */
+            15%, 25%, 35%, 45%, 55%, 65%, 75% { transform: scaleY(2); }
+            20%, 30%, 40%, 50%, 60%, 70%, 80% { transform: scaleY(0.5); }
+        }
+    </style>
+
+    <defs>
+        <!-- Bộ lọc đổ bóng cho Bong bóng thoại -->
+        <filter id="bubble-shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.12" />
+        </filter>
+    </defs>
+
+    <!-- BÓNG DƯỚI MẶT ĐẤT -->
+    <ellipse class="annoyed-shadow" cx="100" cy="165" rx="55" ry="12" fill="#000000" />
+
+    <!-- NHÓM CƠ THỂ SLIME TỨC GIẬN -->
+    <g class="annoyed-huff">
+        <g class="annoyed-shake">
+            
+            <!-- Thân hình Slime màu xanh lá -->
+            <path d="M 50 145 C 50 85, 70 50, 100 50 C 130 50, 150 85, 150 145 C 160 145, 160 165, 100 165 C 40 165, 40 145, 50 145 Z" fill="#34d399" />
+
+            <!-- Điểm nhấn bắt sáng -->
+            <path d="M 70 75 Q 100 55 130 75" stroke="#ffffff" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.4" />
+
+            <!-- KHUÔN MẶT BỰC BỘI -->
+            <g>
+                <!-- Mắt trái (Xếch xuống hình \ ) -->
+                <path d="M 74 96 L 86 102" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" />
+                <!-- Mắt phải (Xếch xuống hình / ) -->
+                <path d="M 126 96 L 114 102" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" />
+
+                <!-- Má hồng ửng đậm hơn vì tức -->
+                <ellipse cx="65" cy="110" rx="8" ry="4" fill="#ef4444" opacity="0.5" />
+                <ellipse cx="135" cy="110" rx="8" ry="4" fill="#ef4444" opacity="0.5" />
+
+                <!-- Miệng mấp máy nói chuyện -->
+                <ellipse class="talking-mouth" cx="100" cy="116" rx="5" ry="3" fill="#0f172a" />
+            </g>
+
+            <!-- DẤU TỨC GIẬN (Irk Mark / Anger pop) -->
+            <!-- Biểu tượng hình gân máu nhấp nháy đặc trưng trong anime -->
+            <g class="anger-pop">
+                <g class="anger-pulse">
+                    <path d="M 135 63 L 138 72 L 147 75 L 138 78 L 135 87 L 132 78 L 123 75 L 132 72 Z" fill="#ef4444" />
+                </g>
+            </g>
+        </g>
+    </g>
+
+    <!-- BONG BÓNG THOẠI (SPEECH BUBBLE) -->
+    <g class="speech-bubble">
+        <!-- Nền bong bóng thoại có đuôi chỉ xuống và đổ bóng -->
+        <path d="M 30 10 H 170 C 175.5 10 180 14.5 180 20 V 48 C 180 53.5 175.5 58 170 58 H 115 L 105 75 L 100 58 H 30 C 24.5 58 20 53.5 20 48 V 20 C 20 14.5 24.5 10 30 10 Z" fill="#ffffff" filter="url(#bubble-shadow)" />
+        
+        <!-- Nội dung Text -->
+        <text x="100" y="30" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="13" fill="#1e293b">
+            Dừng lại 1 chút,
+        </text>
+        <text x="100" y="48" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="13" fill="#1e293b">
+            phiền quá đi!
+        </text>
+    </g>
+</svg>

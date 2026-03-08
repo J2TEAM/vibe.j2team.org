@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description: 'Thử thách nhận diện mã màu RGB!',
   author: 'tamXinchao',
   facebook: 'https://www.facebook.com/Wall.helllomotherfk',
+  category: 'game',
 }
 
 export default meta

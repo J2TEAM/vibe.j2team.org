@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description: 'Tra cứu các chỉ số thần số học từ tên và ngày tháng năm sinh',
   author: 'Hao Le',
   facebook: 'https://www.facebook.com/duchao166',
+  category: 'spiritual',
 }
 
 export default meta

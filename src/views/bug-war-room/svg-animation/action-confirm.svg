@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="320" height="320" style="overflow: visible;">
+    <style>
+        /* Chuyển động nhảy lên (Bounce) kéo dài 0.6s, lặp lại mỗi 2s để dễ xem */
+        .confirm-body {
+            animation: bounce-anim 2s infinite;
+            transform-origin: 100px 165px; 
+        }
+
+        @keyframes bounce-anim {
+            0%, 100% { transform: scale(1, 1) translateY(0); }
+            /* 5% (0.1s): Lấy đà (Squash xuống) */
+            5% { transform: scale(1.15, 0.85) translateY(5px); }
+            /* 15% (0.3s): Bật lên mạnh mẽ (Stretch dài ra) */
+            15% { transform: scale(0.9, 1.15) translateY(-40px); }
+            /* 20% (0.4s): Đạt đỉnh điểm trên không */
+            20% { transform: scale(1, 1) translateY(-45px); }
+            /* 25% (0.5s): Chạm đất và nén lại (Squash) */
+            25% { transform: scale(1.2, 0.8) translateY(5px); }
+            /* 30% (0.6s) -> 100%: Trở về hình dáng bình thường */
+            30% { transform: scale(1, 1) translateY(0); }
+        }
+
+        /* Bóng dưới đất thu nhỏ lại khi nhân vật bay lên không trung */
+        .confirm-shadow {
+            animation: shadow-anim 2s infinite;
+            transform-origin: 100px 165px;
+        }
+
+        @keyframes shadow-anim {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            5% { transform: scale(1.2); opacity: 0.4; }
+            15% { transform: scale(0.6); opacity: 0.1; }
+            20% { transform: scale(0.5); opacity: 0.05; }
+            25% { transform: scale(1.3); opacity: 0.5; }
+            30% { transform: scale(1); opacity: 0.3; }
+        }
+
+        /* Hiệu ứng ánh sáng bóng bẩy xê dịch theo quán tính */
+        .highlight {
+            animation: highlight-anim 2s infinite;
+        }
+
+        @keyframes highlight-anim {
+            0%, 100% { transform: translateY(0); }
+            5% { transform: translateY(5px); }
+            15% { transform: translateY(-8px); }
+            20% { transform: translateY(-10px); }
+            25% { transform: translateY(5px); }
+            30% { transform: translateY(0); }
+        }
+
+        /* Hiệu ứng hạt lấp lánh (Sparkles) văng ra tại đỉnh cú nhảy (0.4s) */
+        .sparkle-1 { animation: s1 2s infinite; transform-origin: 100px 100px; }
+        .sparkle-2 { animation: s2 2s infinite; transform-origin: 100px 100px; }
+        .sparkle-3 { animation: s3 2s infinite; transform-origin: 100px 100px; }
+
+        @keyframes s1 {
+            0%, 18% { opacity: 0; transform: translate(0, 0) scale(0) rotate(0deg); }
+            20% { opacity: 1; transform: translate(-30px, -20px) scale(1) rotate(-15deg); }
+            28%, 100% { opacity: 0; transform: translate(-45px, -30px) scale(0) rotate(-30deg); }
+        }
+        @keyframes s2 {
+            0%, 18% { opacity: 0; transform: translate(0, 0) scale(0) rotate(0deg); }
+            20% { opacity: 1; transform: translate(30px, -20px) scale(1) rotate(15deg); }
+            28%, 100% { opacity: 0; transform: translate(45px, -30px) scale(0) rotate(30deg); }
+        }
+        @keyframes s3 {
+            0%, 18% { opacity: 0; transform: translate(0, 0) scale(0) rotate(0deg); }
+            20% { opacity: 1; transform: translate(0, -35px) scale(1.2) rotate(45deg); }
+            28%, 100% { opacity: 0; transform: translate(0, -50px) scale(0) rotate(90deg); }
+        }
+    </style>
+
+    <!-- Bóng dưới mặt đất -->
+    <ellipse class="confirm-shadow" cx="100" cy="165" rx="55" ry="12" fill="#000000" />
+
+    <!-- Nhóm toàn bộ cơ thể Slime -->
+    <g class="confirm-body">
+        
+        <!-- Thân hình Slime màu xanh lá -->
+        <path d="M 50 145 C 50 85, 70 50, 100 50 C 130 50, 150 85, 150 145 C 160 145, 160 165, 100 165 C 40 165, 40 145, 50 145 Z" fill="#34d399" />
+
+        <!-- Điểm nhấn bắt sáng (Highlight) -->
+        <path class="highlight" d="M 70 75 Q 100 55 130 75" stroke="#ffffff" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.4" />
+
+        <!-- KHUÔN MẶT CỰC KỲ VUI VẺ -->
+        <g>
+            <!-- Mắt trái (Nhắm cong lên hình chữ U ngược) -->
+            <path d="M 72 98 Q 81 84 90 98" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" fill="none" />
+            
+            <!-- Mắt phải -->
+            <path d="M 110 98 Q 119 84 128 98" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" fill="none" />
+
+            <!-- Má hồng ửng lên (hơi nâng cao hơn bình thường do đang cười) -->
+            <ellipse cx="65" cy="106" rx="8" ry="4" fill="#ef4444" opacity="0.3" />
+            <ellipse cx="135" cy="106" rx="8" ry="4" fill="#ef4444" opacity="0.3" />
+            
+            <!-- Miệng cười há to chữ D -->
+            <path d="M 88 110 Q 100 135 112 110 Z" fill="#0f172a" />
+            <!-- Lưỡi màu hồng đỏ bên trong -->
+            <path d="M 92 116 Q 100 130 108 116 Z" fill="#ef4444" />
+        </g>
+    </g>
+
+    <!-- HẠT LẤP LÁNH (Văng ra khi nhảy lên) -->
+    <!-- Hình ngôi sao 4 cánh tạo cảm giác pop/click -->
+    <g fill="#fde047">
+        <path class="sparkle-1" d="M 100 80 Q 100 90 110 90 Q 100 90 100 100 Q 100 90 90 90 Q 100 90 100 80 Z" />
+        <path class="sparkle-2" d="M 100 80 Q 100 90 110 90 Q 100 90 100 100 Q 100 90 90 90 Q 100 90 100 80 Z" />
+        <path class="sparkle-3" d="M 100 80 Q 100 90 110 90 Q 100 90 100 100 Q 100 90 90 90 Q 100 90 100 80 Z" />
+    </g>
+</svg>

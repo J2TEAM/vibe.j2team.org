@@ -5,641 +5,705 @@ export const HEXAGRAMS: Hexagram[] = [
     id: 1,
     binary: '111111',
     name: 'Thuần Càn',
-    animation: 'Rồng vàng gõ code với tốc độ ánh sáng',
+    symbol: '䷀',
+    type: 'Quẻ Đại Cát',
     description:
-      'Quẻ đại cát. Hôm nay sao Senior chiếu mệnh, trí tuệ mẫn tiệp, gõ phím như rồng bay phượng múa. Code viết ra tự chạy, Logic tự thông, Unit Test xanh mướt mà không cần sửa một dòng.',
+      'Tượng trưng cho Trời, mang đức tính cương kiện, mạnh mẽ và sáng tạo vô biên. Đây là quẻ thuần dương, đại diện cho bậc quân tử, người lãnh đạo hoặc sự khởi đầu vĩ đại. Mọi việc đang ở thời kỳ cực thịnh, như rồng bay trên trời cao, ánh sáng soi thấu khắp nơi.',
     advice:
-      'Thời cơ chín muồi để đòi tăng lương, propose công nghệ mới hoặc tranh thủ đẩy ngay những PR quan trọng. Đừng lãng phí ngày "thăng hoa" này cho những cuộc họp vô bổ.',
+      'Hãy giữ vững lòng kiên trì và chính đạo. Cần nhận thức rằng cực thịnh dễ dẫn đến suy vi (vật cực tất phản), do đó phải luôn khiêm tốn, không được kiêu ngạo hay chủ quan. Đây là lúc để hành động mạnh mẽ nhưng phải có kế hoạch thận trọng.',
   },
   {
     id: 2,
     binary: '000000',
     name: 'Thuần Khôn',
-    animation: 'Mặt đất dữ liệu vận hành ổn định',
+    symbol: '䷁',
+    type: 'Quẻ Đại Cát',
     description:
-      'Đất mẹ bao dung, hệ thống vạn dặm bình yên. Server chạy êm như tiếng thở của crush, Database không một vết gợn, Index tối ưu đến mức thần sầu. Đây là lúc vạn vật cộng hưởng.',
+      'Tượng trưng cho Đất, mang đức nhu thuận, bao dung và nâng đỡ vạn vật. Đây là quẻ thuần âm, đại diện cho người mẹ, bề tôi hoặc sự hỗ trợ âm thầm. Khôn đại diện cho sự tĩnh lặng, sự phục tùng theo lẽ phải để đạt được thành công bền vững.',
     advice:
-      'Hãy đóng vai một con "Task" chăm chỉ. Đừng cố tạo ra những feature đột biến hay refactor những thứ đang chạy tốt. Cứ lẳng lặng mà làm, thành quả sẽ tự đến.',
+      'Đừng cố gắng đứng đầu hay dẫn dắt trong thời gian này, hãy đóng vai trò là người hỗ trợ hoặc người thực thi. Thành công đến từ sự nhẫn nại, dịu dàng và lòng bao dung. Hãy thuận theo tự nhiên và đi theo sau người có kinh nghiệm.',
   },
   {
     id: 3,
     binary: '100010',
     name: 'Thủy Lôi Truân',
-    animation: 'Startup hỗn loạn với hàng loạt cảnh báo',
+    symbol: '䷂',
+    type: 'Quẻ Hung',
     description:
-      'Vạn sự khởi đầu nan. Dự án mới init mà node_modules đã nặng vài GB, môi trường dev config mãi không xong, docker-compose build lỗi lên lỗi xuống. Cảm giác như cả thế giới đang chống lại bạn.',
+      'Tượng trưng cho sự gian nan lúc mới bắt đầu. Sấm động trong nước, vạn vật mới nảy mầm còn non yếu đã gặp phải hiểm nguy. Đây là giai đoạn hỗn loạn, đầy rào cản nhưng ẩn chứa mầm mống của sự sinh trưởng mãnh liệt.',
     advice:
-      'Bình tĩnh. Đừng cố đấm ăn xôi. Hãy xóa folder "dist", clear cache, cài lại win hoặc đơn giản là đi pha một gói mì. Kiên nhẫn gỡ rối từng chút một, dự án sẽ sớm lăn bánh.',
+      'Không nên vội vã tiến lên hay khởi sự lớn ngay lập tức. Cần tìm kiếm sự trợ giúp từ những người có uy tín (quý nhân). Hãy kiên nhẫn tích lũy nguồn lực, chỉnh đốn nội bộ và chờ đợi thời cơ khi sự hỗn loạn lắng xuống.',
   },
   {
     id: 4,
     binary: '010001',
     name: 'Sơn Thủy Mông',
-    animation: 'Intern lạc trong mê cung legacy code',
+    symbol: '䷃',
+    type: 'Quẻ Bình',
     description:
-      'Sự mờ mịt bao trùm. Bạn như một Intern lạc giữa rừng Legacy Code của 10 năm trước, không docs, không comment, biến toàn đặt tên là a, b, c. Càng đọc càng thấy rối, càng sửa càng thấy sai.',
+      'Tượng trưng cho sự non nớt, mờ mịt, giống như suối mới chảy ra dưới chân núi, chưa rõ đường đi. Đây là thời kỳ của sự thiếu kinh nghiệm, cần được giáo dục, khai sáng và dẫn dắt để thoát khỏi sự u mê.',
     advice:
-      'Đừng ngồi đó mà đoán mò nghiệp vụ. Hãy tìm ngay một Senior "già rơ" nhất team, mời họ một ly cà phê và xin được khai sáng. Sự chủ động hỏi han là chìa khóa duy nhất lúc này.',
+      'Hãy giữ thái độ thành tâm và khiêm nhường khi cầu học. Thành công chỉ đến khi bạn sẵn sàng lắng nghe và học hỏi từ những người đi trước. Tránh sự nóng nảy hay tự phụ vì sự thiếu hiểu biết sẽ dẫn đến sai lầm.',
   },
   {
     id: 5,
     binary: '111010',
     name: 'Thủy Thiên Nhu',
-    animation: 'Thanh tiến trình deploy đang chạy',
+    symbol: '䷄',
+    type: 'Quẻ Cát',
     description:
-      'Pipeline đang chạy, vòng tròn xoay xoay như đang trêu ngươi. Sự nóng nảy lúc này chỉ khiến bạn dễ bấm nhầm nút Cancel hoặc Re-run vô nghĩa. Càng vội vã, Build càng dễ Fail.',
+      'Tượng trưng cho sự chờ đợi trong tin tưởng. Phía trước có hiểm nguy (nước) nhưng dưới chân là nền tảng vững chắc (trời). Đây là lúc cần sự kiên nhẫn, không nên mạo hiểm vượt sông khi chưa đủ điều kiện.',
     advice:
-      'Hãy áp dụng triết lý "Chờ đợi là hạnh phúc". Rời mắt khỏi màn hình, đi pha cà phê hoặc đi dạo một vòng. Khi tâm thế bình thản, kết quả Success sẽ tự hiện lên.',
+      'Hãy dùng thời gian này để nghỉ ngơi, ăn uống bồi bổ và củng cố tinh thần. Đừng nóng vội trước khó khăn, hãy để mọi thứ diễn biến tự nhiên. Sự kiên định và lòng tin sẽ giúp bạn vượt qua hiểm nguy một cách bình an.',
   },
   {
     id: 6,
     binary: '010111',
     name: 'Thiên Thủy Tụng',
-    animation: 'Màn hình Git conflict đỏ rực',
+    symbol: '䷅',
+    type: 'Quẻ Hung',
     description:
-      'Tranh chấp bùng nổ! Git Conflict đỏ rực trên 50 files vì hai bên cùng refactor một logic. Ai cũng cho là mình đúng, không ai chịu nhường ai trong buổi họp Review.',
+      'Tượng trưng cho sự tranh chấp, kiện tụng và bất hòa. Do quan điểm trái ngược (Trời đi lên, Nước chảy xuống) nên không thể gặp nhau, dẫn đến mâu thuẫn. Càng cố chấp theo đuổi thắng thua thì càng gặp tai họa.',
     advice:
-      'Bình tĩnh resolve từng dòng một. Đây là lúc cần kỹ năng giao tiếp hơn là kỹ năng code. Hãy ngồi lại với đối phương, uống một ngụm trà và tìm tiếng nói chung trước khi Force Push.',
+      'Nên dừng lại và tìm cách hòa giải sớm nhất có thể. Dù bạn có lý, việc kéo dài tranh chấp cũng mang lại sự mệt mỏi và tổn thất. Hãy tìm người trung gian có uy tín để phân xử và chấp nhận nhượng bộ để đổi lấy sự bình yên.',
   },
   {
     id: 7,
     binary: '010000',
     name: 'Địa Thủy Sư',
-    animation: 'Đội quân ticket xếp hàng chờ xử lý',
+    symbol: '䷆',
+    type: 'Quẻ Bình',
     description:
-      'Quẻ của kỉ luật thép. Một quân đoàn Ticket (Bug, Feature, Task) đang xếp hàng chờ bạn xử lý. Nếu không có phương pháp điều phối tốt, bạn sẽ bị chúng nhấn chìm.',
+      'Tượng trưng cho quân đội và sự huy động sức mạnh tập thể. Nước ẩn trong lòng đất đại diện cho sức mạnh tiềm tàng nhưng cần sự tổ chức chặt chẽ, kỷ luật nghiêm minh để đạt được mục tiêu.',
     advice:
-      'Hãy trở thành một chỉ huy tài ba. Phân loại ưu tiên P0, P1, P2 rõ ràng. Tập trung tiêu diệt từng task một theo đúng kế hoạch. Kỷ luật chính là sức mạnh giúp bạn về nhà đúng giờ.',
+      'Để thành công, bạn cần sự đoàn kết và một người lãnh đạo có tài, có đức. Hãy chú trọng vào việc xây dựng kỷ luật và sự minh bạch trong tổ chức. Mọi hành động phải dựa trên chính nghĩa mới có thể thu phục được lòng người.',
   },
   {
     id: 8,
     binary: '000010',
     name: 'Thủy Địa Tỷ',
-    animation: 'Các service kết nối thành mạng lưới',
+    symbol: '䷇',
+    type: 'Quẻ Cát',
     description:
-      'Sự gắn kết tuyệt vời. Các Microservices gọi nhau nhịp nhàng qua gRPC, API Contract khớp đến từng dấu phẩy. Mọi người trong team đang hiểu ý nhau mà không cần nói lời nào.',
+      'Tượng trưng cho sự thân thiện, liên kết và chọn lựa đồng minh. Nước trên mặt đất hòa quyện, hỗ trợ lẫn nhau. Đây là thời cơ tốt để tạo dựng các mối quan hệ xã hội và tìm kiếm sự đồng thuận.',
     advice:
-      'Đây là lúc để tăng cường giao lưu. Hãy cập nhật tài liệu Swagger, viết thêm hướng dẫn tích hợp. Sự minh bạch trong tài liệu sẽ củng cố thêm mối quan hệ bền chặt này.',
+      'Hãy chủ động tìm kiếm sự hợp tác nhưng cần chọn lọc đối phương một cách kỹ lưỡng. Sự chân thành là chìa khóa để giữ vững các liên kết. Người đến muộn hoặc thiếu lòng tin sẽ gặp khó khăn, hãy nhanh chóng quyết định.',
   },
   {
     id: 9,
     binary: '111011',
     name: 'Phong Thiên Tiểu Súc',
-    animation: 'Refactor nhỏ nhưng đều đặn',
+    symbol: '䷈',
+    type: 'Quẻ Bình',
     description:
-      'Tích tiểu thành đại. Bạn đang âm thầm refactor những hàm nhỏ, tối ưu vài dòng CSS rác. Nhìn qua thì có vẻ không đáng kể, nhưng nội lực hệ thống đang tăng lên từng ngày.',
+      'Tượng trưng cho sự tích lũy nhỏ, mây kéo đến nhưng chưa mưa. Sức mạnh chưa đủ để tạo nên thay đổi lớn lao, giống như gió thổi trên trời cao nhưng không thể giữ chân được mây lâu.',
     advice:
-      'Đừng ham làm những cú Big Update chấn động. Cứ commit nhỏ, đều đặn và sạch sẽ. Kiến tha lâu cũng đầy tổ, code sạch lâu ngày sẽ thành một kiệt tác.',
+      'Cần kiên nhẫn tích tiểu thành đại. Đây không phải là lúc để thực hiện những kế hoạch tham vọng. Hãy tập trung hoàn thiện những chi tiết nhỏ, cải thiện bản thân và chờ đợi nguồn lực đủ mạnh để bứt phá.',
   },
   {
     id: 10,
     binary: '110111',
     name: 'Thiên Trạch Lý',
-    animation: 'Bước đi trên dây trong production',
+    symbol: '䷉',
+    type: 'Quẻ Cát',
     description:
-      'Cưỡi trên lưng hổ! Bạn đang phải sửa code trực tiếp trên Production hoặc chạy lệnh SQL xóa dữ liệu mà không có câu lệnh BEGIN. Một bước sai là đi tong cái Tết.',
+      "Tượng trưng cho phép tắc, lễ nghi và cách hành xử. Hình ảnh 'dẫm lên đuôi hổ' nhưng hổ không cắn cho thấy nếu biết giữ lễ, cẩn trọng và khéo léo thì dù ở trong tình thế nguy hiểm vẫn có thể thoát ra an toàn.",
     advice:
-      'Double-check, Triple-check! Hãy hít thở sâu, đảm bảo bạn đã có bản Backup mới nhất và luôn thủ sẵn phương án Rollback trong tay. Cẩn trọng là cha đẻ của sự an toàn.',
+      'Hãy giữ thái độ cung kính, tuân thủ đúng quy tắc và chuẩn mực đạo đức. Sự chân thành và cách ứng xử tinh tế sẽ giúp bạn vượt qua những rào cản khó khăn nhất mà không gây xung đột với người có quyền thế.',
   },
   {
     id: 11,
     binary: '111000',
     name: 'Địa Thiên Thái',
-    animation: 'Dashboard xanh mướt, hệ thống an yên',
+    symbol: '䷊',
+    type: 'Quẻ Đại Cát',
     description:
-      'Thanh bình thịnh trị. Dashboard Grafana xanh mướt một màu, không một cảnh báo, không một tiếng Ping Slack từ phía Client. Mọi thứ đang ở trạng thái cân bằng tuyệt đối.',
+      'Tượng trưng cho sự giao hòa tuyệt vời giữa trời và đất. Khí dương đi lên, khí âm đi xuống gặp nhau tạo nên sự hanh thông, thái bình và thịnh vượng. Đây là thời điểm vạn vật sinh sôi, lòng người đồng thuận.',
     advice:
-      'Tận dụng khoảng thời gian "vàng" này để làm những việc ý nghĩa nhưng hay bị bỏ qua: viết Unit Test, cập nhật tài liệu kỹ thuật hoặc học thêm một ngôn ngữ mới. Đừng chỉ ngồi chơi.',
+      "Hãy tận dụng tối đa thời cơ này để triển khai các kế hoạch lớn. Tuy nhiên, phải luôn ghi nhớ câu 'hết thái đến bĩ', không được hưởng lạc quá đà mà quên việc chuẩn bị cho những giai đoạn khó khăn có thể quay lại.",
   },
   {
     id: 12,
     binary: '000111',
     name: 'Thiên Địa Bĩ',
-    animation: 'Màn hình tối với nhiều cảnh báo downtime',
+    symbol: '䷋',
+    type: 'Quẻ Đại Hung',
     description:
-      'Bế tắc toàn tập. Server sập do cá mập cắn cáp, sếp mắng vì deadline trễ, người yêu chia tay vì bạn quá bận. Cảm giác như mọi nỗ lực đều đổ sông đổ biển.',
+      'Tượng trưng cho sự bế tắc, không thông suốt. Trời đất không giao hòa, kẻ xấu lấn át người tốt, thông tin bị cắt đứt. Mọi nỗ lực trong giai đoạn này thường không đem lại kết quả như ý.',
     advice:
-      'Khi gặp vận Bĩ, tốt nhất là không nên manh động. Hãy giảm tốc độ, khoanh vùng những việc quan trọng nhất để duy trì sự sống. Im lặng, quan sát và chờ đợi cơn bão qua đi.',
+      'Nên thu mình ẩn dật, kiên nhẫn giữ vững đạo đức cá nhân. Đừng cố gắng thay đổi hoàn cảnh một cách cưỡng ép vì sẽ chỉ chuốc lấy thất bại. Hãy chờ đợi cho đến khi thời vận đen tối này qua đi.',
   },
   {
     id: 13,
     binary: '101111',
     name: 'Thiên Hỏa Đồng Nhân',
-    animation: 'Cộng đồng open-source cùng hợp lực',
+    symbol: '䷌',
+    type: 'Quẻ Cát',
     description:
-      'Đồng lòng tát biển Đông cũng cạn. Bạn tìm thấy lời giải cho con Bug quái ác trên Stack Overflow hoặc nhận được sự hỗ trợ nhiệt tình từ một contributor lạ mặt trên Github.',
+      'Tượng trưng cho sự đoàn kết và tinh thần cộng đồng. Lửa rực sáng dưới trời, soi chiếu sự đồng lòng của mọi người. Đây là quẻ tốt cho việc hội họp, thành lập hội nhóm hoặc hợp tác kinh doanh.',
     advice:
-      'Hãy mở rộng vòng tay hợp tác. Chia sẻ kiến thức của bạn cho những người xung quanh. Khi cả team cùng nhìn về một hướng, không có bài toán nào là không thể giải.',
+      'Hãy mở rộng lòng mình và hành xử công khai, minh bạch. Đừng vì lợi ích cá nhân mà bỏ qua lợi ích chung. Sự đại đồng và vô tư sẽ mang lại thành công vang dội và sự ủng hộ từ đám đông.',
   },
   {
     id: 14,
     binary: '111101',
     name: 'Hỏa Thiên Đại Hữu',
-    animation: 'Kho tài nguyên và cơ hội mở rộng',
+    symbol: '䷍',
+    type: 'Quẻ Đại Cát',
     description:
-      'Đại phú đại quý. Công ty vừa gọi được vốn khủng, tài nguyên Server vô tận (Auto-scaling không giới hạn), bạn đang có trong tay mọi công cụ tốt nhất để làm việc.',
+      'Tượng trưng cho sự giàu có, sở hữu lớn lao. Mặt trời trên cao soi sáng vạn vật, mang lại sự rực rỡ và thịnh vượng. Bạn đang sở hữu nguồn lực, uy tín hoặc tài sản đáng kể.',
     advice:
-      'Đừng lãng phí nguồn lực. Hãy đầu tư vào những kiến trúc bền vững, nâng cấp trải nghiệm người dùng. Có tiền (tài nguyên) thì phải biết tiêu cho xứng đáng.',
+      'Giàu sang đi đôi với trách nhiệm. Hãy dùng quyền lực và tài sản của mình để giúp đỡ người khác và ngăn chặn điều ác. Sự khiêm tốn lúc này là vô cùng quan trọng để bảo vệ thành quả khỏi sự đố kỵ.',
   },
   {
     id: 15,
-    binary: '000100',
+    binary: '001000',
     name: 'Địa Sơn Khiêm',
-    animation: 'Senior lặng lẽ hỗ trợ cả team',
+    symbol: '䷎',
+    type: 'Quẻ Đại Cát',
     description:
-      'Quẻ của sự đức độ. Một Senior thực thụ không cần phô trương, họ lặng lẽ fix những lỗi ngớ ngẩn của Intern và viết những dòng code sạch đến mức không ai nhận ra sự tồn tại của nó.',
+      'Tượng trưng cho đức tính khiêm tốn. Núi cao vốn vĩ đại nhưng lại nằm dưới đất phẳng. Đây là quẻ duy nhất trong Kinh Dịch mà cả 6 hào đều tốt, khẳng định giá trị bền vững của sự nhún nhường.',
     advice:
-      'Hãy giữ thái độ cầu thị. Lắng nghe ý kiến của người khác, dù là người mới nhất team. Sự khiêm nhường sẽ giúp bạn nhận được sự tôn trọng và hỗ trợ khi cần thiết.',
+      'Hãy giữ thái độ khiêm nhường trong mọi tình huống. Càng có tài năng hay thành công thì càng phải tôn trọng người khác. Sự khiêm tốn không làm bạn yếu đi mà tạo nên sức mạnh nội tâm cực lớn và sự an toàn tuyệt đối.',
   },
   {
     id: 16,
-    binary: '001000',
+    binary: '000100',
     name: 'Lôi Địa Dự',
-    animation: 'Nhịp làm việc rộn ràng cuối sprint',
+    symbol: '䷏',
+    type: 'Quẻ Cát',
     description:
-      'Vui vẻ và hăng hái. Tinh thần của team đang lên cao vì sắp đến ngày Demo thành công. Tiếng gõ phím vang lên rộn rã như một bản nhạc giao hưởng giữa mùa Sprint.',
+      'Tượng trưng cho sự vui vẻ, chuẩn bị và nhiệt huyết. Sấm nổ trên mặt đất mang lại sự phấn chấn, lay động lòng người. Đây là thời điểm thích hợp để tổ chức các hoạt động văn hóa, giải trí hoặc bắt đầu dự án mới.',
     advice:
-      'Giữ vững phong độ này nhưng đừng vì quá hăng mà Deploy bừa bãi vào chiều thứ Sáu. Niềm vui sẽ trọn vẹn hơn khi bạn có một cuối tuần không phải trực sự cố.',
+      'Hãy lan tỏa niềm vui và sự lạc quan đến mọi người xung quanh. Tuy nhiên, đừng quá chìm đắm trong hưởng lạc mà quên đi việc dự phòng cho tương lai. Sự hào hứng cần đi kèm với kế hoạch cụ thể.',
   },
   {
     id: 17,
     binary: '100110',
     name: 'Trạch Lôi Tùy',
-    animation: 'Bảng xu hướng công nghệ liên tục cập nhật',
+    symbol: '䷐',
+    type: 'Quẻ Cát',
     description:
-      'Thuận theo thời thế. Thị trường đang hot AI, Web3 hay Rust? Bạn cảm thấy cần phải cập nhật bản thân để không bị lỗi thời giữa dòng đời vạn biến.',
+      'Tượng trưng cho sự thuận theo tự nhiên và tùy thời ứng biến. Sấm ở trong đầm lầy, đại diện cho việc biết nghỉ ngơi và đi theo tiếng gọi của thời đại hoặc nhu cầu của số đông.',
     advice:
-      'Học hỏi là tốt, nhưng hãy chọn lọc. Đừng chạy theo mọi trào lưu như một kẻ mất phương hướng. Hãy chọn thứ thực sự giúp ích cho dự án hiện tại của bạn.',
+      'Đừng cố chấp với những kế hoạch cũ kỹ nếu hoàn cảnh đã thay đổi. Hãy quan sát xu hướng và học cách thích nghi. Đi theo lẽ phải và người có đức sẽ mang lại kết quả thuận lợi mà không tốn quá nhiều sức lực.',
   },
   {
     id: 18,
     binary: '011001',
     name: 'Sơn Phong Cổ',
-    animation: 'Hệ thống cũ nát cần đại tu',
+    symbol: '䷑',
+    type: 'Quẻ Hung',
     description:
-      'Đổ nát và trì trệ. Hệ thống Legacy Code nát đến mức mỗi lần sửa một chỗ là mười chỗ khác hỏng theo. Nợ kỹ thuật (Technical Debt) đã cao như núi Everest.',
+      'Tượng trưng cho sự đổ nát, thối rữa do trì trệ lâu ngày (sâu mọt đục khoét). Những vấn đề từ quá khứ đang gây hậu quả hiện tại, đòi hỏi một cuộc cải cách triệt để.',
     advice:
-      'Cần một cuộc đại phẫu! Đừng cố vá víu thêm nữa. Hãy lập kế hoạch cải tổ từng lớp (Layer), giải quyết triệt để những chỗ "thối" nhất trước khi mọi thứ sụp đổ hoàn toàn.',
+      "Đây là lúc phải dũng cảm đối mặt với sai lầm và dọn dẹp những 'đống đổ nát'. Hãy lập kế hoạch cải tổ một cách quyết liệt nhưng có lộ trình (3 ngày trước và 3 ngày sau khởi sự). Đừng chần chừ thêm nữa.",
   },
   {
     id: 19,
     binary: '110000',
     name: 'Địa Trạch Lâm',
-    animation: 'Quản lý xuất hiện trong buổi review code',
+    symbol: '䷒',
+    type: 'Quẻ Cát',
     description:
-      'Sắp có biến lớn. Sếp tổng hoặc khách hàng quan trọng sắp xuống kiểm tra tiến độ. Một luồng gió mới (hoặc áp lực mới) đang tràn vào phòng làm việc của bạn.',
+      'Tượng trưng cho sự tiến đến, giám sát và phát triển. Giống như mùa xuân đang đến gần, năng lượng tích cực đang dâng cao. Bậc bề trên đang quan tâm và dìu dắt kẻ dưới một cách bao dung.',
     advice:
-      'Hãy chuẩn bị dữ liệu thật kỹ. Minh bạch mọi thông tin, từ tiến độ đến những rủi ro còn tồn đọng. Sự chân thành và chuẩn bị chu đáo sẽ giúp bạn ghi điểm.',
+      "Hãy nắm bắt cơ hội để mở rộng và phát triển mạnh mẽ. Tuy nhiên, quẻ cũng cảnh báo 'đến tháng thứ 8 sẽ có hung', nghĩa là thành công này không vĩnh cửu, cần lo liệu trước cho lúc thoái trào.",
   },
   {
     id: 20,
     binary: '000011',
-    name: 'Phong Địa Quan',
-    animation: 'Màn hình monitoring dày đặc biểu đồ',
+    name: 'Phong Địa Quán',
+    symbol: '䷓',
+    type: 'Quẻ Bình',
     description:
-      'Quan sát sâu sắc. Thay vì cắm đầu vào code, bạn đang ngồi phân tích log, nhìn biểu đồ Grafana để tìm ra tại sao cứ đến 12h đêm là hệ thống lại chậm lại.',
+      'Tượng trưng cho sự quan sát và làm gương. Gió thổi trên mặt đất, đi khắp nơi để quan sát và cũng để mọi người thấy. Đây là lúc cần tĩnh lặng để suy ngẫm về bản thân và thế giới.',
     advice:
-      'Dữ liệu không biết nói dối. Hãy tin vào Metrics và Traces hơn là tin vào trực giác của mình. Một chút thời gian quan sát kỹ sẽ giúp bạn tiết kiệm hàng tuần fix bug mò.',
+      'Hãy dừng các hành động vội vã để chiêm nghiệm. Đây là thời gian tốt cho việc nghiên cứu, học tập hoặc tu dưỡng tinh thần. Hãy chú trọng vào hình ảnh và uy tín cá nhân vì mọi người đang quan sát bạn.',
   },
   {
     id: 21,
     binary: '100101',
     name: 'Hỏa Lôi Phệ Hạp',
-    animation: 'Bug cứng đầu liên tục bật lại',
+    symbol: '䷔',
+    type: 'Quẻ Bình',
     description:
-      'Cắn phải đá. Một con Bug cực kỳ "chó má" cứ liên tục xuất hiện dù bạn đã bảo là "Fix rồi". Nó đòi hỏi bạn phải dùng đến những biện pháp mạnh mẽ và kỷ luật nhất.',
+      'Tượng trưng cho việc cắn đứt vật cản giữa hai hàm răng. Trong cuộc sống, đây là hình ảnh của pháp luật, hình phạt và sự giải quyết dứt điểm các chướng ngại vật để lập lại sự công bằng.',
     advice:
-      'Đừng ngại dùng Debugger soi từng dòng mã máy. Hãy thiết lập một môi trường tái hiện lỗi hoàn hảo. Cắn chặt lấy nó cho đến khi tìm ra nguyên nhân gốc rễ mới thôi.',
+      'Cần hành động quyết đoán, không được nhu nhược. Nếu có tranh chấp hoặc rào cản, hãy dùng lý trí và luật lệ để giải quyết tận gốc. Sự nghiêm minh và minh bạch sẽ giúp mọi thứ trở lại quỹ đạo.',
   },
   {
     id: 22,
     binary: '101001',
     name: 'Sơn Hỏa Bí',
-    animation: 'UI được đánh bóng tinh tế',
+    symbol: '䷕',
+    type: 'Quẻ Bình',
     description:
-      'Tốt nước sơn hơn tốt gỗ. Giao diện (UI) lung linh, animation mượt mà, màu sắc chuẩn Pantone, nhưng bên dưới là một đống logic rối rắm và nợ kỹ thuật dày đặc.',
+      'Tượng trưng cho sự trang sức, vẻ đẹp bề ngoài và nghệ thuật. Lửa sáng dưới chân núi làm cảnh vật thêm lung linh nhưng chỉ là vẻ đẹp phù hoa, không thay đổi được bản chất cốt lõi.',
     advice:
-      'Làm đẹp là cần thiết, nhưng đừng quên giá trị cốt lõi. Hãy dành thời gian để gia cố lại Logic bên dưới. Đừng để người dùng thất vọng khi bấm vào một cái nút đẹp mà chả có gì xảy ra.',
+      'Hãy chú trọng đến hình thức và cách trình bày để tạo ấn tượng tốt. Tuy nhiên, không nên quá lạm dụng vẻ ngoài mà bỏ quên giá trị thực chất bên trong. Chỉ nên dùng vẻ đẹp này để hỗ trợ cho những việc nhỏ.',
   },
   {
     id: 23,
     binary: '000001',
     name: 'Sơn Địa Bác',
-    animation: 'Từng lớp tài nguyên bị cắt giảm',
+    symbol: '䷖',
+    type: 'Quẻ Đại Hung',
     description:
-      'Gọt bỏ và cắt giảm. Công ty đang trong giai đoạn thắt lưng buộc bụng, nhân sự bị layoff, ngân sách server bị cắt, dự án bị thu hẹp quy mô.',
+      'Tượng trưng cho sự tan rã, bóc tách và suy tàn cực độ. Núi cao bị xói mòn sắp sụp xuống đất. Kẻ tiểu nhân đang chiếm ưu thế tuyệt đối, nền tảng đang lung lay dữ dội.',
     advice:
-      'Hãy bảo toàn nội lực. Tập trung vào những kỹ năng cốt lõi nhất của bạn. Giữ thái độ tích cực nhưng cũng nên âm thầm cập nhật CV và Portfolio để sẵn sàng cho mọi tình huống.',
+      "Tuyệt đối không nên tiến hành bất cứ kế hoạch nào. Hãy giữ mình, ẩn nấp và chờ đợi. Đây là lúc 'im lặng là vàng'. Hãy chú trọng bảo vệ những gì còn lại và chờ đợi quy luật của tự nhiên làm thay đổi thời thế.",
   },
   {
     id: 24,
     binary: '100000',
     name: 'Địa Lôi Phục',
-    animation: 'Hệ thống reboot và hồi phục',
+    symbol: '䷗',
+    type: 'Quẻ Cát',
     description:
-      'Sự trở lại của nhà vua. Sau một cú sập nguồn kinh hoàng, hệ thống đã được reboot thành công. Mọi thứ đang dần quay trở lại quỹ đạo ổn định ban đầu.',
+      'Tượng trưng cho sự quay trở lại, hồi sinh của dương khí sau thời kỳ tăm tối. Mầm sống bắt đầu nảy nở trong lòng đất. Đây là điểm khởi đầu của một chu kỳ mới tốt đẹp hơn.',
     advice:
-      'Kiểm tra hậu sự cố thật kỹ. Đừng chủ quan thấy nó chạy lại là xong. Hãy tìm hiểu tại sao nó sập để đảm bảo rằng lần "hồi phục" này là bền vững.',
+      'Hãy tiến lên một cách từ tốn, không nên vội vã bùng nổ ngay. Quá trình phục hồi cần thời gian. Hãy rà soát lại những bài học cũ để áp dụng vào hành trình mới. Sự tự tin sẽ dần được củng cố.',
   },
   {
     id: 25,
     binary: '100111',
     name: 'Thiên Lôi Vô Vọng',
-    animation: 'Sự cố từ dịch vụ bên thứ ba',
+    symbol: '䷘',
+    type: 'Quẻ Bình',
     description:
-      'Tai họa từ trên trời rơi xuống. AWS sập vùng Asia, hay Facebook API đổi policy mà không báo trước. Những việc này hoàn toàn nằm ngoài tầm kiểm soát của bạn.',
+      'Tượng trưng cho sự chân thành, tự nhiên và không vọng động. Hành động đúng với quy luật trời đất, không mưu cầu tư lợi thì sẽ không gặp tai họa. Sự vô tình có thể mang lại kết quả bất ngờ.',
     advice:
-      'Đừng tự dằn vặt mình. Hãy nhanh chóng xây dựng phương án Fallback, thông báo tình hình rõ ràng cho sếp và khách hàng. Trong cái khó ló cái khôn, hãy tìm hướng đi mới.',
+      'Hãy làm việc với cái tâm trong sáng nhất, không toan tính thiệt hơn. Đừng cố gắng điều khiển kết quả theo ý mình. Nếu hành xử ngay thẳng mà vẫn gặp rủi ro, đó là do định mệnh, hãy bình thản đón nhận.',
   },
   {
     id: 26,
     binary: '111001',
     name: 'Sơn Thiên Đại Súc',
-    animation: 'Kho tri thức kỹ thuật ngày càng lớn',
+    symbol: '䷙',
+    type: 'Quẻ Cát',
     description:
-      'Tích lũy tri thức lớn. Sau nhiều năm "chinh chiến", bạn đã sở hữu một kho tàng kiến thức đồ sộ, từ thuật toán đến kiến trúc hệ thống, đủ để gánh cả team.',
+      'Tượng trưng cho sự tích lũy lớn lao về đạo đức, tài sản và kiến thức. Sức mạnh to lớn của Trời được chứa đựng trong lòng Núi vững chãi. Đây là lúc năng lượng đã chín muồi để làm những việc phi thường.',
     advice:
-      'Hãy bắt đầu chia sẻ. Viết blog kỹ thuật, làm mentor cho đàn em hoặc đề xuất một chuẩn mực code mới cho công ty. Tri thức chỉ thực sự giá trị khi nó được lan tỏa.',
+      'Hãy tự tin thực hiện những dự án lớn hoặc đi xa (vượt sông lớn). Hãy sử dụng những kinh nghiệm và nguồn lực đã tích lũy bấy lâu để khẳng định vị thế của mình. Sự kiên định sẽ dẫn đến thành công vang dội.',
   },
   {
     id: 27,
     binary: '100001',
     name: 'Sơn Lôi Di',
-    animation: 'Team dừng tay để nạp năng lượng',
+    symbol: '䷚',
+    type: 'Quẻ Bình',
     description:
-      'Chuyện ăn uống và nghỉ ngơi. Cả team đang mải mê order trà sữa, bàn chuyện đi du lịch hay đơn giản là ngủ trưa sau một đêm thức trắng cày deadline.',
+      'Tượng trưng cho việc nuôi dưỡng. Hình ảnh hàm răng đang nhai, nhắc nhở về việc ăn uống (thể chất) và lời nói, tư tưởng (tinh thần). Cách bạn nuôi mình và nuôi người phản ánh tư cách của bạn.',
     advice:
-      'Ăn được ngủ được là tiên. Đừng quá ép xác trước màn hình máy tính. Một cơ thể khỏe mạnh và một tâm trí thoải mái là "phần cứng" quan trọng nhất để chạy "phần mềm".',
+      'Hãy cẩn trọng trong lời nói và tiết độ trong ăn uống. Chú ý trau dồi tri thức và đạo đức. Nếu bạn đang dẫn dắt người khác, hãy đảm bảo rằng bạn cung cấp cho họ những giá trị tích cực và đúng đắn.',
   },
   {
     id: 28,
     binary: '011110',
     name: 'Trạch Phong Đại Quá',
-    animation: 'Kiến trúc phức tạp vượt nhu cầu thực tế',
+    symbol: '䷛',
+    type: 'Quẻ Hung',
     description:
-      'Quá tải vì quá giỏi. Bạn đang dùng một kiến trúc Microservices phức tạp chỉ để chạy một trang Landing Page đơn giản. Đây là điển hình của Over-engineering.',
+      'Tượng trưng cho sự quá tải, gánh nặng vượt mức chịu đựng. Cột nhà quá yếu so với mái quá nặng, tình thế đang ở ngưỡng cực đoan, dễ dẫn đến đổ vỡ nếu không xử lý kịp thời.',
     advice:
-      'Hãy quay lại với sự đơn giản. Đừng cố dùng dao mổ trâu để giết kiến. KISS (Keep It Simple, Stupid) là tôn chỉ bạn cần áp dụng ngay lúc này.',
+      'Cần một sự quyết đoán phi thường hoặc một giải pháp đột phá để thoát khỏi áp lực. Đừng sợ hãi khi phải đứng một mình chống lại đám đông. Hãy tìm cách giảm bớt gánh nặng ngay lập tức trước khi mọi thứ sụp đổ.',
   },
   {
     id: 29,
     binary: '010010',
     name: 'Thuần Khảm',
-    animation: 'Con thuyền nhỏ giữa biển Error 500',
+    symbol: '䷜',
+    type: 'Quẻ Đại Hung',
     description:
-      'Hiểm họa trùng trùng. Bug này chưa xong bug kia đã tới, Client mắng, Sếp giục, Server thì liên tục báo 500. Bạn cảm thấy mình đang chìm giữa biển khơi mù mịt.',
+      'Tượng trưng cho sự nguy hiểm trùng trùng, vực thẳm này nối tiếp vực thẳm khác. Giống như dòng nước chảy vào chỗ hiểm, đòi hỏi sự dũng cảm và lòng tin sắt đá mới có thể vượt qua.',
     advice:
-      'Dừng lại và hít thở! Đừng cố fix trong trạng thái hoảng loạn. Hãy ngủ một giấc, tắt điện thoại, sau đó quay lại giải quyết từng cái một bằng một cái đầu lạnh.',
+      'Giữ vững lòng tin và sự chân thành. Đừng sợ hãi khó khăn mà hãy học cách linh hoạt như nước, len lỏi qua các khe hở để thoát ra. Tuyệt đối không được dừng lại hay bỏ cuộc trong lúc nguy nan này.',
   },
   {
     id: 30,
     binary: '101101',
     name: 'Thuần Ly',
-    animation: 'Server bốc nhiệt vì traffic tăng vọt',
+    symbol: '䷝',
+    type: 'Quẻ Cát',
     description:
-      'Rực rỡ và nóng bỏng. Chiến dịch Marketing thành công rực rỡ khiến Traffic tăng vọt ngoài dự kiến. Server đang "toát mồ hôi hột", CPU luôn ở mức 99%.',
+      'Tượng trưng cho sự rực rỡ, sáng suốt và sự bám víu. Lửa cần có củi để cháy, người cần có lý tưởng hoặc chỗ dựa đúng đắn để tỏa sáng. Đây là thời điểm của trí tuệ và sự thấu suốt.',
     advice:
-      'Hãy chủ động điều phối tài nguyên. Bật Auto-scaling, tắt bớt những dịch vụ không cần thiết để ưu tiên cho luồng chính. Sự tỏa sáng cần đi đôi với sự kiểm soát.',
+      'Hãy tìm cho mình một chỗ dựa vững chắc (người thầy, đạo lý, hoặc tổ chức tốt). Tránh sự nóng nảy, đốt cháy giai đoạn. Sự dịu dàng và sáng suốt như ánh mặt trời sẽ mang lại sự thành công lâu bền.',
   },
   {
     id: 31,
-    binary: '011100',
+    binary: '001110',
     name: 'Trạch Sơn Hàm',
-    animation: 'Dev và Tester phối hợp nhịp nhàng',
+    symbol: '䷞',
+    type: 'Quẻ Cát',
     description:
-      'Sự đồng cảm kỳ diệu. Dev hiểu ý Tester, Tester thấu hiểu nỗi khổ của Dev. Hai bên phối hợp nhịp nhàng như một cặp nhảy Tango chuyên nghiệp.',
+      'Tượng trưng cho sự cảm thông và giao cảm giữa hai tâm hồn. Hồ nước trên đỉnh núi, âm dương tương ứng tạo nên sức hút tự nhiên. Đây là quẻ rất tốt cho tình yêu, hôn nhân và các mối quan hệ đối tác.',
     advice:
-      'Duy trì sự giao tiếp tích cực này. Hãy khen ngợi đồng nghiệp khi họ làm tốt. Một môi trường làm việc thấu hiểu nhau sẽ đẩy chất lượng sản phẩm lên mức tối đa.',
+      'Hãy giữ lòng chân thành và cởi mở để đón nhận sự kết nối. Đừng dùng mưu mẹo, hãy để mọi thứ diễn ra tự nhiên dựa trên sự thấu hiểu lẫn nhau. Sự chân thành sẽ dẫn đến một mối quan hệ bền chặt.',
   },
   {
     id: 32,
-    binary: '001110',
+    binary: '011100',
     name: 'Lôi Phong Hằng',
-    animation: 'Bánh xe bảo trì quay đều',
+    symbol: '䷟',
+    type: 'Quẻ Cát',
     description:
-      'Sự kiên trì bền bỉ. Công việc bảo trì hàng ngày có vẻ nhàm chán (viết docs, dọn log, check security), nhưng nó là nền tảng giúp hệ thống trường tồn.',
+      'Tượng trưng cho sự bền vững, lâu dài và kiên định. Sấm và Gió luôn đồng hành cùng nhau. Đây là đức tính của sự chung thủy, duy trì nề nếp và kế hoạch đã đề ra.',
     advice:
-      'Đừng nản lòng trước những việc lặp đi lặp lại. Hãy tìm cách tự động hóa (Automation) chúng. Sự bền bỉ trong việc nhỏ sẽ dẫn đến thành công ở việc lớn.',
+      'Đừng thay đổi mục tiêu hay phương pháp lúc này. Thành công đến từ sự kiên trì bền bỉ theo đuổi con đường đã chọn. Hãy giữ vững đạo đức và kỷ luật, sự nóng vội muốn thay đổi sẽ chỉ mang lại thất bại.',
   },
   {
     id: 33,
     binary: '001111',
     name: 'Thiên Sơn Độn',
-    animation: 'Chế độ tập trung tránh nhiễu',
+    symbol: '䷠',
+    type: 'Quẻ Bình',
     description:
-      'Ẩn nấp chờ thời. Đây là lúc bạn cần rút lui khỏi những cuộc tranh luận vô bổ trên mạng hoặc những buổi họp "vô thưởng vô phạt" để tập trung vào việc quan trọng nhất.',
+      'Tượng trưng cho sự ẩn nấp, rút lui để bảo toàn lực lượng. Trời cao lánh xa Núi, khi kẻ xấu đang mạnh lên, người quân tử biết rút lui đúng lúc không phải là hèn nhát mà là sự sáng suốt.',
     advice:
-      'Bật chế độ Do Not Disturb, đeo tai nghe chống ồn và "biến mất" vào thế giới code của riêng bạn. Rút lui không phải là hèn, mà là để bảo toàn trí tuệ cho nhiệm vụ cao cả.',
+      'Hãy biết khi nào nên dừng lại và rút lui. Đừng cố gắng đối đầu trực diện khi thời thế không ủng hộ. Việc rút lui này giúp bạn có thời gian tu dưỡng và chờ đợi thời cơ phục thù trong tương lai.',
   },
   {
     id: 34,
     binary: '111100',
     name: 'Lôi Thiên Đại Tráng',
-    animation: 'Trạng thái flow coding bùng nổ',
+    symbol: '䷡',
+    type: 'Quẻ Cát',
     description:
-      'Chí khí ngút trời. Bạn đang ở trong trạng thái "Flow", code tuôn ra như suối, giải quyết những bài toán hóc búa nhất chỉ trong vài nốt nhạc. Sức mạnh của bạn lúc này là vô địch.',
+      'Tượng trưng cho sức mạnh to lớn, sự thịnh vượng và uy thế. Sấm nổ vang trời, đại diện cho năng lượng đang ở mức cao nhất, có thể làm rung chuyển mọi thứ.',
     advice:
-      'Tận dụng đà này để giải quyết các task tồn đọng. Nhưng hãy cẩn thận, đừng vì quá tự tin mà bỏ qua các bước kiểm thử cơ bản. Sức mạnh lớn cần đi kèm trách nhiệm lớn.',
+      'Có sức mạnh nhưng phải biết tự kiềm chế (dùng lễ để chế ngự sức mạnh). Đừng cậy thế mà làm điều càn quấy hoặc quá tự tin dẫn đến sa ngã. Sức mạnh thực sự nằm ở việc biết dừng đúng lúc.',
   },
   {
     id: 35,
     binary: '000101',
     name: 'Hỏa Địa Tấn',
-    animation: 'Bậc thang nghề nghiệp mở ra',
+    symbol: '䷢',
+    type: 'Quẻ Cát',
     description:
-      'Tiến bộ vượt bậc. Thành quả lao động của bạn cuối cùng cũng được ghi nhận. Một vị trí mới, một mức lương mới hoặc một dự án "xịn xò" hơn đang chờ đón bạn.',
+      'Tượng trưng cho sự tiến bộ rực rỡ, như mặt trời vừa mọc lên khỏi mặt đất, xua tan bóng tối. Bạn đang nhận được sự tin tưởng, thăng tiến và phần thưởng xứng đáng.',
     advice:
-      'Đừng ngủ quên trên chiến thắng. Hãy bắt đầu học những kỹ năng của vị trí cao hơn (như quản lý, thiết kế hệ thống). Càng lên cao, tầm nhìn càng phải rộng.',
+      'Hãy tiếp tục phát huy năng lực và sự chính trực của mình. Đây là lúc để tỏa sáng và nhận lấy những trọng trách mới. Hãy đối xử tử tế với cấp dưới và trung thành với cấp trên để giữ vững vị thế.',
   },
   {
     id: 36,
     binary: '101000',
-    name: 'Địa Hỏa Minh Di',
-    animation: 'Ánh sáng ý tưởng tạm thời bị che phủ',
+    name: 'Hỏa Địa Minh Di',
+    symbol: '䷣',
+    type: 'Quẻ Hung',
     description:
-      'Ánh sáng bị che lấp. Ý tưởng thiên tài của bạn bị sếp gạt đi, hoặc bạn phải làm một công việc thấp hơn năng lực của mình. Cảm giác như bị kìm hãm tài năng.',
+      'Tượng trưng cho sự tổn thương, bóng tối lấn át ánh sáng. Mặt trời lặn xuống lòng đất, đại diện cho thời kỳ khó khăn, tài năng bị vùi dập hoặc phải đối mặt với sự bất công.',
     advice:
-      'Hãy "giấu mình chờ thời". Đừng vội vàng phản kháng hay bỏ cuộc. Hãy âm thầm hoàn thiện ý tưởng đó trong bóng tối, chờ ngày đủ nắng hoa sẽ nở.',
+      'Hãy khéo léo che giấu tài năng và ánh sáng của mình để tránh bị hãm hại (giả ngây giả ngô). Trong lòng vẫn giữ vững chí hướng nhưng bên ngoài phải nhẫn nhịn để bảo toàn bản thân qua cơn hoạn nạn.',
   },
   {
     id: 37,
     binary: '101011',
     name: 'Phong Hỏa Gia Nhân',
-    animation: 'Home office với nhịp sinh hoạt gia đình',
+    symbol: '䷤',
+    type: 'Quẻ Cát',
     description:
-      'Việc nhà việc cửa. Những vấn đề gia đình, con cái hoặc không gian làm việc tại nhà (WFH) đang chiếm trọn tâm trí bạn. Sự ổn định ở nhà là gốc rễ của công việc.',
+      'Tượng trưng cho đạo gia đình, sự tề gia và trật tự nội bộ. Lửa cháy sinh ra gió, đại diện cho sức ảnh hưởng từ bên trong ra bên ngoài. Gia đình có hòa thuận thì vạn sự mới hưng thịnh.',
     advice:
-      'Hãy sắp xếp lại góc làm việc cho thật chill. Thiết lập ranh giới rõ ràng với người thân để có sự tập trung. Nhà có ấm thì code mới mượt.',
+      'Hãy tập trung chỉnh đốn các vấn đề nội bộ, gia đình hoặc tổ chức nhỏ của bạn. Mỗi người cần làm đúng bổn phận và vị trí của mình. Sự nghiêm túc và yêu thương trong gia đình là nền tảng cho mọi thành công bên ngoài.',
   },
   {
     id: 38,
     binary: '110101',
     name: 'Hỏa Trạch Khuê',
-    animation: 'API contract lệch pha giữa hai phía',
+    symbol: '䷥',
+    type: 'Quẻ Hung',
     description:
-      'Sự khác biệt và mâu thuẫn. Frontend muốn kiểu này, Backend làm kiểu kia. Hai bên không hiểu ý nhau, dẫn đến những màn tranh cãi nảy lửa về Interface.',
+      'Tượng trưng cho sự trái ngược, chia rẽ và hận thù. Lửa bốc lên cao, nước đầm lầy thấm xuống dưới, hai bên đi về hai hướng khác nhau, không tìm được tiếng nói chung.',
     advice:
-      'Chấp nhận sự khác biệt và tìm điểm chung. Hãy ngồi lại viết một bản API Contract thật chi tiết. Sự rõ ràng trong giao tiếp sẽ xóa tan mọi sự lệch pha.',
+      'Trong sự khác biệt, hãy tìm kiếm những điểm chung nhỏ nhất để chung sống hòa bình (cầu đồng tồn dị). Đừng cố gắng ép buộc người khác theo ý mình. Chỉ nên làm những việc nhỏ, tránh khởi sự lớn vì sự chia rẽ sẽ làm hỏng việc.',
   },
   {
     id: 39,
-    binary: '010100',
+    binary: '001010',
     name: 'Thủy Sơn Kiển',
-    animation: 'Task bị chặn bởi phụ thuộc bên ngoài',
+    symbol: '䷦',
+    type: 'Quẻ Hung',
     description:
-      'Gian nan vất vả. Task của bạn bị block vì chờ bên Third-party cung cấp tài liệu hoặc chờ một team khác merge code. Càng muốn nhanh lại càng bị chậm.',
+      'Tượng trưng cho sự gian nan, khập khiễng và bế tắc. Phía trước có vực sâu (Nước), phía sau là núi cao, tiến thoái lưỡng nan. Đây là giai đoạn đầy rẫy những rào cản khách quan.',
     advice:
-      'Đừng ngồi không chờ đợi. Hãy tranh thủ làm những task độc lập khác hoặc viết tài liệu, chuẩn bị các kịch bản test. Luôn có cách để tiến lên dù con đường chính bị chặn.',
+      'Nên dừng lại để tự kiểm điểm và tìm kiếm sự giúp đỡ từ những người thông thái ở phương Nam hoặc phương Tây. Đừng cố gắng vượt qua một mình bằng sức mạnh cơ bắp. Sự tĩnh lặng và tìm đồng minh là lối thoát duy nhất.',
   },
   {
     id: 40,
-    binary: '001010',
+    binary: '010100',
     name: 'Lôi Thủy Giải',
-    animation: 'Khoảnh khắc bug critical được đóng',
+    symbol: '䷧',
+    type: 'Quẻ Cát',
     description:
-      'Giải tỏa áp lực. Những mâu thuẫn được tháo gỡ, con Bug nghiêm trọng nhất đã được tiêu diệt. Cả team như vừa trút bỏ được một gánh nặng ngàn cân.',
+      'Tượng trưng cho sự giải tỏa, cởi bỏ và tha thứ. Sấm chớp và mưa làm tan đi không khí ngột ngạt, khó khăn dần qua đi, những vướng mắc được tháo gỡ.',
     advice:
-      'Hãy ăn mừng một chút! Sau đó ngồi lại viết Post-mortem để lưu lại kinh nghiệm. Đừng để những sai lầm tương tự lặp lại trong tương lai.',
+      'Hãy nhanh chóng quay trở lại trạng thái bình thường sau cơn khủng hoảng. Hãy tha thứ cho những sai lầm của người khác và xóa bỏ những nợ nần cũ. Đây là lúc để tiến về phía trước một cách nhẹ nhàng.',
   },
   {
     id: 41,
     binary: '110001',
     name: 'Sơn Trạch Tổn',
-    animation: 'Biểu đồ RAM leo thang vì memory leak',
+    symbol: '䷨',
+    type: 'Quẻ Bình',
     description:
-      'Sự hao tổn âm thầm. Hệ thống bị Memory Leak, RAM bị ngốn sạch theo thời gian mà không rõ lý do. Đây là lúc phải chấp nhận hy sinh một số tính năng để bảo vệ tổng thể.',
+      'Tượng trưng cho sự giảm bớt, hy sinh cái nhỏ để được cái lớn hoặc bớt cái dưới bồi cho cái trên. Tuy là tổn thất nhưng nếu thực hiện với lòng thành kính thì lại mang lại phúc đức.',
     advice:
-      'Hãy rà soát lại Lifecycle của các Object, giải phóng tài nguyên đúng lúc. Đôi khi bớt đi một chút "rườm rà" lại giúp hệ thống chạy nhanh hơn bội phần.',
+      'Hãy học cách kiểm soát ham muốn và sự nóng nảy. Đôi khi việc chịu thiệt thòi một chút ở hiện tại sẽ mang lại lợi ích lâu dài về sau. Sự chân thành và tiết kiệm là chìa khóa để vượt qua giai đoạn này.',
   },
   {
     id: 42,
     binary: '100011',
     name: 'Phong Lôi Ích',
-    animation: 'Hiệu năng tăng mạnh sau tối ưu',
+    symbol: '䷩',
+    type: 'Quẻ Đại Cát',
     description:
-      'Gia tăng lợi ích. Sau khi áp dụng Caching hoặc tối ưu thuật toán, hiệu năng hệ thống tăng vọt. User hài lòng, sếp khen ngợi, chi phí Server giảm đáng kể.',
+      'Tượng trưng cho sự gia tăng, bồi bổ và lợi ích. Gió và Sấm bổ trợ cho nhau, đại diện cho thời cơ thuận lợi để cải cách, giúp đỡ mọi người và phát triển sự nghiệp.',
     advice:
-      'Thừa thắng xông lên! Hãy biến những cải tiến này thành quy chuẩn chung. Khi bạn làm điều tốt cho hệ thống, hệ thống sẽ trả lại lợi ích cho bạn.',
+      'Hãy mạnh dạn tiến hành những thay đổi lớn. Thấy điều thiện thì nên theo, thấy lỗi lầm thì nên sửa ngay. Việc giúp đỡ người khác và phụng sự cộng đồng lúc này sẽ mang lại lợi ích cực lớn cho chính bạn.',
   },
   {
     id: 43,
     binary: '111110',
     name: 'Trạch Thiên Quải',
-    animation: 'Nút release toàn cục sáng lên',
+    symbol: '䷪',
+    type: 'Quẻ Bình',
     description:
-      'Quyết định dứt khoát. Đã đến giờ G, không thể chần chừ thêm nữa. Bạn phải đưa ra quyết định cuối cùng: Release hay không Release?',
+      'Tượng trưng cho sự quyết liệt, dứt khoát và trừ bỏ kẻ xấu. Đầm lầy dâng cao định lấn át trời, đại diện cho một cuộc đối đầu cuối cùng để loại bỏ những tiêu cực tích tụ.',
     advice:
-      'Hãy tin vào Checklist của mình. Nếu mọi thứ đã xanh, hãy mạnh dạn nhấn nút. Sự dứt khoát vào thời điểm then chốt là phẩm chất của một người dẫn dắt.',
+      'Phải hành động một cách công khai, minh bạch và quyết đoán. Tránh dùng bạo lực hay mưu hèn kế bẩn, hãy dùng chính nghĩa để thuyết phục. Cần cảnh giác cao độ vì kẻ xấu khi bị dồn vào đường cùng sẽ rất nguy hiểm.',
   },
   {
     id: 44,
     binary: '011111',
     name: 'Thiên Phong Cấu',
-    animation: 'Cảnh báo bảo mật từ thư viện phụ thuộc',
+    symbol: '䷫',
+    type: 'Quẻ Hung',
     description:
-      'Gặp gỡ bất ngờ. Một lỗ hổng bảo mật nghiêm trọng (như Log4j) đột ngột xuất hiện trong thư viện mà bạn đang dùng. Một mối nguy tiềm ẩn vừa lộ diện.',
+      'Tượng trưng cho sự gặp gỡ bất ngờ nhưng ẩn chứa hiểm nguy. Một hào âm mới xuất hiện dưới 5 hào dương, đại diện cho những tác động tiêu cực nhỏ bé bắt đầu len lỏi vào hệ thống vững chắc.',
     advice:
-      'Đừng chủ quan khinh địch. Hãy cập nhật bản vá ngay lập tức. Luôn cảnh giác với những thứ "miễn phí" hoặc những thư viện lạ không rõ nguồn gốc.',
+      'Cẩn thận với những lời mời chào quá hấp dẫn hoặc những người mới xuất hiện có vẻ ngoài nhu mì. Đừng để những thói hư tật xấu hay những tư tưởng lệch lạc bắt rễ. Hãy tỉnh táo bảo vệ nguyên tắc của mình.',
   },
   {
     id: 45,
     binary: '000110',
     name: 'Trạch Địa Tụy',
-    animation: 'Dòng dữ liệu hội tụ về trung tâm',
+    symbol: '䷬',
+    type: 'Quẻ Cát',
     description:
-      'Hội tụ và đoàn kết. Mọi nguồn lực dữ liệu đang đổ về Big Data của bạn. Team đang tập hợp lại để chuẩn bị cho một trận đánh lớn.',
+      'Tượng trưng cho sự hội tụ, tụ họp và đoàn kết. Nước đổ về đầm lầy trên mặt đất, đại diện cho việc mọi người cùng tập hợp lại quanh một mục tiêu hoặc một vị lãnh đạo có uy tín.',
     advice:
-      'Hãy tổ chức thật tốt. Một đống dữ liệu lộn xộn chỉ là rác, nhưng nếu được tổ chức bài bản, nó sẽ trở thành kho báu. Đoàn kết là sức mạnh, tổ chức là chìa khóa.',
+      'Hãy chuẩn bị lễ vật và lòng thành để cúng tế (hoặc thể hiện lòng tri ân). Sự đoàn kết cần được duy trì bằng những quy tắc chung và sự bao dung. Đây là lúc để xây dựng đội ngũ và củng cố sức mạnh tập thể.',
   },
   {
     id: 46,
     binary: '011000',
     name: 'Địa Phong Thăng',
-    animation: 'Thanh level-up trong nghề nghiệp',
+    symbol: '䷭',
+    type: 'Quẻ Đại Cát',
     description:
-      'Thăng tiến bền vững. Bạn đang đi đúng hướng trên lộ trình nghề nghiệp. Không quá nhanh nhưng chắc chắn, mỗi ngày bạn đều giỏi hơn chính mình hôm qua.',
+      'Tượng trưng cho sự thăng tiến dần dần và vững chắc. Cây mọc lên từ lòng đất, từng chút một nhưng không gì ngăn cản được. Đây là quẻ của sự nỗ lực bền bỉ mang lại thành quả cao quý.',
     advice:
-      'Hãy tiếp tục kiên trì. Đừng vì một chút thành công mà kiêu ngạo. Hãy tìm kiếm một Mentor giỏi để dẫn dắt bạn lên những đỉnh cao mới.',
+      'Hãy tự tin tiến bước và tìm kiếm sự giúp đỡ từ những bậc tiền bối. Đừng nóng vội, hãy đi theo lộ trình đã định. Sự thăng tiến này là kết quả của một quá trình tu dưỡng lâu dài, hãy trân trọng nó.',
   },
   {
     id: 47,
     binary: '010110',
     name: 'Trạch Thủy Khốn',
-    animation: 'Đèn báo burn-out chớp đỏ',
+    symbol: '䷮',
+    type: 'Quẻ Đại Hung',
     description:
-      'Khốn cùng và mệt mỏi. Bạn bị kẹt trong đống Bug không lối thoát, deadline sát nút mà đầu óc trống rỗng. Đây là trạng thái Burn-out điển hình.',
+      'Tượng trưng cho sự cùng cực, khốn đốn và bị vây hãm. Đầm lầy không có nước, đại diện cho sự cạn kiệt nguồn lực, lời nói không ai tin, hành động bị cản trở.',
     advice:
-      'Hãy dừng lại! Code thêm lúc này chỉ tạo ra thêm Bug. Đi ngủ, đi nhậu hoặc đi xem phim. Hãy giải thoát tâm trí mình trước khi giải cứu hệ thống.',
+      'Trong lúc khốn cùng, lời nói không có giá trị, hãy dùng hành động và sự im lặng để chứng minh phẩm giá. Hãy giữ vững niềm tin vào chính đạo, khó khăn này là bài kiểm tra bản lĩnh cuối cùng trước khi bạn bước sang trang mới.',
   },
   {
     id: 48,
     binary: '011010',
     name: 'Thủy Phong Tỉnh',
-    animation: 'Giếng nước ổn định nuôi hệ thống lâu dài',
+    symbol: '䷯',
+    type: 'Quẻ Bình',
     description:
-      'Cái giếng tri thức. Hệ thống của bạn đã đi vào ổn định, phục vụ người dùng âm thầm như dòng nước giếng mát lành. Ai cần thì đến lấy, không ồn ào nhưng vô giá.',
+      'Tượng trưng cho cái Giếng, nguồn sống không bao giờ cạn và không thay đổi. Dù đời người thay đổi nhưng đạo lý và những giá trị căn bản vẫn như giếng nước, nuôi dưỡng tất cả.',
     advice:
-      'Bảo trì và gìn giữ. Đừng cố "đào thêm" hay "lấp đi" cái giếng đang hoạt động tốt. Sự ổn định là thứ quý giá nhất trong thế giới công nghệ đầy biến động.',
+      'Hãy quay về bồi đắp những giá trị cốt lõi, đạo đức và kỹ năng nền tảng. Đừng mải mê chạy theo những thứ phù phiếm bên ngoài. Việc giúp đỡ người khác bằng kiến thức và lòng tốt của mình sẽ mang lại sự tôn trọng lâu dài.',
   },
   {
     id: 49,
     binary: '101110',
     name: 'Trạch Hỏa Cách',
-    animation: 'Bảng tech stack chuyển sang thế hệ mới',
+    symbol: '䷰',
+    type: 'Quẻ Cát',
     description:
-      'Cuộc cách mạng công nghệ. Đã đến lúc bỏ jQuery để sang React, bỏ Monolith để sang Microservices. Một sự thay đổi triệt để về tư duy và công cụ.',
+      'Tượng trưng cho sự thay đổi, cách mạng và đổi mới. Lửa trong đầm lầy tạo nên sự biến đổi mãnh liệt. Đây là lúc những cái cũ kỹ cần phải được thay thế bằng những cái mới phù hợp hơn.',
     advice:
-      'Đừng sợ hãi cái mới. Hãy lập một kế hoạch Migration thật chi tiết, đào tạo đội ngũ bài bản. Cuộc cách mạng thành công sẽ mang lại một sức sống hoàn toàn mới.',
+      'Chỉ nên thực hiện thay đổi khi thời cơ đã hoàn toàn chín muồi và bạn có được lòng tin của mọi người. Sự đổi mới phải dựa trên chính nghĩa và đem lại lợi ích chung mới có thể thành công rực rỡ.',
   },
   {
     id: 50,
     binary: '011101',
     name: 'Hỏa Phong Đỉnh',
-    animation: 'Kiến trúc hệ thống đứng vững như đỉnh trụ',
+    symbol: '䷱',
+    type: 'Quẻ Đại Cát',
     description:
-      'Quẻ của sự vững chãi. Kiến trúc hệ thống của bạn tuyệt vời đến mức có thể chịu tải gấp 10 lần hiện tại. Bạn đang nắm trong tay một "bảo vật" thực sự.',
+      'Tượng trưng cho cái Đỉnh (vạc báu), biểu tượng của quyền lực, sự vững chãi và thành tựu sau khi đã cải cách. Đây là giai đoạn nuôi dưỡng tài năng và thiết lập trật tự mới cao quý.',
     advice:
-      'Hãy giữ vững vị thế này. Đây là lúc để scale dự án ra thị trường lớn hơn. Khi cái "đỉnh" đã vững, bạn có thể nấu bất cứ món ngon (feature) nào cho người dùng.',
+      'Hãy chú trọng vào việc tuyển dụng và trọng dụng người tài. Giữ gìn sự uy nghiêm và đạo đức trong quản lý. Thành công lúc này mang tính biểu tượng cao, hãy làm gương cho người khác noi theo.',
   },
   {
     id: 51,
-    binary: '001001',
+    binary: '100100',
     name: 'Thuần Chấn',
-    animation: 'Notification dồn dập như sấm sét',
+    symbol: '䷲',
+    type: 'Quẻ Bình',
     description:
-      'Sấm vang chớp giật. Notification nổ liên tục trên Slack, khách hàng gọi điện cháy máy vì một lỗi hệ thống nghiêm trọng. Cả công ty đang rúng động.',
+      'Tượng trưng cho Sấm sét, sự kinh động và thức tỉnh. Tiếng sấm vang rền khiến mọi người sợ hãi nhưng cũng là lúc để vạn vật bừng tỉnh khỏi cơn mê.',
     advice:
-      'Bình tĩnh! Sấm sét có vang nhưng không kéo dài. Hãy tập trung xử lý sự cố gốc, đừng để tiếng ồn xung quanh làm bạn rối trí. Sau cơn mưa trời lại sáng.',
+      'Khi gặp những biến cố bất ngờ, hãy giữ bình tĩnh để không làm rơi chén rượu (giữ được sự điềm tĩnh). Hãy dùng sự kinh động này để nhìn lại lỗi lầm của bản thân và sửa đổi, tai họa sẽ biến thành phúc đức.',
   },
   {
     id: 52,
-    binary: '100100',
+    binary: '001001',
     name: 'Thuần Cấn',
-    animation: 'Nút pause bật lên giữa guồng quay',
+    symbol: '䷳',
+    type: 'Quẻ Bình',
     description:
-      'Dừng chân tại chỗ. Có những lúc bạn cần phải nói "Không" với những yêu cầu mới. Hệ thống cần thời gian để "thở" và ổn định thay vì cứ nạp thêm tính năng.',
+      'Tượng trưng cho Núi, sự ngưng nghỉ và tĩnh lặng tuyệt đối. Đây là lúc cần phải biết dừng lại đúng lúc, giữ cho tâm trí không bị xao động bởi những ham muốn bên ngoài.',
     advice:
-      'Hãy biết giới hạn của mình. Đừng ôm đồm quá nhiều thứ cùng lúc. Sự tĩnh lặng lúc này sẽ giúp bạn nhìn thấy những vấn đề mà lúc bận rộn bạn đã bỏ qua.',
+      'Hãy học cách kiểm soát suy nghĩ và hành động của mình. Đừng làm gì cả khi lòng chưa yên. Việc giữ được sự tĩnh lặng trong nội tâm lúc này là thành tựu lớn nhất, giúp bạn tránh được mọi sai lầm.',
   },
   {
     id: 53,
     binary: '001011',
     name: 'Phong Sơn Tiệm',
-    animation: 'Thanh tiến độ tăng chậm mà chắc',
+    symbol: '䷴',
+    type: 'Quẻ Cát',
     description:
-      'Tiến triển từ từ. Dự án không có những cú bứt phá chấn động nhưng tiến độ luôn đảm bảo, mỗi ngày đều hoàn thành một vài ticket. Một sự tăng trưởng rất lành mạnh.',
+      'Tượng trưng cho sự tiến triển tuần tự, như chim hồng bay dần lên cao. Mọi sự thành công bền vững đều cần thời gian và các bước đi đúng quy trình, không thể đốt cháy giai đoạn.',
     advice:
-      'Dục tốc bất đạt. Cứ giữ nhịp độ này, đừng vì nôn nóng mà đốt cháy giai đoạn. Thành công lớn là tổng hòa của những bước đi nhỏ đúng hướng.',
+      'Hãy kiên nhẫn thực hiện từng bước một theo kế hoạch. Đặc biệt tốt cho việc hôn nhân hoặc các hợp đồng dài hạn. Sự vội vàng lúc này sẽ làm hỏng kết quả đẹp đẽ đang dần hình thành.',
   },
   {
     id: 54,
     binary: '110100',
     name: 'Lôi Trạch Quy Muội',
-    animation: 'Vai trò và năng lực lệch nhau',
+    symbol: '䷵',
+    type: 'Quẻ Hung',
     description:
-      'Sai lầm trong sắp đặt. Bạn bị phân vào một task không đúng chuyên môn, hoặc tuyển nhầm một người không phù hợp vào team. Mọi thứ đang chạy một cách gượng ép.',
+      'Tượng trưng cho việc em gái về nhà chồng (lấy lẽ), đại diện cho những mối quan hệ sai lệch, không đúng danh phận hoặc sự nóng vội trong hành động dẫn đến kết quả không bền vững.',
     advice:
-      'Hãy mạnh dạn điều chỉnh. Thẳng thắn thừa nhận nếu task quá sức hoặc không phù hợp. Đặt đúng người vào đúng việc là cách tốt nhất để cứu vãn tình hình.',
+      'Cần xem xét lại các mối quan hệ và cam kết hiện tại. Đừng vì những cảm xúc nhất thời mà đưa ra quyết định sai lầm cho tương lai. Hãy thận trọng với những gì không bắt đầu từ sự chính thống và minh bạch.',
   },
   {
     id: 55,
     binary: '101100',
     name: 'Lôi Hỏa Phong',
-    animation: 'Bản phát hành đầy đủ tính năng',
+    symbol: '䷶',
+    type: 'Quẻ Cát',
     description:
-      'Thời kỳ cực thịnh. Sản phẩm của bạn đang ở đỉnh cao, tính năng phong phú, người dùng đông đảo, doanh thu ấn tượng. Một cảm giác mãn nguyện bao trùm.',
+      'Tượng trưng cho sự rực rỡ, phong phú và cực thịnh. Giống như mặt trời ban trưa chiếu sáng khắp nơi, mọi thứ đang ở đỉnh cao của sự phát triển.',
     advice:
-      'Cảnh giác với sự suy tàn sau đỉnh cao. Hãy bắt đầu nghiên cứu thế hệ sản phẩm tiếp theo. Đừng ngủ quên quá lâu trong ánh hào quang rực rỡ hiện tại.',
+      'Hãy tận hưởng và chia sẻ sự thịnh vượng này với mọi người. Tuy nhiên, hãy nhớ rằng sau giờ Ngọ mặt trời sẽ lặn. Hãy chuẩn bị tâm thế cho sự thay đổi sắp tới và đừng để sự kiêu ngạo làm mờ mắt.',
   },
   {
     id: 56,
     binary: '001101',
     name: 'Hỏa Sơn Lữ',
-    animation: 'Lập trình viên di chuyển giữa nhiều môi trường',
+    symbol: '䷷',
+    type: 'Quẻ Bình',
     description:
-      'Thân phận lữ hành. Bạn phải liên tục di chuyển giữa các dự án khác nhau, hoặc làm việc ở nhiều môi trường (Dev, Staging, UAT, Prod) lạ lẫm.',
+      'Tượng trưng cho người lữ hành, sự phiêu bạt và không có nơi cư trú cố định. Lửa cháy trên núi, di chuyển nhanh và dễ lụi tàn nếu không có nguồn nuôi dưỡng ổn định.',
     advice:
-      'Hãy thích nghi nhanh chóng. Giữ cho mình một bộ "đồ nghề" (script, công cụ) linh hoạt để có thể code ở bất cứ đâu. Sự linh động là thế mạnh lớn nhất của bạn lúc này.',
+      'Trong giai đoạn tạm thời này, hãy giữ thái độ khiêm nhường và thận trọng khi giao tiếp với người lạ. Đừng quá tham vọng vào những lợi ích lâu dài ở những nơi bạn chỉ đi ngang qua. Hãy tập trung vào mục tiêu ngắn hạn.',
   },
   {
     id: 57,
     binary: '011011',
     name: 'Thuần Tốn',
-    animation: 'Luồng tối ưu nhẹ mà sâu',
+    symbol: '䷸',
+    type: 'Quẻ Bình',
     description:
-      'Thuận theo tự nhiên. Giải pháp của bạn nhẹ nhàng, luồn lách qua các khe hẹp của hệ thống để tối ưu hiệu năng một cách tinh tế nhất. Như cơn gió mát thổi qua dòng code.',
+      'Tượng trưng cho Gió, sự nhu thuận và thâm nhập sâu sắc. Gió thổi khắp nơi, len lỏi vào mọi ngóc ngách, đại diện cho sức mạnh của sự mềm mỏng và bền bỉ.',
     advice:
-      'Hãy tiếp tục sự mềm mỏng và tinh tế đó. Đừng cố dùng bạo lực (brute-force) để giải quyết vấn đề. Một chút khéo léo sẽ mang lại kết quả bất ngờ.',
+      'Hãy dùng sự khéo léo và kiên trì để thuyết phục người khác thay vì dùng áp lực mạnh mẽ. Hãy tìm kiếm lời khuyên từ những người có kinh nghiệm và hành động theo những mục tiêu nhỏ, tích tiểu thành đại.',
   },
   {
     id: 58,
     binary: '110110',
     name: 'Thuần Đoài',
-    animation: 'Buổi demo thành công với nhiều nụ cười',
+    symbol: '䷹',
+    type: 'Quẻ Cát',
     description:
-      'Vui vẻ và hài lòng. Buổi Demo sản phẩm nhận được những tràng pháo tay tán thưởng. Khách hàng cười tươi, team phấn khởi vì công sức được đền đáp.',
+      'Tượng trưng cho Đầm lầy, sự vui vẻ và giao tiếp. Hai hồ nước nối liền nhau, mang lại sự tươi mát và niềm vui cho mọi người xung quanh thông qua ngôn ngữ và sự chia sẻ.',
     advice:
-      'Hãy tận hưởng niềm vui này cùng đồng đội. Nhưng nhớ đừng vì quá vui mà hứa thêm những feature không tưởng trong tương lai. Hãy giữ lời hứa thực tế.',
+      'Hãy dùng sự chân thành và niềm vui để kết nối với mọi người. Lời nói ngọt ngào đúng lúc sẽ giải quyết được nhiều vấn đề hơn là sự cứng nhắc. Tuy nhiên, đừng vì vui quá đà mà nói những lời thiếu suy nghĩ.',
   },
   {
     id: 59,
     binary: '010011',
     name: 'Phong Thủy Hoán',
-    animation: 'Đội ngũ tách ra hỗ trợ nhiều mặt trận',
+    symbol: '䷺',
+    type: 'Quẻ Bình',
     description:
-      'Tan tác và giải tán. Dự án kết thúc, team mỗi người một ngả đi hỗ trợ các team khác. Cảm giác hụt hẫng khi những người gắn bó bấy lâu nay không còn ngồi cạnh.',
+      'Tượng trưng cho sự tan biến, giải tán các vướng mắc hoặc chia rẽ. Gió thổi trên mặt nước làm tan đi những tảng băng, đại diện cho việc xóa bỏ hận thù hoặc tái cấu trúc lại tổ chức.',
     advice:
-      'Coi đây là cơ hội để học hỏi từ những môi trường mới. Giữ liên lạc với đồng đội cũ, mạng lưới (network) của bạn đang được mở rộng đấy.',
+      'Đây là lúc để hòa giải và gắn kết mọi người xung quanh một niềm tin chung (như tôn giáo hay lý tưởng lớn). Hãy dùng lòng bao dung để hóa giải mọi mâu thuẫn và cùng nhau vượt qua khó khăn.',
   },
   {
     id: 60,
     binary: '110010',
     name: 'Thủy Trạch Tiết',
-    animation: 'Cổng API bật giới hạn truy cập',
+    symbol: '䷻',
+    type: 'Quẻ Bình',
     description:
-      'Biết đủ là đủ. Bạn cần thiết lập Rate Limit cho API hoặc giới hạn số lượng Task nhận vào mỗi Sprint. Sự tiết chế giúp hệ thống và con người không bị quá tải.',
+      'Tượng trưng cho các đốt tre, sự chừng mực và tiết độ. Nước trong đầm lầy nếu quá nhiều sẽ tràn, cần có bờ đê để giữ lại. Sự tiết chế là cần thiết để duy trì sự ổn định.',
     advice:
-      'Hãy nói "Không" một cách nghệ thuật. Giới hạn giúp chúng ta tập trung vào chất lượng hơn là số lượng. Một dự án có chừng mực là một dự án bền vững.',
+      'Hãy đặt ra những giới hạn cho bản thân và công việc. Tiết kiệm và chừng mực sẽ mang lại sự bình an. Tuy nhiên, đừng đặt ra những quy tắc quá khắc khe khiến bản thân và người khác cảm thấy nghẹt thở.',
   },
   {
     id: 61,
     binary: '110011',
     name: 'Phong Trạch Trung Phu',
-    animation: 'Người dùng đặt niềm tin vào sản phẩm',
+    symbol: '䷼',
+    type: 'Quẻ Cát',
     description:
-      'Lấy lòng tin làm gốc. Người dùng tin tưởng giao dữ liệu và tiền bạc cho hệ thống của bạn. Đây là một trách nhiệm cực kỳ lớn lao.',
+      'Tượng trưng cho lòng tin chân thành từ tận đáy lòng. Gió thổi trên mặt hồ tĩnh lặng, đại diện cho sức mạnh của sự trung thực có thể làm lay động cả đất trời và muông thú.',
     advice:
-      'Đừng bao giờ phản bội niềm tin đó. Hãy ưu tiên bảo mật và quyền riêng tư lên hàng đầu. Một hệ thống có tâm sẽ luôn có được những người dùng trung thành.',
+      'Hãy đối xử với mọi người bằng sự chân thành tuyệt đối. Lòng tin là tài sản quý giá nhất của bạn lúc này. Nếu bạn có tâm trong sáng, mọi dự định khó khăn đến đâu cũng sẽ được sự giúp đỡ từ quý nhân.',
   },
   {
     id: 62,
     binary: '001100',
     name: 'Lôi Sơn Tiểu Quá',
-    animation: 'Một lỗi nhỏ nhưng dễ lan rộng',
+    symbol: '䷽',
+    type: 'Quẻ Hung',
     description:
-      'Sai sót nhỏ ở chi tiết. Một lỗi Typo trong nội dung email gửi khách hàng, hoặc một lỗi UI nhỏ ở góc màn hình. Dù nhỏ nhưng nó ảnh hưởng đến sự chuyên nghiệp.',
+      'Tượng trưng cho sự vượt quá một chút trong những việc nhỏ. Chim bay quá cao dễ gặp nguy hiểm, chỉ nên hạ thấp để tìm sự an toàn. Đây không phải là lúc để làm những việc lớn lao.',
     advice:
-      'Hotfix ngay lập tức! Đừng để những hạt sạn nhỏ làm hỏng cả một bữa tiệc lớn. Hãy chú trọng hơn vào khâu Review nội dung và hình ảnh.',
+      'Hãy hành động cực kỳ cẩn thận và khiêm tốn. Trong chi tiêu nên tiết kiệm hơn bình thường, trong tang lễ nên buồn thương hơn bình thường. Tập trung vào những chi tiết nhỏ và giữ mình ở vị trí thấp.',
   },
   {
     id: 63,
     binary: '101010',
     name: 'Thủy Hỏa Ký Tế',
-    animation: 'Pizza tới đúng giờ, pipeline chuyển xanh',
+    symbol: '䷾',
+    type: 'Quẻ Cát',
     description:
-      'Mọi việc đã xong xuôi. Dự án đã go-live thành công, bug đã fix sạch, tiền bonus đã về tài khoản. Một cảm giác viên mãn và trọn vẹn.',
+      'Tượng trưng cho việc đã hoàn thành, mọi thứ đã vào đúng vị trí của nó. Nước ở trên, lửa ở dưới nấu chín thức ăn. Đây là trạng thái cân bằng và thành công mỹ mãn nhất.',
     advice:
-      'Đừng lơ là cảnh giác. Trong cái thành công hôm nay đã nhen nhóm những vấn đề của ngày mai. Hãy chuẩn bị tâm thế cho những thử thách mới sắp tới.',
+      'Thành công đã đạt được nhưng đây chính là lúc nguy hiểm nhất vì sự chủ quan sẽ dẫn đến suy vi. Hãy cảnh giác với những biến cố nhỏ nhất và duy trì trật tự hiện tại một cách cẩn trọng nhất có thể.',
   },
   {
     id: 64,
     binary: '010101',
     name: 'Hỏa Thủy Vị Tế',
-    animation: 'Checklist còn dang dở ở bước cuối',
+    symbol: '䷿',
+    type: 'Quẻ Bình',
     description:
-      'Chưa xong đâu nhé! Tưởng là xong nhưng thực ra vẫn còn một vài Checklist chưa hoàn thiện, hoặc Client vừa nghĩ ra một "thay đổi nhỏ" vào phút chót.',
+      'Tượng trưng cho việc chưa hoàn thành, mọi thứ vẫn còn đang dở dang và cần nỗ lực cuối cùng. Lửa ở trên, nước ở dưới không giao nhau, nhưng lại mở ra một chu kỳ mới đầy hy vọng.',
     advice:
-      'Kiên trì đi đến cùng. Đừng bỏ cuộc ở mét cuối cùng của đường chạy. Hãy hoàn thành nốt những chi tiết nhỏ nhất để có một kết thúc thực sự trọn vẹn.',
+      'Đừng nản lòng khi thấy kết quả chưa đến. Hãy kiên nhẫn và cẩn trọng như con cáo nhỏ vượt sông, chỉ cần một chút sơ suất cuối cùng cũng làm hỏng việc. Một khởi đầu mới đang chờ đợi bạn phía trước.',
   },
 ]
 

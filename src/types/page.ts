@@ -4,6 +4,7 @@ export interface PageMeta {
   description: string
   author: string
   facebook?: string
+  category?: string
 }
 
 /** Full page info with computed path (used by router and PagesGrid) */
