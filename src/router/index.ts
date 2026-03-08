@@ -11,6 +11,7 @@ declare module 'vue-router' {
 
 const HomePage = () => import('@/views/HomePage.vue')
 const ContentPolicy = () => import('@/views/ContentPolicy.vue')
+const LeaderboardPage = () => import('@/views/LeaderboardPage.vue')
 const NotFound = () => import('@/views/NotFound.vue')
 
 const pageRoutes: RouteRecordRaw[] = pages.map((page) => {
@@ -45,6 +46,15 @@ const router = createRouter({
       },
     },
     ...pageRoutes,
+    {
+      path: '/leaderboard',
+      name: 'leaderboard',
+      component: LeaderboardPage,
+      meta: {
+        title: 'Bảng xếp hạng tác giả - vibe.j2team.org',
+        description: 'Bảng xếp hạng các tác giả đóng góp nhiều ứng dụng nhất trên vibe.j2team.org.',
+      },
+    },
     {
       path: '/content-policy',
       name: 'content-policy',

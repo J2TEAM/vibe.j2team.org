@@ -277,13 +277,13 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
       </RouterLink>
 
       <!-- Placeholder card -->
-      <div
+      <a
         v-if="!isFiltering"
-        v-animate
-        class="flex items-center justify-center border border-dashed border-border-default p-6 text-text-dim animate-pulse-border animate-delay-6"
+        href="#cach-tham-gia"
+        class="flex items-center justify-center border border-dashed border-border-default p-6 text-text-dim animate-pulse-border transition-colors duration-300 hover:border-accent-coral hover:text-accent-coral"
       >
         <span class="text-sm font-display tracking-wide">Trang của bạn sẽ ở đây...</span>
-      </div>
+      </a>
     </div>
   </main>
 </template>
