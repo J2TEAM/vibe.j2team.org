@@ -72,7 +72,7 @@ const rndFloat   = () => parseFloat((Math.random()*0.9999999999).toFixed(10))
 const rndPattern = () => Math.floor(Math.random()*1000)+1
 
 function getCond(f:number,full=false):string {
-  const s = f<.07?['FN','Factory New']:f<.15?['MW','Minimal Wear']:f<.38?['FT','Field-Tested']:f<.45?['WW','Well-Worn']:['BS','Battle-Scarred']
+  const s:[string,string] = f<.07?['FN','Factory New']:f<.15?['MW','Minimal Wear']:f<.38?['FT','Field-Tested']:f<.45?['WW','Well-Worn']:['BS','Battle-Scarred']
   return full?s[1]:s[0]
 }
 function condColor(f:number):string { return f<.07?'#4ade80':f<.15?'#22d3ee':f<.38?'#60a5fa':f<.45?'#fbbf24':'#f87171' }
@@ -85,8 +85,19 @@ const fmtUSD = (n:number) => `$${n.toFixed(2)}`
 let _uid = 0
 function makeItem(rarity:RarityKey):InvItem {
   const pool = POOL.filter(p=>p.rarity===rarity)
-  const base = pool[Math.floor(Math.random()*pool.length)]
-  return {...base, uid:++_uid, float:rndFloat(), pattern:rndPattern(), statTrak:rarity!=='knife'&&Math.random()<.1}
+  const base = pool[Math.floor(Math.random()*pool.length)] as PoolItem
+  return {
+    weapon:   base.weapon,
+    skin:     base.skin,
+    rarity:   base.rarity,
+    gradient: base.gradient,
+    basePrice:base.basePrice,
+    wType:    base.wType,
+    uid:      ++_uid,
+    float:    rndFloat(),
+    pattern:  rndPattern(),
+    statTrak: rarity!=='knife' && Math.random()<.1,
+  }
 }
 function genReel():InvItem[] {
   return Array.from({length:64},(_,i)=>{const it=makeItem(rollRarity());return {...it,uid:i}})
@@ -136,6 +147,7 @@ const tuCount       = computed(()=>TU_COUNT[tuRarity.value]??10)
 const tuReady       = computed(()=>tuSel.value.size>=tuCount.value)
 const tuInvItems    = computed(()=>inventory.value.filter(i=>i.rarity===tuRarity.value))
 const showcaseItems = computed(()=>showcase.value.map(uid=>inventory.value.find(i=>i.uid===uid)).filter(Boolean) as InvItem[])
+const showcaseSlots  = computed(()=>Array.from({length:5},(_,i)=>({idx:i, item: showcaseItems.value[i] ?? null})))
 const filteredInv   = computed(()=>invFilter.value==='all'?inventory.value:inventory.value.filter(i=>i.rarity===invFilter.value))
 const invCountBy    = (r:RarityKey)=>inventory.value.filter(i=>i.rarity===r).length
 
@@ -428,19 +440,19 @@ const TABS = computed<[Tab, string, string][]>(() => [
           <div class="px-4 py-2 text-[10px] font-bold uppercase tracking-widest" style="background:rgba(255,255,255,.04);color:rgba(255,255,255,.4);border-bottom:1px solid rgba(255,255,255,.07)">🏆 Showcase — Tối đa 5 skin yêu thích (pin từ tab Kho đồ)</div>
           <div class="p-3">
             <div class="grid grid-cols-5 gap-2 mb-3">
-              <div v-for="i in 5" :key="i" class="rounded-lg overflow-hidden relative" style="aspect-ratio:1">
-                <template v-if="showcaseItems[i-1]">
-                  <div class="h-full flex flex-col" :style="{border:`2px solid ${rc(showcaseItems[i-1].rarity)}`,boxShadow:`0 0 14px ${rs(showcaseItems[i-1].rarity)}`,borderRadius:'0.5rem',overflow:'hidden'}">
-                    <div class="flex-1 flex items-center justify-center" :style="{background:showcaseItems[i-1].gradient}">
-                      <div class="w-3/4" :style="{color:rc(showcaseItems[i-1].rarity)}" v-html="WSVG[showcaseItems[i-1].wType]"></div>
+              <div v-for="slot in showcaseSlots" :key="slot.idx" class="rounded-lg overflow-hidden relative" style="aspect-ratio:1">
+                <template v-if="slot.item">
+                  <div class="h-full flex flex-col" :style="{border:`2px solid ${rc(slot.item.rarity)}`,boxShadow:`0 0 14px ${rs(slot.item.rarity)}`,borderRadius:'0.5rem',overflow:'hidden'}">
+                    <div class="flex-1 flex items-center justify-center" :style="{background:slot.item.gradient}">
+                      <div class="w-3/4" :style="{color:rc(slot.item.rarity)}" v-html="WSVG[slot.item.wType]"></div>
                     </div>
-                    <div class="p-1 text-center text-[8px]" :style="{background:'rgba(0,0,0,.85)',borderTop:`1px solid ${rc(showcaseItems[i-1].rarity)}33`}">
-                      <div class="text-white font-bold truncate">{{showcaseItems[i-1].weapon}}</div>
-                      <div class="truncate" :style="{color:rc(showcaseItems[i-1].rarity)}">{{showcaseItems[i-1].skin}}</div>
-                      <div class="font-mono mt-0.5 text-[7px]" :style="{color:condColor(showcaseItems[i-1].float)}">{{getCond(showcaseItems[i-1].float)}} · {{showcaseItems[i-1].float.toFixed(6)}}</div>
+                    <div class="p-1 text-center text-[8px]" :style="{background:'rgba(0,0,0,.85)',borderTop:`1px solid ${rc(slot.item.rarity)}33`}">
+                      <div class="text-white font-bold truncate">{{slot.item.weapon}}</div>
+                      <div class="truncate" :style="{color:rc(slot.item.rarity)}">{{slot.item.skin}}</div>
+                      <div class="font-mono mt-0.5 text-[7px]" :style="{color:condColor(slot.item.float)}">{{getCond(slot.item.float)}} · {{slot.item.float.toFixed(6)}}</div>
                     </div>
                   </div>
-                  <button @click="toggleShowcase(showcaseItems[i-1].uid)" class="absolute top-0.5 right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold" style="background:rgba(0,0,0,.7);color:rgba(255,255,255,.6)">✕</button>
+                  <button @click="toggleShowcase(slot.item.uid)" class="absolute top-0.5 right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold" style="background:rgba(0,0,0,.7);color:rgba(255,255,255,.6)">✕</button>
                 </template>
                 <template v-else>
                   <div class="h-full flex items-center justify-center text-xl rounded-lg" style="border:2px dashed rgba(255,255,255,.1);color:rgba(255,255,255,.12)">+</div>
