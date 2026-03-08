@@ -59,7 +59,7 @@ function goToRandom() {
   const list = filteredPages.value
   if (list.length === 0) return
   const randomPage = list[Math.floor(Math.random() * list.length)]
-  router.push(randomPage.path)
+  if (randomPage) router.push(randomPage.path)
 }
 </script>
 
