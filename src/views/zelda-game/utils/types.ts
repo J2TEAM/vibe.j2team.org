@@ -16,15 +16,30 @@ export interface AABB {
 export type Direction = 'up' | 'down' | 'left' | 'right'
 
 /** Game state machine states */
-export type GameState = 'loading' | 'playing' | 'paused' | 'game_over' | 'victory' | 'stage_transition'
+export type GameState =
+  | 'loading'
+  | 'playing'
+  | 'paused'
+  | 'game_over'
+  | 'victory'
+  | 'stage_transition'
 
 /** Single tile in a tilemap */
-export type TileType = 'empty' | 'wall' | 'ground' | 'bush' | 'tree' | 'water' | 'chest' | 'gate' | 'pillar'
+export type TileType =
+  | 'empty'
+  | 'wall'
+  | 'ground'
+  | 'bush'
+  | 'tree'
+  | 'water'
+  | 'chest'
+  | 'gate'
+  | 'pillar'
 
 /** Tilemap definition */
 export interface TileMap {
-  width: number       // tiles wide
-  height: number      // tiles tall
+  width: number // tiles wide
+  height: number // tiles tall
   tiles: TileType[][] // [row][col]
   theme?: 'forest' | 'bridge' | 'castle'
 }
@@ -58,7 +73,13 @@ export interface InputState {
 
 /** Sprite frame for animation */
 export interface SpriteFrame {
-  draw: (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, direction?: Direction) => void
+  draw: (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    size: number,
+    direction?: Direction,
+  ) => void
 }
 
 /** Camera viewport */
@@ -75,7 +96,7 @@ export type AnimationState = 'idle' | 'walk' | 'attack' | 'hurt' | 'die'
 /** Definition of a single animation sequence */
 export interface AnimationDef {
   frames: SpriteFrame[]
-  frameDuration: number  // seconds per frame
+  frameDuration: number // seconds per frame
   loop: boolean
 }
 
@@ -90,8 +111,8 @@ export type AlertState = 'patrol' | 'alert' | 'chase'
 
 /** Vision cone configuration */
 export interface VisionConeConfig {
-  range: number        // pixels
-  angleDeg: number     // total cone angle in degrees
+  range: number // pixels
+  angleDeg: number // total cone angle in degrees
   checkInterval: number // frames between full checks
 }
 
@@ -135,11 +156,11 @@ export interface Projectile {
   active: boolean
   x: number
   y: number
-  dirX: number   // normalized direction (-1, 0, or 1)
+  dirX: number // normalized direction (-1, 0, or 1)
   dirY: number
   speed: number
   damage: number
-  size: number    // hitbox size (square)
+  size: number // hitbox size (square)
   source: 'player' | 'enemy'
 }
 
@@ -150,6 +171,7 @@ export interface CombatResult {
   projectileRequest: ProjectileSpawnRequest | null
   speedMultiplier: number
   damageReduction: number
+  hitCenter?: { x: number; y: number }
 }
 
 // --- Stage 2 Types ---
@@ -158,20 +180,27 @@ export interface CombatResult {
 export type LynelPhase = 'charge' | 'fire_breath' | 'berserk'
 
 /** Lynel AI state machine */
-export type LynelAIState = 'idle' | 'pacing' | 'charge_windup' | 'charging' | 'stunned' | 'slashing' | 'fire_breathing'
+export type LynelAIState =
+  | 'idle'
+  | 'pacing'
+  | 'charge_windup'
+  | 'charging'
+  | 'stunned'
+  | 'slashing'
+  | 'fire_breathing'
 
 /** Fire tile left by Lynel's fire breath */
 export interface FireTile {
-  x: number       // world x
-  y: number       // world y
-  timer: number   // remaining seconds (starts at FIRE_TILE_DURATION)
+  x: number // world x
+  y: number // world y
+  timer: number // remaining seconds (starts at FIRE_TILE_DURATION)
 }
 
 /** Wave configuration for Stage 2 gauntlet */
 export interface WaveConfig {
-  bokoblins: number    // melee enemy count
-  archers: number      // ranged enemy count
-  triggerX: number     // world X position that triggers this wave
+  bokoblins: number // melee enemy count
+  archers: number // ranged enemy count
+  triggerX: number // world X position that triggers this wave
 }
 
 /** Heart pickup item */
@@ -179,7 +208,7 @@ export interface HeartPickup {
   x: number
   y: number
   active: boolean
-  floatTimer: number   // for bobbing animation
+  floatTimer: number // for bobbing animation
 }
 
 // --- Stage 3 Types ---
@@ -214,8 +243,89 @@ export interface DarkOrb {
   dirX: number
   dirY: number
   speed: number
-  homingTimer: number        // seconds remaining for homing behavior
+  homingTimer: number // seconds remaining for homing behavior
   active: boolean
-  reflectable: boolean       // can be shield-deflected back (false after reflection)
-  reflectFlashTimer: number  // seconds remaining for reflect flash visual (0 = no flash)
+  reflectable: boolean // can be shield-deflected back (false after reflection)
+  reflectFlashTimer: number // seconds remaining for reflect flash visual (0 = no flash)
+}
+
+export interface DialogLine {
+  text: string
+  speaker?: string
+  autoAdvanceDelay?: number // seconds to auto-advance; omit to require input
+}
+
+export interface HUDState {
+  health: number
+  maxHealth: number
+  weapons: { sword: boolean; shield: boolean; bow: boolean }
+  combatState: CombatState
+  stageNumber: number
+  swordCooldownRatio: number
+  bowCooldownRatio: number
+}
+
+export interface VictoryStats {
+  totalTime: number
+  enemiesDefeated: number
+  damageTaken: number
+}
+
+// --- Effects System ---
+
+export interface Particle {
+  active: boolean
+  x: number
+  y: number
+  vx: number
+  vy: number
+  life: number
+  maxLife: number
+  size: number
+  color: string
+  gravity: number
+  alpha: number
+  decay: number
+  shrink: number
+  tag?: string
+}
+
+export interface ParticleEmitConfig {
+  x: number
+  y: number
+  count: number
+  speed: number
+  spread?: number
+  baseAngle?: number
+  life: number
+  size: number
+  colors: string[]
+  gravity?: number
+  shrink?: number
+  tag?: string
+}
+
+export type ScreenEffectType = 'freeze' | 'flash' | 'fade'
+
+export interface ScreenEffect {
+  type: ScreenEffectType
+  timer: number
+  duration: number
+  color: string
+  alpha: number
+  phase: 'in' | 'out'
+  onMidpoint?: () => void
+  onComplete?: () => void
+}
+
+export interface DamagePopup {
+  active: boolean
+  x: number
+  y: number
+  vy: number
+  text: string
+  color: string
+  alpha: number
+  life: number
+  maxLife: number
 }

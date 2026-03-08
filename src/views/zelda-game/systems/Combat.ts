@@ -24,6 +24,14 @@ import {
 import type { Inventory } from './Inventory'
 
 export class Combat {
+  getSwordCooldownRatio(): number {
+    return this.swordCooldown / SWORD_COOLDOWN
+  }
+
+  getBowCooldownRatio(): number {
+    return this.bowCooldown / BOW_COOLDOWN
+  }
+
   private state: CombatState = 'idle'
   private swordCooldown = 0
   private bowCooldown = 0
@@ -70,6 +78,10 @@ export class Combat {
     if (this.state === 'attacking') {
       this.attackTimer -= dt
       this.result.hitbox = this.buildSwordHitbox(playerPos, playerSize, playerDirection)
+      this.result.hitCenter = {
+        x: this.hitboxResult.aabb.x + this.hitboxResult.aabb.width / 2,
+        y: this.hitboxResult.aabb.y + this.hitboxResult.aabb.height / 2,
+      }
       this.result.swingID = this.currentSwingID
       if (this.attackTimer <= 0) {
         this.state = 'idle'
@@ -77,7 +89,11 @@ export class Combat {
     } else if (this.state === 'shooting') {
       this.shootTimer -= dt
       if (this.shootTimer <= 0) {
-        this.result.projectileRequest = this.buildProjectileRequest(playerPos, playerSize, playerDirection)
+        this.result.projectileRequest = this.buildProjectileRequest(
+          playerPos,
+          playerSize,
+          playerDirection,
+        )
         this.state = 'idle'
       }
     } else if (this.state === 'blocking') {
@@ -96,6 +112,10 @@ export class Combat {
         this.currentSwingID++
         // Return hitbox immediately on first frame
         this.result.hitbox = this.buildSwordHitbox(playerPos, playerSize, playerDirection)
+        this.result.hitCenter = {
+          x: this.hitboxResult.aabb.x + this.hitboxResult.aabb.width / 2,
+          y: this.hitboxResult.aabb.y + this.hitboxResult.aabb.height / 2,
+        }
         this.result.swingID = this.currentSwingID
       } else if (input.block && inventory.has('shield')) {
         this.state = 'blocking'
@@ -150,17 +170,29 @@ export class Combat {
     return this.hitboxResult
   }
 
-  private buildProjectileRequest(playerPos: Vec2, playerSize: Vec2, direction: Direction): ProjectileSpawnRequest {
+  private buildProjectileRequest(
+    playerPos: Vec2,
+    playerSize: Vec2,
+    direction: Direction,
+  ): ProjectileSpawnRequest {
     const centerX = playerPos.x + playerSize.x / 2
     const centerY = playerPos.y + playerSize.y / 2
 
     let dirX = 0
     let dirY = 0
     switch (direction) {
-      case 'right': dirX = 1; break
-      case 'left':  dirX = -1; break
-      case 'down':  dirY = 1; break
-      case 'up':    dirY = -1; break
+      case 'right':
+        dirX = 1
+        break
+      case 'left':
+        dirX = -1
+        break
+      case 'down':
+        dirY = 1
+        break
+      case 'up':
+        dirY = -1
+        break
     }
 
     return {
@@ -188,6 +220,19 @@ export class Combat {
   /** Called if ProjectileManager.spawn() fails — refund cooldown */
   refundBowCooldown(): void {
     this.bowCooldown = 0
+  }
+
+  /** Tick cooldown timers without processing input — used during dialog pause */
+  updateCooldownsOnly(dt: number): void {
+    this.swordCooldown = Math.max(0, this.swordCooldown - dt)
+    this.bowCooldown = Math.max(0, this.bowCooldown - dt)
+    if (this.state === 'attacking') {
+      this.attackTimer -= dt
+      if (this.attackTimer <= 0) this.state = 'idle'
+    } else if (this.state === 'shooting') {
+      this.shootTimer -= dt
+      if (this.shootTimer <= 0) this.state = 'idle'
+    }
   }
 
   reset(): void {

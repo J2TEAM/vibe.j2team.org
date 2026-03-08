@@ -1,4 +1,14 @@
-import type { TileMap, InputState, StageObjective, Vec2, HeartPickup, DestructiblePillar, GanonPhase } from '../utils/types'
+import type { Camera } from '../engine/Camera'
+import type {
+  TileMap,
+  InputState,
+  StageObjective,
+  Vec2,
+  HeartPickup,
+  DestructiblePillar,
+  GanonPhase,
+  DialogLine,
+} from '../utils/types'
 import {
   TILE_SIZE,
   HEART_HEAL_AMOUNT,
@@ -10,9 +20,31 @@ import {
   VICTORY_SEQUENCE_DURATION,
   CRYSTAL_SHATTER_DURATION,
   GANON_HP,
+  HIT_SPARK_COUNT,
+  HIT_SPARK_SPEED,
+  HIT_SPARK_LIFE,
+  HIT_SPARK_SIZE,
+  SPARK_COLORS,
+  BOSS_DAMAGE_SHAKE_INTENSITY,
+  BOSS_DAMAGE_SHAKE_DURATION,
+  PLAYER_DAMAGE_SHAKE_INTENSITY,
+  PLAYER_DAMAGE_SHAKE_DURATION,
+  SCREEN_FLASH_DURATION,
+  BOSS_INTRO_DARKEN,
+  CASTLE_DUST_COLORS,
+  AMBIENT_DUST_COUNT,
+  REFLECT_COLORS,
+  REFLECT_SPARK_COUNT,
+  REFLECT_SPARK_SPEED,
+  REFLECT_SPARK_LIFE,
+  REFLECT_SPARK_SIZE,
+  HAPTIC_PLAYER_DAMAGE,
+  HAPTIC_BOSS_HIT,
 } from '../utils/constants'
+import { Input } from '../engine/Input'
 import { Ganon } from '../entities/Ganon'
 import { Bokoblin } from '../entities/Bokoblin'
+import type { Effects } from '../engine/Effects'
 import { Physics } from '../engine/Physics'
 import type { Renderer } from '../engine/Renderer'
 import type { Player } from '../entities/Player'
@@ -27,19 +59,19 @@ import {
 } from '../maps/castle'
 import { drawHeartPickup, drawBossHealthBar } from '../utils/sprites'
 import type { IStage } from './IStage'
+import { audio } from '../engine/Audio'
 
 // Boss intro overlay timing
 const BOSS_INTRO_TIME = 3.0
 const INTRO_FADE_SPEED = 1.5
 
-// Victory dialog
-const DIALOG_LINES = [
-  'Link... anh đã đến vì em.',
-  'Hyrule đã được cứu.',
-  'Cảm ơn anh, người anh hùng.',
-  'Hãy cùng trở về nhà.',
+// Victory dialog lines
+const VICTORY_DIALOG_LINES: DialogLine[] = [
+  { speaker: 'Zelda', text: 'Link... anh đã đến vì em.' },
+  { speaker: 'Zelda', text: 'Hyrule đã được cứu.' },
+  { speaker: 'Zelda', text: 'Cảm ơn anh, người anh hùng.' },
+  { speaker: 'Zelda', text: 'Hãy cùng trở về nhà.' },
 ]
-const DIALOG_LINE_DELAY = 2.5
 
 // Phase display names
 const PHASE_NAMES: Record<GanonPhase, string> = {
@@ -52,9 +84,16 @@ const PHASE_NAMES: Record<GanonPhase, string> = {
 // Pillar HP for player-destructible pillars
 const PILLAR_HP = 3
 
-type BossState = 'intro' | 'fighting' | 'defeated' | 'victory_dialog' | 'victory_stats' | 'completed'
+type BossState =
+  | 'intro'
+  | 'fighting'
+  | 'defeated'
+  | 'victory_dialog'
+  | 'victory_stats'
+  | 'completed'
 
 export class Stage3 implements IStage {
+  private victoryScreenEnabled = true
   // ─── IStage ──────────────────────────────────────────────────────
   get playerSpawn(): Vec2 {
     return { ...CASTLE_PLAYER_SPAWN }
@@ -72,6 +111,7 @@ export class Stage3 implements IStage {
 
   // ─── Stats Tracking ──────────────────────────────────────────────
   private startTime = 0
+  private finalTimeSeconds: number | null = null
   private totalEnemiesDefeated = 0
   private totalDamageTaken = 0
   private playerMaxHealthSeen = 0
@@ -86,8 +126,10 @@ export class Stage3 implements IStage {
   private defeatTimer = 0
   private crystalShatterProgress = 0
   private victoryAction: 'play_again' | 'home' | null = null
-  private dialogIndex = 0
-  private dialogTimer = 0
+  private bossIntroPlayed = false
+
+  // Dialog callback injected by Game (avoids circular dependency)
+  private dialogCallback: ((lines: DialogLine[], onComplete?: () => void) => void) | null = null
 
   // ─── Phase Tracking ──────────────────────────────────────────────
   private lastKnownPhase: GanonPhase = 'dark_sorcery'
@@ -96,6 +138,12 @@ export class Stage3 implements IStage {
   // ─── Slam hit dedup ──────────────────────────────────────────────
   private slamHitThisSlam = false
   private slamShakeTriggered = false
+
+  // ─── Phase 4: Ganon effects migration ────────────────────────────
+  private wispTimer = 0
+  private teleportSmokeTimer = 0
+  private prevSlamActive = false
+  private crystalShatterEmitted = false
 
   // ─── Camera shake request ─────────────────────────────────────────
   private pendingShakeIntensity = 0
@@ -113,7 +161,14 @@ export class Stage3 implements IStage {
   // Main Update
   // ────────────────────────────────────────────────────────────────
 
-  update(dt: number, player: Player, map: TileMap, input: InputState): void {
+  update(
+    dt: number,
+    player: Player,
+    map: TileMap,
+    input: InputState,
+    effects: Effects,
+    camera: Camera,
+  ): void {
     this.frameCounter++
 
     // Track max health
@@ -123,16 +178,16 @@ export class Stage3 implements IStage {
 
     switch (this.bossState) {
       case 'intro':
-        this.updateIntro(dt, player, map, input)
+        this.updateIntro(dt, player, map, input, effects, camera)
         break
       case 'fighting':
-        this.updateFighting(dt, player, map)
+        this.updateFighting(dt, player, map, effects, camera)
         break
       case 'defeated':
         this.updateDefeated(dt)
         break
       case 'victory_dialog':
-        this.updateVictoryDialog(dt, input)
+        // Dialog handled by Dialog system in Game — no update needed here
         break
       case 'victory_stats':
         this.updateVictoryStats(input)
@@ -147,7 +202,14 @@ export class Stage3 implements IStage {
   // Intro State
   // ────────────────────────────────────────────────────────────────
 
-  private updateIntro(dt: number, player: Player, map: TileMap, input: InputState): void {
+  private updateIntro(
+    dt: number,
+    player: Player,
+    map: TileMap,
+    input: InputState,
+    effects: Effects,
+    camera: Camera,
+  ): void {
     this.stateTimer -= dt
 
     if (this.stateTimer <= 0 || input.interactJustPressed) {
@@ -162,7 +224,7 @@ export class Stage3 implements IStage {
       map.theme = castleMap.theme
 
       // Init pillars
-      this.pillars = CASTLE_PILLAR_POSITIONS.map(p => ({ ...p }))
+      this.pillars = CASTLE_PILLAR_POSITIONS.map((p) => ({ ...p }))
       for (const pillar of this.pillars) {
         this.pillarHp.set(`${pillar.col},${pillar.row}`, PILLAR_HP)
       }
@@ -175,6 +237,22 @@ export class Stage3 implements IStage {
         maxY: (map.height - 1) * TILE_SIZE,
       }
       this.ganon = new Ganon(CASTLE_GANON_SPAWN, arenaBounds)
+
+      // Ganon boss intro cinematic — screen darken + shake + dark particle burst
+      if (!this.bossIntroPlayed) {
+        this.bossIntroPlayed = true
+        effects.screenFlash('rgba(0, 0, 0, 0.6)', BOSS_INTRO_DARKEN)
+        camera.addShake(5, 0.5)
+        effects.emit({
+          x: CASTLE_GANON_SPAWN.x,
+          y: CASTLE_GANON_SPAWN.y,
+          count: 10,
+          speed: 50,
+          life: 0.5,
+          size: 4,
+          colors: ['#4B0082', '#1a0033', '#330066'],
+        })
+      }
 
       // Move player to spawn
       player.pos.x = CASTLE_PLAYER_SPAWN.x - player.size.x / 2
@@ -194,13 +272,19 @@ export class Stage3 implements IStage {
   // Fighting State
   // ────────────────────────────────────────────────────────────────
 
-  private updateFighting(dt: number, player: Player, map: TileMap): void {
+  private updateFighting(
+    dt: number,
+    player: Player,
+    map: TileMap,
+    effects: Effects,
+    camera: Camera,
+  ): void {
     // Death check FIRST — prevents victory/death same-frame race
     if (!player.isAlive()) return
 
     if (!this.ganon || !this.ganon.isAlive()) {
       if (this.ganon && !this.ganon.isAlive() && this.bossState === 'fighting') {
-        this.onGanonDefeated()
+        this.onGanonDefeated(effects)
       }
       return
     }
@@ -211,23 +295,23 @@ export class Stage3 implements IStage {
     // 2. Detect phase transitions → pillar destruction
     const currentPhase = this.ganon.getPhase()
     if (currentPhase !== this.lastKnownPhase) {
-      this.handlePhaseTransition(currentPhase, map)
+      this.handlePhaseTransition(currentPhase, map, camera)
       this.lastKnownPhase = currentPhase
     }
 
     // 3. Process player attacks on Ganon
     if (!this.ganon.isIntangible()) {
-      this.processPlayerAttackOnBoss(player, map)
+      this.processPlayerAttackOnBoss(player, map, effects, camera)
     }
 
     // 4. Dark orb collisions (shield-reflect)
-    this.updateDarkOrbCollisions(player)
+    this.updateDarkOrbCollisions(player, effects, camera)
 
     // 5. Ganon's dark slash → player damage
-    this.checkDarkSlashHit(player)
+    this.checkDarkSlashHit(player, effects, camera)
 
     // 6. Ground slam AoE → player damage
-    this.checkGroundSlamHit(player)
+    this.checkGroundSlamHit(player, effects, camera)
 
     // 7. Minion management
     this.updateMinions(dt, player, map)
@@ -238,20 +322,91 @@ export class Stage3 implements IStage {
     }
 
     // 9. Process player attacks on minions
-    this.processPlayerAttackOnMinions(player, map)
+    this.processPlayerAttackOnMinions(player, map, effects)
 
     // 10. Process player attacks on pillars
     this.processPlayerAttackOnPillars(player, map)
 
     // 11. Check Ganon defeated
     if (!this.ganon.isAlive()) {
-      this.onGanonDefeated()
+      this.onGanonDefeated(effects)
     }
 
     // 12. Update vignette for Phase 3+
     if (currentPhase === 'calamity' || currentPhase === 'final_stand') {
       this.vignetteIntensity = Math.min(1, this.vignetteIntensity + dt * 0.5)
     }
+
+    // 13. Ganon effects migration — emit particles from Stage3 (Ganon has no Effects access)
+
+    // Teleport smoke: emit every 0.2s while teleporting and invisible
+    if (this.ganon.teleportProgress > 0.5) {
+      this.teleportSmokeTimer -= dt
+      if (this.teleportSmokeTimer <= 0) {
+        this.teleportSmokeTimer = 0.2
+        const cx = this.ganon.pos.x + TILE_SIZE * 0.75
+        const cy = this.ganon.pos.y + TILE_SIZE * 0.75
+        effects.emit({
+          x: cx,
+          y: cy,
+          count: 5,
+          speed: 40,
+          life: 0.8,
+          size: 6,
+          colors: ['#2D1B4E', '#3D2B5E', '#1A0A2E'],
+          spread: Math.PI * 2,
+        })
+      }
+    } else {
+      this.teleportSmokeTimer = 0
+    }
+
+    // Slam impact: one-shot burst + screen flash when slamActive transitions to true
+    const slamInfo = this.ganon.getSlamInfo()
+    if (slamInfo.active && !this.prevSlamActive) {
+      effects.emit({
+        x: slamInfo.center.x,
+        y: slamInfo.center.y,
+        count: 12,
+        speed: 120,
+        life: 0.3,
+        size: 4,
+        colors: ['#FF6600', '#8B00FF', '#FF4400'],
+        gravity: 200,
+      })
+      effects.screenFlash('rgba(255,100,0,0.3)', 0.2)
+    }
+    this.prevSlamActive = slamInfo.active
+
+    // Dark energy wisps: 1 wisp every ~0.3s during Phase 2+
+    if (currentPhase !== 'dark_sorcery') {
+      this.wispTimer -= dt
+      if (this.wispTimer <= 0) {
+        this.wispTimer = 0.3
+        const time = Date.now() * 0.003
+        const wispIndex = Math.floor(Math.random() * 3)
+        const s = 48 // GANON_SPRITE_SIZE
+        const wx = this.ganon.pos.x + s * 0.5 + Math.sin(time + wispIndex * 2) * s * 0.3
+        const wy = this.ganon.pos.y + s * 0.4 + Math.cos(time + wispIndex * 1.5) * s * 0.2
+        effects.emit({
+          x: wx,
+          y: wy,
+          count: 1,
+          speed: 10,
+          life: 0.5,
+          size: 3,
+          colors: ['#8B00FF', '#6600CC'],
+        })
+      }
+    }
+
+    // Castle dust ambient particles
+    effects.emitAmbient(camera, CASTLE_DUST_COLORS, AMBIENT_DUST_COUNT, {
+      speed: 8,
+      life: 6,
+      size: 1.5,
+      gravity: -3, // slight upward float = rising dust
+    })
 
     // Track damage
     const prevHealth = player.health
@@ -263,7 +418,12 @@ export class Stage3 implements IStage {
   // Player Attack on Boss
   // ────────────────────────────────────────────────────────────────
 
-  private processPlayerAttackOnBoss(player: Player, map: TileMap): void {
+  private processPlayerAttackOnBoss(
+    player: Player,
+    map: TileMap,
+    effects: Effects,
+    camera: Camera,
+  ): void {
     if (!this.ganon || !this.ganon.isAlive()) return
     const combat = player.getCombatResult()
     if (!combat?.hitbox) return
@@ -271,7 +431,27 @@ export class Stage3 implements IStage {
     // Sword attack (dedup via lastHitSwingID)
     if (combat.swingID !== this.ganon.lastHitSwingID) {
       if (Physics.overlaps(combat.hitbox.aabb, this.ganon.getAABB())) {
-        this.ganon.takeDamage(combat.hitbox.damage)
+        if (this.ganon.takeDamage(combat.hitbox.damage)) {
+          effects.emit({
+            x: this.ganon.pos.x + this.ganon.size.x / 2,
+            y: this.ganon.pos.y + this.ganon.size.y / 2,
+            count: HIT_SPARK_COUNT,
+            speed: HIT_SPARK_SPEED,
+            life: HIT_SPARK_LIFE,
+            size: HIT_SPARK_SIZE,
+            colors: SPARK_COLORS,
+          })
+          effects.hitFreeze()
+          effects.spawnPopup(
+            this.ganon.pos.x + this.ganon.size.x / 2,
+            this.ganon.pos.y - 10,
+            `-${combat.hitbox.damage}`,
+            '#fff',
+          )
+          camera.addShake(BOSS_DAMAGE_SHAKE_INTENSITY, BOSS_DAMAGE_SHAKE_DURATION)
+          audio.playHit()
+          Input.vibrate(HAPTIC_BOSS_HIT)
+        }
         this.ganon.lastHitSwingID = combat.swingID
 
         // Knockback
@@ -285,7 +465,10 @@ export class Stage3 implements IStage {
           const pushed = Physics.resolveMovement(
             map,
             this.ganon.pos,
-            { x: this.ganon.pos.x + (dx / dist) * kbForce, y: this.ganon.pos.y + (dy / dist) * kbForce },
+            {
+              x: this.ganon.pos.x + (dx / dist) * kbForce,
+              y: this.ganon.pos.y + (dy / dist) * kbForce,
+            },
             this.ganon.size,
           )
           this.ganon.pos.x = pushed.x
@@ -300,7 +483,7 @@ export class Stage3 implements IStage {
   // Dark Orb Collision + Shield Reflect
   // ────────────────────────────────────────────────────────────────
 
-  private updateDarkOrbCollisions(player: Player): void {
+  private updateDarkOrbCollisions(player: Player, effects: Effects, camera: Camera): void {
     if (!this.ganon) return
     const orbs = this.ganon.getDarkOrbs()
     const playerAABB = player.getAABB()
@@ -319,7 +502,25 @@ export class Stage3 implements IStage {
 
       // Check reflected orb hitting Ganon
       if (!orb.reflectable && Physics.overlaps(orbAABB, ganonAABB)) {
-        this.ganon.takeDamage(DARK_ORB_REFLECT_DAMAGE)
+        if (this.ganon.takeDamage(DARK_ORB_REFLECT_DAMAGE)) {
+          effects.emit({
+            x: this.ganon.pos.x + this.ganon.size.x / 2,
+            y: this.ganon.pos.y + this.ganon.size.y / 2,
+            count: HIT_SPARK_COUNT,
+            speed: HIT_SPARK_SPEED,
+            life: HIT_SPARK_LIFE,
+            size: HIT_SPARK_SIZE,
+            colors: SPARK_COLORS,
+          })
+          effects.spawnPopup(
+            this.ganon.pos.x + this.ganon.size.x / 2,
+            this.ganon.pos.y - 10,
+            `-${DARK_ORB_REFLECT_DAMAGE}`,
+            '#fff',
+          )
+          camera.addShake(BOSS_DAMAGE_SHAKE_INTENSITY, BOSS_DAMAGE_SHAKE_DURATION)
+          Input.vibrate(HAPTIC_BOSS_HIT)
+        }
         this.ganon.deactivateOrb(i)
         continue
       }
@@ -329,10 +530,31 @@ export class Stage3 implements IStage {
         if (orb.reflectable && player.isBlocking()) {
           // Shield reflect
           this.ganon.reflectOrb(i)
+          // Sparkle burst at reflection point
+          effects.emit({
+            x: orb.x,
+            y: orb.y,
+            count: REFLECT_SPARK_COUNT,
+            speed: REFLECT_SPARK_SPEED,
+            life: REFLECT_SPARK_LIFE,
+            size: REFLECT_SPARK_SIZE,
+            colors: REFLECT_COLORS,
+          })
         } else if (orb.reflectable) {
           // Direct hit on player
           if (!player.isInvulnerable()) {
-            player.takeDamage(DARK_ORB_DAMAGE)
+            if (player.takeDamage(DARK_ORB_DAMAGE)) {
+              effects.screenFlash('rgba(255, 0, 0, 0.3)', SCREEN_FLASH_DURATION)
+              camera.addShake(PLAYER_DAMAGE_SHAKE_INTENSITY, PLAYER_DAMAGE_SHAKE_DURATION)
+              effects.spawnPopup(
+                player.pos.x + player.size.x / 2,
+                player.pos.y,
+                `-${DARK_ORB_DAMAGE}`,
+                '#FF4444',
+              )
+              this.totalDamageTaken += DARK_ORB_DAMAGE
+              Input.vibrate(HAPTIC_PLAYER_DAMAGE)
+            }
             this.totalDamageTaken += DARK_ORB_DAMAGE
           }
           this.ganon.deactivateOrb(i)
@@ -345,7 +567,7 @@ export class Stage3 implements IStage {
   // Dark Slash Check
   // ────────────────────────────────────────────────────────────────
 
-  private checkDarkSlashHit(player: Player): void {
+  private checkDarkSlashHit(player: Player, effects: Effects, camera: Camera): void {
     if (!this.ganon) return
     const slash = this.ganon.getSlashHitbox()
     if (!slash) return
@@ -353,7 +575,18 @@ export class Stage3 implements IStage {
     if (this.lastSlashHitFrame === this.frameCounter) return
     if (!player.isInvulnerable()) {
       if (Physics.overlaps(slash.aabb, player.getAABB())) {
-        player.takeDamage(slash.damage)
+        if (player.takeDamage(slash.damage)) {
+          effects.screenFlash('rgba(255, 0, 0, 0.3)', SCREEN_FLASH_DURATION)
+          camera.addShake(PLAYER_DAMAGE_SHAKE_INTENSITY, PLAYER_DAMAGE_SHAKE_DURATION)
+          effects.spawnPopup(
+            player.pos.x + player.size.x / 2,
+            player.pos.y,
+            `-${slash.damage}`,
+            '#FF4444',
+          )
+          this.totalDamageTaken += slash.damage
+          Input.vibrate(HAPTIC_PLAYER_DAMAGE)
+        }
         this.totalDamageTaken += slash.damage
         this.lastSlashHitFrame = this.frameCounter
       }
@@ -364,7 +597,7 @@ export class Stage3 implements IStage {
   // Ground Slam Check
   // ────────────────────────────────────────────────────────────────
 
-  private checkGroundSlamHit(player: Player): void {
+  private checkGroundSlamHit(player: Player, effects: Effects, camera: Camera): void {
     if (!this.ganon) return
     const slamInfo = this.ganon.getSlamInfo()
     if (!slamInfo.active) {
@@ -387,7 +620,18 @@ export class Stage3 implements IStage {
     const dist = Math.sqrt(dx * dx + dy * dy)
     if (dist <= slamInfo.radius) {
       // Ground slam is UNBLOCKABLE — bypass takeDamage shield check
-      player.takeDamage(GROUND_SLAM_DAMAGE)
+      if (player.takeDamage(GROUND_SLAM_DAMAGE)) {
+        effects.screenFlash('rgba(255, 0, 0, 0.3)', SCREEN_FLASH_DURATION)
+        camera.addShake(PLAYER_DAMAGE_SHAKE_INTENSITY + 2, PLAYER_DAMAGE_SHAKE_DURATION + 0.1)
+        effects.spawnPopup(
+          player.pos.x + player.size.x / 2,
+          player.pos.y,
+          `-${GROUND_SLAM_DAMAGE}`,
+          '#FF4444',
+        )
+        this.totalDamageTaken += GROUND_SLAM_DAMAGE
+        Input.vibrate(HAPTIC_PLAYER_DAMAGE)
+      }
       this.totalDamageTaken += GROUND_SLAM_DAMAGE
       this.slamHitThisSlam = true
     }
@@ -430,7 +674,7 @@ export class Stage3 implements IStage {
     }
   }
 
-  private processPlayerAttackOnMinions(player: Player, map: TileMap): void {
+  private processPlayerAttackOnMinions(player: Player, map: TileMap, effects: Effects): void {
     const combat = player.getCombatResult()
     if (!combat?.hitbox) return
 
@@ -438,7 +682,26 @@ export class Stage3 implements IStage {
       if (!minion.isAlive() || minion.isDying()) continue
       if (combat.swingID !== minion.lastHitSwingID) {
         if (Physics.overlaps(combat.hitbox.aabb, minion.getAABB())) {
-          minion.takeDamage(combat.hitbox.damage)
+          if (minion.takeDamage(combat.hitbox.damage)) {
+            effects.emit({
+              x: minion.pos.x + minion.size.x / 2,
+              y: minion.pos.y + minion.size.y / 2,
+              count: HIT_SPARK_COUNT,
+              speed: HIT_SPARK_SPEED,
+              life: HIT_SPARK_LIFE,
+              size: HIT_SPARK_SIZE,
+              colors: SPARK_COLORS,
+            })
+            effects.hitFreeze()
+            effects.spawnPopup(
+              minion.pos.x + minion.size.x / 2,
+              minion.pos.y - 10,
+              `-${combat.hitbox.damage}`,
+              '#fff',
+            )
+            audio.playHit()
+            if (!minion.isAlive()) audio.playEnemyDeath()
+          }
           minion.lastHitSwingID = combat.swingID
 
           // Knockback
@@ -467,7 +730,8 @@ export class Stage3 implements IStage {
   // Pillar Destruction
   // ────────────────────────────────────────────────────────────────
 
-  private handlePhaseTransition(newPhase: GanonPhase, map: TileMap): void {
+  private handlePhaseTransition(newPhase: GanonPhase, map: TileMap, camera: Camera): void {
+    camera.addShake(14, 0.7)
     // Trigger camera shake on every phase transition
     this.pendingShakeIntensity = Math.max(this.pendingShakeIntensity, 14)
     this.pendingShakeDuration = Math.max(this.pendingShakeDuration, 0.7)
@@ -484,12 +748,14 @@ export class Stage3 implements IStage {
   }
 
   private destroyRandomPillars(count: number, map: TileMap): void {
-    const available = this.pillars.filter(p => !p.destroyed)
+    const available = this.pillars.filter((p) => !p.destroyed)
     const toDestroy = available.slice(0, count)
     for (const pillar of toDestroy) {
       if (
-        pillar.row >= 0 && pillar.row < map.tiles.length &&
-        pillar.col >= 0 && pillar.col < map.tiles[0]!.length
+        pillar.row >= 0 &&
+        pillar.row < map.tiles.length &&
+        pillar.col >= 0 &&
+        pillar.col < map.tiles[0]!.length
       ) {
         const pillarPixelX = pillar.col * TILE_SIZE
         const pillarPixelY = pillar.row * TILE_SIZE
@@ -553,7 +819,8 @@ export class Stage3 implements IStage {
   // Defeat + Victory
   // ────────────────────────────────────────────────────────────────
 
-  private onGanonDefeated(): void {
+  private onGanonDefeated(effects: Effects): void {
+    if (this.bossState === 'defeated') return // guard against double-call
     this.bossState = 'defeated'
     this.defeatTimer = VICTORY_SEQUENCE_DURATION
     this.crystalShatterProgress = 0
@@ -573,11 +840,30 @@ export class Stage3 implements IStage {
     }
 
     this.objectives[0]!.completed = true
+
+    // Crystal shatter particle burst at Zelda's position
+    if (!this.crystalShatterEmitted) {
+      this.crystalShatterEmitted = true
+      effects.emit({
+        x: CASTLE_ZELDA_POSITION.x,
+        y: CASTLE_ZELDA_POSITION.y,
+        count: 8,
+        speed: 80,
+        life: 1.5,
+        size: 5,
+        colors: ['#00BFFF', '#FFFFFF', '#66CCFF'],
+      })
+      // Victory white flash overlay via effects system
+      effects.screenFade('#FFFFFF', CRYSTAL_SHATTER_DURATION)
+    }
   }
 
   private updateDefeated(dt: number): void {
     this.defeatTimer -= dt
-    this.crystalShatterProgress = Math.min(1, this.crystalShatterProgress + dt / CRYSTAL_SHATTER_DURATION)
+    this.crystalShatterProgress = Math.min(
+      1,
+      this.crystalShatterProgress + dt / CRYSTAL_SHATTER_DURATION,
+    )
 
     // Update dying entities
     if (this.ganon && this.ganon.isDying()) {
@@ -591,24 +877,17 @@ export class Stage3 implements IStage {
 
     if (this.defeatTimer <= 0) {
       this.bossState = 'victory_dialog'
-      this.dialogIndex = 0
-      this.dialogTimer = DIALOG_LINE_DELAY
-    }
-  }
-
-  private updateVictoryDialog(dt: number, input: InputState): void {
-    this.dialogTimer -= dt
-    if (this.dialogTimer <= 0 || input.interactJustPressed) {
-      this.dialogIndex++
-      this.dialogTimer = DIALOG_LINE_DELAY
-      if (this.dialogIndex >= DIALOG_LINES.length) {
+      this.dialogCallback?.(VICTORY_DIALOG_LINES, () => {
+        this.finalTimeSeconds = Math.floor((Date.now() - this.startTime) / 1000)
         this.bossState = 'victory_stats'
         this.victoryAction = null
-      }
+      })
     }
   }
 
   private updateVictoryStats(input: InputState): void {
+    if (!this.victoryScreenEnabled) return
+
     // Navigate between buttons
     if (input.interactJustPressed || input.attackJustPressed) {
       if (this.victoryAction === null) {
@@ -631,7 +910,13 @@ export class Stage3 implements IStage {
   // Draw
   // ────────────────────────────────────────────────────────────────
 
-  draw(ctx: CanvasRenderingContext2D, _renderer: Renderer, _map: TileMap): void {
+  draw(
+    ctx: CanvasRenderingContext2D,
+    _renderer: Renderer,
+    _map: TileMap,
+    _effects: Effects,
+    _camera: Camera,
+  ): void {
     switch (this.bossState) {
       case 'intro':
         this.drawIntroOverlay(ctx)
@@ -643,10 +928,15 @@ export class Stage3 implements IStage {
         this.drawDefeatedSequence(ctx)
         break
       case 'victory_dialog':
-        this.drawVictoryDialog(ctx)
+        // Show the arena; Dialog system draws the dialog box overlay
+        this.drawFighting(ctx)
         break
       case 'victory_stats':
-        this.drawVictoryStats(ctx)
+        if (this.victoryScreenEnabled) {
+          this.drawVictoryStats(ctx)
+        } else {
+          this.drawFighting(ctx)
+        }
         break
     }
   }
@@ -786,19 +1076,11 @@ export class Stage3 implements IStage {
       this.ganon.draw(ctx)
     }
 
-    // Crystal shatter effect
-    if (this.crystalShatterProgress > 0) {
-      this.drawCrystalShatter(ctx)
-    }
-
-    // Overlay
+    // Victory text — crystal shatter particles and white overlay are handled by effects system
     ctx.save()
     ctx.setTransform(1, 0, 0, 1, 0, 0)
     const cx = ctx.canvas.width / 2
     const cy = ctx.canvas.height / 2
-    const alpha = Math.min(0.5, this.crystalShatterProgress * 0.8)
-    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
     ctx.textAlign = 'center'
     ctx.fillStyle = '#FFD700'
@@ -807,77 +1089,6 @@ export class Stage3 implements IStage {
     ctx.fillStyle = '#F0EDE6'
     ctx.font = '15px monospace'
     ctx.fillText('Ganon đã bị phong ấn!', cx, cy + 18)
-    ctx.textAlign = 'start'
-    ctx.restore()
-  }
-
-  private drawCrystalShatter(ctx: CanvasRenderingContext2D): void {
-    const { x, y } = CASTLE_ZELDA_POSITION
-    const progress = this.crystalShatterProgress
-
-    ctx.save()
-    ctx.globalAlpha = 1 - progress
-
-    // Expanding shatter particles
-    const particleCount = 8
-    for (let i = 0; i < particleCount; i++) {
-      const angle = (i / particleCount) * Math.PI * 2
-      const dist = progress * 40
-      const px = x + Math.cos(angle) * dist
-      const py = y + Math.sin(angle) * dist
-
-      ctx.fillStyle = '#00BFFF'
-      ctx.shadowColor = '#00BFFF'
-      ctx.shadowBlur = 8
-      ctx.beginPath()
-      ctx.arc(px, py, 3 * (1 - progress), 0, Math.PI * 2)
-      ctx.fill()
-    }
-
-    ctx.restore()
-  }
-
-  // ─── Victory Dialog ────────────────────────────────────────────
-
-  private drawVictoryDialog(ctx: CanvasRenderingContext2D): void {
-    ctx.save()
-    ctx.setTransform(1, 0, 0, 1, 0, 0)
-
-    // Background overlay
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-
-    const cx = ctx.canvas.width / 2
-    const cy = ctx.canvas.height / 2
-
-    // Zelda icon
-    ctx.fillStyle = '#00BFFF'
-    ctx.font = '24px monospace'
-    ctx.textAlign = 'center'
-    ctx.fillText('👸', cx, cy - 50)
-
-    // Speaker name
-    ctx.fillStyle = '#FFD700'
-    ctx.font = 'bold 16px monospace'
-    ctx.fillText('Zelda', cx, cy - 25)
-
-    // Current dialog line
-    if (this.dialogIndex < DIALOG_LINES.length) {
-      ctx.fillStyle = '#F0EDE6'
-      ctx.font = '14px monospace'
-      ctx.fillText(DIALOG_LINES[this.dialogIndex]!, cx, cy + 5)
-    }
-
-    // Continue prompt
-    ctx.fillStyle = '#8B9DB5'
-    ctx.font = '12px monospace'
-    ctx.fillText('Nhấn F để tiếp tục', cx, cy + 40)
-
-    // Progress indicator
-    ctx.fillStyle = '#555'
-    ctx.font = '11px monospace'
-    ctx.fillText(`${this.dialogIndex + 1}/${DIALOG_LINES.length}`, cx, cy + 60)
-
     ctx.textAlign = 'start'
     ctx.restore()
   }
@@ -903,7 +1114,7 @@ export class Stage3 implements IStage {
     y += 40
 
     // Time
-    const elapsed = Math.floor((Date.now() - this.startTime) / 1000)
+    const elapsed = this.finalTimeSeconds ?? Math.floor((Date.now() - this.startTime) / 1000)
     const minutes = Math.floor(elapsed / 60)
     const seconds = elapsed % 60
     const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`
@@ -954,6 +1165,11 @@ export class Stage3 implements IStage {
   // IStage Public API
   // ────────────────────────────────────────────────────────────────
 
+  /** Inject dialog callback from Game to trigger the Dialog system without circular dependency */
+  setDialogCallback(callback: (lines: DialogLine[], onComplete?: () => void) => void): void {
+    this.dialogCallback = callback
+  }
+
   drawPrompts(ctx: CanvasRenderingContext2D, renderer: Renderer, playerCenter: Vec2): void {
     if (this.bossState === 'intro' && this.stateTimer <= 0) {
       renderer.drawInteractPrompt(ctx, playerCenter, 'Nhấn F để tiếp tục')
@@ -961,7 +1177,15 @@ export class Stage3 implements IStage {
   }
 
   isComplete(): boolean {
-    return this.bossState === 'completed'
+    return (
+      this.bossState === 'completed' ||
+      (!this.victoryScreenEnabled && this.bossState === 'victory_stats')
+    )
+  }
+
+  /** Returns true when the Ganon dissolve + crystal shatter animations are fully complete. */
+  isVictoryAnimationComplete(): boolean {
+    return this.bossState !== 'defeated'
   }
 
   getEnemies(): Enemy[] {
@@ -980,8 +1204,8 @@ export class Stage3 implements IStage {
       bossState: this.bossState,
       ganonPhase: this.lastKnownPhase,
       ganonHealth: this.ganon?.health ?? 0,
-      minionCount: this.minions.filter(m => m.isAlive()).length,
-      pillarsRemaining: this.pillars.filter(p => !p.destroyed).length,
+      minionCount: this.minions.filter((m) => m.isAlive()).length,
+      pillarsRemaining: this.pillars.filter((p) => !p.destroyed).length,
       enemiesDefeated: this.totalEnemiesDefeated,
       damageTaken: this.totalDamageTaken,
       objectives: this.objectives,
@@ -1003,5 +1227,16 @@ export class Stage3 implements IStage {
 
   getVictoryAction(): 'play_again' | 'home' | null {
     return this.victoryAction
+  }
+
+  setVictoryScreenEnabled(enabled: boolean): void {
+    this.victoryScreenEnabled = enabled
+  }
+
+  getStats(): { enemiesDefeated: number; damageTaken: number } {
+    return {
+      enemiesDefeated: this.totalEnemiesDefeated,
+      damageTaken: this.totalDamageTaken,
+    }
   }
 }

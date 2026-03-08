@@ -9,6 +9,8 @@ const MAX_PROJECTILES = 8
 
 export class ProjectileManager {
   private pool: Projectile[]
+  public onPlayerHit?: (damage: number) => void
+  public onBlock?: (x: number, y: number) => void
 
   constructor() {
     this.pool = Array.from({ length: MAX_PROJECTILES }, () => ({
@@ -85,16 +87,29 @@ export class ProjectileManager {
       }
 
       // Player collision (enemy projectiles only)
-      if (p.active && p.source === 'enemy' && player && player.isAlive() && !player.isInvulnerable()) {
+      if (
+        p.active &&
+        p.source === 'enemy' &&
+        player &&
+        player.isAlive() &&
+        !player.isInvulnerable()
+      ) {
         const playerAABB = player.getAABB()
         if (this.projectileHitsAABB(p, playerAABB)) {
           if (player.isBlocking() && this.isFacingProjectile(player.direction, p)) {
             // Directional shield block — reduce damage by flat block amount
             const blocked = Math.max(0, p.damage - SHIELD_FLAT_BLOCK)
-            if (blocked > 0) player.takeDamage(blocked)
+            this.onBlock?.(p.x, p.y)
+            if (blocked > 0) {
+              if (player.takeDamage(blocked)) {
+                this.onPlayerHit?.(blocked)
+              }
+            }
           } else {
             // Direct hit — full damage (Player.takeDamage handles any non-directional block reduction)
-            player.takeDamage(p.damage)
+            if (player.takeDamage(p.damage)) {
+              this.onPlayerHit?.(p.damage)
+            }
           }
           p.active = false
         }
@@ -126,6 +141,11 @@ export class ProjectileManager {
       if (!p.active) continue
       drawArrowSprite(ctx, p.x, p.y, p.dirX, p.dirY, p.source)
     }
+  }
+
+  /** Returns a readonly view of the active projectile pool — for trail particles (Game.ts) */
+  getActivePool(): ReadonlyArray<Readonly<Projectile>> {
+    return this.pool
   }
 
   reset(): void {

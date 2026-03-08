@@ -3,20 +3,36 @@ import type { Player } from './Player'
 import { Enemy } from './Enemy'
 import { AnimationController } from '../engine/AnimationController'
 import { Physics } from '../engine/Physics'
+import { getBokoblinAnimations } from '../utils/sprites'
 import {
-  getBokoblinAnimations,
-} from '../utils/sprites'
-import {
-  GANON_HP, GANON_SIZE, GANON_SPEED, GANON_SPRITE_SIZE,
-  GANON_PHASE2_HP, GANON_PHASE3_HP, GANON_PHASE4_HP,
-  DARK_ORB_SPEED, DARK_ORB_FAST_SPEED, DARK_ORB_HOMING_DURATION,
-  DARK_ORB_CAST_COOLDOWN, DARK_ORB_SIZE, MAX_DARK_ORBS,
-  GANON_TELEPORT_DURATION, GANON_VULNERABLE_WINDOW,
-  GANON_DARK_SLASH_DAMAGE, GANON_DARK_SLASH_RANGE, GANON_DARK_SLASH_DURATION,
-  TRIPLE_ORB_SPEED, TRIPLE_ORB_SPREAD,
-  GROUND_SLAM_CHARGE_TIME, GROUND_SLAM_RADIUS, GROUND_SLAM_STUN_TIME,
-  FINAL_STAND_STUN_TIME, FINAL_STAND_CYCLE_SPEED,
-  MINION_SUMMON_INTERVAL, MINION_COUNT, MINION_RESUMMON_DELAY,
+  GANON_HP,
+  GANON_SIZE,
+  GANON_SPEED,
+  GANON_SPRITE_SIZE,
+  GANON_PHASE2_HP,
+  GANON_PHASE3_HP,
+  GANON_PHASE4_HP,
+  DARK_ORB_SPEED,
+  DARK_ORB_FAST_SPEED,
+  DARK_ORB_HOMING_DURATION,
+  DARK_ORB_CAST_COOLDOWN,
+  DARK_ORB_SIZE,
+  MAX_DARK_ORBS,
+  GANON_TELEPORT_DURATION,
+  GANON_VULNERABLE_WINDOW,
+  GANON_DARK_SLASH_DAMAGE,
+  GANON_DARK_SLASH_RANGE,
+  GANON_DARK_SLASH_DURATION,
+  TRIPLE_ORB_SPEED,
+  TRIPLE_ORB_SPREAD,
+  GROUND_SLAM_CHARGE_TIME,
+  GROUND_SLAM_RADIUS,
+  GROUND_SLAM_STUN_TIME,
+  FINAL_STAND_STUN_TIME,
+  FINAL_STAND_CYCLE_SPEED,
+  MINION_SUMMON_INTERVAL,
+  MINION_COUNT,
+  MINION_RESUMMON_DELAY,
   TILE_SIZE,
 } from '../utils/constants'
 
@@ -106,7 +122,10 @@ export class Ganon extends Enemy {
   isTransparent = false
   private castAnimTimer = 0
 
-  constructor(spawnPos: Vec2, arenaBounds: { minX: number; minY: number; maxX: number; maxY: number }) {
+  constructor(
+    spawnPos: Vec2,
+    arenaBounds: { minX: number; minY: number; maxX: number; maxY: number },
+  ) {
     super(spawnPos, [], GANON_SPEED, GANON_HP, { x: GANON_SIZE, y: GANON_SIZE })
     this.arenaLeft = arenaBounds.minX
     this.arenaRight = arenaBounds.maxX
@@ -281,7 +300,10 @@ export class Ganon extends Enemy {
     this.facePlayer(player)
 
     // Spawn orbs at midpoint of cast animation
-    if (this.castAnimTimer <= DARK_ORB_CAST_COOLDOWN * 0.25 && this.castAnimTimer + dt > DARK_ORB_CAST_COOLDOWN * 0.25) {
+    if (
+      this.castAnimTimer <= DARK_ORB_CAST_COOLDOWN * 0.25 &&
+      this.castAnimTimer + dt > DARK_ORB_CAST_COOLDOWN * 0.25
+    ) {
       const pc = player.getCenter()
       this.spawnDarkOrbs(pc.x, pc.y)
     }
@@ -334,7 +356,8 @@ export class Ganon extends Enemy {
         this.slamCenter.y = this.pos.y + this.size.y / 2
         break
       case 'stunned':
-        this.stunTimer = this.phase === 'final_stand' ? FINAL_STAND_STUN_TIME : GROUND_SLAM_STUN_TIME
+        this.stunTimer =
+          this.phase === 'final_stand' ? FINAL_STAND_STUN_TIME : GROUND_SLAM_STUN_TIME
         break
       default:
         this.actionTimer = IDLE_MIN_DURATION
@@ -368,13 +391,23 @@ export class Ganon extends Enemy {
             this.slashHitbox = { x: center.x, y: center.y - width / 2, width: reach, height: width }
             break
           case 'left':
-            this.slashHitbox = { x: center.x - reach, y: center.y - width / 2, width: reach, height: width }
+            this.slashHitbox = {
+              x: center.x - reach,
+              y: center.y - width / 2,
+              width: reach,
+              height: width,
+            }
             break
           case 'down':
             this.slashHitbox = { x: center.x - width / 2, y: center.y, width: width, height: reach }
             break
           case 'up':
-            this.slashHitbox = { x: center.x - width / 2, y: center.y - reach, width: width, height: reach }
+            this.slashHitbox = {
+              x: center.x - width / 2,
+              y: center.y - reach,
+              width: width,
+              height: reach,
+            }
             break
         }
         this.slashActive = true
@@ -501,7 +534,10 @@ export class Ganon extends Enemy {
 
   private decidePhase1(player: Player, distToPlayer: number): void {
     // Check if summoning is ready
-    if (this.minionTimer <= 0 || (this.minionResummonTimer <= 0 && this.minionResummonTimer !== -1)) {
+    if (
+      this.minionTimer <= 0 ||
+      (this.minionResummonTimer <= 0 && this.minionResummonTimer !== -1)
+    ) {
       this.startSummoning(player)
       return
     }
@@ -527,7 +563,7 @@ export class Ganon extends Enemy {
     const roll = Math.random()
     if (roll < 0.35) {
       this.postTeleportAction = 'dark_slash'
-    } else if (roll < 0.70) {
+    } else if (roll < 0.7) {
       this.postTeleportAction = 'triple_orb'
     } else {
       this.postTeleportAction = 'ground_slam_charge'
@@ -554,7 +590,10 @@ export class Ganon extends Enemy {
 
   private enterIdle(duration: number): void {
     this._ai = 'idle'
-    this.actionTimer = duration > 0 ? duration : IDLE_MIN_DURATION + Math.random() * (IDLE_MAX_DURATION - IDLE_MIN_DURATION)
+    this.actionTimer =
+      duration > 0
+        ? duration
+        : IDLE_MIN_DURATION + Math.random() * (IDLE_MAX_DURATION - IDLE_MIN_DURATION)
   }
 
   private startPacing(): void {
@@ -581,8 +620,10 @@ export class Ganon extends Enemy {
     this.teleportElapsed = 0
     this.teleportProgress = 0
     // Pick random position within arena
-    this.teleportTarget.x = this.arenaLeft + Math.random() * (this.arenaRight - this.arenaLeft - this.size.x)
-    this.teleportTarget.y = this.arenaTop + Math.random() * (this.arenaBottom - this.arenaTop - this.size.y)
+    this.teleportTarget.x =
+      this.arenaLeft + Math.random() * (this.arenaRight - this.arenaLeft - this.size.x)
+    this.teleportTarget.y =
+      this.arenaTop + Math.random() * (this.arenaBottom - this.arenaTop - this.size.y)
   }
 
   private startSummoning(player: Player): void {
@@ -597,17 +638,19 @@ export class Ganon extends Enemy {
   // ─── Dark Orb Management ──────────────────────────────────────────
 
   private spawnDarkOrbs(targetX: number, targetY: number): void {
-    const activeCount = this.darkOrbs.filter(o => o.active).length
+    const activeCount = this.darkOrbs.filter((o) => o.active).length
     if (activeCount >= MAX_DARK_ORBS) return
 
     const cx = this.pos.x + this.size.x / 2
     const cy = this.pos.y + this.size.y / 2
     const baseAngle = Math.atan2(targetY - cy, targetX - cx)
-    const speed = (this.phase === 'calamity' || this.phase === 'final_stand')
-      ? DARK_ORB_FAST_SPEED : DARK_ORB_SPEED
+    const speed =
+      this.phase === 'calamity' || this.phase === 'final_stand'
+        ? DARK_ORB_FAST_SPEED
+        : DARK_ORB_SPEED
 
     for (let i = -1; i <= 1; i++) {
-      if (this.darkOrbs.filter(o => o.active).length >= MAX_DARK_ORBS) break
+      if (this.darkOrbs.filter((o) => o.active).length >= MAX_DARK_ORBS) break
 
       const angle = baseAngle + i * ORB_SPREAD_ANGLE
       this.darkOrbs.push({
@@ -625,7 +668,7 @@ export class Ganon extends Enemy {
   }
 
   private spawnTripleOrbs(player: Player): void {
-    const activeCount = this.darkOrbs.filter(o => o.active).length
+    const activeCount = this.darkOrbs.filter((o) => o.active).length
     if (activeCount >= MAX_DARK_ORBS) return
 
     const cx = this.pos.x + this.size.x / 2
@@ -635,11 +678,11 @@ export class Ganon extends Enemy {
     const spreadRad = TRIPLE_ORB_SPREAD * (Math.PI / 180)
 
     // Phase 2: non-homing; Phase 3+: homing
-    const homing = (this.phase === 'calamity' || this.phase === 'final_stand')
-      ? DARK_ORB_HOMING_DURATION : 0
+    const homing =
+      this.phase === 'calamity' || this.phase === 'final_stand' ? DARK_ORB_HOMING_DURATION : 0
 
     for (let i = -1; i <= 1; i++) {
-      if (this.darkOrbs.filter(o => o.active).length >= MAX_DARK_ORBS) break
+      if (this.darkOrbs.filter((o) => o.active).length >= MAX_DARK_ORBS) break
 
       const angle = baseAngle + i * spreadRad
       this.darkOrbs.push({
@@ -685,10 +728,7 @@ export class Ganon extends Enemy {
       // Wall/pillar collision: deactivate on solid tile
       const tileCol = Math.floor(orb.x / TILE_SIZE)
       const tileRow = Math.floor(orb.y / TILE_SIZE)
-      if (
-        tileRow >= 0 && tileRow < map.height &&
-        tileCol >= 0 && tileCol < map.width
-      ) {
+      if (tileRow >= 0 && tileRow < map.height && tileCol >= 0 && tileCol < map.width) {
         const tile = map.tiles[tileRow]![tileCol]
         if (tile === 'wall' || tile === 'pillar') {
           orb.active = false
@@ -710,7 +750,7 @@ export class Ganon extends Enemy {
 
     // Clean up inactive orbs when array grows beyond cap
     if (this.darkOrbs.length > MAX_DARK_ORBS) {
-      this.darkOrbs = this.darkOrbs.filter(o => o.active)
+      this.darkOrbs = this.darkOrbs.filter((o) => o.active)
     }
   }
 
@@ -814,8 +854,14 @@ export class Ganon extends Enemy {
       let spawnY = center.y + Math.sin(angle) * TILE_SIZE * 3
 
       // Clamp within arena
-      spawnX = Math.max(this.arenaLeft + TILE_SIZE, Math.min(this.arenaRight - TILE_SIZE * 2, spawnX))
-      spawnY = Math.max(this.arenaTop + TILE_SIZE, Math.min(this.arenaBottom - TILE_SIZE * 2, spawnY))
+      spawnX = Math.max(
+        this.arenaLeft + TILE_SIZE,
+        Math.min(this.arenaRight - TILE_SIZE * 2, spawnX),
+      )
+      spawnY = Math.max(
+        this.arenaTop + TILE_SIZE,
+        Math.min(this.arenaBottom - TILE_SIZE * 2, spawnY),
+      )
 
       positions.push({ x: spawnX, y: spawnY })
     }
@@ -888,8 +934,10 @@ export class Ganon extends Enemy {
       }
     }
     // Fallback: just pick any position
-    this.teleportTarget.x = this.arenaLeft + Math.random() * (this.arenaRight - this.arenaLeft - this.size.x)
-    this.teleportTarget.y = this.arenaTop + Math.random() * (this.arenaBottom - this.arenaTop - this.size.y)
+    this.teleportTarget.x =
+      this.arenaLeft + Math.random() * (this.arenaRight - this.arenaLeft - this.size.x)
+    this.teleportTarget.y =
+      this.arenaTop + Math.random() * (this.arenaBottom - this.arenaTop - this.size.y)
   }
 
   // ─── Drawing ──────────────────────────────────────────────────────
@@ -902,16 +950,10 @@ export class Ganon extends Enemy {
       this.drawSlamChargeTelegraph(ctx)
     }
 
-    // Draw slam impact circle during ground_slam
-    if (this._ai === 'ground_slam' && this.slamActive) {
-      this.drawSlamImpact(ctx)
-    }
+    // Slam impact visual — now handled by Stage3 via effects.emit() (migrated Phase 4)
 
-    // Teleport smoke effect
-    if (this._ai === 'teleporting' && this.teleportProgress > 0.5) {
-      this.drawTeleportSmoke(ctx)
-      if (this.teleportProgress >= 0.9) return // Fully invisible
-    }
+    // Teleport: become invisible at full progress — smoke handled by Stage3 via effects.emit()
+    if (this._ai === 'teleporting' && this.teleportProgress >= 0.9) return
 
     this.drawWithBlink(ctx, () => {
       ctx.save()
@@ -1039,18 +1081,7 @@ export class Ganon extends Enemy {
     ctx.fillStyle = '#B8860B'
     ctx.fillRect(x + s * 0.35, y + s * 0.3, s * 0.3, s * 0.04)
 
-    // Dark energy wisps (phase-dependent)
-    if (this.phase !== 'dark_sorcery') {
-      const time = Date.now() * 0.003
-      ctx.fillStyle = 'rgba(139, 0, 255, 0.4)'
-      for (let i = 0; i < 3; i++) {
-        const wx = x + s * 0.5 + Math.sin(time + i * 2) * s * 0.3
-        const wy = y + s * 0.4 + Math.cos(time + i * 1.5) * s * 0.2
-        ctx.beginPath()
-        ctx.arc(wx, wy, 3, 0, Math.PI * 2)
-        ctx.fill()
-      }
-    }
+    // Dark energy wisps are now emitted via effects system in Stage3 (Phase 4 migration)
   }
 
   private drawDarkSlashEffect(ctx: CanvasRenderingContext2D): void {
@@ -1097,47 +1128,6 @@ export class Ganon extends Enemy {
     ctx.beginPath()
     ctx.arc(cx, cy, radius * 0.5, 0, Math.PI * 2)
     ctx.fill()
-    ctx.restore()
-  }
-
-  private drawSlamImpact(ctx: CanvasRenderingContext2D): void {
-    const cx = this.slamCenter.x
-    const cy = this.slamCenter.y
-    const progress = 1 - this.slamTimer / SLAM_IMPACT_DURATION
-
-    ctx.save()
-    ctx.globalAlpha = 0.5 * (1 - progress)
-
-    // Shockwave ring
-    const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, GROUND_SLAM_RADIUS)
-    gradient.addColorStop(0, 'rgba(255, 68, 0, 0.4)')
-    gradient.addColorStop(0.7, 'rgba(139, 0, 255, 0.3)')
-    gradient.addColorStop(1, 'rgba(139, 0, 255, 0)')
-    ctx.fillStyle = gradient
-    ctx.beginPath()
-    ctx.arc(cx, cy, GROUND_SLAM_RADIUS * (0.5 + progress * 0.5), 0, Math.PI * 2)
-    ctx.fill()
-
-    ctx.restore()
-  }
-
-  private drawTeleportSmoke(ctx: CanvasRenderingContext2D): void {
-    const cx = this.pos.x + GANON_SPRITE_SIZE / 2
-    const cy = this.pos.y + GANON_SPRITE_SIZE / 2
-    const time = Date.now() * 0.005
-
-    ctx.save()
-    ctx.globalAlpha = 0.4 * this.teleportProgress
-    for (let i = 0; i < 5; i++) {
-      const angle = time + i * Math.PI * 0.4
-      const r = 15 + Math.sin(time + i) * 8
-      const sx = cx + Math.cos(angle) * r
-      const sy = cy + Math.sin(angle) * r
-      ctx.fillStyle = '#2D1B4E'
-      ctx.beginPath()
-      ctx.arc(sx, sy, 6, 0, Math.PI * 2)
-      ctx.fill()
-    }
     ctx.restore()
   }
 }

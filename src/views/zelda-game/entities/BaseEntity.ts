@@ -4,7 +4,7 @@ import {
   PLAYER_INVULN_DURATION,
   PLAYER_BLINK_RATE,
   DAMAGE_FLASH_DURATION,
-  DEATH_ANIM_DURATION
+  DEATH_ANIM_DURATION,
 } from '../utils/constants'
 
 export abstract class BaseEntity {
@@ -35,10 +35,10 @@ export abstract class BaseEntity {
   abstract update(dt: number, ...args: unknown[]): void
   abstract draw(ctx: CanvasRenderingContext2D): void
 
-  takeDamage(amount: number): void {
-    if (this.invulnerable || !this.alive) return
+  takeDamage(amount: number): boolean {
+    if (this.invulnerable || !this.alive) return false
     this.health = Math.max(0, this.health - amount)
-    
+
     // Trigger visual damage flash
     this.damageFlashTimer = DAMAGE_FLASH_DURATION
 
@@ -46,13 +46,14 @@ export abstract class BaseEntity {
       this.alive = false
       this.deathState = 'dying'
       this.deathTimer = DEATH_ANIM_DURATION
-      return
+      return true
     }
-    
+
     this.invulnerable = true
     this.invulnTimer = PLAYER_INVULN_DURATION
     this.blinkTimer = 0
     this.blinkVisible = true
+    return true
   }
 
   heal(amount: number): void {
@@ -108,7 +109,7 @@ export abstract class BaseEntity {
   isAlive(): boolean {
     return this.alive
   }
-  
+
   isDying(): boolean {
     return this.deathState === 'dying'
   }
@@ -120,13 +121,15 @@ export abstract class BaseEntity {
   isInvulnerable(): boolean {
     return this.invulnerable
   }
-  
+
   getDeathProgress(): number {
     return this.deathState === 'dying'
-      ? 1 - (Math.max(0, this.deathTimer) / DEATH_ANIM_DURATION)
-      : (this.deathState === 'dead' ? 1 : 0)
+      ? 1 - Math.max(0, this.deathTimer) / DEATH_ANIM_DURATION
+      : this.deathState === 'dead'
+        ? 1
+        : 0
   }
-  
+
   getDamageFlashProgress(): number {
     return this.damageFlashTimer > 0 ? this.damageFlashTimer / DAMAGE_FLASH_DURATION : 0
   }

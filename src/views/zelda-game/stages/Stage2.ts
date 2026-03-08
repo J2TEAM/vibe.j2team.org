@@ -1,4 +1,12 @@
-import type { TileMap, InputState, StageObjective, Vec2, HeartPickup, ProjectileSpawnRequest } from '../utils/types'
+import type { Camera } from '../engine/Camera'
+import type {
+  TileMap,
+  InputState,
+  StageObjective,
+  Vec2,
+  HeartPickup,
+  ProjectileSpawnRequest,
+} from '../utils/types'
 import {
   TILE_SIZE,
   WAVE_BREATHER_TIME,
@@ -6,8 +14,33 @@ import {
   HEART_PICKUP_RADIUS,
   FIRE_DAMAGE_PER_TICK,
   FIRE_TICK_INTERVAL,
+  HIT_SPARK_COUNT,
+  HIT_SPARK_SPEED,
+  HIT_SPARK_LIFE,
+  HIT_SPARK_SIZE,
+  SPARK_COLORS,
+  BOSS_DAMAGE_SHAKE_INTENSITY,
+  BOSS_DAMAGE_SHAKE_DURATION,
+  PLAYER_DAMAGE_SHAKE_INTENSITY,
+  PLAYER_DAMAGE_SHAKE_DURATION,
+  SCREEN_FLASH_DURATION,
+  WAVE_FLASH_DURATION,
+  DUST_COLORS,
+  FIRE_COLORS,
+  LYNEL_DEATH_PARTICLE_COUNT,
+  LYNEL_DEATH_PARTICLE_SPEED,
+  LYNEL_DEATH_PARTICLE_LIFE,
+  LYNEL_DEATH_PARTICLE_SIZE,
+  SPAWN_SMOKE_COUNT,
+  SPAWN_SMOKE_SPEED,
+  SPAWN_SMOKE_LIFE,
+  SPAWN_SMOKE_SIZE,
+  HAPTIC_PLAYER_DAMAGE,
+  HAPTIC_BOSS_HIT,
 } from '../utils/constants'
+import { Input } from '../engine/Input'
 import { Bokoblin } from '../entities/Bokoblin'
+import type { Effects } from '../engine/Effects'
 import { BokoblinArcher } from '../entities/BokoblinArcher'
 import { Lynel } from '../entities/Lynel'
 import { Physics } from '../engine/Physics'
@@ -23,9 +56,10 @@ import {
 } from '../maps/bridge'
 import { drawHeartPickup, drawBossHealthBar } from '../utils/sprites'
 import type { IStage } from './IStage'
+import { audio } from '../engine/Audio'
 
 // Boss arena vertical bounds (bridge corridor rows 5-13)
-const BOSS_ARENA_TOP = 5 * TILE_SIZE   // 160
+const BOSS_ARENA_TOP = 5 * TILE_SIZE // 160
 const BOSS_ARENA_BOTTOM = 14 * TILE_SIZE // 448
 
 // Boss intro display time
@@ -49,9 +83,14 @@ export class Stage2 implements IStage {
   // --- Boss intro ---
   private bossIntroActive = false
   private bossIntroTimer = 0
+  private bossIntroPlayed = false
 
   // --- Fire damage tracking ---
   private fireDamageTimer = 0
+
+  // --- Phase 4: Spawn smoke + Lynel death ---
+  private pendingSpawnEffects: Vec2[] = []
+  private lynelDeathEmitted = false
 
   // --- Objectives ---
   private objectives: StageObjective[] = [
@@ -67,20 +106,34 @@ export class Stage2 implements IStage {
 
   // ─── Main Update ───────────────────────────────────────────────────
 
-  update(dt: number, player: Player, map: TileMap, input: InputState): void {
+  update(
+    dt: number,
+    player: Player,
+    map: TileMap,
+    input: InputState,
+    effects: Effects,
+    camera: Camera,
+  ): void {
     // Update wave/boss state machine
-    this.updateWaveSystem(dt, player, input)
+    this.updateWaveSystem(dt, player, input, effects, camera)
 
     // Process player sword attacks against all enemies (including Lynel via getEnemies)
     const combatResult = player.getCombatResult()
     if (combatResult?.hitbox) {
-      this.processPlayerAttack(combatResult, player, map)
+      this.processPlayerAttack(combatResult, player, map, effects, camera)
     }
 
     // Update enemy AI (including dying enemies for death animation)
     for (const enemy of this.enemies) {
       if (!enemy.isFullyDead()) {
+        const wasInvuln = player.isInvulnerable()
         enemy.updateAI(dt, player, map)
+        if (!wasInvuln && player.isInvulnerable()) {
+          effects.screenFlash('rgba(255, 0, 0, 0.3)', SCREEN_FLASH_DURATION)
+          camera.addShake(PLAYER_DAMAGE_SHAKE_INTENSITY, PLAYER_DAMAGE_SHAKE_DURATION)
+          effects.spawnPopup(player.pos.x + player.size.x / 2, player.pos.y, '-1', '#FF4444')
+          Input.vibrate(HAPTIC_PLAYER_DAMAGE)
+        }
       }
     }
 
@@ -93,8 +146,39 @@ export class Stage2 implements IStage {
       }
     }
 
+    // Lynel death particle burst — emit once when Lynel enters dying state
+    if (this.lynel && this.lynel.isDying() && !this.lynelDeathEmitted) {
+      this.lynelDeathEmitted = true
+      effects.emit({
+        x: this.lynel.pos.x + this.lynel.size.x / 2,
+        y: this.lynel.pos.y + this.lynel.size.y / 2,
+        count: LYNEL_DEATH_PARTICLE_COUNT,
+        speed: LYNEL_DEATH_PARTICLE_SPEED,
+        life: LYNEL_DEATH_PARTICLE_LIFE,
+        size: LYNEL_DEATH_PARTICLE_SIZE,
+        colors: FIRE_COLORS,
+        gravity: -20,
+      })
+      camera.addShake(6, 0.4)
+    }
+
+    // Flush pending spawn smoke (collected by spawnWave)
+    for (const pos of this.pendingSpawnEffects) {
+      effects.emit({
+        x: pos.x,
+        y: pos.y,
+        count: SPAWN_SMOKE_COUNT,
+        speed: SPAWN_SMOKE_SPEED,
+        life: SPAWN_SMOKE_LIFE,
+        size: SPAWN_SMOKE_SIZE,
+        colors: DUST_COLORS,
+        gravity: -10,
+      })
+    }
+    this.pendingSpawnEffects.length = 0
+
     // Cleanup fully dead enemies
-    this.enemies = this.enemies.filter(e => !e.isFullyDead())
+    this.enemies = this.enemies.filter((e) => !e.isFullyDead())
 
     // Update heart pickups
     this.updateHeartPickups(dt, player)
@@ -102,10 +186,16 @@ export class Stage2 implements IStage {
 
   // ─── Wave System (V3 if-chain) ─────────────────────────────────────
 
-  private updateWaveSystem(dt: number, player: Player, input: InputState): void {
+  private updateWaveSystem(
+    dt: number,
+    player: Player,
+    input: InputState,
+    effects: Effects,
+    camera: Camera,
+  ): void {
     // Boss fight takes priority
     if (this.bossState !== 'not_started') {
-      this.updateBossFight(dt, player, input)
+      this.updateBossFight(dt, player, input, effects, camera)
       return
     }
 
@@ -124,6 +214,7 @@ export class Stage2 implements IStage {
       this.objectives[this.waveIndex]!.completed = true
       this.waveState = 'breather'
       this.stateTimer = WAVE_BREATHER_TIME
+      effects.screenFlash('rgba(255, 255, 255, 0.4)', WAVE_FLASH_DURATION)
       this.spawnHeartPickup(player)
       return
     }
@@ -137,6 +228,23 @@ export class Stage2 implements IStage {
           this.bossState = 'intro'
           this.bossIntroActive = true
           this.bossIntroTimer = BOSS_INTRO_TIME
+          // Lynel boss intro cinematic: ground shake + dust burst
+          if (!this.bossIntroPlayed) {
+            this.bossIntroPlayed = true
+            camera.addShake(6, 0.4)
+            effects.emit({
+              x: BRIDGE_BOSS_SPAWN.x,
+              y: BRIDGE_BOSS_SPAWN.y,
+              count: 12,
+              speed: 40,
+              life: 0.4,
+              size: 3,
+              colors: DUST_COLORS,
+              gravity: 60,
+              spread: Math.PI,
+              baseAngle: -Math.PI / 2,
+            })
+          }
         } else {
           this.waveState = 'idle'
         }
@@ -155,6 +263,7 @@ export class Stage2 implements IStage {
       const bok = new Bokoblin({ ...pos }, [])
       bok.setAggressive()
       this.enemies.push(bok)
+      this.pendingSpawnEffects.push({ x: pos.x + TILE_SIZE / 2, y: pos.y + TILE_SIZE / 2 })
     }
 
     for (let i = 0; i < config.archers; i++) {
@@ -162,16 +271,23 @@ export class Stage2 implements IStage {
       const patrolRoute = BRIDGE_WAVE_ARCHER_PATROL_ROUTES[waveIndex]?.[i] ?? []
       const archer = new BokoblinArcher({ ...pos }, patrolRoute)
       this.enemies.push(archer)
+      this.pendingSpawnEffects.push({ x: pos.x + TILE_SIZE / 2, y: pos.y + TILE_SIZE / 2 })
     }
   }
 
   private allEnemiesDead(): boolean {
-    return this.enemies.length === 0 || this.enemies.every(e => !e.isAlive())
+    return this.enemies.length === 0 || this.enemies.every((e) => !e.isAlive())
   }
 
   // ─── Boss Fight ────────────────────────────────────────────────────
 
-  private updateBossFight(dt: number, player: Player, input: InputState): void {
+  private updateBossFight(
+    dt: number,
+    player: Player,
+    input: InputState,
+    effects: Effects,
+    camera: Camera,
+  ): void {
     if (this.bossState === 'intro') {
       this.bossIntroTimer -= dt
       // [RT#13] OR logic: timer expired OR interact pressed — prevents softlock
@@ -191,12 +307,22 @@ export class Stage2 implements IStage {
       const slash = this.lynel.getSlashHitbox()
       if (slash && !player.isInvulnerable()) {
         if (Physics.overlaps(slash.aabb, player.getAABB())) {
-          player.takeDamage(slash.damage)
+          if (player.takeDamage(slash.damage)) {
+            effects.screenFlash('rgba(255, 0, 0, 0.3)', SCREEN_FLASH_DURATION)
+            camera.addShake(PLAYER_DAMAGE_SHAKE_INTENSITY, PLAYER_DAMAGE_SHAKE_DURATION)
+            effects.spawnPopup(
+              player.pos.x + player.size.x / 2,
+              player.pos.y,
+              `-${slash.damage}`,
+              '#FF4444',
+            )
+            Input.vibrate(HAPTIC_PLAYER_DAMAGE)
+          }
         }
       }
 
       // Check fire tile damage on player
-      this.updateFireDamage(dt, player)
+      this.updateFireDamage(dt, player, effects, camera)
 
       // Check Lynel defeated
       if (this.lynel.isFullyDead()) {
@@ -222,7 +348,7 @@ export class Stage2 implements IStage {
 
   // ─── Fire Damage Tick ──────────────────────────────────────────────
 
-  private updateFireDamage(dt: number, player: Player): void {
+  private updateFireDamage(dt: number, player: Player, effects: Effects, camera: Camera): void {
     if (!this.lynel || player.isInvulnerable()) return
     const fireTiles = this.lynel.getFireTiles()
     if (fireTiles.length === 0) return
@@ -236,7 +362,17 @@ export class Stage2 implements IStage {
       if (Math.abs(dx) < halfTile && Math.abs(dy) < halfTile) {
         this.fireDamageTimer -= dt
         if (this.fireDamageTimer <= 0) {
-          player.takeDamage(FIRE_DAMAGE_PER_TICK)
+          if (player.takeDamage(FIRE_DAMAGE_PER_TICK)) {
+            effects.screenFlash('rgba(255, 0, 0, 0.3)', SCREEN_FLASH_DURATION)
+            camera.addShake(PLAYER_DAMAGE_SHAKE_INTENSITY, PLAYER_DAMAGE_SHAKE_DURATION)
+            effects.spawnPopup(
+              player.pos.x + player.size.x / 2,
+              player.pos.y,
+              `-${FIRE_DAMAGE_PER_TICK}`,
+              '#FF4444',
+            )
+            Input.vibrate(HAPTIC_PLAYER_DAMAGE)
+          }
           this.fireDamageTimer = FIRE_TICK_INTERVAL
         }
         return
@@ -277,6 +413,8 @@ export class Stage2 implements IStage {
     combatResult: NonNullable<ReturnType<Player['getCombatResult']>>,
     player: Player,
     map: TileMap,
+    effects: Effects,
+    camera: Camera,
   ): void {
     if (!combatResult.hitbox) return
 
@@ -285,7 +423,26 @@ export class Stage2 implements IStage {
       if (!enemy.isAlive() || enemy.isDying()) continue
       if (enemy.lastHitSwingID === combatResult.swingID) continue
       if (Physics.overlaps(combatResult.hitbox.aabb, enemy.getAABB())) {
-        enemy.takeDamage(combatResult.hitbox.damage)
+        if (enemy.takeDamage(combatResult.hitbox.damage)) {
+          effects.emit({
+            x: enemy.pos.x + enemy.size.x / 2,
+            y: enemy.pos.y + enemy.size.y / 2,
+            count: HIT_SPARK_COUNT,
+            speed: HIT_SPARK_SPEED,
+            life: HIT_SPARK_LIFE,
+            size: HIT_SPARK_SIZE,
+            colors: SPARK_COLORS,
+          })
+          effects.hitFreeze()
+          effects.spawnPopup(
+            enemy.pos.x + enemy.size.x / 2,
+            enemy.pos.y - 10,
+            `-${combatResult.hitbox.damage}`,
+            '#fff',
+          )
+          audio.playHit()
+          if (!enemy.isAlive()) audio.playEnemyDeath()
+        }
         enemy.lastHitSwingID = combatResult.swingID
         // Apply knockback away from player
         const ec = enemy.getCenter()
@@ -311,7 +468,28 @@ export class Stage2 implements IStage {
     if (this.lynel && this.lynel.isAlive() && !this.lynel.isDying()) {
       if (this.lynel.lastHitSwingID !== combatResult.swingID) {
         if (Physics.overlaps(combatResult.hitbox.aabb, this.lynel.getAABB())) {
-          this.lynel.takeDamage(combatResult.hitbox.damage)
+          if (this.lynel.takeDamage(combatResult.hitbox.damage)) {
+            effects.emit({
+              x: this.lynel.pos.x + this.lynel.size.x / 2,
+              y: this.lynel.pos.y + this.lynel.size.y / 2,
+              count: HIT_SPARK_COUNT,
+              speed: HIT_SPARK_SPEED,
+              life: HIT_SPARK_LIFE,
+              size: HIT_SPARK_SIZE,
+              colors: SPARK_COLORS,
+            })
+            effects.hitFreeze()
+            effects.spawnPopup(
+              this.lynel.pos.x + this.lynel.size.x / 2,
+              this.lynel.pos.y - 10,
+              `-${combatResult.hitbox.damage}`,
+              '#fff',
+            )
+            camera.addShake(BOSS_DAMAGE_SHAKE_INTENSITY, BOSS_DAMAGE_SHAKE_DURATION)
+            audio.playHit()
+            if (!this.lynel.isAlive()) audio.playEnemyDeath()
+            Input.vibrate(HAPTIC_BOSS_HIT)
+          }
           this.lynel.lastHitSwingID = combatResult.swingID
         }
       }
@@ -333,7 +511,13 @@ export class Stage2 implements IStage {
 
   // ─── Draw ──────────────────────────────────────────────────────────
 
-  draw(ctx: CanvasRenderingContext2D, _renderer: Renderer, _map: TileMap): void {
+  draw(
+    ctx: CanvasRenderingContext2D,
+    _renderer: Renderer,
+    _map: TileMap,
+    _effects: Effects,
+    _camera: Camera,
+  ): void {
     // 1. Draw wave enemies (including dying ones)
     for (const enemy of this.enemies) {
       if (!enemy.isFullyDead()) {
@@ -477,6 +661,10 @@ export class Stage2 implements IStage {
   }
 
   isItemGetActive(): boolean {
-    return this.bossIntroActive
+    return false
+  }
+
+  getStats(): { enemiesDefeated: number; damageTaken: number } {
+    return { enemiesDefeated: 0, damageTaken: 0 }
   }
 }

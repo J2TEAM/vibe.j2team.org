@@ -1,17 +1,31 @@
+import type { Camera } from '../engine/Camera'
 import type { TileMap, InputState, StageObjective, Vec2 } from '../utils/types'
-import { INTERACT_RADIUS, TILE_SIZE } from '../utils/constants'
+import {
+  INTERACT_RADIUS,
+  TILE_SIZE,
+  HIT_SPARK_COUNT,
+  HIT_SPARK_SPEED,
+  HIT_SPARK_LIFE,
+  HIT_SPARK_SIZE,
+  SPARK_COLORS,
+  SCREEN_FLASH_DURATION,
+  PLAYER_DAMAGE_SHAKE_INTENSITY,
+  PLAYER_DAMAGE_SHAKE_DURATION,
+  LEAF_COLORS,
+  AMBIENT_LEAF_COUNT,
+  AMBIENT_DRIFT_SPEED,
+  HAPTIC_PLAYER_DAMAGE,
+} from '../utils/constants'
+import { Input } from '../engine/Input'
 import { Bokoblin } from '../entities/Bokoblin'
 import { Physics } from '../engine/Physics'
 import { Renderer } from '../engine/Renderer'
 import type { Player } from '../entities/Player'
 import type { Enemy } from '../entities/Enemy'
-import {
-  PLAYER_SPAWN,
-  KEY_BOKOBLIN_SPAWN,
-  PATROL_CONFIGS,
-  CHEST_POS,
-} from '../maps/forest'
+import type { Effects } from '../engine/Effects'
+import { PLAYER_SPAWN, KEY_BOKOBLIN_SPAWN, PATROL_CONFIGS, CHEST_POS } from '../maps/forest'
 import type { IStage } from './IStage'
+import { audio } from '../engine/Audio'
 
 export class Stage1 implements IStage {
   enemies: Enemy[] = []
@@ -47,7 +61,14 @@ export class Stage1 implements IStage {
     return { ...PLAYER_SPAWN }
   }
 
-  update(dt: number, player: Player, map: TileMap, input: InputState): void {
+  update(
+    dt: number,
+    player: Player,
+    map: TileMap,
+    input: InputState,
+    effects: Effects,
+    camera: Camera,
+  ): void {
     if (this.itemGetActive) {
       this.itemGetTimer -= dt
       if (this.itemGetTimer <= 0) {
@@ -60,7 +81,7 @@ export class Stage1 implements IStage {
     if (this.chestOpened && !this.itemGetActive && !this.combatPhaseActive) {
       this.combatPhaseActive = true
       // Record enemy count at combat start to prevent instant victory on 0-enemy edge case
-      this.combatEnemyCount = this.enemies.filter(e => e.isAlive()).length
+      this.combatEnemyCount = this.enemies.filter((e) => e.isAlive()).length
       for (const enemy of this.enemies) {
         if (enemy.isAlive()) {
           enemy.setAggressive()
@@ -74,11 +95,30 @@ export class Stage1 implements IStage {
       for (const enemy of this.enemies) {
         // Skip dying/dead enemies and protected key carrier
         if (!enemy.isAlive() || enemy.isDying()) continue
-        if (enemy === this.keyBokoblin && !this.keyCollected) continue 
+        if (enemy === this.keyBokoblin && !this.keyCollected) continue
 
         if (enemy.lastHitSwingID === combatResult.swingID) continue
         if (Physics.overlaps(combatResult.hitbox.aabb, enemy.getAABB())) {
-          enemy.takeDamage(combatResult.hitbox.damage)
+          if (enemy.takeDamage(combatResult.hitbox.damage)) {
+            effects.emit({
+              x: enemy.pos.x + enemy.size.x / 2,
+              y: enemy.pos.y + enemy.size.y / 2,
+              count: HIT_SPARK_COUNT,
+              speed: HIT_SPARK_SPEED,
+              life: HIT_SPARK_LIFE,
+              size: HIT_SPARK_SIZE,
+              colors: SPARK_COLORS,
+            })
+            effects.hitFreeze()
+            effects.spawnPopup(
+              enemy.pos.x + enemy.size.x / 2,
+              enemy.pos.y - 10,
+              `-${combatResult.hitbox.damage}`,
+              '#fff',
+            )
+            audio.playHit()
+            if (!enemy.isAlive()) audio.playEnemyDeath()
+          }
           enemy.lastHitSwingID = combatResult.swingID
           // Apply knockback away from player
           const ec = enemy.getCenter()
@@ -104,21 +144,36 @@ export class Stage1 implements IStage {
     // Update enemies (including dying ones for animation timer)
     for (const enemy of this.enemies) {
       if (!enemy.isFullyDead()) {
+        const wasInvuln = player.isInvulnerable()
         enemy.updateAI(dt, player, map)
+        if (!wasInvuln && player.isInvulnerable()) {
+          effects.screenFlash('rgba(255, 0, 0, 0.3)', SCREEN_FLASH_DURATION)
+          camera.addShake(PLAYER_DAMAGE_SHAKE_INTENSITY, PLAYER_DAMAGE_SHAKE_DURATION)
+          effects.spawnPopup(player.pos.x + player.size.x / 2, player.pos.y, '-1', '#FF4444')
+          Input.vibrate(HAPTIC_PLAYER_DAMAGE)
+        }
       }
     }
 
     // Cleanup dead enemies
-    this.enemies = this.enemies.filter(e => !e.isFullyDead())
+    this.enemies = this.enemies.filter((e) => !e.isFullyDead())
 
     // Mark clear objective when all enemies defeated (defensive; isComplete() also marks it)
     if (this.combatPhaseActive && !this.objectives[3]!.completed) {
-      if (this.enemies.every(e => !e.isAlive())) {
+      if (this.enemies.every((e) => !e.isAlive())) {
         this.objectives[3]!.completed = true
       }
     }
 
     this.handleInteraction(player, input, map)
+
+    // Ambient forest leaf particles — floating leaves through viewport
+    effects.emitAmbient(camera, LEAF_COLORS, AMBIENT_LEAF_COUNT, {
+      speed: AMBIENT_DRIFT_SPEED,
+      life: 5,
+      size: 2,
+      gravity: 5, // slight downward drift = falling leaves
+    })
   }
 
   private handleInteraction(player: Player, input: InputState, map: TileMap): void {
@@ -141,10 +196,10 @@ export class Stage1 implements IStage {
     if (this.keyCollected && !this.gateOpen) {
       const aabb = player.getAABB()
       const touchesGate = [
-        { x: playerCenter.x, y: aabb.y - 1 },                  // tile above
-        { x: playerCenter.x, y: aabb.y + aabb.height + 1 },    // tile below
-        { x: aabb.x - 1, y: playerCenter.y },                  // tile left
-        { x: aabb.x + aabb.width + 1, y: playerCenter.y },     // tile right
+        { x: playerCenter.x, y: aabb.y - 1 }, // tile above
+        { x: playerCenter.x, y: aabb.y + aabb.height + 1 }, // tile below
+        { x: aabb.x - 1, y: playerCenter.y }, // tile left
+        { x: aabb.x + aabb.width + 1, y: playerCenter.y }, // tile right
       ].some((pt) => Physics.getTileAt(map, pt.x, pt.y) === 'gate')
       if (touchesGate) {
         this.gateOpen = true
@@ -176,13 +231,27 @@ export class Stage1 implements IStage {
     }
   }
 
-  draw(ctx: CanvasRenderingContext2D, renderer: Renderer, map: TileMap): void {
+  draw(
+    ctx: CanvasRenderingContext2D,
+    renderer: Renderer,
+    map: TileMap,
+    _effects: Effects,
+    _camera: Camera,
+  ): void {
     // 1. Draw vision cones (under entities) — hidden during combat phase
     if (!this.combatPhaseActive) {
       for (const enemy of this.enemies) {
         if (!enemy.isAlive()) continue
         const cone = enemy.getVisionConeParams()
-        renderer.drawVisionCone(ctx, cone.center, cone.angle, cone.range, cone.halfAngle, cone.state, map)
+        renderer.drawVisionCone(
+          ctx,
+          cone.center,
+          cone.angle,
+          cone.range,
+          cone.halfAngle,
+          cone.state,
+          map,
+        )
       }
     }
 
@@ -276,7 +345,7 @@ export class Stage1 implements IStage {
 
   isComplete(): boolean {
     if (!this.combatPhaseActive || this.combatEnemyCount === 0) return false
-    const allDead = this.enemies.every(e => !e.isAlive())
+    const allDead = this.enemies.every((e) => !e.isAlive())
     if (allDead && !this.objectives[3]!.completed) {
       this.objectives[3]!.completed = true
     }
@@ -284,7 +353,11 @@ export class Stage1 implements IStage {
   }
 
   isItemGetActive(): boolean {
-    return this.itemGetActive
+    return this.keyCollected && !this.chestOpened
+  }
+
+  getStats(): { enemiesDefeated: number; damageTaken: number } {
+    return { enemiesDefeated: 0, damageTaken: 0 }
   }
 
   getEnemies(): Enemy[] {

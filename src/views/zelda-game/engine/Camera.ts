@@ -1,4 +1,4 @@
-import { CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE } from '../utils/constants'
+import { CANVAS_WIDTH, CANVAS_HEIGHT, TILE_SIZE, CAMERA_LERP_FACTOR } from '../utils/constants'
 import type { Vec2, Viewport, TileMap } from '../utils/types'
 
 export class Camera {
@@ -39,16 +39,33 @@ export class Camera {
     return { x: this.shakeOffsetX, y: this.shakeOffsetY }
   }
 
-  /** Update camera to center on target, clamped to map bounds */
-  follow(target: Vec2, map: TileMap): void {
+  private lerpEnabled = true
+
+  /** Disable lerp for the next follow() call — snaps instantly (use on stage load) */
+  snapNext(): void {
+    this.lerpEnabled = false
+  }
+
+  /** Update camera to smoothly follow target, clamped to map bounds.
+   *  Uses dt-compensated lerp (Red Team #11) so feel is consistent at any framerate. */
+  follow(target: Vec2, map: TileMap, dt = 0): void {
     const mapPixelW = map.width * TILE_SIZE
     const mapPixelH = map.height * TILE_SIZE
 
-    this.viewport.x = target.x - CANVAS_WIDTH / 2
-    this.viewport.y = target.y - CANVAS_HEIGHT / 2
+    const targetX = Math.max(0, Math.min(target.x - CANVAS_WIDTH / 2, mapPixelW - CANVAS_WIDTH))
+    const targetY = Math.max(0, Math.min(target.y - CANVAS_HEIGHT / 2, mapPixelH - CANVAS_HEIGHT))
 
-    this.viewport.x = Math.max(0, Math.min(this.viewport.x, mapPixelW - CANVAS_WIDTH))
-    this.viewport.y = Math.max(0, Math.min(this.viewport.y, mapPixelH - CANVAS_HEIGHT))
+    if (this.lerpEnabled && dt > 0) {
+      // Frame-rate independent lerp (Red Team #11): same feel at 30fps and 120fps
+      const alpha = 1 - Math.pow(1 - CAMERA_LERP_FACTOR, dt * 60)
+      this.viewport.x += (targetX - this.viewport.x) * alpha
+      this.viewport.y += (targetY - this.viewport.y) * alpha
+    } else {
+      // Snap: instant position (stage loads, first frame)
+      this.viewport.x = targetX
+      this.viewport.y = targetY
+      this.lerpEnabled = true // Re-enable after snap
+    }
   }
 
   /** Apply camera transform to canvas context (includes shake offset) */

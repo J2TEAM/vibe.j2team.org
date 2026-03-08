@@ -1,11 +1,18 @@
-import type { Vec2, Direction, InputState, TileMap, CombatResult } from '../utils/types'
-import { PLAYER_SPEED, PLAYER_SIZE, PLAYER_MAX_HEALTH, SPRITE_SIZE, SHIELD_FLAT_BLOCK } from '../utils/constants'
+import type { Vec2, Direction, InputState, TileMap, CombatResult, WeaponType } from '../utils/types'
+import {
+  PLAYER_SPEED,
+  PLAYER_SIZE,
+  PLAYER_MAX_HEALTH,
+  SPRITE_SIZE,
+  SHIELD_FLAT_BLOCK,
+} from '../utils/constants'
 import { BaseEntity } from './BaseEntity'
 import { AnimationController } from '../engine/AnimationController'
 import { Physics } from '../engine/Physics'
 import { getPlayerAnimations, drawShieldIndicator } from '../utils/sprites'
 import { Combat } from '../systems/Combat'
 import { Inventory } from '../systems/Inventory'
+import { audio } from '../engine/Audio'
 
 const SQRT2_INV = 1 / Math.sqrt(2)
 const SPRITE_OFFSET = (SPRITE_SIZE - PLAYER_SIZE) / 2
@@ -20,6 +27,17 @@ export class Player extends BaseEntity {
     this.animation = new AnimationController(getPlayerAnimations(), 'idle', 'down')
     this.combat = new Combat()
     this.inventory = new Inventory()
+  }
+
+  hasWeapon(type: WeaponType): boolean {
+    return this.inventory.has(type)
+  }
+
+  getCooldownRatios(): { sword: number; bow: number } {
+    return {
+      sword: this.combat.getSwordCooldownRatio(),
+      bow: this.combat.getBowCooldownRatio(),
+    }
   }
 
   update(dt: number, input: InputState, map: TileMap): void {
@@ -57,9 +75,20 @@ export class Player extends BaseEntity {
 
     const moving = dx !== 0 || dy !== 0
 
-    this.lastCombatResult = this.combat.update(dt, input, this.inventory, this.pos, this.size, this.direction)
+    this.lastCombatResult = this.combat.update(
+      dt,
+      input,
+      this.inventory,
+      this.pos,
+      this.size,
+      this.direction,
+    )
     const speedMultiplier = this.lastCombatResult.speedMultiplier
     const isAttacking = this.lastCombatResult.state === 'attacking'
+
+    if (!wasAttacking && isAttacking) {
+      audio.playSwordSwing()
+    }
 
     if (isAttacking) {
       this.animation.play('attack')
@@ -85,13 +114,20 @@ export class Player extends BaseEntity {
     this.animation.update(dt)
   }
 
-  override takeDamage(amount: number): void {
+  override takeDamage(amount: number): boolean {
     if (this.combat.isBlocking()) {
       const reduced = Math.max(0, amount - SHIELD_FLAT_BLOCK)
-      if (reduced === 0) return // fully blocked
-      super.takeDamage(reduced)
+      if (reduced === 0) {
+        audio.playBlock()
+        return false // fully blocked
+      }
+      const hit = super.takeDamage(reduced)
+      if (hit) audio.playPlayerDamage()
+      return hit
     } else {
-      super.takeDamage(amount)
+      const hit = super.takeDamage(amount)
+      if (hit) audio.playPlayerDamage()
+      return hit
     }
   }
 
@@ -118,7 +154,7 @@ export class Player extends BaseEntity {
   /** Upgrade max health between stages */
   setMaxHealth(hearts: number): void {
     this.maxHealth = hearts
-    this.health = hearts  // full heal on upgrade
+    this.health = hearts // full heal on upgrade
   }
 
   reset(spawnPos: Vec2): void {
@@ -139,5 +175,14 @@ export class Player extends BaseEntity {
 
   unlockWeapons(): void {
     this.inventory.unlockAll()
+  }
+
+  /** Tick timers (invulnerability, combat cooldowns, animation) without processing input or movement.
+   *  Call this during dialog pause to prevent stale timer state after dialog ends. */
+  updateTimersOnly(dt: number): void {
+    if (!this.alive) return
+    this.updateInvulnerability(dt)
+    this.combat.updateCooldownsOnly(dt)
+    this.animation.update(dt)
   }
 }

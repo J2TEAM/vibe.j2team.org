@@ -1,5 +1,15 @@
-import { TILE_SIZE, COLORS, SWORD_RANGE } from '../utils/constants'
-import type { TileMap, TileType, AABB, Vec2, AlertState, Direction } from '../utils/types'
+import {
+  HUD_MARGIN_RATIO,
+  HEART_SIZE_RATIO,
+  HEART_SPACING,
+  WEAPON_ICON_SIZE_RATIO,
+  WEAPON_ICON_SPACING,
+  HUD_FONT_SIZE_RATIO,
+  TILE_SIZE,
+  COLORS,
+  SWORD_RANGE,
+} from '../utils/constants'
+import type { HUDState, TileMap, TileType, AABB, Vec2, AlertState, Direction } from '../utils/types'
 import { Camera } from './Camera'
 import { Physics } from './Physics'
 
@@ -13,23 +23,23 @@ const TILE_COLORS: Record<TileType, string> = {
   water: COLORS.water,
   chest: COLORS.chest,
   gate: COLORS.gate,
-  pillar: '#3D3D50',  // dark stone gray
+  pillar: '#3D3D50', // dark stone gray
 }
 
 /** Bridge theme overrides — stone corridor over a void chasm */
 const BRIDGE_TILE_COLORS: Partial<Record<TileType, string>> = {
-  ground: '#8B7355',  // warm stone
-  wall: '#5C4A32',    // dark stone railing
-  water: '#0A0A15',   // dark void/chasm
+  ground: '#8B7355', // warm stone
+  wall: '#5C4A32', // dark stone railing
+  water: '#0A0A15', // dark void/chasm
   empty: '#0A0A15',
 }
 
 /** Castle theme overrides — dark throne room atmosphere */
 const CASTLE_TILE_COLORS: Partial<Record<TileType, string>> = {
-  ground: '#2A2035',  // dark stone floor
-  wall: '#1A1525',    // dark castle walls
-  pillar: '#3D3050',  // stone pillars (slightly lighter than walls)
-  empty: '#0A0510',   // deep void
+  ground: '#2A2035', // dark stone floor
+  wall: '#1A1525', // dark castle walls
+  pillar: '#3D3050', // stone pillars (slightly lighter than walls)
+  empty: '#0A0510', // deep void
 }
 
 export class Renderer {
@@ -146,12 +156,164 @@ export class Renderer {
   }
 
   /** Draw FPS counter (screen space, call without camera transform) */
+  drawHUD(ctx: CanvasRenderingContext2D, state: HUDState): void {
+    this.drawHearts(ctx, state)
+    this.drawWeaponIndicator(ctx, state)
+    this.drawStageIndicator(ctx, state)
+  }
+
+  private drawHearts(ctx: CanvasRenderingContext2D, state: HUDState): void {
+    const { width } = ctx.canvas
+    const margin = Math.round(width * HUD_MARGIN_RATIO)
+    const size = Math.round(width * HEART_SIZE_RATIO)
+    const spacing = HEART_SPACING
+
+    for (let i = 0; i < state.maxHealth; i++) {
+      const x = margin + i * (size + spacing)
+      const y = margin
+
+      if (i < state.health) {
+        // Filled Heart
+        ctx.fillStyle = COLORS.heartRed || '#EF4444'
+        ctx.beginPath()
+        ctx.moveTo(x + size / 2, y + size * 0.9)
+        ctx.bezierCurveTo(x + size, y + size * 0.6, x + size, y, x + size / 2, y + size * 0.3)
+        ctx.bezierCurveTo(x, y, x, y + size * 0.6, x + size / 2, y + size * 0.9)
+        ctx.fill()
+
+        // Highlight
+        ctx.fillStyle = '#FCA5A5'
+        ctx.fillRect(x + size * 0.25, y + size * 0.25, size * 0.15, size * 0.15)
+      } else {
+        // Empty Heart
+        ctx.strokeStyle = COLORS.heartEmpty || '#374151'
+        ctx.lineWidth = 2
+        ctx.beginPath()
+        ctx.moveTo(x + size / 2, y + size * 0.9)
+        ctx.bezierCurveTo(x + size, y + size * 0.6, x + size, y, x + size / 2, y + size * 0.3)
+        ctx.bezierCurveTo(x, y, x, y + size * 0.6, x + size / 2, y + size * 0.9)
+        ctx.stroke()
+      }
+    }
+  }
+
+  private drawWeaponIndicator(ctx: CanvasRenderingContext2D, state: HUDState): void {
+    const { width } = ctx.canvas
+    const margin = Math.round(width * HUD_MARGIN_RATIO)
+    const size = Math.round(width * WEAPON_ICON_SIZE_RATIO)
+    const spacing = WEAPON_ICON_SPACING
+
+    // Position: Top Right
+    const startX = width - margin - (size * 3 + spacing * 2)
+    const y = margin
+
+    const weapons = [
+      {
+        type: 'sword',
+        color: '#FFB830',
+        unlocked: state.weapons.sword,
+        active: state.combatState === 'attacking',
+        cooldown: state.swordCooldownRatio,
+      },
+      {
+        type: 'shield',
+        color: '#38BDF8',
+        unlocked: state.weapons.shield,
+        active: state.combatState === 'blocking',
+        cooldown: 0,
+      },
+      {
+        type: 'bow',
+        color: '#FF6B4A',
+        unlocked: state.weapons.bow,
+        active: state.combatState === 'shooting',
+        cooldown: state.bowCooldownRatio,
+      },
+    ]
+
+    weapons.forEach((w, index) => {
+      const x = startX + index * (size + spacing)
+
+      // Slot Background
+      ctx.fillStyle = w.unlocked ? '#1F2937' : '#111827'
+      if (w.active) {
+        ctx.save()
+        ctx.shadowColor = w.color
+        ctx.shadowBlur = 10
+        ctx.strokeStyle = w.color
+        ctx.lineWidth = 2
+        ctx.strokeRect(x, y, size, size)
+        ctx.shadowBlur = 0
+        ctx.restore()
+      } else {
+        ctx.fillStyle = '#1F2937'
+        ctx.fillRect(x, y, size, size)
+      }
+
+      // Icon
+      if (w.unlocked) {
+        ctx.fillStyle = w.color
+        if (w.type === 'sword') {
+          // Sword icon
+          ctx.beginPath()
+          ctx.moveTo(x + size * 0.2, y + size * 0.8)
+          ctx.lineTo(x + size * 0.8, y + size * 0.2)
+          ctx.strokeStyle = w.color
+          ctx.lineWidth = 2
+          ctx.stroke()
+        } else if (w.type === 'shield') {
+          // Shield icon
+          ctx.fillRect(x + size * 0.25, y + size * 0.25, size * 0.5, size * 0.5)
+        } else if (w.type === 'bow') {
+          // Bow icon
+          ctx.beginPath()
+          ctx.arc(x + size * 0.3, y + size * 0.5, size * 0.4, -Math.PI / 2, Math.PI / 2)
+          ctx.strokeStyle = w.color
+          ctx.stroke()
+        }
+
+        // Cooldown overlay
+        if (w.cooldown > 0) {
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'
+          ctx.fillRect(x, y, size, size * w.cooldown)
+        }
+      } else {
+        // Locked icon (gray silhouette or just empty dark slot)
+        ctx.fillStyle = '#374151'
+        ctx.font = '10px monospace'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText('?', x + size / 2, y + size / 2)
+      }
+    })
+  }
+
+  private drawStageIndicator(ctx: CanvasRenderingContext2D, state: HUDState): void {
+    const { width } = ctx.canvas
+    const margin = Math.round(width * HUD_MARGIN_RATIO)
+    const heartSize = Math.round(width * HEART_SIZE_RATIO)
+    const fontSize = Math.round(width * HUD_FONT_SIZE_RATIO)
+
+    const x = margin
+    const y = margin + heartSize + fontSize + 4
+
+    ctx.fillStyle = COLORS.textSecondary || '#9CA3AF'
+    ctx.font = `${fontSize}px monospace`
+    ctx.textAlign = 'left'
+    ctx.fillText(`Stage ${state.stageNumber}/3`, x, y)
+  }
+
   drawFPS(ctx: CanvasRenderingContext2D, fps: number): void {
+    const { width } = ctx.canvas
+    const margin = Math.round(width * HUD_MARGIN_RATIO)
+    const weaponSize = Math.round(width * WEAPON_ICON_SIZE_RATIO)
+    const boxY = margin + weaponSize + 12
+
     ctx.fillStyle = 'rgba(0,0,0,0.6)'
-    ctx.fillRect(ctx.canvas.width - 70, 4, 66, 20)
+    ctx.fillRect(width - 70, boxY, 66, 20)
     ctx.fillStyle = fps >= 55 ? '#4ADE80' : fps >= 30 ? '#FBBF24' : '#EF4444'
     ctx.font = '12px monospace'
-    ctx.fillText(`${Math.round(fps)} FPS`, ctx.canvas.width - 64, 18)
+    ctx.fillText(`${Math.round(fps)} FPS`, width - 64, boxY + 14)
   }
 
   /** Draw collision boxes for entities (world space) */
@@ -173,30 +335,48 @@ export class Renderer {
       playerMaxHealth: number
       state: string
       // [RED TEAM #3] OPTIONAL — won't break existing callers that don't pass stageStatus
-      stageStatus?: { keyCollected: boolean; chestOpened: boolean; gateOpen: boolean; alertCount: number }
+      stageStatus?: {
+        keyCollected: boolean
+        chestOpened: boolean
+        gateOpen: boolean
+        alertCount: number
+      }
     },
   ): void {
+    const { width } = ctx.canvas
+    const margin = Math.round(width * HUD_MARGIN_RATIO)
+    const heartSize = Math.round(width * HEART_SIZE_RATIO)
+    const fontSize = Math.round(width * HUD_FONT_SIZE_RATIO)
+    const stageIndicatorY = margin + heartSize + fontSize + 4
     const lines = 4 + (info.stageStatus ? 1 : 0)
     const height = lines * 14 + 10
+    const panelX = 4
+    const panelY = stageIndicatorY + fontSize + 12
+
     ctx.fillStyle = 'rgba(0,0,0,0.6)'
-    ctx.fillRect(4, 4, 200, height)
+    ctx.fillRect(panelX, panelY, 200, height)
     ctx.fillStyle = '#F0EDE6'
     ctx.font = '11px monospace'
-    let y = 18
-    ctx.fillText(`State: ${info.state}`, 8, y); y += 14
+    let y = panelY + 14
+    ctx.fillText(`State: ${info.state}`, panelX + 4, y)
+    y += 14
     // [RED TEAM #3] Optional chaining — safe when stageStatus is undefined
-    const alertSuffix = info.stageStatus?.alertCount ? ` (${info.stageStatus.alertCount} alert)` : ''
-    ctx.fillText(`Entities: ${info.entityCount}${alertSuffix}`, 8, y); y += 14
+    const alertSuffix = info.stageStatus?.alertCount
+      ? ` (${info.stageStatus.alertCount} alert)`
+      : ''
+    ctx.fillText(`Entities: ${info.entityCount}${alertSuffix}`, panelX + 4, y)
+    y += 14
     ctx.fillText(
       `Pos: ${Math.round(info.playerPos.x)},${Math.round(info.playerPos.y)}`,
-      8, y,
-    ); y += 14
-    ctx.fillText(`Health: ${info.playerHealth}/${info.playerMaxHealth}`, 8, y); y += 14
+      panelX + 4,
+      y,
+    )
+    y += 14
     if (info.stageStatus) {
       const k = info.stageStatus.keyCollected ? '✓' : '✗'
       const g = info.stageStatus.gateOpen ? '✓' : '✗'
       const c = info.stageStatus.chestOpened ? '✓' : '✗'
-      ctx.fillText(`Key: ${k} | Gate: ${g} | Chest: ${c}`, 8, y)
+      ctx.fillText(`Key: ${k} | Gate: ${g} | Chest: ${c}`, panelX + 4, y)
     }
   }
 
@@ -265,40 +445,45 @@ export class Renderer {
 
     ctx.font = 'bold 20px monospace'
     ctx.textAlign = 'center'
-    
+
     if (alertState === 'alert') {
-        ctx.fillStyle = '#FFD700' // Gold/Yellow
-        ctx.fillText('!', pos.x, pos.y - 10)
+      ctx.fillStyle = '#FFD700' // Gold/Yellow
+      ctx.fillText('!', pos.x, pos.y - 10)
     } else if (alertState === 'chase') {
-        ctx.fillStyle = '#FF0000' // Red
-        ctx.fillText('!!', pos.x, pos.y - 10)
+      ctx.fillStyle = '#FF0000' // Red
+      ctx.fillText('!!', pos.x, pos.y - 10)
     }
   }
 
   /** Draw floating icon (e.g. key) above an entity */
-  drawFloatingIcon(ctx: CanvasRenderingContext2D, pos: Vec2, type: 'key', floatOffset: number): void {
-      if (type === 'key') {
-          const y = pos.y - 24 + Math.sin(floatOffset) * 4
-          ctx.fillStyle = '#FFD700' // Gold
-          // Key head
-          ctx.beginPath()
-          ctx.arc(pos.x, y, 4, 0, Math.PI * 2)
-          ctx.fill()
-          // Key shaft
-          ctx.fillRect(pos.x - 1, y + 4, 2, 8)
-          // Key teeth
-          ctx.fillRect(pos.x + 1, y + 8, 3, 2)
-      }
+  drawFloatingIcon(
+    ctx: CanvasRenderingContext2D,
+    pos: Vec2,
+    type: 'key',
+    floatOffset: number,
+  ): void {
+    if (type === 'key') {
+      const y = pos.y - 24 + Math.sin(floatOffset) * 4
+      ctx.fillStyle = '#FFD700' // Gold
+      // Key head
+      ctx.beginPath()
+      ctx.arc(pos.x, y, 4, 0, Math.PI * 2)
+      ctx.fill()
+      // Key shaft
+      ctx.fillRect(pos.x - 1, y + 4, 2, 8)
+      // Key teeth
+      ctx.fillRect(pos.x + 1, y + 8, 3, 2)
+    }
   }
 
   /** Draw interaction prompt text */
   drawInteractPrompt(ctx: CanvasRenderingContext2D, pos: Vec2, text: string): void {
     ctx.font = '12px monospace'
     const width = ctx.measureText(text).width + 8
-    
+
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
-    ctx.fillRect(pos.x - width/2, pos.y - 30, width, 20)
-    
+    ctx.fillRect(pos.x - width / 2, pos.y - 30, width, 20)
+
     ctx.fillStyle = '#FFFFFF'
     ctx.textAlign = 'center'
     ctx.fillText(text, pos.x, pos.y - 16)
@@ -323,13 +508,13 @@ export class Renderer {
         ctx.arc(cx, cy, r, -Math.PI / 4, Math.PI / 4)
         break
       case 'left':
-        ctx.arc(cx, cy, r, Math.PI * 3 / 4, Math.PI * 5 / 4)
+        ctx.arc(cx, cy, r, (Math.PI * 3) / 4, (Math.PI * 5) / 4)
         break
       case 'up':
-        ctx.arc(cx, cy, r, -Math.PI * 3 / 4, -Math.PI / 4)
+        ctx.arc(cx, cy, r, (-Math.PI * 3) / 4, -Math.PI / 4)
         break
       case 'down':
-        ctx.arc(cx, cy, r, Math.PI / 4, Math.PI * 3 / 4)
+        ctx.arc(cx, cy, r, Math.PI / 4, (Math.PI * 3) / 4)
         break
     }
     ctx.stroke()
@@ -382,8 +567,10 @@ export class Renderer {
     const centerY = CANVAS_HEIGHT / 2
 
     // Dialog box
-    const boxW = Math.min(560, CANVAS_WIDTH - 40), boxH = 180
-    const boxX = centerX - boxW / 2, boxY = centerY - boxH / 2
+    const boxW = Math.min(560, CANVAS_WIDTH - 40),
+      boxH = 180
+    const boxX = centerX - boxW / 2,
+      boxY = centerY - boxH / 2
 
     ctx.fillStyle = COLORS.bgSurface || '#2A2A2A'
     ctx.fillRect(boxX, boxY, boxW, boxH)
@@ -398,30 +585,18 @@ export class Renderer {
     ctx.font = '16px "Be Vietnam Pro", sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText(
-      'Cầu Hyrule đã vượt qua!',
-      centerX, centerY - 30
-    )
+    ctx.fillText('Cầu Hyrule đã vượt qua!', centerX, centerY - 30)
 
     // Story text — line 2
-    ctx.fillText(
-      'Lâu đài Ganon ở phía trước...',
-      centerX, centerY
-    )
+    ctx.fillText('Lâu đài Ganon ở phía trước...', centerX, centerY)
 
     // Story text — line 3
-    ctx.fillText(
-      'Zelda đang chờ.',
-      centerX, centerY + 24
-    )
+    ctx.fillText('Zelda đang chờ.', centerX, centerY + 24)
 
     // Prompt
     ctx.fillStyle = COLORS.textSecondary || '#A0A0A0'
     ctx.font = '14px "Be Vietnam Pro", sans-serif'
-    ctx.fillText(
-      'Nhấn phím để tiếp tục',
-      centerX, centerY + 60
-    )
+    ctx.fillText('Nhấn phím để tiếp tục', centerX, centerY + 60)
   }
 
   drawVictoryScene(
@@ -462,10 +637,7 @@ export class Renderer {
     ctx.fillText(`💔 Sát thương nhận: ${stats.damageTaken}`, w / 2, statsY + 48)
   }
 
-  drawVignette(
-    ctx: CanvasRenderingContext2D,
-    intensity: number,
-  ): void {
+  drawVignette(ctx: CanvasRenderingContext2D, intensity: number): void {
     const w = ctx.canvas.width
     const h = ctx.canvas.height
     const cx = w / 2
@@ -482,6 +654,26 @@ export class Renderer {
     ctx.restore()
   }
 
+  /** Pulsing red vignette for low-health warning */
+  drawRedVignette(ctx: CanvasRenderingContext2D, intensity: number): void {
+    if (intensity <= 0) return
+    const w = ctx.canvas.width
+    const h = ctx.canvas.height
+    const gradient = ctx.createRadialGradient(w / 2, h / 2, w * 0.3, w / 2, h / 2, w * 0.7)
+    gradient.addColorStop(0, 'rgba(255, 0, 0, 0)')
+    gradient.addColorStop(1, `rgba(255, 0, 0, ${intensity})`)
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, w, h)
+  }
+
+  /** Fallback dark overlay for game-over desaturation when ctx.filter is unavailable. */
+  drawDesaturate(ctx: CanvasRenderingContext2D, progress: number): void {
+    ctx.globalAlpha = progress * 0.5
+    ctx.fillStyle = '#111'
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    ctx.globalAlpha = 1
+  }
+
   drawStageTransition(ctx: CanvasRenderingContext2D, fromStageNumber = 1): void {
     const { width: CANVAS_WIDTH, height: CANVAS_HEIGHT } = ctx.canvas
     // Dark overlay
@@ -492,8 +684,10 @@ export class Renderer {
     const centerY = CANVAS_HEIGHT / 2
 
     // Dialog box
-    const boxW = Math.min(560, CANVAS_WIDTH - 40), boxH = 180
-    const boxX = centerX - boxW / 2, boxY = centerY - boxH / 2
+    const boxW = Math.min(560, CANVAS_WIDTH - 40),
+      boxH = 180
+    const boxX = centerX - boxW / 2,
+      boxY = centerY - boxH / 2
 
     ctx.fillStyle = COLORS.bgSurface || '#2A2A2A'
     ctx.fillRect(boxX, boxY, boxW, boxH)
@@ -547,7 +741,8 @@ export class Renderer {
 
     // Play Again button area
     ctx.fillStyle = COLORS.accentCoral || '#FF7F50'
-    const btnW = 180, btnH = 40
+    const btnW = 180,
+      btnH = 40
     ctx.fillRect(centerX - btnW / 2, centerY + 30, btnW, btnH)
     ctx.fillStyle = '#ffffff'
     ctx.font = '16px "Be Vietnam Pro", sans-serif'
