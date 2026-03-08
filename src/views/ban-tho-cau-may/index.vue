@@ -108,7 +108,7 @@ function triggerExplosion() {
     id: i,
     x: Math.random() * 100,
     y: Math.random() * 100,
-    emoji: emojis[Math.floor(Math.random() * emojis.length)],
+    emoji: emojis[Math.floor(Math.random() * emojis.length)] ?? '🙏',
     delay: Math.random() * 1.5,
   }))
   setTimeout(() => {
@@ -125,7 +125,7 @@ function triggerExplosion() {
     '⭐ Commit thành công! Merge vào nhánh Thiên Đàng!',
     '🕯️ Pipeline Thần Linh đang deploy phước lành...',
   ]
-  blessingMessage.value = messages[Math.floor(Math.random() * messages.length)]
+  blessingMessage.value = messages[Math.floor(Math.random() * messages.length)] ?? messages[0]!
   showBlessingText.value = true
   setTimeout(() => (showBlessingText.value = false), 4000)
 }
