@@ -65,6 +65,7 @@ interface GridPreset {
 
 const STORAGE_KEY = 'pikachu-records-v2'
 const EASTER_EGG_STORAGE_KEY = 'pikachu-easter-egg-finders-v1'
+const AUTO_RECOVER_RESHUFFLE_LIMIT = 5
 const DEFAULT_RECORDS: ReadonlyArray<RecordItem> = [
   { name: 'Starter A', score: 40, difficulty: 0, mode: 'classic', timeSpent: 0, createdAt: '2026-01-01T00:00:00.000Z' },
   { name: 'Starter B', score: 55, difficulty: 1, mode: 'classic', timeSpent: 0, createdAt: '2026-01-02T00:00:00.000Z' },
@@ -104,7 +105,7 @@ const gridPresetMap: Readonly<Record<GridSize, GridPreset>> = {
   '20x30': gridPresets[5] as GridPreset,
 }
 const sizeOptions: ReadonlyArray<GridSize> = gridPresets.map((preset) => preset.key)
-const difficultyOptions = Array.from({ length: 9 }, (_, i) => i)
+const difficultyOptions = Array.from({ length: 21 }, (_, i) => i)
 
 const appliedSize = ref<GridSize>(STORY_GRID_SIZE)
 const appliedDifficulty = ref(0)
@@ -158,6 +159,7 @@ const isCreditsAutoStopped = ref(false)
 
 const records = ref<RecordItem[]>([])
 const easterEggFinders = ref<EasterEggFinder[]>([])
+const autoRecoverAttempts = ref(0)
 let timerId: ReturnType<typeof setInterval> | null = null
 let audioContext: AudioContext | null = null
 let bgmAudio: HTMLAudioElement | null = null
@@ -788,6 +790,8 @@ function applyNewGameSettings(): void {
   playerName.value = ''
 
   buildBoard()
+  autoRecoverAttempts.value = 0
+  autoRecoverNoMoveIfNeeded()
   startTimerIfNeeded()
   void ensureBgmPlayback()
   showNewGameModal.value = false
@@ -939,6 +943,8 @@ function advanceStoryLevel(): void {
   flashPath.value = []
   isResolvingPair.value = false
   buildBoard()
+  autoRecoverAttempts.value = 0
+  autoRecoverNoMoveIfNeeded()
   message.value = `Qua level ${nextLevel - 1}. Sang level ${nextLevel}/${STORY_TOTAL_LEVELS}.`
 }
 
@@ -966,7 +972,11 @@ function resolveMatchedPair(first: Tile, second: Tile, path: Point[]): void {
         finishWithWin()
       }
     } else {
-      message.value = 'Nối thành công!'
+      autoRecoverAttempts.value = 0
+      autoRecoverNoMoveIfNeeded()
+      if (!message.value.includes('Bàn kẹt')) {
+        message.value = 'Nối thành công!'
+      }
     }
   }, 260)
 }
@@ -1064,35 +1074,11 @@ function findHintPath(): { first: Tile; second: Tile; path: Point[] } | null {
   return null
 }
 
-function useHint(): void {
-  if (isPaused.value || isGameOver.value || isResolvingPair.value) {
-    return
-  }
-  if (!consumeAssist()) {
-    return
-  }
-
-  const hint = findHintPath()
-  if (!hint) {
-    message.value = 'Không có đường đi an toàn.'
-    return
-  }
-
-  flashPath.value = hint.path
-  isHintVisible.value = true
-  message.value = 'Gợi ý đã hiển thị.'
-  void ensureBgmPlayback()
-  playHintSound()
+function hasAnyValidMove(): boolean {
+  return findHintPath() !== null
 }
 
-function useReload(): void {
-  if (isPaused.value || isGameOver.value || isResolvingPair.value) {
-    return
-  }
-  if (!consumeAssist()) {
-    return
-  }
-
+function reshuffleVisibleBoard(): void {
   const activeTiles: Tile[] = []
   const items: Array<{ kind: 'icon' | 'wall'; type: number; icon: string }> = []
 
@@ -1122,6 +1108,79 @@ function useReload(): void {
   secondSelected.value = null
   flashPath.value = []
   isHintVisible.value = false
+}
+
+function spawnCurrentLayoutWithFallback(): void {
+  let recovered = false
+  for (let attempt = 0; attempt < 12; attempt++) {
+    buildBoard()
+    if (hasAnyValidMove()) {
+      recovered = true
+      break
+    }
+  }
+
+  if (recovered) {
+    message.value = 'Bàn kẹt quá lâu, đã tạo layout mới cùng màn chơi.'
+  } else {
+    message.value = 'Bàn kẹt, đã tạo layout mới. Hãy dùng tải lại nếu vẫn chưa có nước đi.'
+  }
+}
+
+function autoRecoverNoMoveIfNeeded(): void {
+  if (isGameOver.value || isPaused.value || isResolvingPair.value) {
+    return
+  }
+  if (hasAnyValidMove()) {
+    autoRecoverAttempts.value = 0
+    return
+  }
+
+  for (; autoRecoverAttempts.value < AUTO_RECOVER_RESHUFFLE_LIMIT; autoRecoverAttempts.value++) {
+    reshuffleVisibleBoard()
+    if (hasAnyValidMove()) {
+      const attemptCount = autoRecoverAttempts.value + 1
+      autoRecoverAttempts.value = 0
+      message.value = `Bàn kẹt, hệ thống tự tải lại lần ${attemptCount}.`
+      return
+    }
+  }
+
+  autoRecoverAttempts.value = 0
+  spawnCurrentLayoutWithFallback()
+}
+
+function useHint(): void {
+  if (isPaused.value || isGameOver.value || isResolvingPair.value) {
+    return
+  }
+  if (!consumeAssist()) {
+    return
+  }
+
+  const hint = findHintPath()
+  if (!hint) {
+    message.value = 'Không có đường đi an toàn.'
+    return
+  }
+
+  flashPath.value = hint.path
+  isHintVisible.value = true
+  message.value = 'Gợi ý đã hiển thị.'
+  void ensureBgmPlayback()
+  playHintSound()
+}
+
+function useReload(): void {
+  if (isPaused.value || isGameOver.value || isResolvingPair.value) {
+    return
+  }
+  if (!consumeAssist()) {
+    return
+  }
+
+  autoRecoverAttempts.value = 0
+  reshuffleVisibleBoard()
   message.value = 'Đã tải lại bàn chơi.'
 }
 
@@ -1508,7 +1567,7 @@ onUnmounted(() => {
 
           <div>
             <p class="mb-1 text-xs font-display tracking-widest" :class="textMutedClass">DIFFICULTY</p>
-            <input v-model.number="pendingDifficulty" type="range" min="0" max="8" step="1" class="w-full accent-accent-coral" :disabled="pendingMainMode === 'story'">
+            <input v-model.number="pendingDifficulty" type="range" min="0" max="20" step="1" class="w-full accent-accent-coral" :disabled="pendingMainMode === 'story'">
             <p class="text-xs" :class="textMutedClass">
               {{ pendingMainMode === 'story' ? `Tự tăng theo ${STORY_TOTAL_LEVELS} level` : `Level ${pendingDifficulty}` }}
             </p>
