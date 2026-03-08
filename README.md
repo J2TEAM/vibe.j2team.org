@@ -76,3 +76,11 @@ src/
 ## IDE
 
 [VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
+
+## Contributors
+
+<a href="https://github.com/J2TEAM/vibe.j2team.org/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=J2TEAM/vibe.j2team.org" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).

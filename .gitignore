@@ -43,3 +43,9 @@ public/sounds/*.flac
 
 # We use pnpm — ignore package-lock.json to prevent accidental npm installs from being committed
 package-lock.json
+
+# AI tooling
+.agent/
+.agents/
+.claude/
+skills-lock.json

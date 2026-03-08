@@ -10,11 +10,11 @@ const DEFAULT_DESCRIPTION =
   'Cả nhóm J2TEAM Community vibe code cùng nhau! Mỗi thành viên tạo một trang con, vibe code thoải mái.'
 
 useHead({
-  title: computed(() => (route.meta.title as string) || DEFAULT_TITLE),
+  title: computed(() => route.meta.title || DEFAULT_TITLE),
   meta: [
     {
       name: 'description',
-      content: computed(() => (route.meta.description as string) || DEFAULT_DESCRIPTION),
+      content: computed(() => route.meta.description || DEFAULT_DESCRIPTION),
     },
   ],
 })

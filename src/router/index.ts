@@ -11,6 +11,8 @@ declare module 'vue-router' {
 
 const HomePage = () => import('@/views/HomePage.vue')
 const ContentPolicy = () => import('@/views/ContentPolicy.vue')
+const LeaderboardPage = () => import('@/views/LeaderboardPage.vue')
+const BookmarksPage = () => import('@/views/BookmarksPage.vue')
 const NotFound = () => import('@/views/NotFound.vue')
 
 const pageRoutes: RouteRecordRaw[] = pages.map((page) => {
@@ -32,7 +34,15 @@ const pageRoutes: RouteRecordRaw[] = pages.map((page) => {
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  scrollBehavior: () => ({ top: 0 }),
+  scrollBehavior: (_to, _from, savedPosition) => {
+    if (_to.hash) {
+      return { el: _to.hash, behavior: 'smooth' }
+    }
+    if (savedPosition) {
+      return savedPosition
+    }
+    return { top: 0 }
+  },
   routes: [
     {
       path: '/',
@@ -45,6 +55,24 @@ const router = createRouter({
       },
     },
     ...pageRoutes,
+    {
+      path: '/leaderboard',
+      name: 'leaderboard',
+      component: LeaderboardPage,
+      meta: {
+        title: 'Bảng xếp hạng tác giả - vibe.j2team.org',
+        description: 'Bảng xếp hạng các tác giả đóng góp nhiều ứng dụng nhất trên vibe.j2team.org.',
+      },
+    },
+    {
+      path: '/bookmarks',
+      name: 'bookmarks',
+      component: BookmarksPage,
+      meta: {
+        title: 'Yêu thích - vibe.j2team.org',
+        description: 'Danh sách các ứng dụng yêu thích của bạn.',
+      },
+    },
     {
       path: '/content-policy',
       name: 'content-policy',

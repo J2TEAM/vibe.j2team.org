@@ -4,6 +4,7 @@ import { RouterLink, useRouter } from 'vue-router'
 import { pages } from '@/data/pages-loader'
 import { padIndex } from '@/data/homepage'
 import { categories } from '@/data/categories'
+import FavoriteButton from '@/components/FavoriteButton.vue'
 
 let observer: IntersectionObserver | null = null
 
@@ -23,6 +24,11 @@ function getObserver(): IntersectionObserver {
   }
   return observer
 }
+
+onUnmounted(() => {
+  observer?.disconnect()
+  observer = null
+})
 
 const vAnimate: Directive<HTMLElement, string | undefined> = {
   mounted(el, binding) {
@@ -151,6 +157,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
       <div class="flex flex-col sm:flex-row gap-3">
         <div class="relative flex-1">
           <svg
+            aria-hidden="true"
             class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-dim pointer-events-none"
             fill="none"
             stroke="currentColor"
@@ -181,7 +188,13 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
           class="flex items-center justify-center gap-2 px-4 py-3 text-sm font-display tracking-wide border border-accent-coral text-accent-coral bg-accent-coral/10 transition-colors duration-200 hover:bg-accent-coral hover:text-bg-deep disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
           @click="goToRandom"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            aria-hidden="true"
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -191,6 +204,17 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
           </svg>
           Ngẫu nhiên
         </button>
+        <RouterLink
+          to="/bookmarks"
+          class="flex items-center justify-center gap-2 px-4 py-3 text-sm font-display tracking-wide border border-accent-coral text-accent-coral bg-accent-coral/10 transition-colors duration-200 hover:bg-accent-coral hover:text-bg-deep whitespace-nowrap"
+        >
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+            />
+          </svg>
+          Yêu thích
+        </RouterLink>
       </div>
 
       <!-- Category tags -->
@@ -245,6 +269,8 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
         v-animate="`${(index % 6) * 50}ms`"
         class="group relative flex flex-col border border-border-default bg-bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-l-4 hover:border-l-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5"
       >
+        <FavoriteButton :path="page.path" class="top-2 right-3" />
+
         <!-- Background number -->
         <span
           class="absolute top-3 right-4 font-display text-6xl font-bold text-accent-amber/5 select-none pointer-events-none"
@@ -277,13 +303,13 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
       </RouterLink>
 
       <!-- Placeholder card -->
-      <div
+      <a
         v-if="!isFiltering"
-        v-animate
-        class="flex items-center justify-center border border-dashed border-border-default p-6 text-text-dim animate-pulse-border animate-delay-6"
+        href="#cach-tham-gia"
+        class="flex items-center justify-center border border-dashed border-border-default p-6 text-text-dim animate-pulse-border transition-colors duration-300 hover:border-accent-coral hover:text-accent-coral"
       >
         <span class="text-sm font-display tracking-wide">Trang của bạn sẽ ở đây...</span>
-      </div>
+      </a>
     </div>
   </main>
 </template>

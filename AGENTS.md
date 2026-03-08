@@ -86,6 +86,15 @@ Read `docs/DESIGN_SYSTEM.md` before making any visual changes.
 - Use `pnpm` as package manager (not npm/yarn)
 - Vietnamese text must use diacritics (tiếng Việt có dấu)
 
+## Pre-Implementation Checklist
+
+Before implementing any new feature or sub-page, agents MUST:
+
+1. **Check local `src/views/`** — List existing directories in `src/views/` to see if the same or similar page already exists locally
+2. **Check existing pages on main branch** — Browse https://github.com/J2TEAM/vibe.j2team.org/tree/main/src/views to see if someone has already built the same or similar feature
+3. **Check open Pull Requests** — Browse https://github.com/J2TEAM/vibe.j2team.org/pulls to see if someone is already working on it
+4. **Only proceed if no duplicates found** — If the feature already exists locally, on main, or in an open PR, report back to the user instead of building a duplicate
+
 ## Rules
 
 1. **No database** — the project does not use any database in any form
@@ -100,6 +109,40 @@ Read `docs/DESIGN_SYSTEM.md` before making any visual changes.
    - `vue-konva` — 2D canvas library for drawing, games, and interactive graphics
    - `shiki` — Syntax highlighter
 8. **Author attribution required** — every page must have an `author` field in its `meta.ts` file
+
+## Recommended Internal Structure
+
+For apps with 4+ files, follow this recommended structure inside `src/views/<app-name>/`:
+
+```
+src/views/<app-name>/
+  index.vue              # Required: page entry point
+  meta.ts                # Required: page metadata
+  components/            # Recommended: Vue components used by the page
+  composables/           # Recommended: composition functions (use-*.ts)
+  types.ts               # Recommended: TypeScript type definitions
+  utils/                 # Recommended: pure utility functions
+  assets/                # Recommended: images, sounds, CSS (processed by Vite)
+```
+
+Simple apps (just a single page) only need `index.vue` + `meta.ts`.
+
+### Static Assets Convention
+
+- `src/views/<app-name>/assets/` — images, sounds, CSS that Vite will hash and optimize. **Use this for most cases.**
+- `public/<app-name>/` — large media files (videos, large image sets) served as-is without Vite processing. Accessible at `/<app-name>/filename.ext`.
+
+### Shared Utilities (opt-in)
+
+Reusable code used by 3+ apps can live in the shared layer:
+
+```
+src/components/shared/     # Shared UI components
+src/composables/shared/    # Shared composables
+src/utils/shared/          # Shared utility functions
+```
+
+Apps can import from these directories but are never required to. Each app remains self-contained by default.
 
 ## Adding a New Page
 
@@ -117,6 +160,17 @@ Read `docs/DESIGN_SYSTEM.md` before making any visual changes.
 
 - Framework: Vitest + Vue Test Utils + JSDOM
 - Test files: `src/__tests__/`
+
+## PR Checklist (MUST pass before creating PR)
+
+1. **CI must pass** — Run `pnpm build` (type-check + build) and `pnpm lint:ci` locally before pushing. Do NOT create a PR with failing CI
+2. **No unused code** — Remove variables, constants, imports, and type definitions that are not actually used. Do not define constants and then hard-code values instead of using them
+3. **Use `RouterLink` for internal navigation** — Never use raw `<a>` tags for links within the app. Use Vue Router's `<RouterLink :to="...">` instead. Refer to existing pages for examples
+4. **Do not redefine shared types** — Import types like `PageMeta` from the shared `types.ts` or `@/types/page` instead of redefining them in your files
+5. **Only commit `pnpm-lock.yaml`** — Do not commit `package-lock.json` or `yarn.lock`
+6. **UTF-8 encoding** — Ensure all Vietnamese text is properly encoded in UTF-8 (no garbled characters)
+7. **Follow `meta.ts` structure** — Copy the pattern from `src/views/hello-world/meta.ts` exactly. Import `PageMeta` type, export default with required fields
+8. **No exposed API endpoints/secrets** — Since this is open source, never hard-code API keys, endpoints, or secrets in the source code
 
 ## Linting & Formatting
 
