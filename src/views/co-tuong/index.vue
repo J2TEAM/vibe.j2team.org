@@ -40,6 +40,7 @@ const rtc = useWebRTC({
   },
   onEnterOnlineGame: () => enterOnlineGame(),
   onEnterSpectator: () => enterSpectator(),
+  getGameState: () => ({ board: board.value, turn: turn.value, moveHistory: moveHistory.value }),
 })
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -256,8 +257,8 @@ watch(board, () => { nextTick(drawBoard) }, { deep: true })
           </div>
         </div>
 
-        <!-- JOINING / SPECTATOR-JOINING -->
-        <div v-if="rtc.connState.value === 'joining' || rtc.connState.value === 'spectator-joining'" class="space-y-4">
+        <!-- JOINING (Player) -->
+        <div v-if="rtc.connState.value === 'joining'" class="space-y-4">
           <div class="ancient-panel">
             <p class="font-display text-sm font-semibold ancient-gold mb-2">Hồi tín · Gửi cho kỳ chủ</p>
             <textarea :value="rtc.answerSdp.value" readonly class="ancient-textarea h-20" />
@@ -266,10 +267,23 @@ watch(board, () => { nextTick(drawBoard) }, { deep: true })
               {{ rtc.copied.value ? 'Đã sao chép!' : 'Sao chép hồi tín' }}
             </button>
           </div>
-          <button class="w-full ancient-btn-enter" @click="enterOnlineGame">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" v-html="svgIcons.play" />
-            NHẬP CUỘC
-          </button>
+          <p class="ancient-dim text-xs text-center">Kỳ chủ dán hồi tín → kết nối tự động</p>
+        </div>
+
+        <!-- SPECTATOR-JOINING -->
+        <div v-if="rtc.connState.value === 'spectator-joining'" class="space-y-4">
+          <div class="ancient-panel">
+            <p class="font-display text-sm font-semibold ancient-gold mb-2">
+              <svg class="w-4 h-4 inline mr-1" viewBox="0 0 24 24" fill="currentColor" v-html="svgIcons.eye" />
+              Khán Đài · Hồi tín
+            </p>
+            <textarea :value="rtc.answerSdp.value" readonly class="ancient-textarea h-20" />
+            <button class="mt-2 w-full ancient-btn-primary" @click="rtc.safeCopy(rtc.answerSdp.value)">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" v-html="rtc.copied.value ? svgIcons.check : svgIcons.copy" />
+              {{ rtc.copied.value ? 'Đã sao chép!' : 'Sao chép hồi tín khán đài' }}
+            </button>
+          </div>
+          <p class="ancient-dim text-xs text-center">Gửi hồi tín cho kỳ chủ → chờ kết nối tự động</p>
         </div>
 
         <!-- CONNECTED -->
@@ -296,6 +310,9 @@ watch(board, () => { nextTick(drawBoard) }, { deep: true })
             <span class="font-display text-sm font-semibold tracking-wider" :class="turn === 'red' ? 'text-[#C84B31]' : 'ancient-silver'">{{ turnLabel }}</span>
             <span v-if="check && !gameOver" class="text-xs ancient-alert-badge">將 CHIẾU</span>
             <span v-if="aiThinking" class="text-xs ancient-thinking-badge"><span class="ice-spinner inline-block w-3 h-3 align-middle mr-1" /> Suy nghĩ...</span>
+            <span v-if="rtc.spectatorCount.value > 0" class="text-xs px-1.5 py-0.5 font-display tracking-wider" style="background:#1A120C;border:1px solid #C8A96E44;color:#C8A96E">
+              <svg class="w-3 h-3 inline mr-0.5" viewBox="0 0 24 24" fill="currentColor" v-html="svgIcons.eye" /> {{ rtc.spectatorCount.value }}
+            </span>
           </div>
           <span class="ancient-dim text-xs font-display tracking-wider">第 {{ moveCount }} 手</span>
         </div>
@@ -356,7 +373,7 @@ watch(board, () => { nextTick(drawBoard) }, { deep: true })
           </div>
 
           <!-- Side panel -->
-          <div class="flex-1 min-w-0 lg:max-w-[220px] space-y-3">
+          <div class="flex-1 min-w-0 lg:max-w-[260px] space-y-3">
             <!-- Controls -->
             <div class="flex flex-wrap gap-2">
               <button class="ancient-btn-sm" @click="flipBoard">
@@ -371,6 +388,37 @@ watch(board, () => { nextTick(drawBoard) }, { deep: true })
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" v-html="svgIcons.refresh" />
                 <span class="text-xs">Ván mới</span>
               </button>
+            </div>
+
+            <!-- Host: Spectator panel -->
+            <div v-if="gameMode === 'online-play' && rtc.isHosting.value" class="ancient-panel">
+              <p class="ancient-dim text-xs font-display mb-2 tracking-wider">
+                <svg class="w-3.5 h-3.5 inline mr-1" viewBox="0 0 24 24" fill="currentColor" v-html="svgIcons.eye" />
+                觀 KHÁN ĐÀI
+              </p>
+              <div v-if="!rtc.spectatorOfferSdp.value && !rtc.spectatorIceProgress.value">
+                <button class="w-full ancient-btn-primary text-xs" @click="rtc.createSpectatorOffer()">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" v-html="svgIcons.signal" />
+                  Tạo mã khán đài
+                </button>
+              </div>
+              <div v-if="rtc.spectatorIceProgress.value" class="text-center py-2">
+                <div class="ice-spinner mx-auto mb-1" style="width:16px;height:16px" />
+                <p class="text-xs ancient-gold">{{ rtc.spectatorIceProgress.value }}</p>
+              </div>
+              <div v-if="rtc.spectatorOfferSdp.value">
+                <p class="text-xs ancient-silver mb-1">Gửi mã này cho khán giả:</p>
+                <textarea :value="rtc.spectatorOfferSdp.value" readonly class="ancient-textarea h-14 text-[10px]" />
+                <button class="mt-1 w-full ancient-btn-sm text-xs" @click="rtc.safeCopy(rtc.spectatorOfferSdp.value)">
+                  <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor" v-html="rtc.copied.value ? svgIcons.check : svgIcons.copy" />
+                  {{ rtc.copied.value ? 'Đã sao chép!' : 'Sao chép' }}
+                </button>
+                <p class="text-xs ancient-silver mt-2 mb-1">Dán hồi tín từ khán giả:</p>
+                <textarea v-model="rtc.spectatorPastedAnswer.value" placeholder="Dán mã trả lời..." class="ancient-textarea h-14 text-[10px]" />
+                <button class="mt-1 w-full ancient-btn-accent text-xs" :disabled="!rtc.spectatorPastedAnswer.value.trim()" @click="rtc.acceptSpectatorAnswer()">
+                  Kết nối khán giả
+                </button>
+              </div>
             </div>
 
             <!-- Game Over -->

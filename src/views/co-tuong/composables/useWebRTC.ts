@@ -2,13 +2,13 @@ import { ref, nextTick } from 'vue'
 import type { Board, Turn, Move, ConnectionState } from '../types'
 import { ICE_CFG } from '../constants'
 
-
 export interface WebRTCCallbacks {
     onRemoteMove: (from: [number, number], to: [number, number]) => void
     onRemoteResign: () => void
     onRemoteSync: (msg: { board: Board; turn: Turn; moveHistory: Move[] }) => void
     onEnterOnlineGame: () => void
     onEnterSpectator: () => void
+    getGameState: () => { board: Board; turn: Turn; moveHistory: Move[] }
 }
 
 export function useWebRTC(callbacks: WebRTCCallbacks) {
@@ -23,10 +23,19 @@ export function useWebRTC(callbacks: WebRTCCallbacks) {
     const copied = ref(false); const connError = ref(''); const iceProgress = ref('')
     const hasCamera = ref(false); const spectatorCount = ref(0)
     const remoteMuted = ref(false); const remoteCameraOff = ref(false)
+
+    // Host spectator management
+    const isHosting = ref(false)
+    const spectatorOfferSdp = ref('')
+    const spectatorPastedAnswer = ref('')
+    const spectatorIceProgress = ref('')
+
     const spectatorChannels: RTCDataChannel[] = []
+    const spectatorPCs: RTCPeerConnection[] = []
 
     let pc: RTCPeerConnection | null = null
     let dataChannel: RTCDataChannel | null = null
+    let pendingSpectatorPC: RTCPeerConnection | null = null
 
     function sdpEncode(s: string): string { return btoa(s) }
     function sdpDecode(s: string): string {
@@ -107,30 +116,47 @@ export function useWebRTC(callbacks: WebRTCCallbacks) {
                     remoteMuted.value = !!msg.muted
                     remoteCameraOff.value = !!msg.cameraOff
                 }
-                if (msg.type === 'spectator-join') {
-                    spectatorCount.value++
-                    ch.send(JSON.stringify({ type: 'sync', board: [], turn: 'red', moveHistory: [] }))
-                }
             } catch { /* ignore */ }
         }
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // SPECTATOR: Setup a DataChannel for a spectator viewer
+    // ═══════════════════════════════════════════════════════════════════
+
+    function setupSpectatorChannel(ch: RTCDataChannel) {
+        ch.onopen = () => {
+            spectatorCount.value++
+            const state = callbacks.getGameState()
+            ch.send(JSON.stringify({ type: 'sync', board: state.board, turn: state.turn, moveHistory: state.moveHistory }))
+        }
+        ch.onclose = () => {
+            spectatorCount.value = Math.max(0, spectatorCount.value - 1)
+            const idx = spectatorChannels.indexOf(ch)
+            if (idx !== -1) spectatorChannels.splice(idx, 1)
+        }
+        spectatorChannels.push(ch)
+    }
+
     function broadcastToSpectators(data: string) {
-        for (const ch of spectatorChannels) {
-            if (ch.readyState === 'open') ch.send(data)
+        for (let i = spectatorChannels.length - 1; i >= 0; i--) {
+            const ch = spectatorChannels[i]!
+            if (ch.readyState === 'open') {
+                ch.send(data)
+            } else if (ch.readyState === 'closed') {
+                spectatorChannels.splice(i, 1)
+            }
         }
     }
 
     function waitIce(conn: RTCPeerConnection): Promise<string> {
         return new Promise((resolve) => {
             let resolved = false
-            const done = () => { if (resolved) return; resolved = true; iceProgress.value = ''; resolve(JSON.stringify(conn.localDescription)) }
+            const done = () => { if (resolved) return; resolved = true; resolve(JSON.stringify(conn.localDescription)) }
             if (conn.iceGatheringState === 'complete') { done(); return }
-            iceProgress.value = 'Đang thu thập kết nối...'
             conn.onicecandidate = (e) => {
                 if (!e.candidate) { done(); return }
                 if (e.candidate.type === 'srflx' || e.candidate.type === 'relay') {
-                    iceProgress.value = 'Đã tìm thấy đường truyền!'
                     setTimeout(done, 500)
                 }
             }
@@ -141,8 +167,13 @@ export function useWebRTC(callbacks: WebRTCCallbacks) {
         })
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // PLAYER: Create / Join room
+    // ═══════════════════════════════════════════════════════════════════
+
     async function createRoom() {
         connState.value = 'creating-offer'; connError.value = ''; iceProgress.value = 'Đang khởi tạo...'
+        isHosting.value = true
         try {
             const stream = await tryStartMedia()
             const conn = setupPeerConnection(stream)
@@ -150,7 +181,9 @@ export function useWebRTC(callbacks: WebRTCCallbacks) {
             setupDataChannel(ch)
             const offer = await conn.createOffer()
             await conn.setLocalDescription(offer)
+            iceProgress.value = 'Đang thu thập kết nối...'
             const sdp = await waitIce(conn)
+            iceProgress.value = ''
             offerSdp.value = sdpEncode(sdp)
         } catch {
             connError.value = 'Không thể tạo kết nối. Vui lòng thử lại.'
@@ -160,6 +193,7 @@ export function useWebRTC(callbacks: WebRTCCallbacks) {
 
     async function joinRoom() {
         connState.value = 'joining'; connError.value = ''; iceProgress.value = 'Đang kết nối...'
+        isHosting.value = false
         try {
             const stream = await tryStartMedia()
             const conn = setupPeerConnection(stream)
@@ -169,6 +203,7 @@ export function useWebRTC(callbacks: WebRTCCallbacks) {
             const answer = await conn.createAnswer()
             await conn.setLocalDescription(answer)
             const sdp = await waitIce(conn)
+            iceProgress.value = ''
             answerSdp.value = sdpEncode(sdp)
             safeCopy(answerSdp.value)
         } catch {
@@ -177,11 +212,67 @@ export function useWebRTC(callbacks: WebRTCCallbacks) {
         }
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // SPECTATOR: Host creates offer for spectator / Spectator joins
+    // ═══════════════════════════════════════════════════════════════════
+
+    async function createSpectatorOffer() {
+        spectatorOfferSdp.value = ''; spectatorPastedAnswer.value = ''
+        spectatorIceProgress.value = 'Đang tạo mã khán đài...'
+        connError.value = ''
+        try {
+            const conn = new RTCPeerConnection(ICE_CFG)
+            pendingSpectatorPC = conn
+            const ch = conn.createDataChannel('spectator')
+            setupSpectatorChannel(ch)
+
+            conn.oniceconnectionstatechange = () => {
+                if (conn.iceConnectionState === 'failed' || conn.iceConnectionState === 'disconnected') {
+                    const idx = spectatorPCs.indexOf(conn)
+                    if (idx !== -1) spectatorPCs.splice(idx, 1)
+                }
+            }
+
+            const offer = await conn.createOffer()
+            await conn.setLocalDescription(offer)
+            const sdp = await waitIce(conn)
+            spectatorIceProgress.value = ''
+            spectatorOfferSdp.value = sdpEncode(sdp)
+            safeCopy(spectatorOfferSdp.value)
+        } catch {
+            connError.value = 'Không thể tạo mã khán đài.'
+            spectatorIceProgress.value = ''
+        }
+    }
+
+    async function acceptSpectatorAnswer() {
+        if (!pendingSpectatorPC) return
+        try {
+            const decoded = sdpDecode(spectatorPastedAnswer.value)
+            await pendingSpectatorPC.setRemoteDescription(JSON.parse(decoded))
+            spectatorPCs.push(pendingSpectatorPC)
+            pendingSpectatorPC = null
+            spectatorOfferSdp.value = ''; spectatorPastedAnswer.value = ''
+        } catch { connError.value = 'Mã trả lời khán đài không hợp lệ.' }
+    }
+
     async function joinAsSpectator() {
         connState.value = 'spectator-joining'; connError.value = ''
         try {
-            const conn = setupPeerConnection(null)
-            conn.ondatachannel = (e) => setupDataChannel(e.channel)
+            const conn = new RTCPeerConnection(ICE_CFG)
+            pc = conn
+            conn.ondatachannel = (e) => {
+                dataChannel = e.channel
+                e.channel.onopen = () => callbacks.onEnterSpectator()
+                e.channel.onmessage = (ev) => {
+                    try {
+                        const msg = JSON.parse(ev.data)
+                        if (msg.type === 'move') callbacks.onRemoteMove(msg.from, msg.to)
+                        if (msg.type === 'resign') callbacks.onRemoteResign()
+                        if (msg.type === 'sync') callbacks.onRemoteSync(msg)
+                    } catch { /* ignore */ }
+                }
+            }
             const decoded = sdpDecode(pastedOffer.value)
             await conn.setRemoteDescription(JSON.parse(decoded))
             const answer = await conn.createAnswer()
@@ -190,7 +281,7 @@ export function useWebRTC(callbacks: WebRTCCallbacks) {
             answerSdp.value = sdpEncode(sdp)
             safeCopy(answerSdp.value)
         } catch {
-            connError.value = 'Mã phòng không hợp lệ.'
+            connError.value = 'Mã khán đài không hợp lệ.'
             connState.value = 'idle'
         }
     }
@@ -224,11 +315,15 @@ export function useWebRTC(callbacks: WebRTCCallbacks) {
 
     function disconnectRTC() {
         pc?.close(); pc = null; dataChannel = null
+        pendingSpectatorPC?.close(); pendingSpectatorPC = null
+        for (const spc of spectatorPCs) spc.close()
+        spectatorPCs.length = 0
         spectatorChannels.length = 0; spectatorCount.value = 0
         localStream.value?.getTracks().forEach(t => t.stop())
         localStream.value = null; remoteStream.value = null; hasCamera.value = false
         connState.value = 'idle'; offerSdp.value = ''; answerSdp.value = ''
         pastedOffer.value = ''; pastedAnswer.value = ''
+        isHosting.value = false; spectatorOfferSdp.value = ''; spectatorPastedAnswer.value = ''
     }
 
     function safeCopy(text: string) {
@@ -272,9 +367,13 @@ export function useWebRTC(callbacks: WebRTCCallbacks) {
         offerSdp, answerSdp, pastedOffer, pastedAnswer,
         isMuted, isCameraOff, copied, connError, iceProgress,
         hasCamera, spectatorCount, remoteMuted, remoteCameraOff,
+        // Spectator host state
+        isHosting, spectatorOfferSdp, spectatorPastedAnswer, spectatorIceProgress,
         // Actions
         createRoom, joinRoom, joinAsSpectator, acceptAnswer,
         sendMove, sendSync, sendResign, disconnectRTC,
         safeCopy, toggleMute, toggleCamera, reattachStreams,
+        // Spectator host actions
+        createSpectatorOffer, acceptSpectatorAnswer, broadcastToSpectators,
     }
 }
