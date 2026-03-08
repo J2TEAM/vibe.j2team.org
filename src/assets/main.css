@@ -1,21 +1,21 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 html {
   scroll-behavior: smooth;
 }
 
 @theme {
-  --color-bg-deep: #0F1923;
+  --color-bg-deep: #0f1923;
   --color-bg-surface: #162232;
-  --color-bg-elevated: #1E2F42;
-  --color-accent-coral: #FF6B4A;
-  --color-accent-amber: #FFB830;
-  --color-accent-sky: #38BDF8;
-  --color-text-primary: #F0EDE6;
-  --color-text-secondary: #8B9DB5;
-  --color-text-dim: #4A6180;
+  --color-bg-elevated: #1e2f42;
+  --color-accent-coral: #ff6b4a;
+  --color-accent-amber: #ffb830;
+  --color-accent-sky: #38bdf8;
+  --color-text-primary: #f0ede6;
+  --color-text-secondary: #8b9db5;
+  --color-text-dim: #4a6180;
   --color-border-default: #253549;
-  --color-border-hover: #FF6B4A;
+  --color-border-hover: #ff6b4a;
 
   --font-display: 'Anybody', sans-serif;
   --font-body: 'Be Vietnam Pro', sans-serif;
@@ -43,13 +43,24 @@ body::after {
 
 /* Keyframe animations */
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes pulse-border {
-  0%, 100% { border-color: var(--color-border-default); }
-  50% { border-color: var(--color-accent-coral); }
+  0%,
+  100% {
+    border-color: var(--color-border-default);
+  }
+  50% {
+    border-color: var(--color-accent-coral);
+  }
 }
 
 /* Staggered load animation */
@@ -57,13 +68,27 @@ body::after {
   animation: fade-up 0.6s ease-out both;
 }
 
-.animate-delay-1 { animation-delay: 100ms; }
-.animate-delay-2 { animation-delay: 200ms; }
-.animate-delay-3 { animation-delay: 300ms; }
-.animate-delay-4 { animation-delay: 400ms; }
-.animate-delay-5 { animation-delay: 500ms; }
-.animate-delay-6 { animation-delay: 600ms; }
-.animate-delay-7 { animation-delay: 700ms; }
+.animate-delay-1 {
+  animation-delay: 100ms;
+}
+.animate-delay-2 {
+  animation-delay: 200ms;
+}
+.animate-delay-3 {
+  animation-delay: 300ms;
+}
+.animate-delay-4 {
+  animation-delay: 400ms;
+}
+.animate-delay-5 {
+  animation-delay: 500ms;
+}
+.animate-delay-6 {
+  animation-delay: 600ms;
+}
+.animate-delay-7 {
+  animation-delay: 700ms;
+}
 
 /* Animated link underline */
 .link-underline {
@@ -88,6 +113,6 @@ body::after {
   .scroll-reveal {
     animation: fade-up 0.6s ease-out both;
     animation-timeline: view();
-    animation-range: entry 10% cover 35%;
+    animation-range: entry 0% entry 25%;
   }
 }

@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@unhead/vue": "^2.1.10",
+    "html-to-image": "^1.11.13",
     "pinia": "^3.0.4",
     "vue": "^3.5.29",
     "vue-router": "^5.0.3"
@@ -64,6 +65,7 @@
   },
   "lint-staged": {
     "*.{vue,ts,mts,tsx}": [
+      "oxfmt",
       "oxlint --fix",
       "eslint --fix --cache"
     ],

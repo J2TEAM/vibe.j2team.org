@@ -35,5 +35,11 @@ coverage
 # Vitest
 __screenshots__/
 
+# Do Nothing: file tiếng chim lớn (dùng birds.mp3 nhẹ hoặc tiếng tổng hợp)
+public/sounds/*.flac
+
 # Vite
 *.timestamp-*-*.mjs
+
+# We use pnpm — ignore package-lock.json to prevent accidental npm installs from being committed
+package-lock.json

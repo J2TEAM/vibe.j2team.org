@@ -65,16 +65,16 @@ Read `docs/DESIGN_SYSTEM.md` before making any visual changes.
 - Use `pnpm` as package manager (not npm/yarn)
 - Vietnamese text must use diacritics (tieng Viet co dau)
 
-## Rules / Nguyên tắc
+## Rules
 
-1. **Không có database** — dự án không sử dụng database dưới bất kỳ hình thức nào
-2. **Luôn có link về trang chủ** — mỗi trang con phải có link dẫn người dùng quay lại trang chủ (`/`)
-3. **Ngôn ngữ: tiếng Việt (ưu tiên) hoặc tiếng Anh** — nội dung hiển thị trên trang dùng tiếng Việt hoặc tiếng Anh
-4. **Không trùng ứng dụng con đã có** — kiểm tra các thư mục trong `src/views/` trước khi tạo trang mới
-5. **Mỗi trang con hoạt động độc lập (self-contained)** — chỉ làm việc trong thư mục trang của mình, không sửa các file dùng chung (`App.vue`, `main.css`, `router/index.ts`). Route được tự động sinh từ file `meta.ts` trong mỗi thư mục trang
-6. **Responsive** — trang phải hiển thị tốt trên mobile
-7. **Không thêm dependency mới** vào `package.json` trừ khi thật sự cần và được approve
-8. **Ghi rõ tên tác giả** — mỗi trang phải có trường `author` trong file `meta.ts`
+1. **No database** — the project does not use any database in any form
+2. **Always link back to homepage** — every sub-page must have a link back to the homepage (`/`)
+3. **Language: Vietnamese (preferred) or English** — page content should be in Vietnamese or English
+4. **No duplicate sub-apps** — check existing directories in `src/views/` before creating a new page
+5. **Each sub-page is self-contained** — only work within your page's directory, do not modify shared files (`App.vue`, `main.css`, `router/index.ts`). Routes are auto-generated from the `meta.ts` file in each page directory
+6. **Responsive** — pages must display well on mobile
+7. **No new dependencies** in `package.json` unless truly needed and approved
+8. **Author attribution required** — every page must have an `author` field in its `meta.ts` file
 
 ## Adding a New Page
 

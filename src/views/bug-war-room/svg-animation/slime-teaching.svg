@@ -1,0 +1,192 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="320" height="320" style="overflow: visible;">
+    <style>
+        /* 1. Nhịp thở điềm tĩnh, tự tin của người dạy (Chu kỳ 4s) */
+        .teaching-body {
+            transform-origin: 100px 165px;
+            animation: teach-breathe 4s ease-in-out infinite;
+        }
+
+        @keyframes teach-breathe {
+            0%, 100% { transform: scale(1.01, 0.99) translateY(1px); }
+            50% { transform: scale(0.99, 1.01) translateY(-2px); }
+        }
+
+        /* 2. Bóng đổ thay đổi nhẹ theo nhịp thở */
+        .teaching-shadow {
+            transform-origin: 100px 165px;
+            animation: teach-shadow 4s ease-in-out infinite;
+        }
+
+        @keyframes teach-shadow {
+            0%, 100% { transform: scale(1.02); opacity: 0.35; }
+            50% { transform: scale(0.98); opacity: 0.25; }
+        }
+
+        /* 3. Cánh tay gõ gậy chỉ bảng (Pointer tap) */
+        .pointer-arm {
+            transform-origin: 140px 135px; /* Tâm xoay ở vai/tay */
+            animation: pointer-tap 4s infinite;
+        }
+
+        @keyframes pointer-tap {
+            0%, 15%, 55%, 100% { transform: rotate(0deg); }
+            /* Gõ gậy 3 nhịp để nhấn mạnh kiến thức */
+            20%, 30%, 40% { transform: rotate(18deg); }
+            25%, 35%, 45% { transform: rotate(-5deg); }
+        }
+
+        /* 4. Miệng mấp máy giảng bài */
+        .talking-mouth {
+            transform-origin: 100px 118px;
+            animation: talk-teach 4s infinite;
+        }
+
+        @keyframes talk-teach {
+            0%, 12%, 60%, 100% { transform: scaleY(1); }
+            /* Khớp với lúc gõ gậy (đang giải thích hăng say) */
+            15%, 25%, 35%, 45%, 55% { transform: scaleY(2.2); }
+            20%, 30%, 40%, 50% { transform: scaleY(0.4); }
+        }
+
+        /* 5. Ánh sáng lóe qua mắt kính (Anime smart glasses effect) */
+        .glasses-shine {
+            animation: shine-sweep 4s infinite;
+        }
+
+        @keyframes shine-sweep {
+            0%, 65% { transform: translateX(-40px); opacity: 0; }
+            68% { opacity: 0.8; }
+            75%, 100% { transform: translateX(60px); opacity: 0; }
+        }
+
+        /* 6. Bóng đèn Ý tưởng bật lên (Eureka!) */
+        .idea-bulb {
+            transform-origin: 45px 65px;
+            animation: bulb-pop 4s infinite cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes bulb-pop {
+            0%, 10%, 75%, 100% { transform: scale(0); opacity: 0; }
+            15%, 70% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Tia sáng quanh bóng đèn nhấp nháy */
+        .bulb-rays {
+            transform-origin: 45px 65px;
+            animation: rays-glow 2s infinite alternate ease-in-out;
+        }
+
+        @keyframes rays-glow {
+            0% { transform: scale(0.9); opacity: 0.4; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+
+        /* 7. Tua rua mũ đu đưa nhẹ */
+        .tassel-swing {
+            transform-origin: 100px 48px;
+            animation: tassel-anim 4s ease-in-out infinite;
+        }
+
+        @keyframes tassel-anim {
+            0%, 100% { transform: rotate(5deg); }
+            50% { transform: rotate(-10deg); }
+        }
+    </style>
+
+    <defs>
+        <!-- Clip path để vệt sáng chỉ nằm trong viền mắt kính -->
+        <clipPath id="glasses-clip">
+            <circle cx="82" cy="100" r="13" />
+            <circle cx="118" cy="100" r="13" />
+        </clipPath>
+    </defs>
+
+    <!-- BÓNG DƯỚI MẶT ĐẤT -->
+    <ellipse class="teaching-shadow" cx="100" cy="165" rx="55" ry="12" fill="#000000" />
+
+    <!-- NHÓM BÓNG ĐÈN Ý TƯỞNG (Nằm bên trái) -->
+    <g class="idea-bulb">
+        <!-- Các tia sáng -->
+        <g class="bulb-rays" stroke="#facc15" stroke-width="2.5" stroke-linecap="round">
+            <line x1="45" y1="36" x2="45" y2="25" />
+            <line x1="16" y1="65" x2="5" y2="65" />
+            <line x1="74" y1="65" x2="85" y2="65" />
+            <line x1="24" y1="44" x2="16" y2="36" />
+            <line x1="66" y1="44" x2="74" y2="36" />
+        </g>
+        <!-- Thủy tinh bóng đèn -->
+        <path d="M 45 42 C 30 42, 30 65, 39 74 L 41 82 L 49 82 L 51 74 C 60 65, 60 42, 45 42 Z" fill="#fef08a" />
+        <!-- Đuôi đèn -->
+        <rect x="39" y="82" width="12" height="7" fill="#94a3b8" rx="1.5" />
+        <rect x="41" y="89" width="8" height="4" fill="#64748b" rx="2" />
+        <!-- Dây tóc bóng đèn -->
+        <path d="M 41 76 L 41 65 L 45 58 L 49 65 L 49 76" fill="none" stroke="#d97706" stroke-width="2" stroke-linejoin="round" />
+    </g>
+
+    <!-- NHÓM CƠ THỂ SLIME GIÁO SƯ -->
+    <g class="teaching-body">
+        
+        <!-- Cánh tay và Gậy chỉ bảng (Nằm dưới cơ thể một chút) -->
+        <g class="pointer-arm">
+            <!-- Thân gậy -->
+            <line x1="145" y1="130" x2="185" y2="65" stroke="#78350f" stroke-width="4.5" stroke-linecap="round" />
+            <!-- Đầu gậy bọc nỉ đỏ -->
+            <circle cx="185" cy="65" r="4" fill="#ef4444" />
+            <!-- Cánh tay Slime cầm gậy -->
+            <path d="M 130 120 C 145 115, 155 125, 155 135 C 150 145, 135 145, 130 140 Z" fill="#34d399" />
+        </g>
+
+        <!-- Thân hình Slime màu xanh lá -->
+        <path d="M 50 145 C 50 85, 70 50, 100 50 C 130 50, 150 85, 150 145 C 160 145, 160 165, 100 165 C 40 165, 40 145, 50 145 Z" fill="#34d399" />
+
+        <!-- Điểm nhấn bắt sáng -->
+        <path d="M 70 75 Q 100 55 130 75" stroke="#ffffff" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.4" />
+
+        <!-- MŨ CỬ NHÂN / GIÁO SƯ -->
+        <g class="teacher-cap">
+            <!-- Phần chóp ôm đầu -->
+            <path d="M 78 52 L 78 65 C 78 72, 122 72, 122 65 L 122 52 Z" fill="#0f172a" />
+            <!-- Mặt phẳng mũ -->
+            <polygon points="100,34 145,48 100,62 55,48" fill="#1e293b" />
+            <!-- Nút tròn trên mũ -->
+            <circle cx="100" cy="48" r="3.5" fill="#facc15" />
+            <!-- Tua rua (Tassel) -->
+            <g class="tassel-swing">
+                <line x1="100" y1="48" x2="132" y2="62" stroke="#facc15" stroke-width="1.5" />
+                <line x1="132" y1="62" x2="132" y2="76" stroke="#facc15" stroke-width="4" stroke-linecap="round" />
+            </g>
+        </g>
+
+        <!-- KHUÔN MẶT -->
+        <g>
+            <!-- Mắt (Mở to, sáng lấp lánh) -->
+            <circle cx="82" cy="100" r="7" fill="#0f172a" />
+            <circle cx="80" cy="98" r="2.5" fill="#ffffff" />
+            
+            <circle cx="118" cy="100" r="7" fill="#0f172a" />
+            <circle cx="116" cy="98" r="2.5" fill="#ffffff" />
+
+            <!-- Má hồng -->
+            <ellipse cx="65" cy="112" rx="8" ry="4" fill="#ef4444" opacity="0.3" />
+            <ellipse cx="135" cy="112" rx="8" ry="4" fill="#ef4444" opacity="0.3" />
+
+            <!-- Miệng mấp máy nói (Explaining) -->
+            <ellipse class="talking-mouth" cx="100" cy="118" rx="5" ry="2.5" fill="#0f172a" />
+        </g>
+
+        <!-- KÍNH CẬN TRI THỨC -->
+        <g>
+            <!-- Tròng kính trái & phải -->
+            <circle cx="82" cy="100" r="13" fill="rgba(255,255,255,0.1)" stroke="#0f172a" stroke-width="3" />
+            <circle cx="118" cy="100" r="13" fill="rgba(255,255,255,0.1)" stroke="#0f172a" stroke-width="3" />
+            <!-- Cầu kính (Nối 2 tròng) -->
+            <path d="M 95 100 L 105 100" stroke="#0f172a" stroke-width="3" stroke-linecap="round" />
+            
+            <!-- Hiệu ứng lóe sáng chạy qua kính -->
+            <g clip-path="url(#glasses-clip)">
+                <rect class="glasses-shine" x="60" y="80" width="8" height="40" fill="#ffffff" transform="skewX(-20)" />
+            </g>
+        </g>
+
+    </g>
+</svg>

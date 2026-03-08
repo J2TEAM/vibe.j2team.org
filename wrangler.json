@@ -2,6 +2,7 @@
   "name": "vibe-j2team",
   "compatibility_date": "2026-03-06",
   "assets": {
-    "directory": "./dist"
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
   }
 }
