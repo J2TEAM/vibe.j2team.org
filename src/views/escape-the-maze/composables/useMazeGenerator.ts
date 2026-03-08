@@ -1,4 +1,4 @@
-import { type Cell, type Position } from "../types";
+import { type Cell } from "../types";
 
 function createEmptyGrid(size: number): Cell[][] {
   const grid: Cell[][] = [];
