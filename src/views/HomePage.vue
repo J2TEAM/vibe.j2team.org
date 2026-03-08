@@ -1,13 +1,19 @@
 <script setup lang="ts">
+import { defineAsyncComponent } from 'vue'
 import BackToTop from '@/components/BackToTop.vue'
 import HeroSection from '@/components/home/HeroSection.vue'
 import PagesGrid from '@/components/home/PagesGrid.vue'
-import TechStackSection from '@/components/home/TechStackSection.vue'
-import ContributeSection from '@/components/home/ContributeSection.vue'
-import RulesSection from '@/components/home/RulesSection.vue'
-import ProductsSection from '@/components/home/ProductsSection.vue'
-import SponsorsSection from '@/components/home/SponsorsSection.vue'
-import SiteFooter from '@/components/home/SiteFooter.vue'
+
+const TechStackSection = defineAsyncComponent(
+  () => import('@/components/home/TechStackSection.vue'),
+)
+const ContributeSection = defineAsyncComponent(
+  () => import('@/components/home/ContributeSection.vue'),
+)
+const RulesSection = defineAsyncComponent(() => import('@/components/home/RulesSection.vue'))
+const ProductsSection = defineAsyncComponent(() => import('@/components/home/ProductsSection.vue'))
+const SponsorsSection = defineAsyncComponent(() => import('@/components/home/SponsorsSection.vue'))
+const SiteFooter = defineAsyncComponent(() => import('@/components/home/SiteFooter.vue'))
 </script>
 
 <template>

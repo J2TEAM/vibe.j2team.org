@@ -78,7 +78,7 @@
       "@commitlint/config-conventional"
     ]
   },
-  "packageManager": "pnpm@10.30.3",
+  "packageManager": "pnpm@10.31.0",
   "pnpm": {
     "onlyBuiltDependencies": [
       "simple-git-hooks"

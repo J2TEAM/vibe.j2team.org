@@ -28,7 +28,11 @@ pnpm dev
 4. **Không trùng ứng dụng con đã có** — kiểm tra danh sách trang trước khi tạo mới
 5. **Mỗi trang con hoạt động độc lập** — chỉ làm việc trong thư mục trang của mình
 6. **Responsive** — trang phải hiển thị tốt trên mobile
-7. **Không thêm dependency mới** trừ khi thật sự cần và được approve
+7. **Không thêm dependency mới** trừ khi thật sự cần và được approve. Tuy nhiên, các thư viện sau được **chấp thuận sẵn** và bạn có thể tự do sử dụng:
+   - `@vueuse/core` — 200+ composables cho Vue (useMouse, useClipboard, useDark, useStorage...)
+   - `@iconify/vue` — 200,000+ icons từ 150+ bộ icon trong 1 component
+   - `vue-konva` — Thư viện canvas 2D cho vẽ, game, đồ hoạ tương tác
+   - `shiki` — Syntax highlighter
 8. **Ghi rõ tên tác giả** trong file `meta.ts` của trang
 
 ## Cách tham gia

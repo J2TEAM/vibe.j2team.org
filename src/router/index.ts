@@ -32,6 +32,7 @@ const pageRoutes: RouteRecordRaw[] = pages.map((page) => {
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior: () => ({ top: 0 }),
   routes: [
     {
       path: '/',
@@ -63,6 +64,23 @@ const router = createRouter({
       },
     },
   ],
+})
+
+router.onError((error, to) => {
+  const isChunkError =
+    error.message.includes('Failed to fetch dynamically imported module') ||
+    error.message.includes('Importing a module script failed') ||
+    error.name === 'ChunkLoadError'
+
+  if (!isChunkError) return
+
+  // Prevent infinite reload loop: only retry once per path
+  const reloadKey = `chunk-reload:${to.fullPath}`
+  if (sessionStorage.getItem(reloadKey)) return
+  sessionStorage.setItem(reloadKey, '1')
+
+  // Full page reload to get fresh assets after new deployment
+  window.location.href = to.fullPath
 })
 
 export default router

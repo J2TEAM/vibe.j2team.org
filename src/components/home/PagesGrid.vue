@@ -1,9 +1,45 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted, type Directive } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { pages } from '@/data/pages-loader'
 import { padIndex } from '@/data/homepage'
 import { categories } from '@/data/categories'
+
+let observer: IntersectionObserver | null = null
+
+function getObserver(): IntersectionObserver {
+  if (!observer) {
+    observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            ;(entry.target as HTMLElement).classList.add('animate-fade-up')
+            observer!.unobserve(entry.target)
+          }
+        }
+      },
+      { threshold: 0.1 },
+    )
+  }
+  return observer
+}
+
+const vAnimate: Directive<HTMLElement, string | undefined> = {
+  mounted(el, binding) {
+    if (typeof IntersectionObserver === 'undefined') {
+      el.classList.add('animate-fade-up')
+      return
+    }
+    if (binding.value) {
+      el.style.animationDelay = binding.value
+    }
+    el.style.opacity = '0'
+    getObserver().observe(el)
+  },
+  unmounted(el) {
+    observer?.unobserve(el)
+  },
+}
 
 function removeAccents(str: string): string {
   return str
@@ -20,20 +56,26 @@ function normalize(str: string): string {
 const searchQuery = ref('')
 const activeCategory = ref<string | null>(null)
 
+const searchablePages = pages.map((p) => ({
+  ...p,
+  _name: normalize(p.name),
+  _desc: normalize(p.description),
+  _author: normalize(p.author),
+}))
+
 const filteredPages = computed(() => {
   const query = normalize(searchQuery.value.trim())
   const category = activeCategory.value
 
-  return pages.filter((page) => {
+  return searchablePages.filter((page) => {
     if (category) {
       if (page.category !== category) return false
     }
 
     if (query) {
-      const name = normalize(page.name)
-      const description = normalize(page.description)
-      const author = normalize(page.author)
-      return name.includes(query) || description.includes(query) || author.includes(query)
+      return (
+        page._name.includes(query) || page._desc.includes(query) || page._author.includes(query)
+      )
     }
 
     return true
@@ -53,6 +95,16 @@ function clearFilters() {
   activeCategory.value = null
 }
 
+const categoryCounts = computed(() => {
+  const counts: Record<string, number> = {}
+  for (const page of pages) {
+    if (page.category) {
+      counts[page.category] = (counts[page.category] || 0) + 1
+    }
+  }
+  return counts
+})
+
 const router = useRouter()
 
 function goToRandom() {
@@ -61,12 +113,28 @@ function goToRandom() {
   const randomPage = list[Math.floor(Math.random() * list.length)]
   if (randomPage) router.push(randomPage.path)
 }
+
+const searchInputRef = ref<HTMLInputElement | null>(null)
+
+function handleKeydown(e: KeyboardEvent) {
+  if (e.key === '/') {
+    const tag = (e.target as HTMLElement)?.tagName
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+    if ((e.target as HTMLElement)?.isContentEditable) return
+    e.preventDefault()
+    searchInputRef.value?.focus()
+  }
+}
+
+onMounted(() => document.addEventListener('keydown', handleKeydown))
+onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
 </script>
 
 <template>
   <main class="max-w-5xl mx-auto px-4 sm:px-6 pb-16 scroll-reveal">
     <h2
-      class="font-display text-2xl font-semibold text-text-primary mb-8 flex items-center gap-3 animate-fade-up"
+      v-animate
+      class="font-display text-xl sm:text-2xl font-semibold text-text-primary mb-8 flex items-center gap-3"
     >
       <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
       Các trang đã tạo
@@ -78,9 +146,9 @@ function goToRandom() {
     </h2>
 
     <!-- Search & Filter -->
-    <div class="mb-6 space-y-4 animate-fade-up" style="animation-delay: 100ms">
+    <div v-animate="'100ms'" class="mb-6 space-y-4">
       <!-- Search input + Random button -->
-      <div class="flex gap-3">
+      <div class="flex flex-col sm:flex-row gap-3">
         <div class="relative flex-1">
           <svg
             class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-dim pointer-events-none"
@@ -96,15 +164,21 @@ function goToRandom() {
             />
           </svg>
           <input
+            ref="searchInputRef"
             v-model="searchQuery"
             type="search"
             placeholder="Tìm theo tên, mô tả hoặc tác giả..."
-            class="w-full bg-bg-surface border border-border-default pl-11 pr-4 py-3 text-sm text-text-primary placeholder-text-dim font-body transition-colors duration-200 focus:outline-none focus:border-accent-coral"
+            class="w-full bg-bg-surface border border-border-default pl-11 pr-12 py-3 text-sm text-text-primary placeholder-text-dim font-body transition-colors duration-200 focus:outline-none focus:border-accent-coral"
           />
+          <kbd
+            class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono text-text-dim border border-border-default rounded bg-bg-elevated"
+          >
+            /
+          </kbd>
         </div>
         <button
           :disabled="filteredPages.length === 0"
-          class="flex items-center gap-2 px-4 py-3 text-sm font-display tracking-wide border border-accent-coral text-accent-coral bg-accent-coral/10 transition-colors duration-200 hover:bg-accent-coral hover:text-bg-deep disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+          class="flex items-center justify-center gap-2 px-4 py-3 text-sm font-display tracking-wide border border-accent-coral text-accent-coral bg-accent-coral/10 transition-colors duration-200 hover:bg-accent-coral hover:text-bg-deep disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
           @click="goToRandom"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -143,7 +217,7 @@ function goToRandom() {
           "
           @click="toggleCategory(cat.id)"
         >
-          {{ cat.label }}
+          {{ cat.label }} ({{ categoryCounts[cat.id] || 0 }})
         </button>
       </div>
 
@@ -168,8 +242,8 @@ function goToRandom() {
         v-for="(page, index) in filteredPages"
         :key="page.path"
         :to="page.path"
-        class="group relative flex flex-col border border-border-default bg-bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-l-4 hover:border-l-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5 animate-fade-up"
-        :style="{ animationDelay: `${400 + index * 100}ms` }"
+        v-animate="`${(index % 6) * 50}ms`"
+        class="group relative flex flex-col border border-border-default bg-bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-l-4 hover:border-l-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5"
       >
         <!-- Background number -->
         <span
@@ -205,7 +279,8 @@ function goToRandom() {
       <!-- Placeholder card -->
       <div
         v-if="!isFiltering"
-        class="flex items-center justify-center border border-dashed border-border-default p-6 text-text-dim animate-pulse-border animate-fade-up animate-delay-6"
+        v-animate
+        class="flex items-center justify-center border border-dashed border-border-default p-6 text-text-dim animate-pulse-border animate-delay-6"
       >
         <span class="text-sm font-display tracking-wide">Trang của bạn sẽ ở đây...</span>
       </div>

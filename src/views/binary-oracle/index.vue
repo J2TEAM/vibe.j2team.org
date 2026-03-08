@@ -14,6 +14,7 @@ const lines = ref<number[]>([])
 const currentHexagram = ref<Hexagram | null>(null)
 const resultRef = ref<HTMLElement | null>(null)
 const revealTick = ref(0)
+const currentThrowIndex = ref<number | null>(null)
 // per-coin spinning state and last coin results for current throw
 const coinSpinning = ref<boolean[]>([false, false, false])
 const coinResults = ref<Array<number | null>>([null, null, null])
@@ -74,6 +75,7 @@ async function castOracle() {
   for (let index = 0; index < TOTAL_LINES; index += 1) {
     // prepare for this throw
     revealTick.value += 1
+    currentThrowIndex.value = index
     coinResults.value = [null, null, null]
 
     // For each of the 3 coins: show gif 1s then reveal result
@@ -105,6 +107,7 @@ async function castOracle() {
   const binary = lines.value.join('')
   currentHexagram.value = findHexagramByBinary(binary)
   isCasting.value = false
+  currentThrowIndex.value = null
 
   await nextTick()
   if (resultRef.value) {
@@ -174,7 +177,7 @@ async function castOracle() {
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p class="font-display text-xs tracking-widest text-accent-amber">
-                // THE 6-STEP HANDSHAKE
+                // QUY TRÌNH GIEO QUẺ
               </p>
               <p class="mt-2 text-sm text-text-secondary">{{ statusText }}</p>
             </div>
@@ -195,6 +198,9 @@ async function castOracle() {
                     bit === 'x' ? 'bg-bg-deep text-text-dim border-border-default' : '',
                     bit === '1' ? 'bg-accent-coral text-bg-deep border-accent-coral' : '',
                     bit === '0' ? 'bg-accent-sky text-bg-deep border-accent-sky' : '',
+                    (currentThrowIndex === null ? false : i === currentThrowIndex)
+                      ? 'ring-2 ring-accent-amber scale-105'
+                      : '',
                   ]"
                 >
                   {{ bit }}
@@ -243,9 +249,21 @@ async function castOracle() {
           </p>
         </div>
 
-        <h2 class="mt-3 font-display text-2xl sm:text-3xl font-bold text-text-primary mb-4">
-          {{ currentHexagram.name }}
-        </h2>
+        <div class="mt-3 mb-4 flex items-center gap-4">
+          <div class="text-4xl sm:text-5xl leading-none">{{ currentHexagram.symbol }}</div>
+          <div>
+            <h2 class="font-display text-2xl sm:text-3xl font-bold text-text-primary">
+              {{ currentHexagram.name }}
+            </h2>
+            <div class="mt-2">
+              <span
+                class="inline-flex items-center gap-2 rounded-md border border-accent-coral bg-accent-coral/10 px-3 py-1 text-xs font-semibold text-accent-coral"
+              >
+                {{ currentHexagram.type }}
+              </span>
+            </div>
+          </div>
+        </div>
 
         <article class="border border-border-default bg-bg-deep p-4 sm:col-span-2">
           <p class="font-display text-xs tracking-widest text-accent-sky">// LỜI SẤM</p>

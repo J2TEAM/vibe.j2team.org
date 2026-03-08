@@ -94,7 +94,11 @@ Read `docs/DESIGN_SYSTEM.md` before making any visual changes.
 4. **No duplicate sub-apps** — check existing directories in `src/views/` before creating a new page
 5. **Each sub-page is self-contained** — only work within your page's directory, do not modify shared files (`App.vue`, `main.css`, `router/index.ts`). Routes are auto-generated from the `meta.ts` file in each page directory
 6. **Responsive** — pages must display well on mobile
-7. **No new dependencies** in `package.json` unless truly needed and approved
+7. **No new dependencies** in `package.json` unless truly needed and approved. However, the following libraries are **pre-approved** and can be used freely without additional approval:
+   - `@vueuse/core` — Collection of 200+ Vue composables (useMouse, useClipboard, useDark, useStorage, etc.)
+   - `@iconify/vue` — 200,000+ icons from 150+ icon sets in one component
+   - `vue-konva` — 2D canvas library for drawing, games, and interactive graphics
+   - `shiki` — Syntax highlighter
 8. **Author attribution required** — every page must have an `author` field in its `meta.ts` file
 
 ## Adding a New Page
