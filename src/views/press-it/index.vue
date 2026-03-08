@@ -1,188 +1,188 @@
-c
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
-import { useAudio } from "./composables/useAudio";
-import { useRhythmEngine } from "./composables/useRhythmEngine";
-import { GAME_CONFIG } from "./assets/beatmap";
-import type { HitResult } from "./types";
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { RouterLink } from 'vue-router'
+import { useAudio } from './composables/useAudio'
+import { useRhythmEngine } from './composables/useRhythmEngine'
+import { GAME_CONFIG } from './assets/beatmap'
+import type { HitResult } from './types'
 
 // ─── Audio & Rhythm ──────────────────────────────────────
-const audio = useAudio();
-const rhythm = useRhythmEngine();
+const audio = useAudio()
+const rhythm = useRhythmEngine()
 
 // ─── Game State ──────────────────────────────────────────
-type Phase = "idle" | "countdown" | "playing" | "dead";
-const phase = ref<Phase>("idle");
-const lives = ref(3);
-const countdownNum = ref(3);
-const isVictory = ref(false);
+type Phase = 'idle' | 'countdown' | 'playing' | 'dead'
+const phase = ref<Phase>('idle')
+const lives = ref(3)
+const countdownNum = ref(3)
+const isVictory = ref(false)
 
 // Hit feedback
-const hitFeedback = ref<HitResult | null>(null);
-const showFeedback = ref(false);
+const hitFeedback = ref<HitResult | null>(null)
+const showFeedback = ref(false)
 
 // Stats
-const perfectHits = ref(0);
-const goodHits = ref(0);
-const missCount = ref(0);
-const bestScore = ref(0);
+const perfectHits = ref(0)
+const goodHits = ref(0)
+const missCount = ref(0)
+const bestScore = ref(0)
 
-const score = computed(() => perfectHits.value * 2 + goodHits.value);
+const score = computed(() => perfectHits.value * 2 + goodHits.value)
 const accuracy = computed(() => {
-  const total = perfectHits.value + goodHits.value + missCount.value;
-  if (total === 0) return 100;
-  return Math.round(((perfectHits.value * 2 + goodHits.value) / (total * 2)) * 100);
-});
+  const total = perfectHits.value + goodHits.value + missCount.value
+  if (total === 0) return 100
+  return Math.round(((perfectHits.value * 2 + goodHits.value) / (total * 2)) * 100)
+})
 
 const progressPct = computed(() =>
   Math.round((rhythm.currentBeatIndex.value / GAME_CONFIG.totalBeats) * 100),
-);
+)
 
 // ─── Animation Frame ─────────────────────────────────────
-let rafId = 0;
+let rafId = 0
 
 function gameLoop() {
-  if (phase.value !== "playing") return;
+  if (phase.value !== 'playing') return
 
   // Get current audio time
-  const audioEl = audio.getMusicElement();
+  const audioEl = audio.getMusicElement()
   if (audioEl) {
-    rhythm.update(audioEl.currentTime);
+    rhythm.update(audioEl.currentTime)
   }
 
   // Check if complete
   if (rhythm.isComplete.value) {
-    endGame(true);
-    return;
+    endGame(true)
+    return
   }
 
-  rafId = requestAnimationFrame(gameLoop);
+  rafId = requestAnimationFrame(gameLoop)
 }
 
 // Auto-miss callback - được gọi từ rhythm engine
 function handleAutoMiss() {
-  console.log("[Game] Auto-miss detected!");
-  missCount.value++;
-  audio.playFail();
-  lives.value--;
+  console.log('[Game] Auto-miss detected!')
+  missCount.value++
+  audio.playFail()
+  lives.value--
 
   if (lives.value <= 0) {
-    endGame(false);
-    return;
+    endGame(false)
+    return
   }
 
-  showHitFeedback("miss");
+  showHitFeedback('miss')
 }
 
 // ─── Game Flow ───────────────────────────────────────────
 async function startGame() {
-  if (phase.value !== "idle" && phase.value !== "dead") return;
-  audio.init();
+  if (phase.value !== 'idle' && phase.value !== 'dead') return
+  audio.init()
 
   // Reset
-  lives.value = 3;
-  perfectHits.value = 0;
-  goodHits.value = 0;
-  missCount.value = 0;
-  hitFeedback.value = null;
-  showFeedback.value = false;
-  isVictory.value = false;
-  rhythm.reset();
+  lives.value = 3
+  perfectHits.value = 0
+  goodHits.value = 0
+  missCount.value = 0
+  hitFeedback.value = null
+  showFeedback.value = false
+  isVictory.value = false
+  rhythm.reset()
 
   // Countdown
-  phase.value = "countdown";
+  phase.value = 'countdown'
   for (let i = 3; i >= 1; i--) {
-    if (phase.value !== "countdown") return;
-    countdownNum.value = i;
-    audio.playTick();
-    await sleep(700);
+    if (phase.value !== 'countdown') return
+    countdownNum.value = i
+    audio.playTick()
+    await sleep(700)
   }
 
   // Start
-  phase.value = "playing";
-  audio.startMusic();
-  rhythm.start();
-  rhythm.setAutoMissCallback(handleAutoMiss);
+  phase.value = 'playing'
+  audio.startMusic()
+  rhythm.start()
+  rhythm.setAutoMissCallback(handleAutoMiss)
 
-  rafId = requestAnimationFrame(gameLoop);
+  rafId = requestAnimationFrame(gameLoop)
 }
 
 function handleTap() {
-  if (phase.value !== "playing" || !rhythm.currentBeat.value) return;
+  if (phase.value !== 'playing' || !rhythm.currentBeat.value) return
 
-  const audioEl = audio.getMusicElement();
-  if (!audioEl) return;
+  const audioEl = audio.getMusicElement()
+  if (!audioEl) return
 
-  const tapTime = audioEl.currentTime;
-  const result = rhythm.evaluateTap(tapTime);
+  const tapTime = audioEl.currentTime
+  const result = rhythm.evaluateTap(tapTime)
 
-  if (result === "perfect") {
-    perfectHits.value++;
-    audio.playDoubleJump();
-    showHitFeedback("perfect");
-  } else if (result === "good") {
-    goodHits.value++;
-    audio.playJump();
-    showHitFeedback("good");
+  if (result === 'perfect') {
+    perfectHits.value++
+    audio.playDoubleJump()
+    showHitFeedback('perfect')
+  } else if (result === 'good') {
+    goodHits.value++
+    audio.playJump()
+    showHitFeedback('good')
   } else {
-    missCount.value++;
-    audio.playFail();
-    lives.value--;
+    missCount.value++
+    audio.playFail()
+    lives.value--
     if (lives.value <= 0) {
-      endGame(false);
-      return;
+      endGame(false)
+      return
     }
-    showHitFeedback("miss");
+    showHitFeedback('miss')
   }
 
-  rhythm.advanceBeat();
+  rhythm.advanceBeat()
 }
 
 function showHitFeedback(result: HitResult) {
-  hitFeedback.value = result;
-  showFeedback.value = true;
+  hitFeedback.value = result
+  showFeedback.value = true
   setTimeout(() => {
-    showFeedback.value = false;
-  }, 400);
+    showFeedback.value = false
+  }, 400)
 }
 
 function endGame(victory: boolean) {
-  isVictory.value = victory;
-  phase.value = "dead";
-  cancelAnimationFrame(rafId);
-  rhythm.stop();
-  audio.stopMusic();
+  isVictory.value = victory
+  phase.value = 'dead'
+  cancelAnimationFrame(rafId)
+  rhythm.stop()
+  audio.stopMusic()
 
-  const s = score.value;
+  const s = score.value
   if (s > bestScore.value) {
-    bestScore.value = s;
-    localStorage.setItem("press-it-best", s.toString());
+    bestScore.value = s
+    localStorage.setItem('press-it-best', s.toString())
   }
 }
 
 function getRating(): string {
-  const acc = accuracy.value;
-  if (acc >= 95) return "S rank — RHYTHM GOD 🏆";
-  if (acc >= 85) return "A rank — IMPRESSIVE 🔥";
-  if (acc >= 70) return "B rank — GOOD 👍";
-  if (acc >= 50) return "C rank — OK 😐";
-  return "D rank — PRACTICE MORE 💀";
+  const acc = accuracy.value
+  if (acc >= 95) return 'S rank — RHYTHM GOD 🏆'
+  if (acc >= 85) return 'A rank — IMPRESSIVE 🔥'
+  if (acc >= 70) return 'B rank — GOOD 👍'
+  if (acc >= 50) return 'C rank — OK 😐'
+  return 'D rank — PRACTICE MORE 💀'
 }
 
 function sleep(ms: number): Promise<void> {
-  return new Promise((r) => setTimeout(r, ms));
+  return new Promise((r) => setTimeout(r, ms))
 }
 
 // ─── Lifecycle ───────────────────────────────────────────
 onMounted(() => {
-  const saved = localStorage.getItem("press-it-best");
-  if (saved) bestScore.value = parseInt(saved, 10);
-});
+  const saved = localStorage.getItem('press-it-best')
+  if (saved) bestScore.value = parseInt(saved, 10)
+})
 
 onUnmounted(() => {
-  cancelAnimationFrame(rafId);
-  audio.destroy();
-});
+  cancelAnimationFrame(rafId)
+  audio.destroy()
+})
 </script>
 
 <template>
@@ -191,8 +191,8 @@ onUnmounted(() => {
   >
     <!-- Header -->
     <header class="flex items-center justify-between px-4 py-3 border-b border-border-subtle z-10">
-      <a href="/" class="text-accent-coral text-sm hover:underline" @pointerdown.stop
-        >← Về trang chủ</a
+      <RouterLink to="/" class="text-accent-coral text-sm hover:underline" @pointerdown.stop
+        >← Về trang chủ</RouterLink
       >
       <h1 class="font-display text-base"><span class="text-accent-coral">//</span> FUN 2 RHYME</h1>
       <button
@@ -200,7 +200,7 @@ onUnmounted(() => {
         @pointerdown.stop
         @click="audio.toggleMute()"
       >
-        {{ audio.isMuted.value ? "🔇" : "🔊" }}
+        {{ audio.isMuted.value ? '🔇' : '🔊' }}
       </button>
     </header>
 
@@ -428,7 +428,7 @@ onUnmounted(() => {
         class="w-full max-w-xs py-4 bg-accent-coral text-bg-deep font-display text-xl hover:bg-accent-amber transition-colors active:scale-95"
         @click="startGame"
       >
-        {{ isVictory ? "CHƠI LẠI" : "THỬ LẠI" }}
+        {{ isVictory ? 'CHƠI LẠI' : 'THỬ LẠI' }}
       </button>
     </div>
   </div>
