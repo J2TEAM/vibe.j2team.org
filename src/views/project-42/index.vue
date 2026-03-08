@@ -31,8 +31,10 @@ const startAudio = () => {
   window.removeEventListener("touchstart", startAudio);
 };
 
-window.addEventListener("click", startAudio, { once: true });
-window.addEventListener("keydown", startAudio, { once: true });
+window.addEventListener("click", startAudio);
+window.addEventListener("keydown", startAudio);
+window.addEventListener("wheel", startAudio);
+window.addEventListener("touchstart", startAudio);
 
 const handleBegin = () => {
   startAudio();
@@ -54,24 +56,25 @@ onUnmounted(() => {
   cleanupAudio();
   window.removeEventListener("click", startAudio);
   window.removeEventListener("keydown", startAudio);
+  window.removeEventListener("wheel", startAudio);
+  window.removeEventListener("touchstart", startAudio);
 });
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black text-white overflow-hidden cursor-none select-none">
+  <div class="fixed inset-0 bg-bg-deep text-text-primary overflow-hidden cursor-none select-none">
     <!-- 3D Canvas Context -->
     <canvas ref="canvasRef" class="absolute inset-0 w-full h-full" />
 
     <!-- UI Core Layer -->
     <div class="relative z-10 flex flex-col min-h-screen pointer-events-none">
       <!-- Top Navigation -->
-      <nav class="p-6 pointer-events-auto">
+      <nav class="p-6 pointer-events-auto z-[60]">
         <RouterLink
           to="/"
-          class="inline-flex items-center gap-2 border border-white/10 bg-black/40 backdrop-blur-md px-4 py-2 text-[10px] tracking-[0.2em] uppercase transition-all hover:bg-white/5 group shadow-lg"
+          class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-5 py-2.5 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
         >
-          <span class="group-hover:-translate-x-1 transition-transform">&larr;</span>
-          J2Team Home
+          &larr; J2Team Home
         </RouterLink>
       </nav>
 
@@ -80,7 +83,7 @@ onUnmounted(() => {
         <Transition name="fade-fast">
           <div
             v-if="isLoading"
-            class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm"
+            class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-bg-deep/60 backdrop-blur-sm"
             :class="{ 'cursor-pointer pointer-events-auto': loadingProgress === 100 }"
             @click="loadingProgress === 100 && handleBegin()"
           >
@@ -102,29 +105,25 @@ onUnmounted(() => {
             <!-- Technical Progress Bar -->
             <div class="w-48 md:w-64 h-1 bg-white/5 rounded-full overflow-hidden relative">
               <div
-                class="absolute top-0 left-0 h-full bg-[#38BDF8] shadow-[0_0_15px_#38BDF8] transition-all duration-500 ease-out"
+                class="absolute top-0 left-0 h-full bg-[#FF6B4A] transition-all duration-500 ease-out"
                 :style="{ width: loadingProgress + '%' }"
               ></div>
             </div>
 
             <div
               v-if="loadingProgress === 100"
-              class="mt-8 font-display text-[12px] tracking-[0.5em] uppercase text-[#38BDF8] animate-pulse transition-colors"
+              class="mt-8 font-display text-[12px] tracking-[0.5em] uppercase text-[#FF6B4A] animate-pulse transition-colors"
             >
               [ click anywhere to begin ]
             </div>
             <div
               v-else
-              class="mt-4 font-display text-[10px] tracking-[0.5em] uppercase text-[#38BDF8]/60 animate-pulse"
+              class="mt-4 font-display text-[10px] tracking-[0.5em] uppercase text-[#FF6B4A]/60 animate-pulse"
             >
               System Initialization: {{ loadingProgress }}%
             </div>
           </div>
-          <NarrativeLayer
-            v-else
-            :current-scene="currentScene"
-            :scroll-progress="scrollProgress"
-          />
+          <NarrativeLayer v-else :current-scene="currentScene" :scroll-progress="scrollProgress" />
         </Transition>
       </div>
 
@@ -132,16 +131,20 @@ onUnmounted(() => {
       <footer
         class="p-8 flex justify-between items-end opacity-50 md:opacity-20 transition-opacity md:hover:opacity-100"
       >
-        <div class="font-display text-[9px] md:text-[10px] tracking-[0.2em] md:tracking-[0.3em] uppercase text-white/40">
+        <div
+          class="font-display text-[9px] md:text-[10px] tracking-[0.2em] md:tracking-[0.3em] uppercase text-text-dim"
+        >
           Vol.42 / 2026
         </div>
         <div class="flex flex-col items-end gap-1">
-          <div class="font-display text-[9px] md:text-[10px] tracking-[0.2em] md:tracking-[0.3em] uppercase text-white/40">
+          <div
+            class="font-display text-[9px] md:text-[10px] tracking-[0.2em] md:tracking-[0.3em] uppercase text-text-dim"
+          >
             Auth: sanghynh
           </div>
           <div class="w-16 md:w-24 h-0.5 bg-white/5 overflow-hidden relative">
             <div
-              class="absolute inset-0 bg-[#38BDF8] transition-transform duration-300 origin-left shadow-[0_0_10px_#38BDF8]"
+              class="absolute inset-0 bg-[#FF6B4A] transition-transform duration-300 origin-left shadow-[0_0_10px_#FF6B4A]"
               :style="{ transform: `scaleX(${Math.min(scrollProgress / 20, 1)})` }"
             ></div>
           </div>
@@ -162,8 +165,7 @@ canvas {
 }
 
 .text-fill {
-  color: #38bdf8;
-  text-shadow: 0 0 30px rgba(56, 189, 248, 0.5);
+  color: #ff6b4a;
 }
 
 .fade-fast-enter-active,

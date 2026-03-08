@@ -43,7 +43,7 @@ export const SCENES: SceneConfig[] = [
   { id: 12, threshold: 56.0, text: "", type: "narrative" }, // Silent contemplative pause: Atmospheric dissipation
 
   // --- ACT IV: BIOLOGICAL EVOLUTION ---
-  { id: 13, threshold: 75.0, text: "life found a way", type: "title", accent: "#FFB000" },
+  { id: 13, threshold: 75.0, text: "life found a way", type: "title", accent: "#FFB830" },
   { id: 14, threshold: 95.0, text: "", type: "narrative" }, // DNA Helix majestic formation
 
   { id: 15, threshold: 100.0, text: "", type: "narrative" }, // Molecular free-drift transition
@@ -56,7 +56,7 @@ export const SCENES: SceneConfig[] = [
     threshold: 155.0,
     text: "that wrote every living thing",
     type: "narrative",
-    accent: "#FFB000",
+    accent: "#FFB830",
   },
   { id: 21, threshold: 165.0, text: "", type: "narrative" }, // Silent contemplative pause
 
@@ -66,7 +66,7 @@ export const SCENES: SceneConfig[] = [
     text: "if life is code —",
     subtext: "who wrote it?",
     type: "title",
-    accent: "#FFFFFF",
+    accent: "#FFB830",
   },
   { id: 23, threshold: 210.0, text: "", type: "narrative" }, // Silent contemplative pause
 
@@ -93,7 +93,7 @@ export const SCENES: SceneConfig[] = [
     text: "it learned to speak",
     subtext: "then to think",
     type: "narrative",
-    accent: "#00F3FF",
+    accent: "#38BDF8",
   },
   { id: 31, threshold: 375.0, text: "", type: "narrative" }, // Silent contemplative pause: Observing the solid Cube
 
@@ -118,7 +118,7 @@ export const SCENES: SceneConfig[] = [
     text: "A T G C",
     subtext: "0 1 0 1",
     type: "title",
-    accent: "#FF8C00",
+    accent: "#FFB830",
     subtextAccent: "#38BDF8",
   },
   { id: 38, threshold: 570.0, text: "", type: "narrative" }, // Silent contemplative pause
@@ -146,7 +146,7 @@ export const SCENES: SceneConfig[] = [
 
   // --- EPILOGUE: CREDITS ---
   { id: 46, threshold: 1100.0, text: "", type: "narrative" }, // Final fade-out phase
-  { id: 47, threshold: 1140.0, text: "J2TEAM", type: "title", accent: "#38BDF8" },
+  { id: 47, threshold: 1140.0, text: "J2TEAM", type: "title", accent: "#FF6B4A" },
   {
     id: 48,
     threshold: 1180.0,

@@ -74,8 +74,8 @@ export function useThree() {
       if (!canvasRef.value || !THREE || !gsap) return;
 
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x000000);
-      scene.fog = new THREE.FogExp2(0x000000, 0.04);
+      scene.background = new THREE.Color(0x0f1923);
+      scene.fog = new THREE.FogExp2(0x0f1923, 0.04);
       targetProgress = 65;
 
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);

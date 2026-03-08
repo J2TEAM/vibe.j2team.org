@@ -13,7 +13,7 @@ export const createInstruments = (Tone: any) => {
     oscillator: { type: "fatsawtooth", count: 3, spread: 20 },
     envelope: { attack: 1.5, decay: 1, sustain: 0.8, release: 3 },
   }).connect(padHPF);
-  pad.volume.value = -12;
+  pad.volume.value = -12; // Level restored from hard-mute
 
   const droneHPF = new Tone.Filter(80, "highpass").connect(reverb);
   const cosmicDrone = new Tone.PolySynth(Tone.Synth, {
@@ -21,7 +21,7 @@ export const createInstruments = (Tone: any) => {
     oscillator: { type: "sine" },
     envelope: { attack: 5, decay: 2, sustain: 1, release: 8 },
   }).connect(droneHPF);
-  cosmicDrone.volume.value = -16;
+  cosmicDrone.volume.value = -16; // Level restored from hard-mute
 
   const bioPulse = new Tone.MembraneSynth({
     pitchDecay: 0.05,
@@ -44,7 +44,7 @@ export const createInstruments = (Tone: any) => {
     noise: { type: "white" },
     envelope: { attack: 0.01, decay: 0.4, sustain: 0.0, release: 0.6 },
   }).connect(masterVol);
-  shatterNoise.volume.value = -15;
+  shatterNoise.volume.value = -10; // Boosted for more impact 'fuzzy' texture
 
   const arpeggio = new Tone.PolySynth(Tone.Synth, {
     oscillator: { type: "triangle" },
@@ -64,7 +64,7 @@ export const createInstruments = (Tone: any) => {
       .connect(reverb)
       .start(),
   );
-  sweep.volume.value = -22;
+  sweep.volume.value = -22; // Level restored from hard-mute
 
   const pulseBass = new Tone.Synth({
     oscillator: { type: "square" },

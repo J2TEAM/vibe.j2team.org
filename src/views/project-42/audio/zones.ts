@@ -547,7 +547,7 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
   }
 };
 
-export const resetZonesState = () => {
+export const resetZonesState = (instruments: any = null) => {
   _lastEarthIndex = -1;
   _lastBioIndex = -1;
   _lastDigitalIndex = -1;
@@ -557,5 +557,6 @@ export const resetZonesState = () => {
   _droneStarted = false;
   _lastArpId = "";
   _lastMasterVol = -999;
+  if (instruments?.masterVol) instruments.masterVol.volume.value = -100;
   stopArp();
 };

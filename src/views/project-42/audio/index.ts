@@ -27,6 +27,8 @@ export async function initAudio(): Promise<boolean> {
     }
 
     _instruments = createInstruments(_Tone);
+    // Explicitly mute everything immediately after creation
+    if (_instruments.masterVol) _instruments.masterVol.volume.value = -100;
     _initialized = true;
     return true;
   } catch (err) {
@@ -54,7 +56,7 @@ export function tickAudio(progress: number) {
 export function cleanupAudio() {
   if (_initialized && _Tone) {
     stopArp();
-    resetZonesState();
+    resetZonesState(_instruments);
     _Tone.Transport.stop();
     _Tone.Transport.cancel();
 
