@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { pages } from '@/data/pages-loader'
 import { padIndex } from '@/data/homepage'
 import { categories } from '@/data/categories'
@@ -52,6 +52,15 @@ function clearFilters() {
   searchQuery.value = ''
   activeCategory.value = null
 }
+
+const router = useRouter()
+
+function goToRandom() {
+  const list = filteredPages.value
+  if (list.length === 0) return
+  const randomPage = list[Math.floor(Math.random() * list.length)]
+  router.push(randomPage.path)
+}
 </script>
 
 <template>
@@ -68,27 +77,44 @@ function clearFilters() {
 
     <!-- Search & Filter -->
     <div class="mb-6 space-y-4">
-      <!-- Search input -->
-      <div class="relative">
-        <svg
-          class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-dim pointer-events-none"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+      <!-- Search input + Random button -->
+      <div class="flex gap-3">
+        <div class="relative flex-1">
+          <svg
+            class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-dim pointer-events-none"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Tìm theo tên, mô tả hoặc tác giả..."
+            class="w-full bg-bg-surface border border-border-default pl-11 pr-4 py-3 text-sm text-text-primary placeholder-text-dim font-body transition-colors duration-200 focus:outline-none focus:border-accent-coral"
           />
-        </svg>
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Tìm theo tên, mô tả hoặc tác giả..."
-          class="w-full bg-bg-surface border border-border-default pl-11 pr-4 py-3 text-sm text-text-primary placeholder-text-dim font-body transition-colors duration-200 focus:outline-none focus:border-accent-coral"
-        />
+        </div>
+        <button
+          :disabled="filteredPages.length === 0"
+          class="flex items-center gap-2 px-4 py-3 text-sm font-display tracking-wide border border-accent-coral text-accent-coral bg-accent-coral/10 transition-colors duration-200 hover:bg-accent-coral hover:text-bg-deep disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+          @click="goToRandom"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"
+            />
+          </svg>
+          Ngẫu nhiên
+        </button>
       </div>
 
       <!-- Category tags -->
