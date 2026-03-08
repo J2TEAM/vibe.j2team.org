@@ -191,9 +191,13 @@ onUnmounted(() => {
   >
     <!-- Header -->
     <header class="flex items-center justify-between px-4 py-3 border-b border-border-subtle z-10">
-      <RouterLink to="/" class="text-accent-coral text-sm hover:underline" @pointerdown.stop
-        >← Về trang chủ</RouterLink
+      <RouterLink
+        to="/"
+        class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
+        @pointerdown.stop
       >
+        &larr; Về trang chủ
+      </RouterLink>
       <h1 class="font-display text-base"><span class="text-accent-coral">//</span> PRESS IT</h1>
       <button
         class="text-text-secondary hover:text-text-primary transition-colors text-lg px-1"
