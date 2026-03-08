@@ -51,8 +51,8 @@ const onPointerDown = (e: MouseEvent | TouchEvent) => {
   
   isDragging = true
   
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  const clientX = 'touches' in e ? (e.touches[0]?.clientX ?? 0) : e.clientX
+  const clientY = 'touches' in e ? (e.touches[0]?.clientY ?? 0) : e.clientY
   
   startX = clientX - x.value
   startY = clientY - y.value
@@ -61,8 +61,8 @@ const onPointerDown = (e: MouseEvent | TouchEvent) => {
 const onPointerMove = (e: MouseEvent | TouchEvent) => {
   if (!isDragging || isMaximized.value) return
   
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  const clientX = 'touches' in e ? (e.touches[0]?.clientX ?? 0) : e.clientX
+  const clientY = 'touches' in e ? (e.touches[0]?.clientY ?? 0) : e.clientY
   
   x.value = clientX - startX
   y.value = Math.max(0, clientY - startY) // Prevent dragging above screen

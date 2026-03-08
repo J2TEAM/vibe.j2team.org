@@ -23,8 +23,8 @@ const iconRef = ref<HTMLElement | null>(null)
 
 const onPointerDown = (e: MouseEvent | TouchEvent) => {
   isDragging = true
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  const clientX = 'touches' in e ? (e.touches[0]?.clientX ?? 0) : e.clientX
+  const clientY = 'touches' in e ? (e.touches[0]?.clientY ?? 0) : e.clientY
   
   if (iconRef.value) {
     const rect = iconRef.value.getBoundingClientRect()
@@ -37,8 +37,8 @@ const onPointerDown = (e: MouseEvent | TouchEvent) => {
 const onPointerMove = (e: MouseEvent | TouchEvent) => {
   if (!isDragging) return
   
-  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  const clientX = 'touches' in e ? (e.touches[0]?.clientX ?? 0) : e.clientX
+  const clientY = 'touches' in e ? (e.touches[0]?.clientY ?? 0) : e.clientY
   
   // Set new position
   x.value = clientX - offsetX
