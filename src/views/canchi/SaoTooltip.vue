@@ -18,7 +18,7 @@ function handleMouseEnter() {
 }
 
 const info = computed(() => getSaoMoTa(props.sao.ten))
-const dacTinhInfo = computed(() => props.sao.dacTinh ? getDacTinhInfo(props.sao.dacTinh) : null)
+const dacTinhInfo = computed(() => (props.sao.dacTinh ? getDacTinhInfo(props.sao.dacTinh) : null))
 
 const nguHanhBg: Record<string, string> = {
   hoa: 'bg-red-900/50 text-red-400',
@@ -52,7 +52,9 @@ const dacTinhColor: Record<string, string> = {
     >
       <div
         class="absolute left-4 w-2 h-2 bg-bg-elevated border-border-default transform rotate-45"
-        :class="position === 'top' ? 'bottom-[-5px] border-b border-r' : 'top-[-5px] border-t border-l'"
+        :class="
+          position === 'top' ? 'bottom-[-5px] border-b border-r' : 'top-[-5px] border-t border-l'
+        "
       />
       <!-- Header -->
       <div class="flex items-center gap-2 mb-1.5">
@@ -67,11 +69,13 @@ const dacTinhColor: Record<string, string> = {
         <span
           v-if="sao.isTot === true"
           class="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-900/50 text-emerald-400 font-semibold"
-        >Cát ★</span>
+          >Cát ★</span
+        >
         <span
           v-if="sao.isTot === false"
           class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-900/50 text-red-400 font-semibold"
-        >Hung ✕</span>
+          >Hung ✕</span
+        >
       </div>
 
       <!-- Đặc tính -->
@@ -79,7 +83,8 @@ const dacTinhColor: Record<string, string> = {
         <span
           class="text-[10px] px-1.5 py-0.5 rounded font-bold"
           :class="dacTinhColor[sao.dacTinh]"
-        >{{ dacTinhInfo.ten }}</span>
+          >{{ dacTinhInfo.ten }}</span
+        >
         <span class="text-[11px] text-text-secondary">{{ dacTinhInfo.moTa }}</span>
       </div>
 
@@ -87,22 +92,44 @@ const dacTinhColor: Record<string, string> = {
       <div v-if="sao.tuHoa" class="mb-1.5">
         <span
           class="text-[10px] px-1.5 py-0.5 rounded font-bold"
-          :class="sao.tuHoa === 'ky' ? 'bg-red-900/50 text-red-400' : 'bg-amber-900/50 text-amber-400'"
+          :class="
+            sao.tuHoa === 'ky' ? 'bg-red-900/50 text-red-400' : 'bg-amber-900/50 text-amber-400'
+          "
         >
-          {{ sao.tuHoa === 'loc' ? 'Hóa Lộc' : sao.tuHoa === 'quyen' ? 'Hóa Quyền' : sao.tuHoa === 'khoa' ? 'Hóa Khoa' : 'Hóa Kỵ' }}
+          {{
+            sao.tuHoa === 'loc'
+              ? 'Hóa Lộc'
+              : sao.tuHoa === 'quyen'
+                ? 'Hóa Quyền'
+                : sao.tuHoa === 'khoa'
+                  ? 'Hóa Khoa'
+                  : 'Hóa Kỵ'
+          }}
         </span>
       </div>
 
       <!-- Mô tả -->
       <template v-if="info">
         <p class="text-[11px] text-text-secondary leading-relaxed">{{ info.moTa }}</p>
-        <p class="text-[11px] text-text-primary leading-relaxed mt-1 font-medium">{{ info.yNghia }}</p>
+        <p class="text-[11px] text-text-primary leading-relaxed mt-1 font-medium">
+          {{ info.yNghia }}
+        </p>
       </template>
 
       <!-- Âm Dương / Loại sao -->
       <div v-if="info && (info.amDuong || info.loai)" class="mt-1.5 text-[10px] text-text-dim">
         {{ info.amDuong === 'Dương' ? '☀ Dương' : info.amDuong === 'Âm' ? '☽ Âm' : '' }}
-        {{ info.loai === 'chinh_tinh' ? ' • Chính tinh' : info.loai === 'phu_tinh' ? ' • Phụ tinh' : info.loai === 'tu_hoa' ? ' • Tứ Hóa' : info.loai === 'luu_nien' ? ' ↻ Lưu niên' : '' }}
+        {{
+          info.loai === 'chinh_tinh'
+            ? ' • Chính tinh'
+            : info.loai === 'phu_tinh'
+              ? ' • Phụ tinh'
+              : info.loai === 'tu_hoa'
+                ? ' • Tứ Hóa'
+                : info.loai === 'luu_nien'
+                  ? ' ↻ Lưu niên'
+                  : ''
+        }}
       </div>
     </div>
   </div>

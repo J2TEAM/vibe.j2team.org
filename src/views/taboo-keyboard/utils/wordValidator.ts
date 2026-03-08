@@ -1,41 +1,41 @@
-import { WORDLIST } from "./wordlist";
+import { WORDLIST } from './wordlist'
 
-const API_URL = "https://api.dictionaryapi.dev/api/v2/entries/en/";
+const API_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en/'
 
 // In-memory cache for current session
-const sessionCache = new Map<string, boolean>();
+const sessionCache = new Map<string, boolean>()
 
 // LRU cache in sessionStorage (max 500 words)
-const LRU_KEY = "taboo_word_cache";
-const MAX_LRU_SIZE = 500;
+const LRU_KEY = 'taboo_word_cache'
+const MAX_LRU_SIZE = 500
 
 interface LRUEntry {
-  valid: boolean;
-  timestamp: number;
+  valid: boolean
+  timestamp: number
 }
 
 function getLRUCache(): Record<string, LRUEntry> {
   try {
-    const data = sessionStorage.getItem(LRU_KEY);
-    return data ? JSON.parse(data) : {};
+    const data = sessionStorage.getItem(LRU_KEY)
+    return data ? JSON.parse(data) : {}
   } catch {
-    return {};
+    return {}
   }
 }
 
 function setLRUCache(cache: Record<string, LRUEntry>): void {
   try {
-    const entries = Object.entries(cache);
+    const entries = Object.entries(cache)
     if (entries.length > MAX_LRU_SIZE) {
-      const sorted = entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
-      const toKeep = sorted.slice(-MAX_LRU_SIZE);
-      const newCache: Record<string, LRUEntry> = {};
+      const sorted = entries.sort((a, b) => a[1].timestamp - b[1].timestamp)
+      const toKeep = sorted.slice(-MAX_LRU_SIZE)
+      const newCache: Record<string, LRUEntry> = {}
       toKeep.forEach(([key, value]) => {
-        newCache[key] = value;
-      });
-      sessionStorage.setItem(LRU_KEY, JSON.stringify(newCache));
+        newCache[key] = value
+      })
+      sessionStorage.setItem(LRU_KEY, JSON.stringify(newCache))
     } else {
-      sessionStorage.setItem(LRU_KEY, JSON.stringify(cache));
+      sessionStorage.setItem(LRU_KEY, JSON.stringify(cache))
     }
   } catch {
     // sessionStorage might be full or disabled
@@ -43,85 +43,85 @@ function setLRUCache(cache: Record<string, LRUEntry>): void {
 }
 
 function getCachedWord(word: string): boolean | null {
-  const lower = word.toLowerCase();
+  const lower = word.toLowerCase()
 
   if (sessionCache.has(lower)) {
-    return sessionCache.get(lower) ?? null;
+    return sessionCache.get(lower) ?? null
   }
 
-  const lru = getLRUCache();
+  const lru = getLRUCache()
   if (lru[lower]) {
-    lru[lower].timestamp = Date.now();
-    setLRUCache(lru);
-    sessionCache.set(lower, lru[lower].valid);
-    return lru[lower].valid;
+    lru[lower].timestamp = Date.now()
+    setLRUCache(lru)
+    sessionCache.set(lower, lru[lower].valid)
+    return lru[lower].valid
   }
 
-  return null;
+  return null
 }
 
 function setCachedWord(word: string, valid: boolean): void {
-  const lower = word.toLowerCase();
-  sessionCache.set(lower, valid);
-  const lru = getLRUCache();
-  lru[lower] = { valid, timestamp: Date.now() };
-  setLRUCache(lru);
+  const lower = word.toLowerCase()
+  sessionCache.set(lower, valid)
+  const lru = getLRUCache()
+  lru[lower] = { valid, timestamp: Date.now() }
+  setLRUCache(lru)
 }
 
 function isInFallbackList(word: string): boolean {
-  return WORDLIST.includes(word.toLowerCase());
+  return WORDLIST.includes(word.toLowerCase())
 }
 
 interface ValidationResult {
-  valid: boolean;
-  reason: string;
-  fromCache?: boolean;
-  fallback?: boolean;
-  fallbackMessage?: string;
+  valid: boolean
+  reason: string
+  fromCache?: boolean
+  fallback?: boolean
+  fallbackMessage?: string
 }
 
 /**
  * Validate a word using Dictionary API
  */
 async function validateWithAPI(word: string): Promise<ValidationResult> {
-  const lower = word.toLowerCase();
+  const lower = word.toLowerCase()
 
   if (isInFallbackList(lower)) {
-    return { valid: true, reason: "", fromCache: false, fallback: true, fallbackMessage: "" };
+    return { valid: true, reason: '', fromCache: false, fallback: true, fallbackMessage: '' }
   }
 
-  const cached = getCachedWord(lower);
+  const cached = getCachedWord(lower)
   if (cached !== null) {
-    return { valid: cached, reason: cached ? "" : "Not a valid English word", fromCache: true };
+    return { valid: cached, reason: cached ? '' : 'Not a valid English word', fromCache: true }
   }
 
   try {
     const response = await fetch(`${API_URL}${lower}`, {
-      method: "GET",
-      headers: { Accept: "application/json" },
-    });
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    })
 
     if (response.ok) {
-      const data = await response.json();
+      const data = await response.json()
       if (Array.isArray(data) && data.length > 0) {
-        setCachedWord(lower, true);
-        return { valid: true, reason: "", fromCache: false };
+        setCachedWord(lower, true)
+        return { valid: true, reason: '', fromCache: false }
       }
     }
 
-    setCachedWord(lower, false);
-    return { valid: false, reason: "Not a valid English word", fromCache: false };
+    setCachedWord(lower, false)
+    return { valid: false, reason: 'Not a valid English word', fromCache: false }
   } catch {
     // API unavailable, check fallback
     if (isInFallbackList(lower)) {
-      return { valid: true, reason: "", fromCache: false, fallback: true };
+      return { valid: true, reason: '', fromCache: false, fallback: true }
     }
     return {
       valid: false,
-      reason: "Not found in word list (API unavailable)",
+      reason: 'Not found in word list (API unavailable)',
       fromCache: false,
       fallback: true,
-    };
+    }
   }
 }
 
@@ -134,26 +134,26 @@ function quickValidate(
   acceptedWords: string[],
 ): ValidationResult | null {
   if (!/^[a-zA-Z]+$/.test(word)) {
-    return { valid: false, reason: "Only letters A-Z allowed (no spaces or special characters)" };
+    return { valid: false, reason: 'Only letters A-Z allowed (no spaces or special characters)' }
   }
 
   if (word.length < 2) {
-    return { valid: false, reason: "Word must be at least 2 letters" };
+    return { valid: false, reason: 'Word must be at least 2 letters' }
   }
 
-  const upperWord = word.toUpperCase();
+  const upperWord = word.toUpperCase()
   for (const letter of bannedLetters) {
     if (upperWord.includes(letter)) {
-      return { valid: false, reason: `Contains banned letter "${letter}"` };
+      return { valid: false, reason: `Contains banned letter "${letter}"` }
     }
   }
 
-  const lower = word.toLowerCase();
+  const lower = word.toLowerCase()
   if (acceptedWords.includes(lower)) {
-    return { valid: false, reason: "Word already submitted" };
+    return { valid: false, reason: 'Word already submitted' }
   }
 
-  return null;
+  return null
 }
 
 /**
@@ -164,19 +164,19 @@ export async function validateWord(
   bannedLetters: string[],
   acceptedWords: string[],
 ): Promise<ValidationResult> {
-  const quickResult = quickValidate(word, bannedLetters, acceptedWords);
+  const quickResult = quickValidate(word, bannedLetters, acceptedWords)
   if (quickResult) {
-    return quickResult;
+    return quickResult
   }
 
-  const apiResult = await validateWithAPI(word);
+  const apiResult = await validateWithAPI(word)
   return {
     valid: apiResult.valid,
     reason: apiResult.reason,
     fromCache: apiResult.fromCache,
     fallback: apiResult.fallback,
     fallbackMessage: apiResult.fallbackMessage,
-  };
+  }
 }
 
 /**
@@ -187,5 +187,5 @@ export function preValidateWord(
   bannedLetters: string[],
   acceptedWords: string[],
 ): ValidationResult | null {
-  return quickValidate(word, bannedLetters, acceptedWords);
+  return quickValidate(word, bannedLetters, acceptedWords)
 }

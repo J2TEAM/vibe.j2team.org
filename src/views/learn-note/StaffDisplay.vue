@@ -12,10 +12,10 @@ const props = defineProps<{
 // SVG viewBox: width=280, height=180
 // 5 staff lines, spaced STEP apart
 // Lines at y = LINE_Y[0..4]
-const STEP = 10        // half-step distance between adjacent note positions
-const STAFF_LEFT = 60  // x where staff lines start
+const STEP = 10 // half-step distance between adjacent note positions
+const STAFF_LEFT = 60 // x where staff lines start
 const STAFF_RIGHT = 260
-const NOTE_X = 170     // x position of the note head
+const NOTE_X = 170 // x position of the note head
 const LINE_Y = [55, 65, 75, 85, 95] // y of staff lines (top to bottom)
 
 // ─── Position mapping ──────────────────────────────────────────────────
@@ -46,7 +46,13 @@ const LINE_Y = [55, 65, 75, 85, 95] // y of staff lines (top to bottom)
 
 // Diatonic note order: C=0, D=1, E=2, F=3, G=4, A=5, B=6
 const DIATONIC_INDEX: Record<string, number> = {
-  C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6,
+  C: 0,
+  D: 1,
+  E: 2,
+  F: 3,
+  G: 4,
+  A: 5,
+  B: 6,
 }
 
 // Reference note for treble clef: bottom line = E4 → diatonic position = E4
@@ -59,7 +65,7 @@ function diatonicPos(note: NoteInfo): number {
 // Bass clef:   bottom line (line1) = G2 → diatonicPos(G2) = 2*7+4 = 18
 const CLEF_BOTTOM_LINE_POS: Record<Clef, number> = {
   treble: 4 * 7 + 2, // E4 = 30
-  bass: 2 * 7 + 4,   // G2 = 18
+  bass: 2 * 7 + 4, // G2 = 18
 }
 
 // Bottom staff line in SVG is LINE_Y[4] = 95
@@ -68,7 +74,7 @@ function noteY(note: NoteInfo, clef: Clef): number {
   const bottomPos = CLEF_BOTTOM_LINE_POS[clef]
   const notePos = diatonicPos(note)
   const stepsFromBottom = notePos - bottomPos
-  return LINE_Y[4]! - stepsFromBottom * STEP / 2
+  return LINE_Y[4]! - (stepsFromBottom * STEP) / 2
 }
 
 // ─── Ledger lines ──────────────────────────────────────────────────────
@@ -81,18 +87,18 @@ function noteY(note: NoteInfo, clef: Clef): number {
 function ledgerLines(note: NoteInfo, clef: Clef): number[] {
   const bottomPos = CLEF_BOTTOM_LINE_POS[clef]
   const notePos = diatonicPos(note)
-  const steps = notePos - bottomPos  // steps from bottom line
+  const steps = notePos - bottomPos // steps from bottom line
   const ys: number[] = []
 
   if (steps < 0) {
     // below staff: ledger lines at steps -2, -4, -6, ... down to steps
     for (let s = -2; s >= steps; s -= 2) {
-      ys.push(LINE_Y[4]! - s * STEP / 2)
+      ys.push(LINE_Y[4]! - (s * STEP) / 2)
     }
   } else if (steps > 8) {
     // above staff: ledger lines at steps 10, 12, ... up to steps
     for (let s = 10; s <= steps; s += 2) {
-      ys.push(LINE_Y[4]! - s * STEP / 2)
+      ys.push(LINE_Y[4]! - (s * STEP) / 2)
     }
   }
 
@@ -103,8 +109,8 @@ function ledgerLines(note: NoteInfo, clef: Clef): number[] {
 }
 
 // ─── Computed ──────────────────────────────────────────────────────────
-const ny = computed(() => props.note ? noteY(props.note, props.clef) : 60)
-const ledgers = computed(() => props.note ? ledgerLines(props.note, props.clef) : [])
+const ny = computed(() => (props.note ? noteY(props.note, props.clef) : 60))
+const ledgers = computed(() => (props.note ? ledgerLines(props.note, props.clef) : []))
 
 const noteColor = computed(() => {
   if (props.feedback === null) return '#F0EDE6'
@@ -115,7 +121,7 @@ const noteColor = computed(() => {
 // If note is above middle line (B4 treble / D3 bass), stem goes down; else up
 const MIDDLE_LINE_POS: Record<Clef, number> = {
   treble: 4 * 7 + 6, // B4 = 34
-  bass: 3 * 7 + 1,   // D3 = 22
+  bass: 3 * 7 + 1, // D3 = 22
 }
 
 const stemDown = computed(() => {
@@ -124,9 +130,9 @@ const stemDown = computed(() => {
   return diatonicPos(props.note) >= mid
 })
 
-const stemX = computed(() => stemDown.value ? NOTE_X + 6 : NOTE_X - 6)
+const stemX = computed(() => (stemDown.value ? NOTE_X + 6 : NOTE_X - 6))
 const stemY1 = computed(() => ny.value + (stemDown.value ? 5 : -5))
-const stemY2 = computed(() => stemDown.value ? ny.value + 32 : ny.value - 32)
+const stemY2 = computed(() => (stemDown.value ? ny.value + 32 : ny.value - 32))
 
 // Accidental symbol offset
 const accidentalText = computed(() => {
@@ -210,14 +216,7 @@ const accidentalText = computed(() => {
     </g>
 
     <!-- Bar line at start -->
-    <line
-      :x1="STAFF_LEFT"
-      y1="55"
-      :x2="STAFF_LEFT"
-      y2="95"
-      stroke="#253549"
-      stroke-width="2"
-    />
+    <line :x1="STAFF_LEFT" y1="55" :x2="STAFF_LEFT" y2="95" stroke="#253549" stroke-width="2" />
 
     <!-- Ledger lines -->
     <line

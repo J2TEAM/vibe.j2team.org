@@ -123,21 +123,32 @@
         >
           <div class="flex-1">
             <p class="text-text-secondary w-full text-sm leading-relaxed mb-3">
-              Kết hợp Lofi Radio và 12 loại âm thanh môi trường siêu mềm (Soft Noise) được thiết kế đặc biệt giúp thư giãn sâu.
+              Kết hợp Lofi Radio và 12 loại âm thanh môi trường siêu mềm (Soft Noise) được thiết kế
+              đặc biệt giúp thư giãn sâu.
             </p>
             <!-- Mode Switcher -->
-            <div class="flex items-center gap-1 bg-bg-deep p-1 rounded border border-border-default inline-flex">
-              <button 
+            <div
+              class="flex items-center gap-1 bg-bg-deep p-1 rounded border border-border-default inline-flex"
+            >
+              <button
                 @click="ambientMode = 'relax'"
                 class="px-4 py-1.5 text-xs font-display font-medium rounded transition-all"
-                :class="ambientMode === 'relax' ? 'bg-bg-surface text-accent-sky shadow border border-text-dim/20' : 'text-text-dim hover:text-text-primary'"
+                :class="
+                  ambientMode === 'relax'
+                    ? 'bg-bg-surface text-accent-sky shadow border border-text-dim/20'
+                    : 'text-text-dim hover:text-text-primary'
+                "
               >
                 Chill
               </button>
-              <button 
+              <button
                 @click="ambientMode = 'chill'"
                 class="px-4 py-1.5 text-xs font-display font-medium rounded transition-all flex items-center gap-1"
-                :class="ambientMode === 'chill' ? 'bg-bg-surface text-accent-amber shadow border border-text-dim/20' : 'text-text-dim hover:text-text-primary'"
+                :class="
+                  ambientMode === 'chill'
+                    ? 'bg-bg-surface text-accent-amber shadow border border-text-dim/20'
+                    : 'text-text-dim hover:text-text-primary'
+                "
               >
                 Rick Roll
               </button>
@@ -210,7 +221,7 @@
                 >
                   {{ sound.isPlaying ? '⏸' : '▶' }}
                 </button>
-                
+
                 <!-- RELAX MODE: Normal Slider -->
                 <input
                   v-if="ambientMode === 'relax'"
@@ -230,18 +241,29 @@
                   @click.stop="rollDice(sound)"
                   class="flex-1 h-6 flex items-center justify-center bg-bg-deep rounded border transition-all duration-300 relative overflow-hidden"
                   :class="[
-                    sound.isRolling ? 'border-accent-coral animate-pulse scale-105 shadow-[0_0_10px_rgba(255,107,74,0.2)]' : 'border-border-default hover:border-text-dim/50 cursor-pointer',
-                    sound.isPlaying ? themeStyles[sound.theme].text : 'text-text-dim'
+                    sound.isRolling
+                      ? 'border-accent-coral animate-pulse scale-105 shadow-[0_0_10px_rgba(255,107,74,0.2)]'
+                      : 'border-border-default hover:border-text-dim/50 cursor-pointer',
+                    sound.isPlaying ? themeStyles[sound.theme].text : 'text-text-dim',
                   ]"
                   :title="'Thử nhân phẩm âm lượng: ' + Math.round(sound.volume * 100) + '%'"
                   :disabled="!sound.isPlaying"
                 >
-                   <span class="mr-2 text-xs font-display font-medium min-w-[32px] text-right transition-opacity" :class="sound.isPlaying ? 'opacity-100' : 'opacity-40'">
-                     {{ sound.isRolling ? '...' : Math.round(sound.volume * 100) + '%' }}
-                   </span>
-                   <span class="text-[14px] transition-transform duration-300" :class="{ 'animate-[spin_0.2s_linear_infinite]': sound.isRolling, 'opacity-40 grayscale': !sound.isPlaying }">
-                     🎲
-                   </span>
+                  <span
+                    class="mr-2 text-xs font-display font-medium min-w-[32px] text-right transition-opacity"
+                    :class="sound.isPlaying ? 'opacity-100' : 'opacity-40'"
+                  >
+                    {{ sound.isRolling ? '...' : Math.round(sound.volume * 100) + '%' }}
+                  </span>
+                  <span
+                    class="text-[14px] transition-transform duration-300"
+                    :class="{
+                      'animate-[spin_0.2s_linear_infinite]': sound.isRolling,
+                      'opacity-40 grayscale': !sound.isPlaying,
+                    }"
+                  >
+                    🎲
+                  </span>
                 </button>
               </div>
             </div>
@@ -1120,13 +1142,13 @@ const onVolumeChange = (sound: SoundState) => {
 const rollDice = (sound: SoundState) => {
   if (!sound.isPlaying || sound.isRolling) return
   sound.isRolling = true
-  
+
   // Cục xí ngầu lắc lắc 1 giây
   window.setTimeout(() => {
     // Random volume từ 1% đến 100%
     const randomVolume = Math.max(0.01, Math.random())
     sound.volume = randomVolume
-    
+
     // Cập nhật âm thanh thực tế
     onVolumeChange(sound)
     sound.isRolling = false

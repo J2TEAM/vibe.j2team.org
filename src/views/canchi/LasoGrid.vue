@@ -37,10 +37,18 @@ const CUNG_EDGE_POINT: Record<number, { x: number; y: number }> = {
 }
 
 const GRID_POSITIONS: Record<number, [number, number]> = {
-  6: [0, 0], 7: [0, 1], 8: [0, 2], 9: [0, 3],
-  5: [1, 0],                       10: [1, 3],
-  4: [2, 0],                       11: [2, 3],
-  3: [3, 0], 2: [3, 1], 1: [3, 2], 12: [3, 3],
+  6: [0, 0],
+  7: [0, 1],
+  8: [0, 2],
+  9: [0, 3],
+  5: [1, 0],
+  10: [1, 3],
+  4: [2, 0],
+  11: [2, 3],
+  3: [3, 0],
+  2: [3, 1],
+  1: [3, 2],
+  12: [3, 3],
 }
 
 function getCungXung(viTri: number): number {
@@ -63,10 +71,10 @@ function getHighlight(viTri: number): 'in-tam-phuong' | 'dimmed' | null {
 
 function getCungByPosition(row: number, col: number) {
   const cungNum = Object.entries(GRID_POSITIONS).find(
-    ([, pos]) => pos[0] === row && pos[1] === col
+    ([, pos]) => pos[0] === row && pos[1] === col,
   )?.[0]
   if (!cungNum) return null
-  return props.laso.cung.find(c => c.viTri === parseInt(cungNum))
+  return props.laso.cung.find((c) => c.viTri === parseInt(cungNum))
 }
 
 function getCanChiNam(nam: number): { can: number; chi: number } {
@@ -128,12 +136,12 @@ const gridBadges = computed(() => {
 })
 
 // Row data
-const row0 = computed(() => [0, 1, 2, 3].map(col => getCungByPosition(0, col)).filter(Boolean))
+const row0 = computed(() => [0, 1, 2, 3].map((col) => getCungByPosition(0, col)).filter(Boolean))
 const cung5 = computed(() => getCungByPosition(1, 0))
 const cung10 = computed(() => getCungByPosition(1, 3))
 const cung4 = computed(() => getCungByPosition(2, 0))
 const cung11 = computed(() => getCungByPosition(2, 3))
-const row3 = computed(() => [0, 1, 2, 3].map(col => getCungByPosition(3, col)).filter(Boolean))
+const row3 = computed(() => [0, 1, 2, 3].map((col) => getCungByPosition(3, col)).filter(Boolean))
 
 // Center panel data
 const namXem = computed(() => props.laso.input.namXem || new Date().getFullYear())
@@ -169,14 +177,43 @@ onUnmounted(() => {
 <template>
   <div class="w-full max-w-5xl mx-auto space-y-4">
     <!-- Action buttons -->
-    <LegendPanel :laso="laso" :grid-el="gridRef" :ten="ten" mode="buttons" @toggle-legend="showLegend = !showLegend">
+    <LegendPanel
+      :laso="laso"
+      :grid-el="gridRef"
+      :ten="ten"
+      mode="buttons"
+      @toggle-legend="showLegend = !showLegend"
+    >
       <template #legend-icon>
         <template v-if="showLegend">
-          <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+          <svg
+            class="w-3.5 h-3.5"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
           Ẩn chú thích
         </template>
         <template v-else>
-          <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
+          <svg
+            class="w-3.5 h-3.5"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+          </svg>
           Chú thích
         </template>
       </template>
@@ -196,7 +233,11 @@ onUnmounted(() => {
       @tieu-han-click="hoveredCung = $event"
     />
 
-    <div ref="scalerRef" class="laso-grid-scaler" :style="{ height: scaledHeight ? `${scaledHeight}px` : undefined }">
+    <div
+      ref="scalerRef"
+      class="laso-grid-scaler"
+      :style="{ height: scaledHeight ? `${scaledHeight}px` : undefined }"
+    >
       <div
         ref="gridRef"
         class="laso-grid relative"
@@ -225,7 +266,11 @@ onUnmounted(() => {
         <!-- Center panel (2×2) -->
         <div class="laso-center">
           <p class="text-base text-center text-text-secondary">CanChi</p>
-          <h1 class="text-2xl font-display font-bold text-center uppercase tracking-wide text-accent-coral">Lá Số CanChi</h1>
+          <h1
+            class="text-2xl font-display font-bold text-center uppercase tracking-wide text-accent-coral"
+          >
+            Lá Số CanChi
+          </h1>
           <hr class="border-border-default w-1/2 mx-auto my-1" />
 
           <div class="space-y-1.5 text-base">
@@ -237,7 +282,12 @@ onUnmounted(() => {
               <span class="text-text-secondary">Năm</span>
               <span class="font-semibold">
                 {{ laso.input.namDuong || laso.input.namAm }}
-                <span v-if="laso.input.namDuong && laso.input.namDuong !== laso.input.namAm" class="text-text-secondary"> ({{ laso.input.namAm }})</span>
+                <span
+                  v-if="laso.input.namDuong && laso.input.namDuong !== laso.input.namAm"
+                  class="text-text-secondary"
+                >
+                  ({{ laso.input.namAm }})</span
+                >
               </span>
               <span class="font-bold">{{ formatCanChi(laso.canNam, laso.chiNam) }}</span>
             </div>
@@ -245,7 +295,12 @@ onUnmounted(() => {
               <span class="text-text-secondary">Tháng</span>
               <span class="font-semibold">
                 {{ laso.input.thangDuong || laso.input.thangAm }}
-                <span v-if="laso.input.thangDuong && laso.input.thangDuong !== laso.input.thangAm" class="text-text-secondary"> ({{ laso.input.thangAm }})</span>
+                <span
+                  v-if="laso.input.thangDuong && laso.input.thangDuong !== laso.input.thangAm"
+                  class="text-text-secondary"
+                >
+                  ({{ laso.input.thangAm }})</span
+                >
               </span>
               <span class="font-bold">{{ formatCanChi(laso.canThang, laso.chiThang) }}</span>
             </div>
@@ -253,20 +308,31 @@ onUnmounted(() => {
               <span class="text-text-secondary">Ngày</span>
               <span class="font-semibold">
                 {{ laso.input.ngayDuong || laso.input.ngayAm }}
-                <span v-if="laso.input.ngayDuong && laso.input.ngayDuong !== laso.input.ngayAm" class="text-text-secondary"> ({{ laso.input.ngayAm }})</span>
+                <span
+                  v-if="laso.input.ngayDuong && laso.input.ngayDuong !== laso.input.ngayAm"
+                  class="text-text-secondary"
+                >
+                  ({{ laso.input.ngayAm }})</span
+                >
               </span>
-              <span class="font-bold">{{ laso.canNgay > 0 ? formatCanChi(laso.canNgay, laso.chiNgay) : '-' }}</span>
+              <span class="font-bold">{{
+                laso.canNgay > 0 ? formatCanChi(laso.canNgay, laso.chiNgay) : '-'
+              }}</span>
             </div>
             <div class="grid grid-cols-3 gap-2">
               <span class="text-text-secondary">Giờ</span>
               <span class="font-semibold">{{ getGioTimeRange(laso.input.gio) }}</span>
-              <span class="font-bold">{{ laso.canGio > 0 ? formatCanChi(laso.canGio, laso.chiGio) : CUNG_NAMES[laso.chiGio] }}</span>
+              <span class="font-bold">{{
+                laso.canGio > 0 ? formatCanChi(laso.canGio, laso.chiGio) : CUNG_NAMES[laso.chiGio]
+              }}</span>
             </div>
             <div class="grid grid-cols-3 gap-2">
               <span class="text-text-secondary">Năm xem</span>
               <span class="font-semibold">{{ namXem }}</span>
               <div class="flex flex-col">
-                <span class="font-bold">{{ formatCanChi(canChiNamXem.can, canChiNamXem.chi) }}</span>
+                <span class="font-bold">{{
+                  formatCanChi(canChiNamXem.can, canChiNamXem.chi)
+                }}</span>
                 <span class="font-bold">{{ laso.tuoiHan }} tuổi</span>
               </div>
             </div>
@@ -278,8 +344,12 @@ onUnmounted(() => {
             <div class="grid grid-cols-3 gap-2">
               <span class="text-text-secondary">Âm Dương</span>
               <div class="col-span-2 flex flex-col">
-                <span class="font-bold">{{ laso.amDuong }} {{ laso.input.gioiTinh === 'nam' ? 'Nam' : 'Nữ' }}</span>
-                <span class="font-bold">{{ laso.isNghichLy ? 'Âm dương nghịch lý' : 'Âm dương thuận lý' }}</span>
+                <span class="font-bold"
+                  >{{ laso.amDuong }} {{ laso.input.gioiTinh === 'nam' ? 'Nam' : 'Nữ' }}</span
+                >
+                <span class="font-bold">{{
+                  laso.isNghichLy ? 'Âm dương nghịch lý' : 'Âm dương thuận lý'
+                }}</span>
               </div>
             </div>
             <div class="grid grid-cols-3 gap-2">
@@ -297,22 +367,43 @@ onUnmounted(() => {
 
           <!-- Tam Phương lines SVG -->
           <svg
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; overflow: visible;"
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              pointer-events: none;
+              z-index: 5;
+              overflow: visible;
+            "
           >
             <line
-              :x1="`${edgeToCung.x}%`" :y1="`${edgeToCung.y}%`"
-              :x2="`${edgeToXung.x}%`" :y2="`${edgeToXung.y}%`"
-              stroke="#FF6B4A" stroke-width="2" opacity="0.6"
+              :x1="`${edgeToCung.x}%`"
+              :y1="`${edgeToCung.y}%`"
+              :x2="`${edgeToXung.x}%`"
+              :y2="`${edgeToXung.y}%`"
+              stroke="#FF6B4A"
+              stroke-width="2"
+              opacity="0.6"
             />
             <line
-              :x1="`${edgeToCung.x}%`" :y1="`${edgeToCung.y}%`"
-              :x2="`${edgeToTamHop1.x}%`" :y2="`${edgeToTamHop1.y}%`"
-              stroke="#38BDF8" stroke-width="1.5" opacity="0.5"
+              :x1="`${edgeToCung.x}%`"
+              :y1="`${edgeToCung.y}%`"
+              :x2="`${edgeToTamHop1.x}%`"
+              :y2="`${edgeToTamHop1.y}%`"
+              stroke="#38BDF8"
+              stroke-width="1.5"
+              opacity="0.5"
             />
             <line
-              :x1="`${edgeToCung.x}%`" :y1="`${edgeToCung.y}%`"
-              :x2="`${edgeToTamHop2.x}%`" :y2="`${edgeToTamHop2.y}%`"
-              stroke="#38BDF8" stroke-width="1.5" opacity="0.5"
+              :x1="`${edgeToCung.x}%`"
+              :y1="`${edgeToCung.y}%`"
+              :x2="`${edgeToTamHop2.x}%`"
+              :y2="`${edgeToTamHop2.y}%`"
+              stroke="#38BDF8"
+              stroke-width="1.5"
+              opacity="0.5"
             />
           </svg>
         </div>
@@ -371,8 +462,14 @@ onUnmounted(() => {
             class="hidden group-hover:block absolute bottom-full mb-1.5 w-56 p-2 bg-bg-elevated text-text-secondary text-[11px] font-normal border border-border-default shadow-lg leading-relaxed whitespace-normal"
             :style="{ zIndex: 60, left: '50%', transform: 'translateX(-50%)', maxWidth: '14rem' }"
           >
-            <p v-if="b.label.includes('Triệt')"><b>Triệt lộ:</b> Vùng bị cắt đứt, sao trong cung bị giảm lực. Gặp cát tinh thì giảm tốt, gặp hung tinh thì giảm xấu.</p>
-            <p v-if="b.label.includes('Tuần')" :class="{ 'mt-1': b.label.includes('Triệt') }"><b>Tuần trung:</b> Vùng ẩn tàng, sao bị che khuất. Hung tinh gặp Tuần thì bớt hung, cát tinh gặp Tuần thì chậm phát.</p>
+            <p v-if="b.label.includes('Triệt')">
+              <b>Triệt lộ:</b> Vùng bị cắt đứt, sao trong cung bị giảm lực. Gặp cát tinh thì giảm
+              tốt, gặp hung tinh thì giảm xấu.
+            </p>
+            <p v-if="b.label.includes('Tuần')" :class="{ 'mt-1': b.label.includes('Triệt') }">
+              <b>Tuần trung:</b> Vùng ẩn tàng, sao bị che khuất. Hung tinh gặp Tuần thì bớt hung,
+              cát tinh gặp Tuần thì chậm phát.
+            </p>
           </div>
         </div>
       </div>

@@ -183,7 +183,7 @@ export class HUD {
 
     ctx.font = '20px monospace'
     ctx.fillStyle = '#FFD700'
-    ctx.fillText(`Final Score: ${score}`, this.width / 2, h * 0.50)
+    ctx.fillText(`Final Score: ${score}`, this.width / 2, h * 0.5)
 
     // Stars animation
     const time = Date.now() / 1000

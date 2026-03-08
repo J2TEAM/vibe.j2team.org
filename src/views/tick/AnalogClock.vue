@@ -45,22 +45,17 @@ const minuteMarkers = Array.from({ length: 60 }, (_, i) => {
       class="w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] mx-auto"
     >
       <!-- Face -->
-      <circle
-        cx="100" cy="100" r="92"
-        fill="none"
-        stroke="#253549"
-        stroke-width="1.5"
-      />
-      <circle
-        cx="100" cy="100" r="91"
-        fill="#162232"
-      />
+      <circle cx="100" cy="100" r="92" fill="none" stroke="#253549" stroke-width="1.5" />
+      <circle cx="100" cy="100" r="91" fill="#162232" />
 
       <!-- Minute ticks -->
       <line
         v-for="(m, i) in minuteMarkers"
         :key="'m' + i"
-        :x1="m!.x1" :y1="m!.y1" :x2="m!.x2" :y2="m!.y2"
+        :x1="m!.x1"
+        :y1="m!.y1"
+        :x2="m!.x2"
+        :y2="m!.y2"
         stroke="#4A6180"
         stroke-width="0.5"
       />
@@ -69,8 +64,10 @@ const minuteMarkers = Array.from({ length: 60 }, (_, i) => {
       <line
         v-for="(marker, i) in hourMarkers"
         :key="'h' + i"
-        :x1="marker.x1" :y1="marker.y1"
-        :x2="marker.x2" :y2="marker.y2"
+        :x1="marker.x1"
+        :y1="marker.y1"
+        :x2="marker.x2"
+        :y2="marker.y2"
         :stroke="marker.isMain ? '#FF6B4A' : '#8B9DB5'"
         :stroke-width="marker.isMain ? 2.5 : 1"
         stroke-linecap="butt"
@@ -78,17 +75,41 @@ const minuteMarkers = Array.from({ length: 60 }, (_, i) => {
 
       <!-- Hour hand -->
       <g class="clock-hand" :style="{ transform: `rotate(${hourAngle}deg)` }">
-        <line x1="100" y1="105" x2="100" y2="50" stroke="#F0EDE6" stroke-width="3.5" stroke-linecap="butt" />
+        <line
+          x1="100"
+          y1="105"
+          x2="100"
+          y2="50"
+          stroke="#F0EDE6"
+          stroke-width="3.5"
+          stroke-linecap="butt"
+        />
       </g>
 
       <!-- Minute hand -->
       <g class="clock-hand" :style="{ transform: `rotate(${minuteAngle}deg)` }">
-        <line x1="100" y1="105" x2="100" y2="32" stroke="#F0EDE6" stroke-width="2" stroke-linecap="butt" />
+        <line
+          x1="100"
+          y1="105"
+          x2="100"
+          y2="32"
+          stroke="#F0EDE6"
+          stroke-width="2"
+          stroke-linecap="butt"
+        />
       </g>
 
       <!-- Second hand -->
       <g class="clock-hand" :style="{ transform: `rotate(${secondAngle}deg)` }">
-        <line x1="100" y1="115" x2="100" y2="24" stroke="#FF6B4A" stroke-width="1" stroke-linecap="butt" />
+        <line
+          x1="100"
+          y1="115"
+          x2="100"
+          y2="24"
+          stroke="#FF6B4A"
+          stroke-width="1"
+          stroke-linecap="butt"
+        />
         <circle cx="100" cy="115" r="2.5" fill="#FF6B4A" />
       </g>
 

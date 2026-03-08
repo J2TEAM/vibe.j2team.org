@@ -1,6 +1,15 @@
 import { TILE_SIZE } from '../engine/Physics'
 import type { LevelData } from './levels'
-import { isSolid, isQuestion, isLethal, QUESTION_COIN, QUESTION_MUSH, QUESTION_STAR, EMPTY, GROUND } from './Tile'
+import {
+  isSolid,
+  isQuestion,
+  isLethal,
+  QUESTION_COIN,
+  QUESTION_MUSH,
+  QUESTION_STAR,
+  EMPTY,
+  GROUND,
+} from './Tile'
 
 // Used question blocks become GROUND+100 to mark them as "used"
 const USED_OFFSET = 100

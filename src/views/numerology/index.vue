@@ -1,110 +1,110 @@
 <script setup lang="ts">
-import { RouterLink } from "vue-router";
-import { ref, computed } from "vue";
+import { RouterLink } from 'vue-router'
+import { ref, computed } from 'vue'
 
 // Tác giả: Your Name
-const fullName = ref("");
-const birthDate = ref("");
-const activeTab = ref("basic");
-const showResult = ref(false);
+const fullName = ref('')
+const birthDate = ref('')
+const activeTab = ref('basic')
+const showResult = ref(false)
 
 // Interface cho kết quả
 interface NumerologyResult {
-  lifePath: number;
-  attitude: number;
-  destiny: number;
-  soulUrge: number;
-  personality: number;
-  lifePathMeaning: NumberMeaning;
-  attitudeMeaning: NumberMeaning;
-  destinyMeaning: NumberMeaning;
-  soulUrgeMeaning: NumberMeaning;
-  personalityMeaning: NumberMeaning;
+  lifePath: number
+  attitude: number
+  destiny: number
+  soulUrge: number
+  personality: number
+  lifePathMeaning: NumberMeaning
+  attitudeMeaning: NumberMeaning
+  destinyMeaning: NumberMeaning
+  soulUrgeMeaning: NumberMeaning
+  personalityMeaning: NumberMeaning
 }
 
 interface NumberMeaning {
-  title: string;
-  description: string;
-  positive: string;
-  negative: string;
+  title: string
+  description: string
+  positive: string
+  negative: string
 }
 
 // Hàm tính tổng các chữ số (rút gọn về 1-9, trừ 11,22,33)
 const reduceNumber = (num: number): number => {
-  if (num === 11 || num === 22 || num === 33) return num;
-  let result = num;
+  if (num === 11 || num === 22 || num === 33) return num
+  let result = num
   while (result > 9) {
     result = result
       .toString()
-      .split("")
-      .reduce((sum, digit) => sum + parseInt(digit), 0);
+      .split('')
+      .reduce((sum, digit) => sum + parseInt(digit), 0)
   }
-  return result;
-};
+  return result
+}
 
 // Tính chỉ số đường đời từ ngày sinh
 const calculateLifePath = (date: string): number => {
-  if (!date) return 0;
+  if (!date) return 0
 
   try {
-    const [year, month, day] = date.split("-").map(Number);
+    const [year, month, day] = date.split('-').map(Number)
 
     // Kiểm tra nếu có giá trị undefined hoặc NaN
-    if (!day || !month || !year || isNaN(day) || isNaN(month) || isNaN(year)) return 0;
+    if (!day || !month || !year || isNaN(day) || isNaN(month) || isNaN(year)) return 0
 
-    const sum = day + month + year;
-    return reduceNumber(sum);
+    const sum = day + month + year
+    return reduceNumber(sum)
   } catch (error) {
-    console.error("Lỗi khi tính chỉ số đường đời:", error);
-    return 0;
+    console.error('Lỗi khi tính chỉ số đường đời:', error)
+    return 0
   }
-};
+}
 
 // Tính chỉ số thái độ từ ngày sinh (ngày + tháng)
 const calculateAttitude = (date: string): number => {
-  if (!date) return 0;
+  if (!date) return 0
 
   try {
-    const [year, month, day] = date.split("-").map(Number);
+    const [year, month, day] = date.split('-').map(Number)
 
-    if (!day || !month || !year || isNaN(day) || isNaN(month) || isNaN(year)) return 0;
+    if (!day || !month || !year || isNaN(day) || isNaN(month) || isNaN(year)) return 0
 
-    const sum = day + month;
-    return reduceNumber(sum);
+    const sum = day + month
+    return reduceNumber(sum)
   } catch (error) {
-    console.error("Lỗi khi tính chỉ số thái độ:", error);
-    return 0;
+    console.error('Lỗi khi tính chỉ số thái độ:', error)
+    return 0
   }
-};
+}
 
 // Tính chỉ số linh hồn (nguyên âm)
 const calculateSoulUrge = (name: string): number => {
-  if (!name) return 0;
+  if (!name) return 0
 
-  const vowels = ["a", "e", "i", "o", "u"];
+  const vowels = ['a', 'e', 'i', 'o', 'u']
   const vowelValues: Record<string, number> = {
     a: 1,
     e: 5,
     i: 9,
     o: 6,
     u: 3,
-  };
+  }
 
   const sum = name
     .toLowerCase()
-    .split("")
+    .split('')
     .filter((char) => vowels.includes(char))
     .map((char) => vowelValues[char] || 0)
-    .reduce((acc, val) => acc + val, 0);
+    .reduce((acc, val) => acc + val, 0)
 
-  return sum > 0 ? reduceNumber(sum) : 0;
-};
+  return sum > 0 ? reduceNumber(sum) : 0
+}
 
 // Tính chỉ số nhân cách (phụ âm)
 const calculatePersonality = (name: string): number => {
-  if (!name) return 0;
+  if (!name) return 0
 
-  const vowels = ["a", "e", "i", "o", "u"];
+  const vowels = ['a', 'e', 'i', 'o', 'u']
   const consonantValues: Record<string, number> = {
     b: 2,
     c: 3,
@@ -127,120 +127,120 @@ const calculatePersonality = (name: string): number => {
     x: 6,
     y: 7,
     z: 8,
-  };
+  }
 
   const sum = name
     .toLowerCase()
-    .split("")
+    .split('')
     .filter((char) => char.match(/[a-z]/) && !vowels.includes(char))
     .map((char) => consonantValues[char] || 0)
-    .reduce((acc, val) => acc + val, 0);
+    .reduce((acc, val) => acc + val, 0)
 
-  return sum > 0 ? reduceNumber(sum) : 0;
-};
+  return sum > 0 ? reduceNumber(sum) : 0
+}
 
 // Tính chỉ số sứ mệnh (tổng các chữ cái)
 const calculateDestiny = (name: string): number => {
-  if (!name) return 0;
+  if (!name) return 0
 
   const sum = name
     .toLowerCase()
-    .split("")
+    .split('')
     .filter((char) => char.match(/[a-z]/))
     .map((char) => char.charCodeAt(0) - 96)
-    .reduce((acc, val) => acc + val, 0);
+    .reduce((acc, val) => acc + val, 0)
 
-  return sum > 0 ? reduceNumber(sum) : 0;
-};
+  return sum > 0 ? reduceNumber(sum) : 0
+}
 
 // Dữ liệu ý nghĩa các chỉ số
 const numberMeanings: Record<number, NumberMeaning> = {
   1: {
-    title: "Nhà Lãnh Đạo",
-    description: "Độc lập, sáng tạo, quyết đoán",
-    positive: "Tiên phong, tự tin, ý chí mạnh mẽ",
-    negative: "Ích kỷ, độc đoán, dễ nóng giận",
+    title: 'Nhà Lãnh Đạo',
+    description: 'Độc lập, sáng tạo, quyết đoán',
+    positive: 'Tiên phong, tự tin, ý chí mạnh mẽ',
+    negative: 'Ích kỷ, độc đoán, dễ nóng giận',
   },
   2: {
-    title: "Nhà Ngoại Giao",
-    description: "Nhạy cảm, hợp tác, cân bằng",
-    positive: "Khéo léo, kiên nhẫn, trực giác tốt",
-    negative: "Nhút nhát, dễ bị ảnh hưởng, thụ động",
+    title: 'Nhà Ngoại Giao',
+    description: 'Nhạy cảm, hợp tác, cân bằng',
+    positive: 'Khéo léo, kiên nhẫn, trực giác tốt',
+    negative: 'Nhút nhát, dễ bị ảnh hưởng, thụ động',
   },
   3: {
-    title: "Người Truyền Cảm Hứng",
-    description: "Sáng tạo, lạc quan, giao tiếp",
-    positive: "Hài hước, nghệ thuật, cuốn hút",
-    negative: "Phân tán, kịch tính, thiếu tập trung",
+    title: 'Người Truyền Cảm Hứng',
+    description: 'Sáng tạo, lạc quan, giao tiếp',
+    positive: 'Hài hước, nghệ thuật, cuốn hút',
+    negative: 'Phân tán, kịch tính, thiếu tập trung',
   },
   4: {
-    title: "Người Thực Tế",
-    description: "Kỷ luật, đáng tin cậy, truyền thống",
-    positive: "Chăm chỉ, trung thành, nguyên tắc",
-    negative: "Cứng nhắc, bảo thủ, thiếu linh hoạt",
+    title: 'Người Thực Tế',
+    description: 'Kỷ luật, đáng tin cậy, truyền thống',
+    positive: 'Chăm chỉ, trung thành, nguyên tắc',
+    negative: 'Cứng nhắc, bảo thủ, thiếu linh hoạt',
   },
   5: {
-    title: "Người Tự Do",
-    description: "Linh hoạt, phiêu lưu, thích nghi",
-    positive: "Đa tài, tò mò, dễ thích nghi",
-    negative: "Bồn chồn, thiếu trách nhiệm, bốc đồng",
+    title: 'Người Tự Do',
+    description: 'Linh hoạt, phiêu lưu, thích nghi',
+    positive: 'Đa tài, tò mò, dễ thích nghi',
+    negative: 'Bồn chồn, thiếu trách nhiệm, bốc đồng',
   },
   6: {
-    title: "Người Yêu Thương",
-    description: "Trách nhiệm, quan tâm, hài hòa",
-    positive: "Ấm áp, vị tha, nghệ thuật",
-    negative: "Bao biện, hay lo lắng, thích kiểm soát",
+    title: 'Người Yêu Thương',
+    description: 'Trách nhiệm, quan tâm, hài hòa',
+    positive: 'Ấm áp, vị tha, nghệ thuật',
+    negative: 'Bao biện, hay lo lắng, thích kiểm soát',
   },
   7: {
-    title: "Nhà Triết Học",
-    description: "Phân tích, tâm linh, bí ẩn",
-    positive: "Thông thái, trực giác, sâu sắc",
-    negative: "Xa cách, hoài nghi, cô độc",
+    title: 'Nhà Triết Học',
+    description: 'Phân tích, tâm linh, bí ẩn',
+    positive: 'Thông thái, trực giác, sâu sắc',
+    negative: 'Xa cách, hoài nghi, cô độc',
   },
   8: {
-    title: "Nhà Quản Lý",
-    description: "Tham vọng, quyền lực, vật chất",
-    positive: "Kinh doanh giỏi, tổ chức tốt",
-    negative: "Thực dụng, độc tài, ham vật chất",
+    title: 'Nhà Quản Lý',
+    description: 'Tham vọng, quyền lực, vật chất',
+    positive: 'Kinh doanh giỏi, tổ chức tốt',
+    negative: 'Thực dụng, độc tài, ham vật chất',
   },
   9: {
-    title: "Nhà Nhân Đạo",
-    description: "Vị tha, bao dung, lý tưởng",
-    positive: "Cao cả, nghệ thuật, thông cảm",
-    negative: "Viển vông, dễ tổn thương, hy sinh quá mức",
+    title: 'Nhà Nhân Đạo',
+    description: 'Vị tha, bao dung, lý tưởng',
+    positive: 'Cao cả, nghệ thuật, thông cảm',
+    negative: 'Viển vông, dễ tổn thương, hy sinh quá mức',
   },
   11: {
-    title: "Nhà Tâm Linh (Master)",
-    description: "Trực giác siêu phàm, khai sáng",
-    positive: "Cảm xúc sâu sắc, truyền cảm hứng",
-    negative: "Quá nhạy cảm, áp lực tinh thần",
+    title: 'Nhà Tâm Linh (Master)',
+    description: 'Trực giác siêu phàm, khai sáng',
+    positive: 'Cảm xúc sâu sắc, truyền cảm hứng',
+    negative: 'Quá nhạy cảm, áp lực tinh thần',
   },
   22: {
-    title: "Kiến Trúc Sư Trưởng (Master)",
-    description: "Xây dựng giấc mơ thành hiện thực",
-    positive: "Tầm nhìn xa, thực tế, quy mô lớn",
-    negative: "Quá tải trách nhiệm, căng thẳng",
+    title: 'Kiến Trúc Sư Trưởng (Master)',
+    description: 'Xây dựng giấc mơ thành hiện thực',
+    positive: 'Tầm nhìn xa, thực tế, quy mô lớn',
+    negative: 'Quá tải trách nhiệm, căng thẳng',
   },
   33: {
-    title: "Người Thầy Tâm Linh (Master)",
-    description: "Tình yêu thương vô điều kiện, chữa lành",
-    positive: "Bao dung, truyền cảm hứng, hy sinh",
-    negative: "Quá tải cảm xúc, dễ bị lợi dụng",
+    title: 'Người Thầy Tâm Linh (Master)',
+    description: 'Tình yêu thương vô điều kiện, chữa lành',
+    positive: 'Bao dung, truyền cảm hứng, hy sinh',
+    negative: 'Quá tải cảm xúc, dễ bị lợi dụng',
   },
-};
+}
 
 // Default meaning khi không tìm thấy
 const DEFAULT_MEANING: NumberMeaning = {
-  title: "Chưa xác định",
-  description: "Không thể xác định ý nghĩa cho số này",
-  positive: "",
-  negative: "",
-};
+  title: 'Chưa xác định',
+  description: 'Không thể xác định ý nghĩa cho số này',
+  positive: '',
+  negative: '',
+}
 
 // Hàm an toàn để lấy ý nghĩa số
 const getNumberMeaning = (num: number): NumberMeaning => {
   if (num === 0) {
-    return DEFAULT_MEANING;
+    return DEFAULT_MEANING
   }
 
   // Xử lý master numbers
@@ -250,27 +250,27 @@ const getNumberMeaning = (num: number): NumberMeaning => {
       numberMeanings[reduceNumber(num)] ??
       numberMeanings[1] ??
       DEFAULT_MEANING
-    );
+    )
   }
 
   // Rút gọn nếu > 9 và không phải master number
-  const reducedNum = reduceNumber(num);
-  return numberMeanings[reducedNum] ?? numberMeanings[1] ?? DEFAULT_MEANING;
-};
+  const reducedNum = reduceNumber(num)
+  return numberMeanings[reducedNum] ?? numberMeanings[1] ?? DEFAULT_MEANING
+}
 
 // Tính toán các chỉ số
 const numerologyResults = computed<NumerologyResult | null>(() => {
-  if (!fullName.value.trim() || !birthDate.value) return null;
+  if (!fullName.value.trim() || !birthDate.value) return null
 
-  const lifePath = calculateLifePath(birthDate.value);
-  const attitude = calculateAttitude(birthDate.value);
-  const destiny = calculateDestiny(fullName.value);
-  const soulUrge = calculateSoulUrge(fullName.value);
-  const personality = calculatePersonality(fullName.value);
+  const lifePath = calculateLifePath(birthDate.value)
+  const attitude = calculateAttitude(birthDate.value)
+  const destiny = calculateDestiny(fullName.value)
+  const soulUrge = calculateSoulUrge(fullName.value)
+  const personality = calculatePersonality(fullName.value)
 
   // Kiểm tra nếu tất cả đều là 0
   if (lifePath === 0 && attitude === 0 && destiny === 0 && soulUrge === 0 && personality === 0) {
-    return null;
+    return null
   }
 
   return {
@@ -284,41 +284,41 @@ const numerologyResults = computed<NumerologyResult | null>(() => {
     destinyMeaning: getNumberMeaning(destiny),
     soulUrgeMeaning: getNumberMeaning(soulUrge),
     personalityMeaning: getNumberMeaning(personality),
-  };
-});
+  }
+})
 
 const calculate = () => {
   if (fullName.value.trim() && birthDate.value) {
-    showResult.value = true;
+    showResult.value = true
   }
-};
+}
 
 const resetForm = () => {
-  fullName.value = "";
-  birthDate.value = "";
-  showResult.value = false;
-  activeTab.value = "basic";
-};
+  fullName.value = ''
+  birthDate.value = ''
+  showResult.value = false
+  activeTab.value = 'basic'
+}
 
 // Format ngày sinh hiển thị
 const formattedBirthDate = computed(() => {
-  if (!birthDate.value) return "";
+  if (!birthDate.value) return ''
   try {
-    const [year, month, day] = birthDate.value.split("-");
-    return `${day}/${month}/${year}`;
+    const [year, month, day] = birthDate.value.split('-')
+    return `${day}/${month}/${year}`
   } catch {
-    return birthDate.value;
+    return birthDate.value
   }
-});
+})
 
 // ngày may mắn
 const luckyDay = computed(() => {
-  if (!numerologyResults.value) return "";
-  const days = ["Hai", "Ba", "Tư", "Năm", "Sáu", "Bảy", "Chủ nhật"];
-  const dayIndex = (numerologyResults.value.destiny - 1) % 7;
-  const day = days[dayIndex];
-  return day === "Chủ nhật" ? day : `Thứ ${day}`;
-});
+  if (!numerologyResults.value) return ''
+  const days = ['Hai', 'Ba', 'Tư', 'Năm', 'Sáu', 'Bảy', 'Chủ nhật']
+  const dayIndex = (numerologyResults.value.destiny - 1) % 7
+  const day = days[dayIndex]
+  return day === 'Chủ nhật' ? day : `Thứ ${day}`
+})
 </script>
 
 <template>
@@ -564,7 +564,7 @@ const luckyDay = computed(() => {
                 <span class="text-text-secondary text-xs sm:text-sm">Màu sắc hợp:</span>
                 <span class="text-text-primary text-xs sm:text-sm font-medium ml-0 xs:ml-2">
                   {{
-                    ["Đỏ", "Cam", "Vàng", "Xanh lá", "Xanh dương", "Tím", "Hồng", "Nâu", "Trắng"][
+                    ['Đỏ', 'Cam', 'Vàng', 'Xanh lá', 'Xanh dương', 'Tím', 'Hồng', 'Nâu', 'Trắng'][
                       (numerologyResults.destiny - 1) % 9
                     ]
                   }}

@@ -46,7 +46,6 @@ export async function getSetCardCount(setId: string): Promise<number> {
   return cards.length
 }
 
-
 export async function getSetLastStudied(setId: string): Promise<number | null> {
   const sessions = await getAllByIndex<{ startedAt: number }>('sessions', 'setId', setId)
   if (sessions.length === 0) return null

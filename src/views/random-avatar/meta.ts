@@ -1,9 +1,9 @@
-import type { PageMeta } from "@/types/page";
+import type { PageMeta } from '@/types/page'
 
 const meta: PageMeta = {
-  name: "Random Avatar",
-  description: "Random Avatar Generator",
-  author: "hieuhoa-dev",
-};
+  name: 'Random Avatar',
+  description: 'Random Avatar Generator',
+  author: 'hieuhoa-dev',
+}
 
-export default meta;
+export default meta

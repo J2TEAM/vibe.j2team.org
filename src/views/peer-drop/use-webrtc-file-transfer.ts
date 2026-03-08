@@ -230,9 +230,7 @@ export function useWebrtcFileTransfer() {
       await pc.setRemoteDescription(parsed)
     } catch (err) {
       const msg =
-        err instanceof SyntaxError
-          ? 'Mã trả lời không đúng định dạng.'
-          : 'Mã trả lời không hợp lệ.'
+        err instanceof SyntaxError ? 'Mã trả lời không đúng định dạng.' : 'Mã trả lời không hợp lệ.'
       errorMessage.value = msg
       state.value = 'error'
     }
@@ -309,7 +307,10 @@ export function useWebrtcFileTransfer() {
           if (msg.type === 'meta') {
             receivedFilesMeta = msg.files as FileInfo[]
             incomingFiles.value = receivedFilesMeta
-            receiveTotalBytes.value = receivedFilesMeta.reduce((s: number, f: FileInfo) => s + f.size, 0)
+            receiveTotalBytes.value = receivedFilesMeta.reduce(
+              (s: number, f: FileInfo) => s + f.size,
+              0,
+            )
             currentFileIndex = 0
             currentFileReceived = 0
             receivedChunks = []
@@ -348,9 +349,7 @@ export function useWebrtcFileTransfer() {
       receivedChunks.push(chunk)
       currentFileReceived += chunk.byteLength
       bytesReceived.value += chunk.byteLength
-      receiveProgress.value = Math.round(
-        (bytesReceived.value / receiveTotalBytes.value) * 100,
-      )
+      receiveProgress.value = Math.round((bytesReceived.value / receiveTotalBytes.value) * 100)
     }
   }
 

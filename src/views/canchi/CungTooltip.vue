@@ -33,7 +33,9 @@ function handleMouseEnter() {
     >
       <div
         class="absolute left-4 w-2 h-2 bg-bg-elevated border-border-default transform rotate-45"
-        :class="position === 'top' ? 'bottom-[-5px] border-b border-r' : 'top-[-5px] border-t border-l'"
+        :class="
+          position === 'top' ? 'bottom-[-5px] border-b border-r' : 'top-[-5px] border-t border-l'
+        "
       />
       <div class="font-bold text-xs text-text-primary mb-1">{{ label }}</div>
       <div class="text-[11px] text-text-secondary leading-relaxed">
