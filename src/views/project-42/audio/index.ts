@@ -5,7 +5,7 @@
 
 import { loadTone } from "./loader";
 import { createInstruments } from "./instruments";
-import { updateAudioZones } from "./zones";
+import { updateAudioZones, stopArp, resetZonesState } from "./zones";
 
 let _Tone: any = null;
 let _instruments: any = null;
@@ -53,9 +53,28 @@ export function tickAudio(progress: number) {
 
 export function cleanupAudio() {
   if (_initialized && _Tone) {
+    stopArp();
+    resetZonesState();
     _Tone.Transport.stop();
+    _Tone.Transport.cancel();
+
+    // Dispose all instruments to kill sound immediately
+    if (_instruments) {
+      Object.keys(_instruments).forEach((key) => {
+        const inst = _instruments[key];
+        if (inst && typeof inst.dispose === "function") {
+          try {
+            inst.dispose();
+          } catch {
+            // Silently ignore disposal errors
+          }
+        }
+      });
+    }
+
     _initialized = false;
     _instruments = null;
     _Tone = null;
+    _lastProgress = -1;
   }
 }

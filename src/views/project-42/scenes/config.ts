@@ -145,16 +145,16 @@ export const SCENES: SceneConfig[] = [
   { id: 45, threshold: 1060.0, text: "42", type: "title", accent: "#FFFFFF" },
 
   // --- EPILOGUE: CREDITS ---
-  { id: 46, threshold: 1120.0, text: "", type: "narrative" }, // Final fade-out phase
-  { id: 47, threshold: 1180.0, text: "J2TEAM", type: "title", accent: "#38BDF8" },
+  { id: 46, threshold: 1100.0, text: "", type: "narrative" }, // Final fade-out phase
+  { id: 47, threshold: 1140.0, text: "J2TEAM", type: "title", accent: "#38BDF8" },
   {
     id: 48,
-    threshold: 1220.0,
+    threshold: 1180.0,
     text: "a project by",
     subtext: "sanghynh",
     type: "credits",
     accent: "#FFFFFF",
   },
-  { id: 49, threshold: 1260.0, text: "", type: "narrative" }, // Void before secret finale
-  { id: 50, threshold: 1320.0, text: "", type: "narrative" },
+  { id: 49, threshold: 1200.0, text: "", type: "narrative" }, // Void before secret finale
+  { id: 50, threshold: 1240.0, text: "", type: "narrative" },
 ];

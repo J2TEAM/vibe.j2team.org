@@ -130,16 +130,16 @@ onUnmounted(() => {
 
       <!-- Footer Info -->
       <footer
-        class="p-8 flex justify-between items-end opacity-20 transition-opacity hover:opacity-100"
+        class="p-8 flex justify-between items-end opacity-50 md:opacity-20 transition-opacity md:hover:opacity-100"
       >
-        <div class="font-display text-[10px] tracking-[0.3em] uppercase text-white/40">
+        <div class="font-display text-[9px] md:text-[10px] tracking-[0.2em] md:tracking-[0.3em] uppercase text-white/40">
           Vol.42 / 2026
         </div>
         <div class="flex flex-col items-end gap-1">
-          <div class="font-display text-[10px] tracking-[0.3em] uppercase text-white/40">
+          <div class="font-display text-[9px] md:text-[10px] tracking-[0.2em] md:tracking-[0.3em] uppercase text-white/40">
             Auth: sanghynh
           </div>
-          <div class="w-24 h-0.5 bg-white/5 overflow-hidden relative">
+          <div class="w-16 md:w-24 h-0.5 bg-white/5 overflow-hidden relative">
             <div
               class="absolute inset-0 bg-[#38BDF8] transition-transform duration-300 origin-left shadow-[0_0_10px_#38BDF8]"
               :style="{ transform: `scaleX(${Math.min(scrollProgress / 20, 1)})` }"

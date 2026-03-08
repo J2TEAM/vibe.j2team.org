@@ -51,9 +51,9 @@ export const dnaToAtgcScene = {
       }
 
       if (organizeProgress > 0) {
-        // Organizing: Move towards 4 abstract clusters (A, T, G, C regions)
+        const isPortrait = window.innerHeight > window.innerWidth;
         const bucket = i % 4;
-        const targetX = (bucket - 1.5) * 8.0; // Rải đều x
+        const targetX = (bucket - 1.5) * (isPortrait ? 4.5 : 8.0);
         const targetY = Math.sin(time + i * 0.1) * 2.0;
         const targetZ = Math.cos(time + i * 0.1) * 2.0;
 

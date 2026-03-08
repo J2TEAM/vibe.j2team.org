@@ -41,16 +41,18 @@ export const atgcScene = {
       const thick = (thickSeed - 0.5) * 2.8;
       const thickP = Math.cos(i * 311.7) * 1.5;
 
-      const gap = 8.2;
+      const isPortrait = window.innerHeight > window.innerWidth;
+      const adaptiveGap = isPortrait ? 5.2 : 8.2;
+      const gap = adaptiveGap;
       const totalWidth = gap * 3;
 
       let extraOff = 0;
-      if (bucket === 0) extraOff = 0.8;
-      if (bucket === 2) extraOff = 1.0;
-      if (bucket === 3) extraOff = 3.2;
+      if (bucket === 0) extraOff = 0.8 * (isPortrait ? 0.6 : 1.0);
+      if (bucket === 2) extraOff = 1.0 * (isPortrait ? 0.6 : 1.0);
+      if (bucket === 3) extraOff = 3.2 * (isPortrait ? 0.6 : 1.0);
 
-      const startX = -(totalWidth / 2) + bucket * gap + extraOff - 2.0;
-      const scale = 3.6 * breathe;
+      const startX = -(totalWidth / 2) + bucket * gap + extraOff - (isPortrait ? 1.0 : 2.0);
+      const scale = (isPortrait ? 2.2 : 3.6) * breathe;
 
       if (bucket === 0) {
         // A

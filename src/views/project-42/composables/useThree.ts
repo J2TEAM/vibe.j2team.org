@@ -36,13 +36,19 @@ export function useThree() {
   let bioPlane: any = null;
   let frameId: number = 0;
 
-  const particlesCount = 10000;
+  let particlesCount = 10000;
   let _originalPositions: Float32Array | null = null;
   let catTargets: Float32Array | null = null;
   let touchStartY = 0;
 
   const init = async () => {
     try {
+      // Detect mobile for performance optimization
+      const isMobile =
+        window.innerWidth < 768 ||
+        (window.innerHeight > window.innerWidth && window.innerWidth < 1024);
+      particlesCount = isMobile ? 3000 : 10000;
+
       let targetProgress = 0;
       const smoothProgress = setInterval(() => {
         if (loadingProgress.value < targetProgress) {
@@ -73,7 +79,7 @@ export function useThree() {
       targetProgress = 65;
 
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.z = 15;
+      updateCameraDistance();
 
       renderer = new THREE.WebGLRenderer({ canvas: canvasRef.value, antialias: true, alpha: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -95,7 +101,7 @@ export function useThree() {
 
       // Final Secret: Sample Cat Silhouette (Local Asset)
       const catSvgUrl = new URL("../assets/cat-simplified.svg", import.meta.url).href;
-      sampleCatPositions(catSvgUrl, 8000).then((targets) => {
+      sampleCatPositions(catSvgUrl, particlesCount).then((targets) => {
         catTargets = targets;
       });
 
@@ -130,9 +136,25 @@ export function useThree() {
   const handleTouchMove = (e: TouchEvent) => {
     const firstTouch = e.touches[0];
     if (firstTouch) {
-      updateProgress((touchStartY - firstTouch.clientY) * 0.5);
+      const delta = (touchStartY - firstTouch.clientY) * 1.5;
+      updateProgress(delta);
       touchStartY = firstTouch.clientY;
     }
+  };
+
+  const updateCameraDistance = () => {
+    if (!camera) return;
+    const ratio = window.innerWidth / window.innerHeight;
+    const isPortrait = ratio < 1.0;
+
+    if (isPortrait) {
+      camera.fov = 75 + (1 - ratio) * 20;
+      camera.position.z = 15 + (1 - ratio) * 12;
+    } else {
+      camera.fov = 75;
+      camera.position.z = 15;
+    }
+    camera.updateProjectionMatrix();
   };
 
   const updateProgress = (delta: number) => {
@@ -265,7 +287,7 @@ export function useThree() {
   const handleResize = () => {
     if (!camera || !renderer) return;
     camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+    updateCameraDistance();
     renderer.setSize(window.innerWidth, window.innerHeight);
   };
 

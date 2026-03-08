@@ -16,7 +16,7 @@ export const matrixScene = {
     const colorAttr = points?.geometry?.attributes?.aColor;
     const colors = colorAttr?.array as Float32Array | undefined;
 
-    const colCount = 200;
+    const colCount = Math.floor(particlesCount / 50);
     const colSpacing = 0.7 - compressProgress * 0.45; // Xích lại gần nhau hơn x0.25 dày đặc
 
     for (let i = 0; i < particlesCount; i++) {

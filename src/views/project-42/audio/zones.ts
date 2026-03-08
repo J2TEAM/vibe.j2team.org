@@ -36,7 +36,7 @@ function setMasterVol(instruments: any, vol: number) {
   _lastMasterVol = vol;
 }
 
-function stopArp() {
+export function stopArp() {
   if (_arpInterval) {
     clearInterval(_arpInterval);
     _arpInterval = null;
@@ -540,4 +540,17 @@ export const updateAudioZones = (progress: number, instruments: any, Tone: any) 
     stopArp();
     setMasterVol(instruments, -45);
   }
+};
+
+export const resetZonesState = () => {
+  _lastEarthIndex = -1;
+  _lastBioIndex = -1;
+  _lastDigitalIndex = -1;
+  _lastMergeIndex = -1;
+  _lastSoulIndex = -1;
+  _chordLock = false;
+  _droneStarted = false;
+  _lastArpId = "";
+  _lastMasterVol = -999;
+  stopArp();
 };

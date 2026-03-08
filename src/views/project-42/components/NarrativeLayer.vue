@@ -16,13 +16,13 @@ defineProps<{
       <!-- Scene Type: Opening (Subtle & Elegant) -->
       <template v-if="SCENES[currentScene]?.type === 'opening'">
         <h1
-          class="font-display text-2xl md:text-5xl lg:text-3xl font-thin tracking-[0.5em] text-transparent uppercase text-outline-cinematic whitespace-nowrap animate-reveal"
+          class="font-display text-xl md:text-3xl lg:text-4xl font-thin tracking-[0.2em] md:tracking-[0.5em] text-transparent uppercase text-outline-cinematic animate-reveal"
         >
           {{ SCENES[currentScene]?.text || "" }}
         </h1>
         <div
           v-if="scrollProgress < 0.1"
-          class="mt-16 animate-pulse-slow font-body text-white/30 text-[10px] tracking-[1.5em] uppercase"
+          class="mt-12 md:mt-16 animate-pulse-slow font-body text-white/60 text-[9px] md:text-[10px] tracking-[0.8em] md:tracking-[1.5em] uppercase px-4"
         >
           {{ SCENES[currentScene]?.subtext || "" }}
         </div>
@@ -31,7 +31,7 @@ defineProps<{
       <!-- Scene Type: Prologue (Atmospheric) -->
       <template v-else-if="SCENES[currentScene]?.type === 'prologue'">
         <p
-          class="font-body text-white/50 text-lg md:text-2xl tracking-[0.15em] font-extralight italic leading-relaxed max-w-4xl"
+          class="font-body text-white/50 text-sm md:text-2xl tracking-[0.1em] md:tracking-[0.15em] font-extralight italic leading-relaxed max-w-4xl px-4"
         >
           {{ SCENES[currentScene]?.text || "" }}
         </p>
@@ -41,7 +41,7 @@ defineProps<{
       <template v-else-if="SCENES[currentScene]?.type === 'title'">
         <div class="flex flex-col items-center opacity-75 blur-[0.6px]">
           <h2
-            class="font-display text-xl md:text-4xl lg:text-5xl tracking-[0.5em] font-extralight transition-all duration-1000 mb-4"
+            class="font-display text-lg md:text-4xl lg:text-5xl tracking-[0.3em] md:tracking-[0.5em] font-extralight transition-all duration-1000 mb-4 px-4"
             :style="{
               color: SCENES[currentScene]?.accent || 'rgba(255, 255, 255, 0.75)',
               textShadow: `0 0 35px ${SCENES[currentScene]?.accent || 'rgba(255, 255, 255, 0.25)'}`,
@@ -51,7 +51,7 @@ defineProps<{
           </h2>
           <p
             v-if="SCENES[currentScene]?.subtext"
-            class="font-body text-sm md:text-lg tracking-[0.2em] font-light italic"
+            class="font-body text-xs md:text-lg tracking-[0.1em] md:tracking-[0.2em] font-light italic px-4"
             :style="{
               color: SCENES[currentScene]?.subtextAccent || 'rgba(255, 255, 255, 0.3)',
               textShadow: SCENES[currentScene]?.subtextAccent
@@ -68,12 +68,12 @@ defineProps<{
       <template v-else-if="SCENES[currentScene]?.type === 'credits'">
         <div class="flex flex-col items-center opacity-80 blur-[0.5px]">
           <p
-            class="font-body text-[10px] md:text-xs tracking-[1.5em] uppercase text-white/30 mb-8 animate-reveal"
+            class="font-body text-[8px] md:text-xs tracking-[1em] md:tracking-[1.5em] uppercase text-white/30 mb-8 px-4 animate-reveal"
           >
             {{ SCENES[currentScene]?.text || "" }}
           </p>
           <h2
-            class="font-display text-3xl md:text-6xl tracking-[0.8em] font-extralight text-white"
+            class="font-display text-2xl md:text-6xl tracking-[0.4em] md:tracking-[0.8em] font-extralight text-white px-4"
             style="text-shadow: 0 0 40px rgba(255, 255, 255, 0.2)"
           >
             {{ SCENES[currentScene]?.subtext || "" }}
@@ -95,12 +95,12 @@ defineProps<{
 
             <div class="relative flex flex-col items-center gap-1">
               <span
-                class="text-[9px] text-white/30 group-hover:text-[#38BDF8]/80 transition-colors uppercase font-mono tracking-[0.6em] mb-2"
+                class="text-[8px] text-white/30 group-hover:text-[#38BDF8]/80 transition-colors uppercase font-mono tracking-[0.4em] md:tracking-[0.6em] mb-2"
               >
                 [ JOURNEY COMPLETE ]
               </span>
               <h2
-                class="font-display text-2xl md:text-3xl tracking-[0.3em] font-extralight text-white group-hover:text-[#38BDF8] group-hover:drop-shadow-[0_0_20px_rgba(56,189,248,0.6)] transition-all uppercase"
+                class="font-display text-lg md:text-3xl tracking-[0.2em] md:tracking-[0.3em] font-extralight text-white group-hover:text-[#38BDF8] group-hover:drop-shadow-[0_0_20px_rgba(56,189,248,0.6)] transition-all uppercase px-4"
               >
                 Join J2TEAM Community
               </h2>
@@ -117,7 +117,7 @@ defineProps<{
       <template v-else>
         <div class="max-w-3xl flex flex-col items-center opacity-70 blur-[0.4px]">
           <p
-            class="font-body text-lg md:text-xl tracking-widest leading-loose font-extralight mb-4"
+            class="font-body text-base md:text-xl tracking-widest leading-loose font-extralight mb-4 px-4"
             :style="{
               color: SCENES[currentScene]?.accent || 'rgba(255, 255, 255, 0.4)',
               textShadow: `0 0 20px ${SCENES[currentScene]?.accent || 'rgba(255, 255, 255, 0.1)'}`,
