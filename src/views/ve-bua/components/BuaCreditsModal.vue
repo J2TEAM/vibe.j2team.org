@@ -31,15 +31,16 @@ const emit = defineEmits<{
       >
         <div :ref="(el) => emit('bind:content', (el as HTMLElement | null))" class="credits-scroll px-4 py-3 text-center text-sm text-text-primary" :style="props.creditsTransformStyle">
           <p class="font-display text-accent-amber">// Vẽ bùa giải hạn</p>
+          <p class="mt-80 text-text-dim">Giữ chuột/chạm để tăng tốc chạy credit</p>
           <p class="mt-4 text-accent-coral">Ý tưởng</p>
-          <p>Bạn</p>
+          <p>XWasNotDeclared (Tôi)</p>
           <p class="mt-4 text-accent-coral">Coding</p>
           <p>CodeX</p>
           <p class="mt-4 text-accent-coral">Thiết kế</p>
-          <p>J2TEAM Vibe</p>
+          <p>Gemini</p>
           <p class="mt-4 text-text-dim">Cảm ơn bạn đã trải nghiệm.</p>
-          <p class="mt-80 text-text-dim">Giữ chuột/chạm để tăng tốc chạy credit</p>
           <p class="mt-56 text-text-dim">An yên, thuận lợi, vạn sự hanh thông.</p>
+          <p class="mt-56 text-text-dim">Vạn sự như ý.</p>
         </div>
       </div>
 

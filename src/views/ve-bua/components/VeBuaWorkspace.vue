@@ -1119,6 +1119,14 @@ onBeforeUnmount(() => {
         >
           Vùng vẽ
         </button>
+        <button
+          class="grid h-10 w-10 place-items-center border border-border-default bg-bg-surface text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
+          title="Bùa ngẫu nhiên"
+          aria-label="Bùa ngẫu nhiên"
+          @click="randomizeBuaColors"
+        >
+          🔀
+        </button>
       </div>
 
       <BuaMokPanel :open="showMokPanel" :mok-enabled="mokEnabled" :mok-speed="mokSpeed" @update:mok-enabled="mokEnabled = $event" @update:mok-speed="mokSpeed = $event" />
@@ -1318,7 +1326,6 @@ onBeforeUnmount(() => {
           @reset-brush-randomness="resetBrushRandomness"
           @reset-paper-tint="resetPaperTint"
           @reset-frame-tint="resetFrameTint"
-          @randomize-bua-colors="randomizeBuaColors"
         />
 
         <BuaActionMenuPanel

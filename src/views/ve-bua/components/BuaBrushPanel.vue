@@ -30,7 +30,6 @@ const emit = defineEmits<{
   'reset-brush-randomness': []
   'reset-paper-tint': []
   'reset-frame-tint': []
-  'randomize-bua-colors': []
 }>()
 
 function toNumber(value: string): number {
@@ -191,12 +190,6 @@ function emitBrushOpacity(value: number) {
         Trả viền bùa mặc định
       </button>
 
-      <button
-        class="w-full border border-accent-amber bg-accent-amber/15 px-3 py-2 text-left text-sm text-accent-amber transition hover:bg-accent-amber/25"
-        @click="emit('randomize-bua-colors')"
-      >
-        Bùa ngẫu nhiên
-      </button>
     </BuaControlPanel>
   </div>
 </template>
