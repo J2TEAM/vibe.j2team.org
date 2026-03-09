@@ -36,7 +36,7 @@ function randomInt(min = 1, max = 1000) {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]
+  return arr[Math.floor(Math.random() * arr.length)] as T
 }
 
 function generateRandom(name: string, type: FieldType | 'auto'): unknown {
@@ -132,7 +132,7 @@ function normalizeSingleQuotes(s: string): string {
       i++
       while (i < s.length) {
         if (s[i] === '\\') {
-          result += s[i] + s[i + 1]
+          result += s[i]! + s[i + 1]!
           i += 2
           continue
         }
@@ -154,7 +154,7 @@ function normalizeSingleQuotes(s: string): string {
           continue
         }
         if (s[i] === '\\') {
-          result += s[i] + s[i + 1]
+          result += s[i]! + s[i + 1]!
           i += 2
           continue
         }
