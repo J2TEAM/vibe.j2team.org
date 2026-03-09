@@ -71,7 +71,6 @@ function submitCommand(value: string) {
 // ---- Tab autocomplete ----------------------------------------------------
 function handleTab() {
   const parts = currentInput.value.split(' ')
-  const partial = parts[parts.length - 1]
   const suggestions = executor.autocomplete(currentInput.value)
 
   if (suggestions.length === 0) return
