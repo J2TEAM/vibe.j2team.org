@@ -23,7 +23,29 @@ interface Level {
   targetScore: number
 }
 
+interface Particle {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  life: number
+  maxLife: number
+  color: string
+  char?: string
+  size: number
+}
+
+type PowerUpType = 'coffee' | 'tea' | 'chili'
+interface PowerUp {
+  pos: Pos
+  type: PowerUpType
+  emoji: string
+  timeToLive: number
+}
+
 // ─── Level Data ─────────────────────────────────
+const CHUONG_NGAI_VAT = ['🧱', '🌲', '🛵', '🪨']
+
 const LEVELS: Level[] = [
   {
     id: 1,
@@ -96,6 +118,19 @@ const LEVELS: Level[] = [
   },
 ]
 
+const ENDLESS_LEVEL: Level = {
+  id: 0,
+  name: 'Vô Tận',
+  region: 'Khắp Việt Nam',
+  subtitle: 'Chuyến bay không mỏi',
+  story: '',
+  completeStory: '',
+  foods: ['🍜', '🍲', '🥢', '🍡', '🥟', '🥖', '🍚', '🍉', '🥥'],
+  foodNames: ['Món ngon'],
+  speed: 140, // Tốc độ bắt đầu
+  targetScore: Infinity,
+}
+
 const VICTORY_STORY =
   'Rồng con đứng trên bờ biển, nhìn ra Biển Đông mênh mông. Hành trình từ Bắc vào Nam đã cho chú sức mạnh, nhưng hơn cả — chú mang theo hương vị của cả một đất nước.\n\n"Con sẽ quay lại," Rồng con nói, rồi vẫy đuôi lần cuối trước khi lặn xuống biển sâu.\n\nTruyền thuyết kể rằng, mỗi khi biển lặng sóng yên, người ta lại thấy một con rồng nhỏ bay lên từ mặt nước — tìm về đất Việt.'
 
@@ -106,24 +141,89 @@ const ROWS = 20
 // ─── State ──────────────────────────────────────
 const screen = ref<Screen>('intro')
 const currentLevel = ref(0)
+const isEndless = ref(false)
 const score = ref(0)
 const totalScore = ref(0)
 const highScore = ref(0)
+const endlessHighScore = ref(0)
 
 const snake = ref<Pos[]>([])
 const direction = ref<Dir>('right')
 const nextDir = ref<Dir>('right')
 const food = ref<Pos>({ x: 10, y: 10 })
 const foodEmoji = ref('🍜')
+const obstacles = ref<(Pos & { emoji: string })[]>([])
+const activePowerUp = ref<PowerUp | null>(null)
+const powerUpEffect = ref<{ type: PowerUpType; timeLeft: number } | null>(null)
+const particles = ref<Particle[]>([])
 
-let gameLoop: number | null = null
+const popMessage = ref<{ text: string; color: string; life: number; maxLife: number }>({
+  text: '',
+  color: '',
+  life: 0,
+  maxLife: 0,
+})
+
 let animFrame: number | null = null
+let lastTime = 0
+let accumulator = 0
+let screenShake = 0
+
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const containerRef = ref<HTMLDivElement | null>(null)
 let cellSize = 0
 let dpr = 1
 
-const level = computed(() => LEVELS[currentLevel.value])
+const level = computed(
+  () => (isEndless.value ? ENDLESS_LEVEL : LEVELS[currentLevel.value]) as Level,
+)
+
+// ─── Utils ──────────────────────────────────────
+function isPosOccupied(pos: Pos, includeHead = true): boolean {
+  if (pos.x === food.value.x && pos.y === food.value.y) return true
+  if (
+    activePowerUp.value &&
+    pos.x === activePowerUp.value.pos.x &&
+    pos.y === activePowerUp.value.pos.y
+  )
+    return true
+  if (obstacles.value.some((o) => o.x === pos.x && o.y === pos.y)) return true
+  if (snake.value.some((s, i) => (includeHead || i > 0) && s.x === pos.x && s.y === pos.y))
+    return true
+  return false
+}
+
+function getRandomEmptyPos(): Pos {
+  let pos: Pos
+  let attempts = 0
+  do {
+    pos = { x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS) }
+    attempts++
+  } while (isPosOccupied(pos) && attempts < 100)
+  return pos
+}
+
+function createExplosion(x: number, y: number, color: string, char?: string, count: number = 10) {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2
+    const speed = Math.random() * 40 + 20
+    particles.value.push({
+      x: x * cellSize + cellSize / 2,
+      y: y * cellSize + cellSize / 2,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 1,
+      maxLife: Math.random() * 0.5 + 0.3,
+      color,
+      char: Math.random() > 0.5 ? char : undefined,
+      size: Math.random() * 6 + 2,
+    })
+  }
+}
+
+function showPopMessage(text: string, color: string) {
+  popMessage.value = { text, color, life: 1.5, maxLife: 1.5 }
+}
 
 // ─── Game Logic ─────────────────────────────────
 function initSnake() {
@@ -137,22 +237,94 @@ function initSnake() {
   direction.value = 'right'
   nextDir.value = 'right'
   score.value = 0
+  obstacles.value = []
+  activePowerUp.value = null
+  powerUpEffect.value = null
+  particles.value = []
+  screenShake = 0
+  accumulator = 0
+  lastTime = 0
+  popMessage.value.life = 0
+
+  if (isEndless.value) {
+    spawnObstacles(0) // Will spawn dynamic later
+  } else {
+    spawnObstacles(currentLevel.value + 1) // Obstacle count increases by chapter
+  }
+
   spawnFood()
 }
 
-function spawnFood() {
-  let pos: Pos
-  do {
-    pos = { x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS) }
-  } while (snake.value.some((s) => s.x === pos.x && s.y === pos.y))
-  food.value = pos
-  const lvl = level.value
-  foodEmoji.value = lvl.foods[Math.floor(Math.random() * lvl.foods.length)]
+function spawnObstacles(count: number) {
+  for (let i = 0; i < count; i++) {
+    const pos = getRandomEmptyPos()
+    // Don't spawn too close to center (where snake starts)
+    if (Math.abs(pos.x - COLS / 2) < 4 && Math.abs(pos.y - ROWS / 2) < 4) continue
+
+    obstacles.value.push({
+      ...pos,
+      emoji: CHUONG_NGAI_VAT[Math.floor(Math.random() * CHUONG_NGAI_VAT.length)] || '🧱',
+    })
+  }
 }
 
-function tick() {
+function spawnFood() {
+  food.value = getRandomEmptyPos()
+  const lvl = level.value
+  foodEmoji.value = lvl.foods[Math.floor(Math.random() * lvl.foods.length)] || '🍲'
+
+  // Consider spawning powerup
+  if (!activePowerUp.value && Math.random() < 0.2) {
+    const typeRnd = Math.random()
+    let type: PowerUpType = 'coffee'
+    let emoji = '☕'
+    if (typeRnd < 0.33) {
+      type = 'tea'
+      emoji = '🧊'
+    } else if (typeRnd < 0.66) {
+      type = 'chili'
+      emoji = '🌶️'
+    }
+
+    activePowerUp.value = {
+      pos: getRandomEmptyPos(),
+      type,
+      emoji,
+      timeToLive: 10 + Math.random() * 5, // 10-15 seconds
+    }
+  }
+}
+
+function handlePowerupCollect(type: PowerUpType) {
+  createExplosion(
+    activePowerUp.value!.pos.x,
+    activePowerUp.value!.pos.y,
+    '#FFB830',
+    activePowerUp.value!.emoji,
+    15,
+  )
+  activePowerUp.value = null
+
+  if (type === 'coffee') {
+    powerUpEffect.value = { type, timeLeft: 5 } // 5s duration
+    showPopMessage('TỐC CHÓP!', '#FFF')
+  } else if (type === 'tea') {
+    powerUpEffect.value = { type, timeLeft: 6 } // 6s duration
+    showPopMessage('SỐNG CHẬM...', '#8ECDDD')
+  } else if (type === 'chili') {
+    // Cut tail up to 3 segments if long enough, else just invincible
+    if (snake.value.length > 5) {
+      snake.value.splice(snake.value.length - 2, 2)
+    }
+    powerUpEffect.value = { type, timeLeft: 4 } // 4s duration
+    screenShake = 0.2
+    showPopMessage('CAY XÉ LƯỠI!', '#FF6B4A')
+  }
+}
+
+function tickLogic() {
   direction.value = nextDir.value
-  const head = { ...snake.value[0] }
+  const head = { ...snake.value[0] } as Pos
 
   switch (direction.value) {
     case 'up':
@@ -169,29 +341,76 @@ function tick() {
       break
   }
 
+  const isInvincible = powerUpEffect.value?.type === 'chili'
+
+  // Wall collision
   if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
-    endGame()
-    return
+    if (isEndless.value) {
+      // Loop around in endless mode
+      head.x = (head.x + COLS) % COLS
+      head.y = (head.y + ROWS) % ROWS
+    } else {
+      endGame()
+      return
+    }
   }
+
+  // Self collision
   if (snake.value.some((s) => s.x === head.x && s.y === head.y)) {
-    endGame()
-    return
+    if (!isInvincible) {
+      endGame()
+      return
+    }
+  }
+
+  // Obstacle collision
+  const hitObstacle = obstacles.value.findIndex((o) => o.x === head.x && o.y === head.y)
+  if (hitObstacle >= 0) {
+    if (!isInvincible) {
+      endGame()
+      return
+    } else {
+      // Destroy obstacle if invincible
+      createExplosion(head.x, head.y, '#AAAAAA', '💨', 15)
+      obstacles.value.splice(hitObstacle, 1)
+      screenShake = 0.3
+    }
   }
 
   snake.value.unshift(head)
 
+  let ate = false
+
+  // Food collision
   if (head.x === food.value.x && head.y === food.value.y) {
     score.value++
     totalScore.value++
-    if (score.value >= level.value.targetScore) {
+    ate = true
+    createExplosion(head.x, head.y, '#FFB830', foodEmoji.value)
+
+    if (isEndless.value && score.value % 5 === 0) {
+      spawnObstacles(1) // Add difficulty
+    }
+
+    if (!isEndless.value && score.value >= level.value.targetScore) {
       completeLevel()
       return
     }
     spawnFood()
-  } else {
+  }
+
+  // Powerup collision
+  if (
+    activePowerUp.value &&
+    head.x === activePowerUp.value.pos.x &&
+    head.y === activePowerUp.value.pos.y
+  ) {
+    handlePowerupCollect(activePowerUp.value.type)
+  }
+
+  if (!ate) {
     snake.value.pop()
   }
-  render()
 }
 
 function startPlaying() {
@@ -199,21 +418,11 @@ function startPlaying() {
   screen.value = 'playing'
   nextTick(() => {
     setupCanvas()
-    startLoop()
     startAnimLoop()
   })
 }
 
-function startLoop() {
-  stopLoop()
-  gameLoop = window.setInterval(tick, level.value.speed)
-}
-
 function stopLoop() {
-  if (gameLoop) {
-    clearInterval(gameLoop)
-    gameLoop = null
-  }
   if (animFrame) {
     cancelAnimationFrame(animFrame)
     animFrame = null
@@ -221,33 +430,99 @@ function stopLoop() {
 }
 
 function startAnimLoop() {
-  function loop() {
-    if (screen.value === 'playing') {
-      render()
-      animFrame = requestAnimationFrame(loop)
-    }
+  stopLoop()
+  lastTime = performance.now()
+  animFrame = requestAnimationFrame(gameLoop)
+}
+
+function gameLoop(time: number) {
+  if (screen.value !== 'playing') return
+
+  const dt = (time - lastTime) / 1000 // delta time in seconds
+  lastTime = time
+
+  // Update particles
+  for (let i = particles.value.length - 1; i >= 0; i--) {
+    const p = particles.value[i] as Particle
+    p.x += p.vx * dt
+    p.y += p.vy * dt
+    p.vy += 100 * dt // gravity
+    p.life -= dt
+    if (p.life <= 0) particles.value.splice(i, 1)
   }
-  animFrame = requestAnimationFrame(loop)
+
+  // Update powerup TTL
+  if (activePowerUp.value) {
+    activePowerUp.value.timeToLive -= dt
+    if (activePowerUp.value.timeToLive <= 0) activePowerUp.value = null
+  }
+
+  // Update powerup effect
+  if (powerUpEffect.value) {
+    powerUpEffect.value.timeLeft -= dt
+    if (powerUpEffect.value.timeLeft <= 0) powerUpEffect.value = null
+  }
+
+  // Update screen shake
+  if (screenShake > 0) screenShake = Math.max(0, screenShake - dt)
+
+  // Update pop message
+  if (popMessage.value.life > 0) popMessage.value.life -= dt
+
+  // Calculate current speed
+  let currentSpeedMs = level.value.speed
+  if (isEndless.value) {
+    // Min speed 60ms, gets faster as score increases
+    currentSpeedMs = Math.max(60, 140 - Math.floor(score.value / 3) * 5)
+  }
+
+  if (powerUpEffect.value) {
+    if (powerUpEffect.value.type === 'coffee')
+      currentSpeedMs *= 0.6 // faster
+    else if (powerUpEffect.value.type === 'tea')
+      currentSpeedMs *= 1.8 // slower
+    else if (powerUpEffect.value.type === 'chili') currentSpeedMs *= 0.5 // much faster
+  }
+
+  accumulator += dt * 1000
+  while (accumulator >= currentSpeedMs && screen.value === 'playing') {
+    tickLogic()
+    accumulator -= currentSpeedMs
+  }
+
+  render()
+  animFrame = requestAnimationFrame(gameLoop)
 }
 
 function endGame() {
+  screenShake = 0.5
   stopLoop()
-  const saved = localStorage.getItem('rong-viet-hs')
-  if (!saved || totalScore.value > parseInt(saved)) {
-    localStorage.setItem('rong-viet-hs', totalScore.value.toString())
-    highScore.value = totalScore.value
-  }
-  screen.value = 'gameOver'
+  updateHighScores()
+  setTimeout(() => {
+    screen.value = 'gameOver'
+  }, 500) // Small delay for effect
 }
 
-function completeLevel() {
-  stopLoop()
-  if (currentLevel.value >= LEVELS.length - 1) {
+function updateHighScores() {
+  if (isEndless.value) {
+    const saved = localStorage.getItem('rong-viet-endless-hs')
+    if (!saved || totalScore.value > parseInt(saved)) {
+      localStorage.setItem('rong-viet-endless-hs', totalScore.value.toString())
+      endlessHighScore.value = totalScore.value
+    }
+  } else {
     const saved = localStorage.getItem('rong-viet-hs')
     if (!saved || totalScore.value > parseInt(saved)) {
       localStorage.setItem('rong-viet-hs', totalScore.value.toString())
       highScore.value = totalScore.value
     }
+  }
+}
+
+function completeLevel() {
+  stopLoop()
+  if (currentLevel.value >= LEVELS.length - 1) {
+    updateHighScores()
     screen.value = 'victory'
   } else {
     screen.value = 'levelComplete'
@@ -260,15 +535,27 @@ function goNextLevel() {
 }
 
 function restart() {
+  if (isEndless.value) {
+    startPlaying()
+  } else {
+    currentLevel.value = 0
+    totalScore.value = 0
+    screen.value = 'story'
+  }
+}
+
+function beginJourney() {
+  isEndless.value = false
   currentLevel.value = 0
   totalScore.value = 0
   screen.value = 'story'
 }
 
-function beginJourney() {
-  currentLevel.value = 0
+function beginEndless() {
+  isEndless.value = true
   totalScore.value = 0
-  screen.value = 'story'
+  score.value = 0
+  startPlaying()
 }
 
 // ─── Canvas ─────────────────────────────────────
@@ -306,13 +593,31 @@ function render() {
   const H = ROWS * cs
 
   ctx.save()
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+  // Screen shake
+  let sx = 0,
+    sy = 0
+  if (screenShake > 0) {
+    const amt = screenShake * 20
+    sx = (Math.random() - 0.5) * amt
+    sy = (Math.random() - 0.5) * amt
+  }
+  ctx.setTransform(dpr, 0, 0, dpr, sx, sy)
 
   // Background
   ctx.fillStyle = '#0F1923'
   ctx.fillRect(0, 0, W, H)
 
-  // Grid — subtle dots at intersections
+  // Sub-background for endless
+  if (isEndless.value) {
+    ctx.strokeStyle = '#FF6B4A'
+    ctx.lineWidth = 4
+    ctx.globalAlpha = 0.1
+    ctx.strokeRect(0, 0, W, H)
+    ctx.globalAlpha = 1.0
+  }
+
+  // Grid
   ctx.fillStyle = '#1a2838'
   for (let x = 1; x < COLS; x++) {
     for (let y = 1; y < ROWS; y++) {
@@ -322,10 +627,46 @@ function render() {
 
   // Level number watermark
   ctx.fillStyle = 'rgba(255, 184, 48, 0.025)'
-  ctx.font = `bold ${cs * 10}px Anybody, sans-serif`
+  ctx.font = `bold ${cs * 8}px Anybody, sans-serif`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText(`0${level.value.id}`, W / 2, H / 2)
+  ctx.fillText(isEndless.value ? 'VÔ TẬN' : `0${level.value.id}`, W / 2, H / 2)
+
+  // Obstacles
+  ctx.font = `${cs * 0.8}px serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  for (const o of obstacles.value) {
+    ctx.fillText(o.emoji, o.x * cs + cs / 2, o.y * cs + cs / 2)
+  }
+
+  // PowerUp
+  if (activePowerUp.value) {
+    const pulse = Math.sin(frameCount * 0.2) * 0.2 + 0.8
+    const px = activePowerUp.value.pos.x * cs + cs / 2
+    const py = activePowerUp.value.pos.y * cs + cs / 2
+
+    ctx.save()
+    ctx.translate(px, py)
+    ctx.scale(pulse, pulse)
+
+    // Glow
+    ctx.shadowColor =
+      activePowerUp.value.type === 'coffee'
+        ? '#7A5C43'
+        : activePowerUp.value.type === 'tea'
+          ? '#8ECDDD'
+          : '#FF6B4A'
+    ctx.shadowBlur = 10
+    ctx.fillStyle = `rgba(255, 255, 255, 0.2)`
+    ctx.beginPath()
+    ctx.arc(0, 0, cs * 0.45, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.shadowBlur = 0
+
+    ctx.fillText(activePowerUp.value.emoji, 0, 0)
+    ctx.restore()
+  }
 
   // Food — bright pulsing indicator
   const pulse = Math.sin(frameCount * 0.15) * 0.4 + 0.6
@@ -355,64 +696,99 @@ function render() {
   ctx.textBaseline = 'middle'
   ctx.fillText(foodEmoji.value, fx, fy)
 
+  // Determing snake styling based on effects
+  let headColor = '#FF6B4A'
+  let bodyColorStart = { r: 255, g: 107, b: 74 }
+  let bodyColorEnd = { r: 255, g: 184, b: 48 }
+
+  if (powerUpEffect.value) {
+    if (powerUpEffect.value.type === 'chili') {
+      headColor = '#FF0000'
+      bodyColorStart = { r: 255, g: 0, b: 0 }
+      bodyColorEnd = { r: 255, g: 100, b: 0 }
+    } else if (powerUpEffect.value.type === 'tea') {
+      headColor = '#8ECDDD'
+      bodyColorStart = { r: 142, g: 205, b: 221 }
+      bodyColorEnd = { r: 34, g: 166, b: 153 }
+    } else if (powerUpEffect.value.type === 'coffee') {
+      headColor = '#D4A373'
+      bodyColorStart = { r: 212, g: 163, b: 115 }
+      bodyColorEnd = { r: 250, g: 237, b: 205 }
+    }
+  }
+
   // Snake body (draw tail to head so head is on top)
   const len = snake.value.length
   for (let i = len - 1; i >= 0; i--) {
-    const seg = snake.value[i]
+    const seg = snake.value[i] as Pos
     const t = len > 1 ? i / (len - 1) : 0
 
     if (i === 0) {
-      // Dragon head — bright and unmistakable
+      // Dragon head
       const hx = seg.x * cs + cs / 2
       const hy = seg.y * cs + cs / 2
 
-      // Outer glow
-      ctx.shadowColor = '#FF6B4A'
+      ctx.shadowColor = headColor
       ctx.shadowBlur = 14
-      ctx.fillStyle = 'rgba(255, 107, 74, 0.25)'
+      ctx.fillStyle = headColor
+      ctx.globalAlpha = 0.25
       ctx.beginPath()
       ctx.arc(hx, hy, cs * 0.5, 0, Math.PI * 2)
       ctx.fill()
+      ctx.globalAlpha = 1.0
       ctx.shadowBlur = 0
 
-      // Bright coral circle
-      ctx.fillStyle = '#FF6B4A'
+      ctx.fillStyle = headColor
       ctx.beginPath()
       ctx.arc(hx, hy, cs * 0.35, 0, Math.PI * 2)
       ctx.fill()
 
-      // Dragon emoji on top
       ctx.fillStyle = '#FFFFFF'
       ctx.font = `${cs * 1.1}px serif`
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      ctx.fillText('🐲', hx, hy)
+
+      // Face direction logic roughly using emoji? Just text for now.
+      ctx.fillText(powerUpEffect.value?.type === 'chili' ? '👺' : '🐲', hx, hy)
     } else {
-      // Body gradient: coral (#FF6B4A) → amber (#FFB830)
-      const r = 255
-      const g = Math.round(107 + t * 77)
-      const b = Math.round(74 - t * 26)
+      const g = Math.round(bodyColorStart.g + t * (bodyColorEnd.g - bodyColorStart.g))
+      const b = Math.round(bodyColorStart.b + t * (bodyColorEnd.b - bodyColorStart.b))
+      const r = Math.round(bodyColorStart.r + t * (bodyColorEnd.r - bodyColorStart.r))
+
       const pad = 2
       const shrink = t * cs * 0.2
       const segW = cs - pad * 2 - shrink
       const off = (cs - segW) / 2
 
-      // Glow behind segment
       ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.4)`
-      ctx.shadowBlur = 4
+      ctx.shadowBlur = powerUpEffect.value ? 8 : 4
       ctx.fillStyle = `rgb(${r}, ${g}, ${b})`
       ctx.beginPath()
       ctx.roundRect(seg.x * cs + off, seg.y * cs + off, segW, segW, 3)
       ctx.fill()
       ctx.shadowBlur = 0
 
-      // Inner highlight
       ctx.fillStyle = `rgba(255, 255, 255, ${0.18 * (1 - t)})`
       ctx.beginPath()
       ctx.roundRect(seg.x * cs + off + 1.5, seg.y * cs + off + 1.5, segW - 3, segW * 0.35, 2)
       ctx.fill()
     }
   }
+
+  // Draw Particles
+  particles.value.forEach((p) => {
+    ctx.globalAlpha = Math.max(0, p.life / p.maxLife)
+    if (p.char) {
+      ctx.font = `${p.size * 2}px serif`
+      ctx.fillText(p.char, p.x, p.y)
+    } else {
+      ctx.fillStyle = p.color
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    ctx.globalAlpha = 1.0
+  })
 
   // Scanlines
   ctx.fillStyle = 'rgba(0, 0, 0, 0.02)'
@@ -424,6 +800,18 @@ function render() {
   ctx.strokeStyle = '#253549'
   ctx.lineWidth = 2
   ctx.strokeRect(0, 0, W, H)
+
+  // Floating Pop Message
+  if (popMessage.value.life > 0) {
+    const pAmt = popMessage.value.life / popMessage.value.maxLife
+    ctx.globalAlpha = pAmt
+    ctx.fillStyle = popMessage.value.color
+    ctx.font = `bold ${cs * 1.5}px Anybody, sans-serif`
+    ctx.textAlign = 'center'
+    // Starts floating from middle up
+    ctx.fillText(popMessage.value.text, W / 2, H / 2 - (1 - pAmt) * 50)
+    ctx.globalAlpha = 1.0
+  }
 
   ctx.restore()
 }
@@ -463,11 +851,12 @@ function onKey(e: KeyboardEvent) {
 let tx = 0,
   ty = 0
 function onTouchStart(e: TouchEvent) {
+  if (!e.touches[0]) return
   tx = e.touches[0].clientX
   ty = e.touches[0].clientY
 }
 function onTouchEnd(e: TouchEvent) {
-  if (screen.value !== 'playing') return
+  if (screen.value !== 'playing' || !e.changedTouches[0]) return
   const dx = e.changedTouches[0].clientX - tx
   const dy = e.changedTouches[0].clientY - ty
   if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return
@@ -486,8 +875,12 @@ function onResize() {
 onMounted(() => {
   window.addEventListener('keydown', onKey)
   window.addEventListener('resize', onResize)
+
   const saved = localStorage.getItem('rong-viet-hs')
   if (saved) highScore.value = parseInt(saved)
+
+  const endlessSaved = localStorage.getItem('rong-viet-endless-hs')
+  if (endlessSaved) endlessHighScore.value = parseInt(endlessSaved)
 })
 
 onUnmounted(() => {
@@ -528,21 +921,33 @@ onUnmounted(() => {
           Trong bọc trăm trứng của Âu Cơ, có một quả trứng nhỏ nhất bị rơi lại. Hàng ngàn năm sau,
           Rồng con thức dậy — và bắt đầu hành trình về nhà...
         </p>
-        <button
-          class="mt-8 font-display font-semibold tracking-wider border-2 border-accent-coral text-accent-coral px-8 py-3 text-sm transition hover:bg-accent-coral hover:text-bg-deep animate-fade-up animate-delay-4"
-          @click="beginJourney"
+
+        <div
+          class="flex flex-col gap-4 mt-8 w-full max-w-[280px] mx-auto animate-fade-up animate-delay-4"
         >
-          BẮT ĐẦU HÀNH TRÌNH
-        </button>
-        <p class="mt-6 text-text-dim text-xs animate-fade-up animate-delay-5">
+          <button
+            class="font-display font-semibold tracking-wider border-2 border-accent-coral text-accent-coral px-8 py-3 text-sm transition hover:bg-accent-coral hover:text-bg-deep"
+            @click="beginJourney"
+          >
+            MẬT NGỮ (STORY)
+          </button>
+          <button
+            class="font-display font-semibold tracking-wider border-2 border-accent-amber text-accent-amber px-8 py-3 text-sm transition hover:bg-accent-amber hover:text-bg-deep"
+            @click="beginEndless"
+          >
+            VÔ TẬN (ENDLESS)
+          </button>
+        </div>
+
+        <p class="mt-8 text-text-dim text-xs animate-fade-up animate-delay-5">
           ← ↑ ↓ → hoặc WASD &nbsp;|&nbsp; Vuốt trên mobile
         </p>
-        <p
-          v-if="highScore > 0"
-          class="mt-2 text-accent-amber/60 text-xs animate-fade-up animate-delay-5"
-        >
-          Kỷ lục: {{ highScore }} điểm
-        </p>
+        <div class="mt-4 flex gap-6 justify-center text-xs animate-fade-up animate-delay-5">
+          <p v-if="highScore > 0" class="text-accent-coral/70">Kỷ lục Story: {{ highScore }}</p>
+          <p v-if="endlessHighScore > 0" class="text-accent-amber/70">
+            Kỷ lục Vô Tận: {{ endlessHighScore }}
+          </p>
+        </div>
       </div>
     </div>
 
@@ -608,19 +1013,30 @@ onUnmounted(() => {
           <span class="font-display text-sm font-semibold">{{ level.region }}</span>
         </div>
         <div class="flex items-center gap-3">
+          <span v-if="powerUpEffect" class="text-accent-coral text-xs font-bold animate-pulse">
+            <span v-if="powerUpEffect.type === 'coffee'">☕ x2 SPEED</span>
+            <span v-else-if="powerUpEffect.type === 'tea'">🧊 SLOW</span>
+            <span v-else-if="powerUpEffect.type === 'chili'">🌶️ INVINCIBLE</span>
+          </span>
           <span class="text-text-dim text-xs font-display"
-            >{{ foodEmoji }} {{ score }}/{{ level.targetScore }}</span
+            >{{ foodEmoji }} {{ isEndless ? score : `${score}/${level.targetScore}` }}</span
           >
           <span class="text-accent-amber text-xs font-display">★ {{ totalScore }}</span>
         </div>
       </div>
 
       <!-- Progress bar -->
-      <div class="w-full max-w-[500px] h-1 bg-bg-surface mb-3">
+      <div v-if="!isEndless" class="w-full max-w-[500px] h-1 bg-bg-surface mb-3">
         <div
           class="h-full bg-accent-coral transition-all duration-300"
           :style="{ width: Math.min(100, (score / level.targetScore) * 100) + '%' }"
         />
+      </div>
+      <div
+        v-else
+        class="w-full max-w-[500px] h-1 bg-bg-surface mb-3 flex items-center justify-center text-[10px] text-accent-amber/50 font-display"
+      >
+        CHẾ ĐỘ VÔ TẬN
       </div>
 
       <!-- Canvas -->
@@ -728,9 +1144,14 @@ onUnmounted(() => {
         >
           <p class="text-text-dim text-xs font-display tracking-wider mb-3">KẾT QUẢ</p>
           <p class="text-accent-amber text-2xl font-display font-bold">
-            {{ totalScore }} <span class="text-sm text-text-dim">điểm</span>
+            {{ isEndless ? score : totalScore }} <span class="text-sm text-text-dim">điểm</span>
           </p>
-          <p v-if="highScore > 0" class="mt-2 text-text-dim text-sm">Kỷ lục: {{ highScore }}</p>
+          <p v-if="isEndless && endlessHighScore > 0" class="mt-2 text-text-dim text-sm">
+            Kỷ lục Vô Tận: {{ endlessHighScore }}
+          </p>
+          <p v-else-if="highScore > 0" class="mt-2 text-text-dim text-sm">
+            Kỷ lục: {{ highScore }}
+          </p>
         </div>
         <div class="mt-8 flex gap-4 justify-center animate-fade-up animate-delay-4">
           <button
@@ -739,12 +1160,12 @@ onUnmounted(() => {
           >
             THỬ LẠI
           </button>
-          <RouterLink
-            to="/"
+          <button
+            @click="screen = 'intro'"
             class="font-display font-semibold tracking-wider border-2 border-border-default text-text-secondary px-6 py-3 text-sm transition hover:border-accent-coral hover:text-text-primary"
           >
-            VỀ NHÀ
-          </RouterLink>
+            MENU CHÍNH
+          </button>
         </div>
       </div>
     </div>
@@ -784,12 +1205,12 @@ onUnmounted(() => {
           >
             CHƠI LẠI
           </button>
-          <RouterLink
-            to="/"
+          <button
+            @click="screen = 'intro'"
             class="font-display font-semibold tracking-wider border-2 border-border-default text-text-secondary px-6 py-3 text-sm transition hover:border-accent-amber hover:text-text-primary"
           >
-            VỀ NHÀ
-          </RouterLink>
+            MENU CHÍNH
+          </button>
         </div>
       </div>
     </div>
