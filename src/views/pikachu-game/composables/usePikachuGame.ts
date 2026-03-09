@@ -107,7 +107,9 @@ export function usePikachuGame() {
   })
 
   const isCleared = computed(() => visibleIconsLeft.value === 0 && grid.value.length > 0)
-  const isStoryMode = computed(() => appliedMode.value === 'story' || appliedMode.value === 'gravity')
+  const isStoryMode = computed(
+    () => appliedMode.value === 'story' || appliedMode.value === 'gravity',
+  )
   const isTimeUp = computed(() => appliedMode.value === 'timed' && timeLeft.value <= 0)
   const isGameOver = computed(() => isCleared.value || isTimeUp.value)
 
@@ -234,8 +236,7 @@ export function usePikachuGame() {
     const cells: DisplayCell[] = []
     for (let y = 0; y < extRows.value; y++) {
       for (let x = 0; x < extCols.value; x++) {
-        const isOuter =
-          y === 0 || y === extRows.value - 1 || x === 0 || x === extCols.value - 1
+        const isOuter = y === 0 || y === extRows.value - 1 || x === 0 || x === extCols.value - 1
         cells.push({
           key: `${x}-${y}`,
           x,

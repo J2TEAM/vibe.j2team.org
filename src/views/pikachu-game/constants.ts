@@ -7,17 +7,89 @@ export const STORY_TOTAL_LEVELS = 10
 export const STORY_GRID_SIZE: GridSize = '10x20'
 
 export const DEFAULT_RECORDS: ReadonlyArray<RecordItem> = [
-  { name: 'Starter A', score: 40, difficulty: 0, mode: 'classic', timeSpent: 0, createdAt: '2026-01-01T00:00:00.000Z' },
-  { name: 'Starter B', score: 55, difficulty: 1, mode: 'classic', timeSpent: 0, createdAt: '2026-01-02T00:00:00.000Z' },
-  { name: 'Starter C', score: 65, difficulty: 1, mode: 'timed', timeSpent: 120, createdAt: '2026-01-03T00:00:00.000Z' },
-  { name: 'Starter D', score: 80, difficulty: 2, mode: 'timed', timeSpent: 140, createdAt: '2026-01-04T00:00:00.000Z' },
-  { name: 'Story Runner', score: 0, difficulty: 8, mode: 'story', timeSpent: 3300, createdAt: '2026-01-05T00:00:00.000Z' },
-  { name: 'Story Explorer', score: 0, difficulty: 8, mode: 'story', timeSpent: 2700, createdAt: '2026-01-06T00:00:00.000Z' },
-  { name: 'Story Sprinter', score: 0, difficulty: 8, mode: 'story', timeSpent: 2280, createdAt: '2026-01-07T00:00:00.000Z' },
-  { name: 'Gravity Master', score: 0, difficulty: 8, mode: 'gravity', timeSpent: 2520, createdAt: '2026-01-08T00:00:00.000Z' },
+  {
+    name: 'Starter A',
+    score: 40,
+    difficulty: 0,
+    mode: 'classic',
+    timeSpent: 0,
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    name: 'Starter B',
+    score: 55,
+    difficulty: 1,
+    mode: 'classic',
+    timeSpent: 0,
+    createdAt: '2026-01-02T00:00:00.000Z',
+  },
+  {
+    name: 'Starter C',
+    score: 65,
+    difficulty: 1,
+    mode: 'timed',
+    timeSpent: 120,
+    createdAt: '2026-01-03T00:00:00.000Z',
+  },
+  {
+    name: 'Starter D',
+    score: 80,
+    difficulty: 2,
+    mode: 'timed',
+    timeSpent: 140,
+    createdAt: '2026-01-04T00:00:00.000Z',
+  },
+  {
+    name: 'Story Runner',
+    score: 0,
+    difficulty: 8,
+    mode: 'story',
+    timeSpent: 3300,
+    createdAt: '2026-01-05T00:00:00.000Z',
+  },
+  {
+    name: 'Story Explorer',
+    score: 0,
+    difficulty: 8,
+    mode: 'story',
+    timeSpent: 2700,
+    createdAt: '2026-01-06T00:00:00.000Z',
+  },
+  {
+    name: 'Story Sprinter',
+    score: 0,
+    difficulty: 8,
+    mode: 'story',
+    timeSpent: 2280,
+    createdAt: '2026-01-07T00:00:00.000Z',
+  },
+  {
+    name: 'Gravity Master',
+    score: 0,
+    difficulty: 8,
+    mode: 'gravity',
+    timeSpent: 2520,
+    createdAt: '2026-01-08T00:00:00.000Z',
+  },
 ]
 
-export const iconSet = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵'] as const
+export const iconSet = [
+  '🐶',
+  '🐱',
+  '🐭',
+  '🐹',
+  '🐰',
+  '🦊',
+  '🐻',
+  '🐼',
+  '🐨',
+  '🐯',
+  '🦁',
+  '🐮',
+  '🐷',
+  '🐸',
+  '🐵',
+] as const
 
 export const directions: ReadonlyArray<readonly [number, number]> = [
   [0, 1],

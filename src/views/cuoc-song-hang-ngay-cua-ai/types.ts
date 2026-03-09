@@ -35,9 +35,9 @@ export interface Message {
 }
 
 export interface AgentAsset {
-  body: HTMLImageElement;
-  hair: HTMLImageElement;
-  outfit: HTMLImageElement;
+  body: HTMLImageElement
+  hair: HTMLImageElement
+  outfit: HTMLImageElement
 }
 
 export interface Rect {
@@ -57,10 +57,10 @@ export interface ActionZone {
 }
 
 export interface SmartAgent extends Agent {
-  path: Point[];
-  targetNodeIdx: number;
-  statusText: string;
-  statusIcon: string | null;
-  delayUntil: number;
-  isResponding: boolean;
+  path: Point[]
+  targetNodeIdx: number
+  statusText: string
+  statusIcon: string | null
+  delayUntil: number
+  isResponding: boolean
 }

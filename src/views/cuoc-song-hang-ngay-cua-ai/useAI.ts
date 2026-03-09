@@ -6,19 +6,19 @@ export function useAI() {
   const isProcessing = ref(false)
 
   const askStreaming = async (
-    question: string, 
+    question: string,
     onChunk: (chunk: string) => void,
-    personality?: string
+    personality?: string,
   ): Promise<void> => {
     isProcessing.value = true
     try {
       const response = await fetch(CLOUDFLARE_AI_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          question, 
+        body: JSON.stringify({
+          question,
           stream: true,
-          context: personality // Gửi kèm mô tả tính cách
+          context: personality, // Gửi kèm mô tả tính cách
         }),
       })
 
@@ -32,7 +32,7 @@ export function useAI() {
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
-        
+
         buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
         buffer = lines.pop() || ''
@@ -45,8 +45,7 @@ export function useAI() {
               if (jsonStr === '[DONE]') continue
               const data = JSON.parse(jsonStr)
               if (data.response) onChunk(data.response)
-            } catch {
-            }
+            } catch {}
           }
         }
       }
@@ -55,10 +54,10 @@ export function useAI() {
       const res = await fetch(CLOUDFLARE_AI_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          question, 
+        body: JSON.stringify({
+          question,
           stream: false,
-          context: personality 
+          context: personality,
         }),
       })
       const data = await res.json()
@@ -70,6 +69,6 @@ export function useAI() {
 
   return {
     askStreaming,
-    isProcessing
+    isProcessing,
   }
 }

@@ -4,13 +4,15 @@ export const containmentTruocToiUuPost: BlogPost = {
   id: 'post-chaos-containment-001',
   slug: 'containment-truoc-toi-uu',
   title: 'Containment Trước Tối Ưu: Cách Ổn Định Hệ Thống Khi Sự Cố Vừa Xảy Ra',
-  excerpt: 'Trong giai đoạn đầu của sự cố, mục tiêu quan trọng nhất là giới hạn phạm vi ảnh hưởng. Bài viết này cung cấp quy trình rõ ràng để đội kỹ thuật ổn định hệ thống trước khi tối ưu sâu.',
+  excerpt:
+    'Trong giai đoạn đầu của sự cố, mục tiêu quan trọng nhất là giới hạn phạm vi ảnh hưởng. Bài viết này cung cấp quy trình rõ ràng để đội kỹ thuật ổn định hệ thống trước khi tối ưu sâu.',
   author: 'TranQui004',
   publishedAt: '2026-03-07',
   updatedAt: '2026-03-07',
   tags: ['incident-response', 'chaos-control', 'runbook'],
   readMinutes: 15,
-  coverImageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80',
+  coverImageUrl:
+    'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80',
   coverImageAlt: 'Màn hình giám sát hệ thống trong lúc xử lý sự cố production',
   imageLinks: [
     {

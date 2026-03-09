@@ -37,11 +37,15 @@ function sanitizeRecordList(raw: unknown): RecordItem[] {
   return next
 }
 
-function mergeRecordSeeds(existing: RecordItem[], defaults: ReadonlyArray<RecordItem>): RecordItem[] {
+function mergeRecordSeeds(
+  existing: RecordItem[],
+  defaults: ReadonlyArray<RecordItem>,
+): RecordItem[] {
   const merged = [...existing]
   const existingKeys = new Set(
     existing.map(
-      (item) => `${item.name}|${item.mode}|${item.difficulty}|${item.score}|${item.timeSpent}|${item.createdAt}`,
+      (item) =>
+        `${item.name}|${item.mode}|${item.difficulty}|${item.score}|${item.timeSpent}|${item.createdAt}`,
     ),
   )
 
@@ -73,6 +77,9 @@ export function loadRecordsFromStorage(
   return mergeRecordSeeds(cachedRecords, defaultRecords)
 }
 
-export function persistRecordsToStorage(storageKey: string, records: ReadonlyArray<RecordItem>): void {
+export function persistRecordsToStorage(
+  storageKey: string,
+  records: ReadonlyArray<RecordItem>,
+): void {
   localStorage.setItem(storageKey, JSON.stringify(records))
 }

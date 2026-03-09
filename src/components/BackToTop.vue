@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
+import { useEventListener } from '@vueuse/core'
+import { Icon } from '@iconify/vue'
 
 const visible = ref(false)
 
@@ -11,14 +13,8 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-onMounted(() => {
-  window.addEventListener('scroll', onScroll, { passive: true })
-  onScroll()
-})
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', onScroll)
-})
+useEventListener(window, 'scroll', onScroll, { passive: true })
+onScroll()
 </script>
 
 <template>
@@ -29,7 +25,7 @@ onUnmounted(() => {
       aria-label="Về đầu trang"
       @click="scrollToTop"
     >
-      ↑
+      <Icon icon="lucide:arrow-up" class="w-5 h-5" />
     </button>
   </Transition>
 </template>
