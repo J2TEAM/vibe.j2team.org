@@ -11,7 +11,7 @@ interface SelectOption {
 
 const props = defineProps<{
   modelValue: string
-  options: SelectOption[]
+  options: readonly SelectOption[]
   leftIcon: string
   leftIconClass: string
 }>()
