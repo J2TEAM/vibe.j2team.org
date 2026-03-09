@@ -4,9 +4,9 @@ import type { ComboLevel, ComboConfig } from '../types'
 const COMBO_CONFIGS: Record<ComboLevel, ComboConfig> = {
   0: { minStreak: 0, multiplier: 1, duration: 0, color: 'transparent', label: '' },
   1: { minStreak: 3, multiplier: 2, duration: 20000, color: '#22c55e', label: 'x2' },
-  2: { minStreak: 10, multiplier: 3, duration: 12000, color: '#3b82f6', label: 'x3' },
-  3: { minStreak: 15, multiplier: 4, duration: 8000, color: '#eab308', label: 'x4' },
-  4: { minStreak: 20, multiplier: 5, duration: 5000, color: '#a855f7', label: 'x5' },
+  2: { minStreak: 5, multiplier: 3, duration: 12000, color: '#3b82f6', label: 'x3' },
+  3: { minStreak: 10, multiplier: 4, duration: 8000, color: '#eab308', label: 'x4' },
+  4: { minStreak: 15, multiplier: 5, duration: 5000, color: '#a855f7', label: 'x5' },
 }
 
 // lvMax(5s) → lv3(5s) → lv2(5s) → lv1(5s) → end
@@ -41,9 +41,9 @@ export function useCombo() {
   })
 
   function calculateLevel(currentStreak: number): ComboLevel {
-    if (currentStreak >= 20) return 4
-    if (currentStreak >= 15) return 3
-    if (currentStreak >= 10) return 2
+    if (currentStreak >= 15) return 4
+    if (currentStreak >= 10) return 3
+    if (currentStreak >= 5) return 2
     if (currentStreak >= 3) return 1
     return 0
   }

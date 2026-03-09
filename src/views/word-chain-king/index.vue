@@ -151,6 +151,12 @@ const shakeClass = computed(() => {
   overflow: hidden;
 }
 
+:global(html),
+:global(body) {
+  overflow: hidden !important;
+  background: #0a1628 !important;
+}
+
 /* Pixel stars background */
 .bg-stars {
   position: fixed;

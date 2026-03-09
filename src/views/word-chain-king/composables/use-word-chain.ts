@@ -28,7 +28,7 @@ function isValidChain(previousWord: string, currentWord: string): boolean {
   const normalized = normalizeWord(currentWord)
   const parts = normalized.split(' ')
   if (parts.length < 2) return false
-  return normalized.startsWith(lastSyllable + ' ') || normalized === lastSyllable
+  return normalized.startsWith(lastSyllable + ' ')
 }
 
 function getChainableWords(word: string, usedWords?: Set<string>): string[] {
@@ -38,7 +38,7 @@ function getChainableWords(word: string, usedWords?: Set<string>): string[] {
   const directValues = (data as WordData)[lastSyllable]
   if (directValues) {
     for (const val of directValues) {
-      const compound = `${lastSyllable} ${val}`
+      const compound = normalizeWord(`${lastSyllable} ${val}`)
       if (!usedWords || !usedWords.has(compound)) {
         results.push(compound)
       }
@@ -50,7 +50,7 @@ function getChainableWords(word: string, usedWords?: Set<string>): string[] {
       const values = (data as WordData)[key]
       if (values) {
         for (const val of values) {
-          const compound = `${key} ${val}`
+          const compound = normalizeWord(`${key} ${val}`)
           if (!usedWords || !usedWords.has(compound)) {
             results.push(compound)
           }
@@ -62,9 +62,6 @@ function getChainableWords(word: string, usedWords?: Set<string>): string[] {
   return [...new Set(results)]
 }
 
-/**
- * Bot chọn từ nối tiếp, tránh dùng từ đã chơi.
- */
 function botPickWord(previousWord: string, usedWords?: Set<string>): string | null {
   const candidates = getChainableWords(previousWord, usedWords)
   if (candidates.length === 0) return null
@@ -74,24 +71,16 @@ function botPickWord(previousWord: string, usedWords?: Set<string>): string | nu
 
 function getRandomStartWord(usedWords?: Set<string>): string {
   const keys = Object.keys(data as WordData)
-
   for (let attempt = 0; attempt < 50; attempt++) {
     const randomKey = keys[Math.floor(Math.random() * keys.length)] ?? 'an'
     const values = (data as WordData)[randomKey]
     if (!values || values.length === 0) continue
-
     const randomVal = values[Math.floor(Math.random() * values.length)] ?? values[0]
     const startWord = `${randomKey} ${randomVal}`
-
-    if (usedWords && usedWords.has(startWord)) continue
-
-    const lastSyl = randomVal ?? ''
-    const followUps = (data as WordData)[lastSyl]
-    if (followUps && followUps.length > 0) {
-      return startWord
-    }
+    if (usedWords && usedWords.has(normalizeWord(startWord))) continue
+    const followUps = getChainableWords(startWord, usedWords)
+    if (followUps.length > 0) return startWord
   }
-
   return 'an khang'
 }
 
