@@ -1,0 +1,118 @@
+@import 'tailwindcss';
+
+html {
+  scroll-behavior: smooth;
+}
+
+@theme {
+  --color-bg-deep: #0f1923;
+  --color-bg-surface: #162232;
+  --color-bg-elevated: #1e2f42;
+  --color-accent-coral: #ff6b4a;
+  --color-accent-amber: #ffb830;
+  --color-accent-sky: #38bdf8;
+  --color-text-primary: #f0ede6;
+  --color-text-secondary: #8b9db5;
+  --color-text-dim: #4a6180;
+  --color-border-default: #253549;
+  --color-border-hover: #ff6b4a;
+
+  --font-display: 'Philosopher', serif;
+  --font-body: 'Be Vietnam Pro', sans-serif;
+  --font-script: 'Dancing Script', cursive;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg-deep);
+  color: var(--color-text-primary);
+}
+
+/* Noise grain overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 50;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* Keyframe animations */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-border {
+  0%,
+  100% {
+    border-color: var(--color-border-default);
+  }
+  50% {
+    border-color: var(--color-accent-coral);
+  }
+}
+
+/* Staggered load animation */
+.animate-fade-up {
+  animation: fade-up 0.6s ease-out both;
+}
+
+.animate-delay-1 {
+  animation-delay: 100ms;
+}
+.animate-delay-2 {
+  animation-delay: 200ms;
+}
+.animate-delay-3 {
+  animation-delay: 300ms;
+}
+.animate-delay-4 {
+  animation-delay: 400ms;
+}
+.animate-delay-5 {
+  animation-delay: 500ms;
+}
+.animate-delay-6 {
+  animation-delay: 600ms;
+}
+.animate-delay-7 {
+  animation-delay: 700ms;
+}
+
+/* Animated link underline */
+.link-underline {
+  background-image: linear-gradient(var(--color-accent-coral), var(--color-accent-coral));
+  background-size: 0% 2px;
+  background-position: left bottom;
+  background-repeat: no-repeat;
+  transition: background-size 0.3s ease;
+}
+
+.link-underline:hover {
+  background-size: 100% 2px;
+}
+
+/* Placeholder card pulse */
+.animate-pulse-border {
+  animation: pulse-border 2.5s ease-in-out infinite;
+}
+
+/* Scroll-triggered animation (progressive enhancement) */
+@supports (animation-timeline: view()) {
+  .scroll-reveal {
+    animation: fade-up 0.6s ease-out both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 25%;
+  }
+}

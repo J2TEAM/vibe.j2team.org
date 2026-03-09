@@ -1,6 +1,7 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
-import { RouterLink } from 'vue-router'
+// import { RouterLink } from 'vue-router'
 import { termContents } from './content'
 import type { SolarTerm } from './types'
 import GlobalBackground from './components/GlobalBackground.vue'
@@ -498,13 +499,13 @@ watch(
       ]"
     >
       <div class="max-w-7xl mx-auto flex justify-between items-center w-full">
-        <RouterLink
-          to="/"
+        <a
+          href="https://vibe.j2team.org"
           class="group flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors"
         >
           <span class="group-hover:-translate-x-1 transition-transform">&larr;</span>
-          <span class="hidden sm:inline">Về trang chủ</span>
-        </RouterLink>
+          <span class="hidden sm:inline">Về J2TEAM Vibe</span>
+        </a>
         <div class="flex flex-col items-center">
           <h2
             :class="[
