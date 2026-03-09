@@ -4,7 +4,7 @@ import { useStorage } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 import { RouterLink } from 'vue-router'
 
-const mode = ref<'NORMAL' | 'INSERT' | 'VISUAL'>('NORMAL')
+const mode = ref<'NORMAL' | 'INSERT' | 'VISUAL' | 'VISUAL_LINE'>('NORMAL')
 const keyBuffer = ref('')
 let keyBufferTimeout: ReturnType<typeof setTimeout> | null = null
 
@@ -31,6 +31,7 @@ Chào mừng đến với Vim Editor nhẹ nhàng!
 
 ## Chế độ Visual (Mới!)
 - \`v\` : Vào chế độ Visual
+- \`V\` : Vào chế độ Visual Line (chọn theo dòng)
 - \`d\` / \`x\` : Xóa vùng chọn
 - \`y\` : Sao chép vùng chọn (Copy)
 - \`c\` : Xóa vùng chọn và vào Insert
@@ -40,6 +41,8 @@ Chào mừng đến với Vim Editor nhẹ nhàng!
 - \`o\` / \`O\` : Thêm dòng mới
 - \`x\` : Xóa ký tự tại con trỏ
 - \`dd\`: Xóa dòng hiện tại
+- \`D\` : Xóa từ con trỏ đến cuối dòng
+- \`C\` : Xóa từ con trỏ đến cuối dòng và vào Insert
 - \`yy\`: Sao chép dòng hiện tại (Copy)
 - \`p\` : Dán (Paste) ở sau con trỏ
 - \`u\` : Phục hồi (Undo) thao tác gần nhất
@@ -67,21 +70,21 @@ const saveHistory = () => {
 const scrollToCursor = (pos: number) => {
   const el = editorRef.value
   if (!el) return
-  
+
   const text = el.value
   const linesBefore = text.slice(0, pos).split('\n').length
-  
+
   // Các thông số xấp xỉ dựa trên Tailwind text-base, leading-relaxed (1.625) và p-5 (20px)
-  const lineHeight = 26 
+  const lineHeight = 26
   const paddingTop = 20
-  
+
   const cursorYTop = paddingTop + (linesBefore - 1) * lineHeight
   const cursorYBottom = cursorYTop + lineHeight
 
   // Scroll lên nếu con trỏ vượt quá cạnh trên
   if (cursorYTop < el.scrollTop + paddingTop) {
     el.scrollTop = cursorYTop - paddingTop
-  } 
+  }
   // Scroll xuống nếu con trỏ vượt quá cạnh dưới
   else if (cursorYBottom > el.scrollTop + el.clientHeight - paddingTop) {
     el.scrollTop = cursorYBottom - el.clientHeight + paddingTop * 2
@@ -92,7 +95,7 @@ const scrollToCursor = (pos: number) => {
 const updateSelection = (pos: number) => {
   const el = editorRef.value
   if (!el) return
-  
+
   currentPos.value = pos
 
   if (mode.value === 'NORMAL') {
@@ -102,6 +105,14 @@ const updateSelection = (pos: number) => {
     const end = Math.max(visualStart.value, pos) + 1
     const direction = pos < visualStart.value ? 'backward' : 'forward'
     el.setSelectionRange(start, end, direction)
+  } else if (mode.value === 'VISUAL_LINE') {
+    const text = el.value
+    const startInfo = getLineInfo(text, visualStart.value)
+    const currentInfo = getLineInfo(text, pos)
+    const startPos = Math.min(startInfo.lineStart, currentInfo.lineStart)
+    const endPos = Math.max(startInfo.lineEnd, currentInfo.lineEnd)
+    const finalEndPos = endPos < text.length && text[endPos] === '\n' ? endPos + 1 : endPos
+    el.setSelectionRange(startPos, finalEndPos, pos < visualStart.value ? 'backward' : 'forward')
   } else {
     // Insert mode
     el.setSelectionRange(pos, pos)
@@ -137,11 +148,11 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 
   // ---- CHẾ ĐỘ NORMAL & VISUAL ----
-  if (mode.value === 'NORMAL' || mode.value === 'VISUAL') {
+  if (mode.value === 'NORMAL' || mode.value === 'VISUAL' || mode.value === 'VISUAL_LINE') {
     // Xử lý riêng Ctrl+u và Ctrl+d
     const isCtrlU = e.ctrlKey && e.key.toLowerCase() === 'u'
     const isCtrlD = e.ctrlKey && e.key.toLowerCase() === 'd'
-    
+
     if (e.ctrlKey && !isCtrlU && !isCtrlD) return
     if (e.altKey || e.metaKey) return
 
@@ -153,7 +164,18 @@ const handleKeydown = (e: KeyboardEvent) => {
       return
     }
 
-    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) {
+    if (
+      [
+        'ArrowUp',
+        'ArrowDown',
+        'ArrowLeft',
+        'ArrowRight',
+        'Home',
+        'End',
+        'PageUp',
+        'PageDown',
+      ].includes(e.key)
+    ) {
       e.preventDefault()
       return
     }
@@ -166,7 +188,9 @@ const handleKeydown = (e: KeyboardEvent) => {
     if (e.key.length === 1 && !e.ctrlKey) {
       keyBuffer.value += e.key
       if (keyBufferTimeout) clearTimeout(keyBufferTimeout)
-      keyBufferTimeout = setTimeout(() => { keyBuffer.value = '' }, 1000)
+      keyBufferTimeout = setTimeout(() => {
+        keyBuffer.value = ''
+      }, 1000)
     }
 
     const key = isCtrlU ? 'Ctrl+u' : isCtrlD ? 'Ctrl+d' : e.key
@@ -226,11 +250,13 @@ const handleKeydown = (e: KeyboardEvent) => {
       if (pos > getLineInfo(text, pos).lineStart) pos--
     } else if (key === 'G') {
       pos = text.length - 1
-    } else if (key === '{') { // Nhảy lên đoạn văn
+    } else if (key === '{') {
+      // Nhảy lên đoạn văn
       const before = text.slice(0, pos > 0 ? pos - 1 : 0)
       const match = before.lastIndexOf('\n\n')
       pos = match !== -1 ? match + 1 : 0
-    } else if (key === '}') { // Nhảy xuống đoạn văn
+    } else if (key === '}') {
+      // Nhảy xuống đoạn văn
       const remaining = text.slice(pos + 1)
       const match = remaining.indexOf('\n\n')
       pos = match !== -1 ? pos + match + 2 : text.length
@@ -283,7 +309,7 @@ const handleKeydown = (e: KeyboardEvent) => {
         updateSelection(pos)
         return
       }
-      
+
       if (keyBuffer.value === 'yy') {
         const info = getLineInfo(text, pos)
         const end = info.lineEnd < text.length ? info.lineEnd + 1 : info.lineEnd
@@ -348,9 +374,24 @@ const handleKeydown = (e: KeyboardEvent) => {
       } else if (key === 'v') {
         mode.value = 'VISUAL'
         visualStart.value = pos
+      } else if (key === 'V') {
+        mode.value = 'VISUAL_LINE'
+        visualStart.value = pos
+      } else if (key === 'C') {
+        saveHistory()
+        mode.value = 'INSERT'
+        const info = getLineInfo(text, pos)
+        el.value = text.slice(0, pos) + text.slice(info.lineEnd)
+        content.value = el.value
+      } else if (key === 'D') {
+        saveHistory()
+        const info = getLineInfo(text, pos)
+        el.value = text.slice(0, pos) + text.slice(info.lineEnd)
+        content.value = el.value
+        if (pos > 0 && pos === info.lineEnd) pos--
       } else if (key === 'p') {
         try {
-          navigator.clipboard.readText().then(clipText => {
+          navigator.clipboard.readText().then((clipText) => {
             if (!clipText) return
             saveHistory()
             const insertPos = pos + 1 > text.length ? text.length : pos + 1
@@ -367,11 +408,32 @@ const handleKeydown = (e: KeyboardEvent) => {
       } else {
         actionHandled = false
       }
-    } else if (mode.value === 'VISUAL') {
-      if (key === 'd' || key === 'x' || key === 'c') {
+    } else if (mode.value === 'VISUAL' || mode.value === 'VISUAL_LINE') {
+      if (key === 'v') {
+        if (mode.value === 'VISUAL') {
+          mode.value = 'NORMAL'
+        } else {
+          mode.value = 'VISUAL'
+        }
+      } else if (key === 'V') {
+        if (mode.value === 'VISUAL_LINE') {
+          mode.value = 'NORMAL'
+        } else {
+          mode.value = 'VISUAL_LINE'
+        }
+      } else if (key === 'd' || key === 'x' || key === 'c') {
         saveHistory()
-        const start = Math.min(visualStart.value, pos)
-        const end = Math.max(visualStart.value, pos) + 1
+        let start, end
+        if (mode.value === 'VISUAL_LINE') {
+          const startInfo = getLineInfo(text, visualStart.value)
+          const currentInfo = getLineInfo(text, pos)
+          start = Math.min(startInfo.lineStart, currentInfo.lineStart)
+          const maxEnd = Math.max(startInfo.lineEnd, currentInfo.lineEnd)
+          end = maxEnd < text.length && text[maxEnd] === '\n' ? maxEnd + 1 : maxEnd
+        } else {
+          start = Math.min(visualStart.value, pos)
+          end = Math.max(visualStart.value, pos) + 1
+        }
         el.value = text.slice(0, start) + text.slice(end)
         content.value = el.value
         pos = start
@@ -381,8 +443,17 @@ const handleKeydown = (e: KeyboardEvent) => {
           mode.value = 'NORMAL'
         }
       } else if (key === 'y') {
-        const start = Math.min(visualStart.value, pos)
-        const end = Math.max(visualStart.value, pos) + 1
+        let start, end
+        if (mode.value === 'VISUAL_LINE') {
+          const startInfo = getLineInfo(text, visualStart.value)
+          const currentInfo = getLineInfo(text, pos)
+          start = Math.min(startInfo.lineStart, currentInfo.lineStart)
+          const maxEnd = Math.max(startInfo.lineEnd, currentInfo.lineEnd)
+          end = maxEnd < text.length && text[maxEnd] === '\n' ? maxEnd + 1 : maxEnd
+        } else {
+          start = Math.min(visualStart.value, pos)
+          end = Math.max(visualStart.value, pos) + 1
+        }
         const selectedText = text.slice(start, end)
         try {
           navigator.clipboard.writeText(selectedText)
@@ -431,7 +502,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col items-center py-12 px-4">
+  <div
+    class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col items-center py-12 px-4"
+  >
     <div class="w-full max-w-4xl animate-fade-up">
       <!-- Tiêu đề & Nút quay lại -->
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
@@ -458,16 +531,20 @@ onMounted(() => {
       </div>
 
       <!-- Editor Container -->
-      <div class="border border-border-default bg-bg-surface p-4 flex flex-col transition-all duration-300 hover:border-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5 animate-fade-up animate-delay-2">
+      <div
+        class="border border-border-default bg-bg-surface p-4 flex flex-col transition-all duration-300 hover:border-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5 animate-fade-up animate-delay-2"
+      >
         <!-- Status Bar -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-border-default pb-3 mb-4 gap-3">
+        <div
+          class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-border-default pb-3 mb-4 gap-3"
+        >
           <div class="flex items-center gap-4">
             <span
               class="px-3 py-1 text-sm font-bold tracking-wider font-display transition-colors uppercase"
               :class="{
                 'bg-accent-coral text-bg-deep': mode === 'NORMAL',
                 'bg-accent-amber text-bg-deep': mode === 'INSERT',
-                'bg-accent-sky text-bg-deep': mode === 'VISUAL'
+                'bg-accent-sky text-bg-deep': mode === 'VISUAL' || mode === 'VISUAL_LINE',
               }"
             >
               {{ mode }}
@@ -476,26 +553,38 @@ onMounted(() => {
               <Icon icon="lucide:history" class="w-4 h-4 text-text-dim" />
               Buffer: <span class="text-accent-sky font-bold">{{ keyBuffer || '--' }}</span>
             </span>
-            <span class="text-text-secondary text-xs font-mono ml-2 border border-border-default px-2 py-0.5" v-if="undoStack.length > 0">
+            <span
+              class="text-text-secondary text-xs font-mono ml-2 border border-border-default px-2 py-0.5"
+              v-if="undoStack.length > 0"
+            >
               Lịch sử Undo: {{ undoStack.length }}
             </span>
           </div>
           <div class="text-text-dim text-sm font-mono flex items-center gap-2">
             <Icon icon="lucide:keyboard" class="w-4 h-4" />
-            Nhấn <kbd class="px-2 py-0.5 bg-bg-deep border border-border-default ml-1 text-text-secondary">Esc</kbd> để về Normal
+            Nhấn
+            <kbd
+              class="px-2 py-0.5 bg-bg-deep border border-border-default ml-1 text-text-secondary"
+              >Esc</kbd
+            >
+            để về Normal
           </div>
         </div>
 
         <!-- Editor Area (Textarea) -->
-        <div class="relative flex-grow h-[600px] border border-border-default bg-bg-deep focus-within:border-accent-coral transition-colors">
+        <div
+          class="relative flex-grow h-[600px] border border-border-default bg-bg-deep focus-within:border-accent-coral transition-colors"
+        >
           <textarea
             ref="editorRef"
             v-model="content"
             :class="[
               'w-full h-full p-5 font-mono text-base bg-transparent text-text-primary outline-none resize-none leading-relaxed',
-              mode === 'NORMAL' ? 'selection:bg-accent-coral selection:text-bg-deep' : 
-              mode === 'VISUAL' ? 'selection:bg-accent-sky/40 selection:text-text-primary' : 
-              'selection:bg-accent-amber/30 selection:text-text-primary'
+              mode === 'NORMAL'
+                ? 'selection:bg-accent-coral selection:text-bg-deep'
+                : mode === 'VISUAL' || mode === 'VISUAL_LINE'
+                  ? 'selection:bg-accent-sky/40 selection:text-text-primary'
+                  : 'selection:bg-accent-amber/30 selection:text-text-primary',
             ]"
             spellcheck="false"
             @keydown="handleKeydown"
