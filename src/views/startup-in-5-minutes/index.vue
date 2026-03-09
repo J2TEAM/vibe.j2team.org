@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import cowLv1Url from './cow_lv1.png'
+import cowLv2Url from './cow_lv2.png'
+import cowLv3Url from './cow_lv3.png'
+import cowLv4Url from './cow_lv4.png'
+import cowLv5Url from './cow_lv5.png'
 
 type StepKey = 'market' | 'problem' | 'solution' | 'pricing' | 'channel'
-type StatKey = 'growth' | 'cash' | 'trust'
 
 type Option = {
   id: string
@@ -20,6 +24,8 @@ type Step = {
 }
 
 type NonEmptyReadonlyArray<T> = readonly [T, ...T[]]
+
+type StatKey = 'growth' | 'cash' | 'trust'
 
 type BattleStats = Record<StatKey, number>
 type ActionEffect = Record<StatKey, number>
@@ -87,6 +93,12 @@ type ConstraintOption = {
 }
 
 type ConstraintOptionsMap = Record<ConstraintKey, NonEmptyReadonlyArray<ConstraintOption>>
+
+type SwotItem = {
+  id: string
+  text: string
+  source: string
+}
 
 const steps = [
   {
@@ -776,10 +788,10 @@ function resetBattleState(): void {
   battleStats.trust = 50
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function beginBattle(): void {
   if (!phase1Confirmed.value || !phase2Confirmed.value) {
-    battleSummary.value =
-      'Hãy chốt đủ Phase 1 và Phase 2 để mở Phase 3. Luồng chơi sẽ đi lần lượt theo checkpoint.'
+    battleSummary.value = 'Hãy chốt đủ Phase 1 và Phase 2 để mở Phase 3 SWOT Analysis.'
     return
   }
 
@@ -815,6 +827,7 @@ function nextBattleRound(): void {
       : `${stageByRound(battleRound.value).title}: chọn quyết định tiếp theo.`
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function applyBattleAction(action: BattleAction): void {
   const currentEvent = battleCurrentEvent.value
   if (!currentEvent || battleEnded.value || battleActionLocked.value) {
@@ -848,6 +861,7 @@ function applyBattleAction(action: BattleAction): void {
   battleActionLocked.value = false
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function formatDelta(value: number): string {
   if (value > 0) {
     return `+${value}`
@@ -967,20 +981,31 @@ function cowGiveContextTip(): void {
     return
   }
 
-  if (!battleEnded.value) {
+  if (phase3Unlocked.value && phase2Confirmed.value) {
     appendCowMessage(
       'cow',
-      `Tip battle: giữ cash trên 30 và trust trên 35 để tránh ending xấu. Stage hiện tại: ${currentBattleStage.value.title}.`,
+      `Tip SWOT: Nhìn vào score ${swotSummary.value.score}/100 - ${swotSummary.value.verdict}. Leverage strengths + opportunities trước, address weaknesses sớm.`,
     )
     return
   }
 
-  appendCowMessage(
-    'cow',
-    `Tổng kết: ending của bạn là "${battleEnding.value.title}". Chơi lại và thử perk khác để so kết quả.`,
-  )
+  appendCowMessage('cow', `Hãy hoàn thành Phase 1 và Phase 2 để mở SWOT Analysis.`)
 }
 
+function interactWithCow(): void {
+  const interactions = [
+    'Moo! Đừng chọc tôi nữa, lo ship MVP đi!',
+    'Bạn vừa nhột tôi à? Để sức mà gõ code kìa.',
+    'Moo~ Tôi đang bận phân tích thị trường, click gì click hoài.',
+    'Có vẻ founder đang rảnh rỗi quá nhỉ? Mở Terminal lên gõ thêm 10 dòng code đi.',
+    '*Vuốt ve* Chăm ngoan ghê! Cố gắng chốt sổ Phase này sớm nhé!',
+  ]
+  const randomMsg = pickRandom(interactions as unknown as NonEmptyReadonlyArray<string>)
+  appendCowMessage('cow', randomMsg)
+  awardCowXp(1)
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function battleStageStatus(stage: BattleStage): 'locked' | 'active' | 'cleared' {
   if (battleRound.value <= 0) {
     return stage.id === battleStages[0].id ? 'active' : 'locked'
@@ -1121,11 +1146,13 @@ const sprintTimeLabel = computed(() => {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 })
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const battleProgress = computed(() => {
   const value = Math.round((battleRound.value / maxBattleRounds) * 100)
   return Math.max(0, Math.min(100, value))
 })
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const currentBattleStage = computed(() => {
   if (battleRound.value <= 0) {
     return battleStages[0]
@@ -1137,23 +1164,39 @@ const phase2Unlocked = computed(() => phase1Confirmed.value)
 const phase3Unlocked = computed(() => phase1Confirmed.value && phase2Confirmed.value)
 const cowLevel = computed(() => Math.min(5, Math.floor(cowXp.value / 40) + 1))
 const cowLevelProgress = computed(() => Math.max(0, Math.min(100, (cowXp.value % 40) * 2.5)))
+
+const currentCowUrl = computed(() => {
+  if (cowLevel.value >= 5) return cowLv5Url
+  if (cowLevel.value === 4) return cowLv4Url
+  if (cowLevel.value === 3) return cowLv3Url
+  if (cowLevel.value === 2) return cowLv2Url
+  return cowLv1Url
+})
+
 const cowMood = computed(() => {
-  if (!phase1Confirmed.value) {
-    return 'Hiếu kỳ'
-  }
-  if (!phase2Confirmed.value) {
-    return 'Sáng tạo'
-  }
   if (battleEnded.value && battleStats.cash === 0) {
     return 'An ủi'
   }
-  if (battleEnded.value && battleStats.growth + battleStats.cash + battleStats.trust >= 205) {
-    return 'Tự hào'
+  if (phase3Unlocked.value && phase2Confirmed.value) {
+    return 'Phân tích SWOT'
   }
-  if (phase3Unlocked.value && battleRound.value > 0) {
-    return 'Căng não'
+  if (phase1Confirmed.value && phase2Confirmed.value) {
+    return 'Sẵn sàng'
   }
-  return 'Sẵn sàng'
+  // Change mood based on level if not in special states
+  if (cowLevel.value >= 5) {
+    return 'Thông thái'
+  }
+  if (cowLevel.value >= 4) {
+    return 'Hứng khởi'
+  }
+  if (cowLevel.value >= 3) {
+    return 'Sáng tạo'
+  }
+  if (cowLevel.value >= 2) {
+    return 'Phấn khích'
+  }
+  return 'Hiếu kỳ'
 })
 const cowMissionBoard = computed(() => [
   {
@@ -1203,6 +1246,7 @@ const activePerk = computed(() => {
   return perk ?? battlePerks[0]
 })
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const isBossRound = computed(() => battleCurrentEvent.value?.id === bossBattleEvent.id)
 
 const hypeCardText = computed(() => {
@@ -1217,6 +1261,7 @@ const hypeCardText = computed(() => {
   ].join('\n')
 })
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const battleEnding = computed(() => {
   const total = battleStats.growth + battleStats.cash + battleStats.trust
 
@@ -1252,6 +1297,100 @@ const battleEnding = computed(() => {
     title: 'Zombie Startup',
     description: 'Vẫn sống nhưng tăng trưởng chậm. Cần một cú pivot mạnh ở phiên bản sau.',
   }
+})
+
+const swotAnalysis = computed(() => {
+  const market = selectedOption(marketStep)
+  const problem = selectedOption(problemStep)
+  const solution = selectedOption(solutionStep)
+  const pricing = selectedOption(pricingStep)
+  const channel = selectedOption(channelStep)
+
+  const strengths: SwotItem[] = [
+    {
+      id: 's1',
+      text: `Target ${market.title} - thị trường ${market.impact.toLowerCase()}`,
+      source: 'Market',
+    },
+    {
+      id: 's2',
+      text: `Giải quyết ${problem.title.toLowerCase()} - pain point rõ ràng`,
+      source: 'Problem',
+    },
+    {
+      id: 's3',
+      text: `Giải pháp ${solution.title.toLowerCase()} - ${solution.impact.toLowerCase()}`,
+      source: 'Solution',
+    },
+    {
+      id: 's4',
+      text: `Mô hình ${pricing.title.toLowerCase()} - ${pricing.impact.toLowerCase()}`,
+      source: 'Pricing',
+    },
+  ]
+
+  const weaknesses: SwotItem[] = [
+    {
+      id: 'w1',
+      text: `Budget ${selectedConstraint('budget').title.toLowerCase()} giới hạn tốc độ`,
+      source: 'Constraint',
+    },
+    {
+      id: 'w2',
+      text: `Deadline ${selectedConstraint('deadline').title.toLowerCase()} cần scope phù hợp`,
+      source: 'Constraint',
+    },
+    {
+      id: 'w3',
+      text: `Team ${selectedConstraint('team').title.toLowerCase()} - cần ưu tiên đúng`,
+      source: 'Constraint',
+    },
+    {
+      id: 'w4',
+      text: `Feasibility ${feasibilityScore.value}/100 - ${riskLevel.value.toLowerCase()}`,
+      source: 'Analysis',
+    },
+  ]
+
+  const opportunities: SwotItem[] = [
+    {
+      id: 'o1',
+      text: `Kênh ${channel.title.toLowerCase()} - ${channel.impact.toLowerCase()}`,
+      source: 'Channel',
+    },
+    { id: 'o2', text: 'Freemium model cho phép user trải nghiệm trước khi mua', source: 'Pricing' },
+    {
+      id: 'o3',
+      text: 'Growth qua community/content/partnership có thể scale nhanh',
+      source: 'Channel',
+    },
+    { id: 'o4', text: 'Workflow template giúp onboarding nhanh, giảm churn', source: 'Solution' },
+  ]
+
+  const threats: SwotItem[] = [
+    { id: 't1', text: 'Đối thủ có thể copy feature nếu không defend được', source: 'Market' },
+    { id: 't2', text: 'Retention khó nếu giá trị cốt lõi chưa rõ', source: 'Problem' },
+    { id: 't3', text: 'Pricing phụ thuộc vào perceived value của user', source: 'Pricing' },
+    { id: 't4', text: 'Execution chậm = mất momentum ban đầu', source: 'Constraint' },
+  ]
+
+  return { strengths, weaknesses, opportunities, threats }
+})
+
+const swotSummary = computed(() => {
+  const s = swotAnalysis.value.strengths.length
+  const w = swotAnalysis.value.weaknesses.length
+  const o = swotAnalysis.value.opportunities.length
+  const t = swotAnalysis.value.threats.length
+  const score = (s + o - (w + t)) * 10 + 50
+  const clampedScore = Math.max(0, Math.min(100, score))
+
+  let verdict: string
+  if (clampedScore >= 75) verdict = 'Khả thi cao - đi tiếp'
+  else if (clampedScore >= 50) verdict = 'Cần điều chỉnh'
+  else verdict = 'Cần pivot hoặc research thêm'
+
+  return { score: clampedScore, verdict }
 })
 
 function randomFunState(): void {
@@ -1427,8 +1566,8 @@ onBeforeUnmount(() => {
         </div>
         <p class="max-w-3xl text-sm text-text-secondary sm:text-base">
           Đây là playground mô phỏng hành trình startup trong 3 phase: xây chiến lược, luyện pitch
-          và battle sống sót. Mục tiêu là ra được concept rõ ràng và sống sót qua 3 màn chơi (6
-          round).
+          và phân tích SWOT. Mục tiêu là ra được concept rõ ràng và đánh giá khả thi trước khi
+          build.
         </p>
         <div class="mt-5 flex flex-wrap items-center gap-3 text-xs font-medium text-text-dim">
           <span class="border border-border-default bg-bg-deep px-3 py-1">No Database</span>
@@ -1442,7 +1581,7 @@ onBeforeUnmount(() => {
       >
         <h2 class="mb-3 flex items-center gap-3 font-display text-xl font-semibold">
           <span class="text-sm tracking-widest text-accent-sky">//</span>
-          How To Play
+          How To USE
         </h2>
         <div class="grid gap-3 sm:grid-cols-3 text-sm text-text-secondary">
           <article class="border border-border-default bg-bg-deep p-3">
@@ -1457,8 +1596,10 @@ onBeforeUnmount(() => {
           </article>
           <article class="border border-border-default bg-bg-deep p-3">
             <p class="font-display text-xs tracking-widest text-accent-sky">PHASE 3</p>
-            <p class="mt-1 text-text-primary">Survival Simulation</p>
-            <p class="mt-1">Chơi Battle Royale 6 round, giữ cân bằng Growth/Cash/Trust.</p>
+            <p class="mt-1 text-text-primary">SWOT Analysis</p>
+            <p class="mt-1">
+              Phân tích Strengths/Weaknesses/Opportunities/Threats từ 5 quyết định.
+            </p>
           </article>
         </div>
         <ol class="mt-4 grid gap-2 text-xs text-text-secondary sm:grid-cols-3">
@@ -1466,10 +1607,10 @@ onBeforeUnmount(() => {
             1. Chốt Phase 1 để mở Phase 2 tự động và kéo xuống đúng section.
           </li>
           <li class="border border-border-default bg-bg-deep p-3">
-            2. Tại Phase 2, chỉnh vibe/pitch rồi bấm Chốt Phase 2 để unlock gameplay.
+            2. Tại Phase 2, chỉnh vibe/pitch rồi bấm Chốt Phase 2 để unlock SWOT Analysis.
           </li>
           <li class="border border-border-default bg-bg-deep p-3">
-            3. Phase 3 có 3 màn liên tiếp; chọn sai có thể tụt cash nhanh và game over.
+            3. Phase 3 hiển thị SWOT tự động từ 5 quyết định + action items.
           </li>
         </ol>
       </section>
@@ -1623,7 +1764,7 @@ onBeforeUnmount(() => {
           <article class="mt-5 border border-border-default bg-bg-deep p-4">
             <p class="text-xs tracking-widest text-accent-sky">PHASE 1 CHECKPOINT</p>
             <p class="mt-2 text-sm text-text-secondary">
-              Chốt chiến lược để mở toàn bộ phần Pitch Playground và Battle Royale.
+              Chốt chiến lược để mở toàn bộ phần Pitch Playground và SWOT Analysis.
             </p>
             <div class="mt-3 flex flex-wrap items-center gap-2">
               <button
@@ -1851,22 +1992,49 @@ onBeforeUnmount(() => {
           </ul>
         </article>
 
-        <article class="mt-4 border border-border-default bg-bg-deep p-4">
-          <p class="text-xs tracking-widest text-accent-sky">MOMENTUM TO PHASE 3</p>
+        <article class="mt-4 border border-accent-amber bg-accent-amber/10 p-4">
+          <p class="text-xs tracking-widest text-accent-amber">
+            SAU KHI HOÀN THÀNH - BƯỚC TIẾP THEO
+          </p>
           <p class="mt-2 text-xs text-text-dim">
-            Bonus/Penalty sẽ được cộng vào chỉ số battle khi bắt đầu Phase 3.
+            Concept của bạn đã sẵn sàng. Dưới đây là hướng phát triển tiếp theo:
           </p>
-          <p class="mt-2 text-sm text-text-secondary">
-            G {{ formatDelta(phase2Momentum.growth) }} | C {{ formatDelta(phase2Momentum.cash) }} |
-            T
-            {{ formatDelta(phase2Momentum.trust) }}
-          </p>
+          <ul class="mt-3 space-y-2 text-sm text-text-secondary">
+            <li class="flex items-start gap-2">
+              <span class="text-accent-sky">1.</span>
+              <span
+                ><strong class="text-text-primary">Validate:</strong> Interview 5 người trong target
+                market để xác nhận pain point.</span
+              >
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-accent-sky">2.</span>
+              <span
+                ><strong class="text-text-primary">Sketch MVP:</strong> Vẽ wireframe cho 3 tính năng
+                core nhất.</span
+              >
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-accent-sky">3.</span>
+              <span
+                ><strong class="text-text-primary">Test Pricing:</strong> Hỏi 10 người xem họ có trả
+                mức giá bạn định không.</span
+              >
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-accent-sky">4.</span>
+              <span
+                ><strong class="text-text-primary">Launch Landing Page:</strong> Đặt CTA "Join
+                waitlist" để đo interest.</span
+              >
+            </li>
+          </ul>
         </article>
 
         <article class="mt-4 border border-border-default bg-bg-deep p-4">
           <p class="text-xs tracking-widest text-accent-coral">PHASE 2 CHECKPOINT</p>
           <p class="mt-2 text-sm text-text-secondary">
-            Xác nhận pitch hiện tại để mở gameplay ở Phase 3.
+            Xác nhận pitch hiện tại để mở SWOT Analysis ở Phase 3.
           </p>
           <div class="mt-3 flex flex-wrap items-center gap-2">
             <button
@@ -1899,151 +2067,135 @@ onBeforeUnmount(() => {
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
           <h2 class="flex items-center gap-3 font-display text-2xl font-semibold">
             <span class="text-sm tracking-widest text-accent-amber">//</span>
-            Phase 3: Startup Battle Royale
+            Phase 3: SWOT Analysis
           </h2>
-          <button
-            type="button"
-            class="inline-flex items-center border border-accent-coral bg-bg-deep px-3 py-2 font-display text-xs tracking-widest text-accent-coral transition-all duration-300 hover:bg-bg-elevated"
-            @click="beginBattle"
-          >
-            {{ battleRound === 0 || battleEnded ? 'Bắt đầu battle' : 'Restart battle' }}
-          </button>
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="inline-flex items-center border border-accent-coral bg-bg-deep px-3 py-2 font-display text-xs tracking-widest text-accent-coral transition-all duration-300 hover:bg-bg-elevated"
+              @click="randomIdea"
+              :disabled="!phase3Unlocked"
+            >
+              Random New Idea
+            </button>
+          </div>
         </div>
         <p class="mb-4 text-xs text-text-dim">
-          Mục đích: mô phỏng quyết định khó dưới áp lực theo campaign 3 màn. Win condition: qua hết
-          6 round với chỉ số cân bằng và ending tốt.
+          Mục đích: phân tích điểm mạnh (S), điểm yếu (W), cơ hội (O) và thách thức (T) dựa trên 5
+          quyết định chiến lược đã chọn ở Phase 1.
         </p>
         <p v-if="!phase3Unlocked" class="mb-4 text-xs text-accent-amber">
           Phase 3 đang khóa vì bạn chưa chốt đủ Phase 1 và Phase 2.
         </p>
 
-        <div class="mb-4 grid gap-3 sm:grid-cols-3">
-          <button
-            v-for="perk in battlePerks"
-            :key="perk.id"
-            type="button"
-            class="border p-3 text-left transition-all duration-300"
-            :class="
-              activePerkId === perk.id
-                ? 'border-accent-coral bg-accent-coral/10'
-                : 'border-border-default bg-bg-deep hover:border-accent-amber hover:bg-bg-elevated'
-            "
-            @click="activePerkId = perk.id"
-          >
-            <p class="font-display text-sm text-text-primary">{{ perk.title }}</p>
-            <p class="mt-1 text-xs text-text-secondary">{{ perk.description }}</p>
-            <p class="mt-2 text-xs text-text-dim">
-              G {{ formatDelta(perk.bonus.growth) }} | C {{ formatDelta(perk.bonus.cash) }} | T
-              {{ formatDelta(perk.bonus.trust) }}
-            </p>
-          </button>
-        </div>
-
         <div class="mb-4 border border-border-default bg-bg-deep p-4">
-          <p class="text-xs tracking-widest text-accent-sky">ROUND PROGRESS</p>
-          <p class="mt-2 font-display text-xl">{{ battleRound }}/{{ maxBattleRounds }}</p>
-          <p class="mt-1 text-xs text-text-dim">{{ currentBattleStage.title }}</p>
-          <div class="mt-3 h-2 w-full bg-bg-surface">
-            <div
-              class="h-2 bg-accent-coral transition-all duration-500"
-              :style="{ width: `${battleProgress}%` }"
-            />
-          </div>
-          <p class="mt-3 text-sm text-text-secondary">{{ battleSummary }}</p>
-        </div>
-
-        <div class="mb-4 grid gap-3 md:grid-cols-3">
-          <article
-            v-for="stage in battleStages"
-            :key="stage.id"
-            class="border p-3 transition-all duration-300"
-            :class="
-              battleStageStatus(stage) === 'active'
-                ? 'border-accent-coral bg-accent-coral/10'
-                : battleStageStatus(stage) === 'cleared'
-                  ? 'border-accent-sky bg-accent-sky/10'
-                  : 'border-border-default bg-bg-deep'
-            "
-          >
-            <p class="font-display text-sm text-text-primary">{{ stage.title }}</p>
-            <p class="mt-1 text-xs text-text-secondary">{{ stage.description }}</p>
-            <p class="mt-1 text-[11px] text-text-dim">
-              Round: {{ stage.rounds.join(' - ') }} |
-              {{
-                battleStageStatus(stage) === 'active'
-                  ? 'Đang chơi'
-                  : battleStageStatus(stage) === 'cleared'
-                    ? 'Đã qua'
-                    : 'Chưa mở'
-              }}
-            </p>
-          </article>
-        </div>
-
-        <div class="grid gap-4 md:grid-cols-3">
-          <article class="border border-border-default bg-bg-deep p-4">
-            <p class="text-xs tracking-widest text-accent-coral">GROWTH</p>
-            <p class="mt-2 font-display text-3xl">{{ battleStats.growth }}</p>
-          </article>
-          <article class="border border-border-default bg-bg-deep p-4">
-            <p class="text-xs tracking-widest text-accent-amber">CASH</p>
-            <p class="mt-2 font-display text-3xl">{{ battleStats.cash }}</p>
-          </article>
-          <article class="border border-border-default bg-bg-deep p-4">
-            <p class="text-xs tracking-widest text-accent-sky">TRUST</p>
-            <p class="mt-2 font-display text-3xl">{{ battleStats.trust }}</p>
-          </article>
-        </div>
-
-        <div v-if="battleCurrentEvent" class="mt-4 border border-border-default bg-bg-deep p-4">
-          <div class="flex items-center justify-between gap-2">
-            <p class="text-xs tracking-widest text-accent-coral">EVENT</p>
+          <div class="flex items-center justify-between gap-3">
+            <p class="text-xs tracking-widest text-accent-sky">SWOT SCORE</p>
             <span
-              v-if="isBossRound"
-              class="border border-accent-coral bg-accent-coral/10 px-2 py-1 text-[10px] tracking-widest text-accent-coral"
+              class="border px-2 py-1 text-xs"
+              :class="
+                swotSummary.score >= 75
+                  ? 'border-accent-sky bg-accent-sky/10 text-accent-sky'
+                  : swotSummary.score >= 50
+                    ? 'border-accent-amber bg-accent-amber/10 text-accent-amber'
+                    : 'border-accent-coral bg-accent-coral/10 text-accent-coral'
+              "
             >
-              BOSS ROUND
+              {{ swotSummary.verdict }}
             </span>
           </div>
-          <h3 class="mt-2 font-display text-xl">{{ battleCurrentEvent.title }}</h3>
-          <p class="mt-2 text-sm text-text-secondary">{{ battleCurrentEvent.description }}</p>
-
-          <div class="mt-4 grid gap-3 sm:grid-cols-3">
-            <button
-              v-for="action in battleCurrentEvent.actions"
-              :key="action.id"
-              type="button"
-              class="border border-border-default bg-bg-surface p-3 text-left transition-all duration-300 hover:-translate-y-1 hover:border-accent-coral hover:bg-bg-elevated"
-              :disabled="battleActionLocked"
-              @click="applyBattleAction(action)"
-            >
-              <p class="font-display text-sm font-semibold text-text-primary">{{ action.title }}</p>
-              <p class="mt-1 text-xs text-text-secondary">{{ action.description }}</p>
-              <p class="mt-2 text-xs text-text-dim">
-                G {{ formatDelta(action.effect.growth) }} | C
-                {{ formatDelta(action.effect.cash) }} | T
-                {{ formatDelta(action.effect.trust) }}
-              </p>
-            </button>
+          <p class="mt-2 font-display text-3xl">{{ swotSummary.score }}/100</p>
+          <div class="mt-3 h-2 w-full bg-bg-surface">
+            <div
+              class="h-2 transition-all duration-500"
+              :class="
+                swotSummary.score >= 75
+                  ? 'bg-accent-sky'
+                  : swotSummary.score >= 50
+                    ? 'bg-accent-amber'
+                    : 'bg-accent-coral'
+              "
+              :style="{ width: `${swotSummary.score}%` }"
+            />
           </div>
         </div>
 
-        <div v-if="battleEnded" class="mt-4 border border-accent-coral bg-accent-coral/10 p-4">
-          <p class="text-xs tracking-widest text-accent-coral">BATTLE ENDING</p>
-          <p class="mt-2 font-display text-2xl">{{ battleEnding.title }}</p>
-          <p class="mt-2 text-sm text-text-secondary">{{ battleEnding.description }}</p>
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <article class="border border-border-default bg-bg-deep p-4">
+            <p class="text-xs tracking-widest text-accent-sky">STRENGTHS</p>
+            <ul class="mt-3 space-y-2">
+              <li
+                v-for="item in swotAnalysis.strengths"
+                :key="item.id"
+                class="border-l-2 border-accent-sky pl-3 text-sm"
+              >
+                <p class="text-text-primary">{{ item.text }}</p>
+                <p class="text-xs text-text-dim">{{ item.source }}</p>
+              </li>
+            </ul>
+          </article>
+
+          <article class="border border-border-default bg-bg-deep p-4">
+            <p class="text-xs tracking-widest text-accent-coral">WEAKNESSES</p>
+            <ul class="mt-3 space-y-2">
+              <li
+                v-for="item in swotAnalysis.weaknesses"
+                :key="item.id"
+                class="border-l-2 border-accent-coral pl-3 text-sm"
+              >
+                <p class="text-text-primary">{{ item.text }}</p>
+                <p class="text-xs text-text-dim">{{ item.source }}</p>
+              </li>
+            </ul>
+          </article>
+
+          <article class="border border-border-default bg-bg-deep p-4">
+            <p class="text-xs tracking-widest text-accent-amber">OPPORTUNITIES</p>
+            <ul class="mt-3 space-y-2">
+              <li
+                v-for="item in swotAnalysis.opportunities"
+                :key="item.id"
+                class="border-l-2 border-accent-amber pl-3 text-sm"
+              >
+                <p class="text-text-primary">{{ item.text }}</p>
+                <p class="text-xs text-text-dim">{{ item.source }}</p>
+              </li>
+            </ul>
+          </article>
+
+          <article class="border border-border-default bg-bg-deep p-4">
+            <p class="text-xs tracking-widest text-text-dim">THREATS</p>
+            <ul class="mt-3 space-y-2">
+              <li
+                v-for="item in swotAnalysis.threats"
+                :key="item.id"
+                class="border-l-2 border-text-dim pl-3 text-sm"
+              >
+                <p class="text-text-primary">{{ item.text }}</p>
+                <p class="text-xs text-text-dim">{{ item.source }}</p>
+              </li>
+            </ul>
+          </article>
         </div>
 
-        <div class="mt-4 border border-border-default bg-bg-deep p-4">
-          <p class="text-xs tracking-widest text-accent-amber">BATTLE LOG</p>
+        <div class="mt-4 border border-accent-amber bg-accent-amber/10 p-4">
+          <p class="text-xs tracking-widest text-accent-amber">ACTION ITEMS</p>
           <ul class="mt-3 space-y-2 text-sm text-text-secondary">
-            <li v-if="battleLogs.length === 0" class="text-text-dim">
-              Chưa có lượt nào, bắt đầu battle để tạo log.
+            <li class="flex items-start gap-2">
+              <span class="text-accent-sky">+</span>
+              <span>Leverage strengths để capture opportunities nhanh</span>
             </li>
-            <li v-for="(log, index) in battleLogs" :key="`${log.round}-${index}`">
-              R{{ log.round }} - {{ log.eventTitle }} -> {{ log.actionTitle }} (G
-              {{ formatDelta(log.effect.growth) }}, C {{ formatDelta(log.effect.cash) }}, T
-              {{ formatDelta(log.effect.trust) }})
+            <li class="flex items-start gap-2">
+              <span class="text-accent-sky">+</span>
+              <span>Address weaknesses trước khi scale</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-accent-coral">-</span>
+              <span>Mitigate threats bằng cách build moat sớm</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-accent-coral">-</span>
+              <span>Đừng để weaknesses trở thành threats</span>
             </li>
           </ul>
         </div>
@@ -2087,13 +2239,28 @@ onBeforeUnmount(() => {
                 <p class="font-display text-2xl text-text-primary">Mood: {{ cowMood }}</p>
                 <p class="text-xs text-text-secondary">Level {{ cowLevel }} | XP {{ cowXp }}</p>
               </div>
-              <pre class="text-xs leading-tight text-text-secondary">
-  ^__^
- (oo)\_______
- (__)\       )\/\
-     ||----w |
-     ||     ||</pre
+              <button
+                type="button"
+                class="relative flex cursor-pointer items-center justify-center pt-2 transition-all duration-300 hover:scale-105 hover:opacity-80"
+                @click="interactWithCow"
               >
+                <img
+                  :src="currentCowUrl"
+                  alt="Cow Mascot"
+                  class="h-24 w-24 object-contain transition-all duration-300 drop-shadow-lg"
+                  :class="
+                    cowMood === 'Phân tích SWOT'
+                      ? 'animate-bounce'
+                      : cowMood === 'Sẵn sàng' ||
+                          cowMood === 'Hứng khởi' ||
+                          cowMood === 'Thông thái'
+                        ? 'animate-pulse'
+                        : cowMood === 'An ủi'
+                          ? 'opacity-60 grayscale'
+                          : ''
+                  "
+                />
+              </button>
             </div>
             <div class="mt-3 h-2 w-full bg-bg-surface">
               <div
@@ -2155,7 +2322,7 @@ onBeforeUnmount(() => {
               class="border p-2 text-sm"
               :class="
                 message.sender === 'cow'
-                  ? 'border-accent-coral/40 bg-accent-coral/10 text-text-primary'
+                  ? 'border-accent-coral/40 bg-accent-coral/10 text-text-primary animate-fade-up'
                   : 'border-accent-sky/40 bg-accent-sky/10 text-text-primary'
               "
             >
