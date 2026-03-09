@@ -4,7 +4,7 @@ import { RouterLink } from 'vue-router'
 import CustomSelectList from './components/CustomSelectList.vue'
 import HistoryList from './components/HistoryList.vue'
 import ScoreGauge from './components/ScoreGauge.vue'
-import Timeline24h from './components/Timeline24h.vue'
+import HourlyTimeline from './components/HourlyTimeline.vue'
 import TopWindowsCard from './components/TopWindowsCard.vue'
 import { useDeployAdvisor } from './composables/useDeployAdvisor'
 import { useDeployHistory } from './composables/useDeployHistory'
@@ -255,7 +255,7 @@ function adjustBirthYear(index: number, delta: number): void {
       </div>
 
       <div class="mt-5 grid gap-5 lg:grid-cols-2">
-        <Timeline24h :scores="hourlyScores" :current-hour="currentHour" />
+        <HourlyTimeline :scores="hourlyScores" :current-hour="currentHour" />
         <TopWindowsCard :windows="topThreeWindows" />
       </div>
 
