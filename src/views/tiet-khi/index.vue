@@ -914,13 +914,6 @@ watch(
   }
 }
 
-.font-display {
-  font-family: var(--font-display);
-}
-.font-script {
-  font-family: var(--font-script);
-}
-
 .reveal-on-scroll {
   opacity: 0;
   transform: translateY(30px);
@@ -1016,17 +1009,17 @@ watch(
   animation: tk-fade-up 0.6s ease-out both;
 }
 
-/* Utility overrides using local tokens */
-.text-accent-coral {
+/* Utility overrides scoped to tiet-khi page */
+.tiet-khi-wrapper .text-accent-coral {
   color: var(--tk-accent-coral) !important;
 }
-.text-text-secondary {
+.tiet-khi-wrapper .text-text-secondary {
   color: var(--tk-text-secondary) !important;
 }
-.font-display {
+.tiet-khi-wrapper .font-display {
   font-family: var(--tk-font-display) !important;
 }
-.font-script {
+.tiet-khi-wrapper .font-script {
   font-family: var(--tk-font-script) !important;
 }
 </style>
