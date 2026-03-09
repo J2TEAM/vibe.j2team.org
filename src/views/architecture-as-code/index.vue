@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref } from 'vue'
+import { computed, onUnmounted, ref, watch, nextTick } from 'vue'
 import { RouterLink } from 'vue-router'
 
 type SystemType =
@@ -15,7 +15,6 @@ type SystemType =
   | 'tetrahedron'
 type CanvasMode = 'select' | 'pan' | 'connect'
 type PreviewTab = 'mermaid' | 'yaml'
-type CollabState = 'idle' | 'creating-offer' | 'waiting-answer' | 'joining' | 'connected' | 'error'
 type EdgeKind = 'line' | 'flowchart' | 'crowfoot'
 
 interface DiagramNode {
@@ -24,6 +23,8 @@ interface DiagramNode {
   x: number
   y: number
   label: string
+  width: number
+  height: number
 }
 interface DiagramEdge {
   id: string
@@ -52,6 +53,7 @@ type SyncMessage =
   | { type: 'node:create'; payload: DiagramNode }
   | { type: 'node:update-position'; payload: { id: string; x: number; y: number } }
   | { type: 'node:update-label'; payload: { id: string; label: string } }
+  | { type: 'node:update-size'; payload: { id: string; width: number; height: number } }
   | { type: 'node:delete'; payload: { id: string } }
   | { type: 'edge:create'; payload: DiagramEdge }
   | { type: 'edge:delete'; payload: { id: string } }
@@ -94,11 +96,32 @@ function useDiagramState() {
     edges: edges.value.map((e) => ({ ...e })),
   })
   const replaceDiagram = (payload: DiagramSnapshot) => {
-    nodes.value = payload.nodes.map((n) => ({ ...n }))
-    edges.value = payload.edges.map((e) => ({ ...e, kind: e.kind ?? 'line' }))
+    nodes.value = payload.nodes.map((n) => ({
+      id: n.id,
+      type: n.type,
+      x: n.x,
+      y: n.y,
+      label: n.label,
+      width: n.width ?? NODE_WIDTH,
+      height: n.height ?? NODE_HEIGHT,
+    }))
+    edges.value = payload.edges.map((e) => ({
+      id: e.id,
+      fromId: e.fromId,
+      toId: e.toId,
+      kind: e.kind ?? 'line',
+    }))
   }
   const createNode = (type: SystemType, x: number, y: number): DiagramNode => {
-    const node: DiagramNode = { id: makeId('node'), type, x, y, label: type.toUpperCase() }
+    const node: DiagramNode = {
+      id: makeId('node'),
+      type,
+      x,
+      y,
+      label: type.toUpperCase(),
+      width: NODE_WIDTH,
+      height: NODE_HEIGHT,
+    }
     nodes.value.push(node)
     selectedNodeId.value = node.id
     return node
@@ -113,6 +136,10 @@ function useDiagramState() {
   const updateNodeLabel = (id: string, label: string) => {
     const n = nodes.value.find((i) => i.id === id)
     if (n) n.label = label
+  }
+  const updateNodeSize = (id: string, width: number, height: number) => {
+    const n = nodes.value.find((i) => i.id === id)
+    if (n) Object.assign(n, { width, height })
   }
   const createEdge = (fromId: string, toId: string, kind: EdgeKind): DiagramEdge | null => {
     if (fromId === toId) return null
@@ -148,6 +175,7 @@ function useDiagramState() {
     createNode,
     updateNodePosition,
     updateNodeLabel,
+    updateNodeSize,
     createEdge,
     deleteEdge,
     deleteNode,
@@ -181,34 +209,117 @@ function useSvgViewport() {
 }
 
 function useEdgeRouting(nodes: { value: DiagramNode[] }, edges: { value: DiagramEdge[] }) {
+  const getIntersection = (node: DiagramNode, oppositeCenter: { x: number; y: number }) => {
+    const { width, height } = node
+    const cx = node.x + width / 2
+    const cy = node.y + height / 2
+    if (node.type === 'circle' || node.type === 'tetrahedron') {
+      const rx = width / 2
+      const ry = height / 2
+      const dx = oppositeCenter.x - cx
+      const dy = oppositeCenter.y - cy
+      if (dx === 0 && dy === 0) return { x: cx, y: cy, isHorizontal: false }
+      const t = 1 / Math.sqrt(Math.pow(dx / rx, 2) + Math.pow(dy / ry, 2))
+      return {
+        x: cx + t * dx,
+        y: cy + t * dy,
+        isHorizontal: Math.abs(dy) * width < Math.abs(dx) * height,
+      }
+    }
+    const w = width
+    const h = height
+    const x = node.x
+    const dx = oppositeCenter.x - cx
+    const dy = oppositeCenter.y - cy
+    if (dx === 0 && dy === 0) {
+      return { x: cx, y: cy, isHorizontal: false }
+    }
+    const absDx = Math.abs(dx)
+    const absDy = Math.abs(dy)
+    const isHorizontal = absDy * w < absDx * h
+    let ix: number, iy: number
+    if (isHorizontal) {
+      if (dx === 0) {
+        ix = cx
+        iy = dy > 0 ? node.y + h : node.y
+      } else {
+        if (dx > 0) ix = x + w
+        else ix = x
+        iy = cy + ((ix - cx) * dy) / dx
+      }
+    } else {
+      if (dy === 0) {
+        iy = cy
+        ix = dx > 0 ? x + w : x
+      } else {
+        if (dy > 0) iy = node.y + h
+        else iy = node.y
+        ix = cx + ((iy - cy) * dx) / dy
+      }
+    }
+    return { x: ix, y: iy, isHorizontal }
+  }
   return computed<EdgePath[]>(() =>
     edges.value
       .map((e) => {
         const from = nodes.value.find((n) => n.id === e.fromId)
         const to = nodes.value.find((n) => n.id === e.toId)
         if (!from || !to) return null
-        const sx = from.x + NODE_WIDTH
-        const sy = from.y + NODE_HEIGHT / 2
-        const tx = to.x
-        const ty = to.y + NODE_HEIGHT / 2
-        const c = Math.max(64, Math.abs(tx - sx) * 0.45)
+        const fromCx = from.x + from.width / 2
+        const fromCy = from.y + from.height / 2
+        const toCx = to.x + to.width / 2
+        const toCy = to.y + to.height / 2
+        if (from.id === to.id) return null
+        const {
+          x: sx,
+          y: sy,
+          isHorizontal: fromIsHorizontal,
+        } = getIntersection(from, {
+          x: toCx,
+          y: toCy,
+        })
+        const {
+          x: tx,
+          y: ty,
+          isHorizontal: toIsHorizontal,
+        } = getIntersection(to, {
+          x: fromCx,
+          y: fromCy,
+        })
+        const dx = tx - sx
+        const dy = ty - sy
         if (e.kind === 'flowchart') {
-          const midX = sx + Math.max(36, (tx - sx) * 0.5)
-          return {
-            ...e,
-            path: `M ${sx} ${sy} L ${midX} ${sy} L ${midX} ${ty} L ${tx} ${ty}`,
-            markerEnd: 'url(#marker-arrow)',
-            dashArray: '8 5',
+          if (fromIsHorizontal) {
+            const midX = sx + dx * 0.5
+            return {
+              ...e,
+              path: `M ${sx} ${sy} L ${midX} ${sy} L ${midX} ${ty} L ${tx} ${ty}`,
+              markerEnd: 'url(#marker-arrow)',
+              dashArray: '8 5',
+            }
+          } else {
+            const midY = sy + dy * 0.5
+            return {
+              ...e,
+              path: `M ${sx} ${sy} L ${sx} ${midY} L ${tx} ${midY} L ${tx} ${ty}`,
+              markerEnd: 'url(#marker-arrow)',
+              dashArray: '8 5',
+            }
           }
         }
+        const c = Math.max(64, Math.sqrt(dx * dx + dy * dy) * 0.3)
+        const c1x = fromIsHorizontal ? sx + c * Math.sign(dx) : sx
+        const c1y = fromIsHorizontal ? sy : sy + c * Math.sign(dy)
+        const c2x = toIsHorizontal ? tx - c * Math.sign(dx) : tx
+        const c2y = toIsHorizontal ? ty : ty - c * Math.sign(dy)
         if (e.kind === 'crowfoot') {
           return {
             ...e,
-            path: `M ${sx} ${sy} C ${sx + c} ${sy} ${tx - c} ${ty} ${tx} ${ty}`,
+            path: `M ${sx} ${sy} C ${c1x} ${c1y} ${c2x} ${c2y} ${tx} ${ty}`,
             markerEnd: 'url(#marker-crowfoot)',
           }
         }
-        return { ...e, path: `M ${sx} ${sy} C ${sx + c} ${sy} ${tx - c} ${ty} ${tx} ${ty}` }
+        return { ...e, path: `M ${sx} ${sy} C ${c1x} ${c1y} ${c2x} ${c2y} ${tx} ${ty}` }
       })
       .filter((e): e is EdgePath => e !== null),
   )
@@ -235,6 +346,8 @@ function useTransformPreview(nodes: { value: DiagramNode[] }, edges: { value: Di
       out.push(`    type: ${q(n.type)}`)
       out.push(`    x: ${n.x}`)
       out.push(`    y: ${n.y}`)
+      out.push(`    width: ${n.width}`)
+      out.push(`    height: ${n.height}`)
       out.push(`    label: ${q(n.label)}`)
     }
     out.push('edges:')
@@ -310,66 +423,95 @@ function parseSyncMessage(text: string): SyncMessage | null {
       p.type === 'node:create' ||
       p.type === 'node:update-position' ||
       p.type === 'node:update-label' ||
+      p.type === 'node:update-size' ||
       p.type === 'node:delete' ||
       p.type === 'edge:create' ||
       p.type === 'edge:delete'
     )
-      return JSON.parse(text) as SyncMessage
+      return p as SyncMessage
     return null
   } catch {
     return null
   }
 }
 
-function useWebRtcSync(getSnapshot: () => DiagramSnapshot, onSync: (message: SyncMessage) => void) {
-  const state = ref<CollabState>('idle')
+interface Peer {
+  id: string
+  pc: RTCPeerConnection
+  dc: RTCDataChannel | null
+  state: 'connecting' | 'connected' | 'failed' | 'disconnected'
+  offer?: string
+  answer?: string
+}
+
+function useCollaboration(
+  getSnapshot: () => DiagramSnapshot,
+  onSync: (message: SyncMessage, fromPeerId?: string) => void,
+) {
+  const collabRole = ref<'idle' | 'host' | 'guest'>('idle')
   const error = ref('')
-  const channelStatus = ref('offline')
-  const offerText = ref('')
-  const answerText = ref('')
-  const inputOfferText = ref('')
-  const inputAnswerText = ref('')
-  let role: 'offerer' | 'answerer' | 'none' = 'none'
-  let pc: RTCPeerConnection | null = null
-  let dc: RTCDataChannel | null = null
-  const sendMessage = (m: SyncMessage) => {
-    if (dc?.readyState === 'open') dc.send(JSON.stringify(m))
+  const peers = ref<Map<string, Peer>>(new Map())
+  const guestState = ref<'idle' | 'joining' | 'connected'>('idle')
+  const sessionOffer = ref('')
+  const sessionAnswer = ref('')
+  const isCreatingInvite = ref(false)
+  const isGeneratingAnswer = ref(false)
+
+  const makePeerId = () => `peer-${Date.now()}-${Math.floor(Math.random() * 1e5)}`
+
+  const sendMessageTo = (peerId: string, m: SyncMessage) => {
+    const p = peers.value.get(peerId)
+    if (p && p.dc && p.dc.readyState === 'open') {
+      p.dc.send(JSON.stringify(m))
+    }
   }
-  const bindDataChannel = (channel: RTCDataChannel) => {
-    dc = channel
+
+  const broadcastMessage = (m: SyncMessage, excludePeerId?: string) => {
+    for (const [peerId, p] of peers.value.entries()) {
+      if (peerId !== excludePeerId && p.dc && p.dc.readyState === 'open') {
+        p.dc.send(JSON.stringify(m))
+      }
+    }
+  }
+
+  const bindDataChannel = (peerId: string, channel: RTCDataChannel) => {
+    const p = peers.value.get(peerId)
+    if (!p) return
+
+    p.dc = channel
     channel.onopen = () => {
-      channelStatus.value = 'online'
-      state.value = 'connected'
-      if (role === 'offerer') {
-        sendMessage({ type: 'snapshot', payload: getSnapshot() })
+      const peer = peers.value.get(peerId)
+      if (peer) {
+        peer.state = 'connected'
+        if (collabRole.value === 'host') {
+          sendMessageTo(peerId, { type: 'snapshot', payload: getSnapshot() })
+        }
+        if (collabRole.value === 'guest') {
+          guestState.value = 'connected'
+        }
       }
     }
     channel.onclose = () => {
-      channelStatus.value = 'offline'
-      state.value = 'idle'
+      const peer = peers.value.get(peerId)
+      if (peer) peer.state = 'disconnected'
     }
     channel.onerror = () => {
-      error.value = 'DataChannel gặp lỗi.'
-      state.value = 'error'
+      const peer = peers.value.get(peerId)
+      if (peer) peer.state = 'failed'
+      error.value = `DataChannel error with peer ${peerId}`
     }
     channel.onmessage = (e) => {
       if (typeof e.data !== 'string') return
       const m = parseSyncMessage(e.data)
-      if (m) onSync(m)
-    }
-  }
-  const createPc = () => {
-    pc = new RTCPeerConnection(ICE_SERVERS)
-    pc.oniceconnectionstatechange = () => {
-      const s = pc?.iceConnectionState
-      if (s === 'connected') state.value = 'connected'
-      if (s === 'failed' || s === 'disconnected' || s === 'closed') {
-        channelStatus.value = 'offline'
-        if (state.value === 'connected') state.value = 'idle'
+      if (m) {
+        onSync(m, peerId)
+        if (collabRole.value === 'host') {
+          broadcastMessage(m, peerId)
+        }
       }
     }
-    return pc
   }
+
   const waitIce = async (conn: RTCPeerConnection) =>
     new Promise<string>((resolve) => {
       const done = () => resolve(JSON.stringify(conn.localDescription))
@@ -380,7 +522,7 @@ function useWebRtcSync(getSnapshot: () => DiagramSnapshot, onSync: (message: Syn
       const t = setTimeout(() => {
         conn.onicegatheringstatechange = null
         done()
-      }, 10000)
+      }, 2000)
       conn.onicegatheringstatechange = () => {
         if (conn.iceGatheringState === 'complete') {
           clearTimeout(t)
@@ -388,78 +530,119 @@ function useWebRtcSync(getSnapshot: () => DiagramSnapshot, onSync: (message: Syn
         }
       }
     })
-  const createOffer = async () => {
-    error.value = ''
-    state.value = 'creating-offer'
-    role = 'offerer'
-    const conn = createPc()
-    bindDataChannel(conn.createDataChannel('architecture-sync', { ordered: true }))
-    const offer = await conn.createOffer()
-    await conn.setLocalDescription(offer)
-    offerText.value = sdpToBase64(await waitIce(conn))
-    state.value = 'waiting-answer'
+
+  const createPeerConnection = (peerId: string) => {
+    const pc = new RTCPeerConnection(ICE_SERVERS)
+    pc.oniceconnectionstatechange = () => {
+      const peer = peers.value.get(peerId)
+      if (peer) {
+        const s = pc.iceConnectionState
+        if (s === 'connected' && peer.state !== 'connected') {
+          peer.state = 'connected'
+        }
+        if (s === 'failed' || s === 'disconnected' || s === 'closed') {
+          if (peer.state === 'connected') peer.state = 'disconnected'
+        }
+      }
+    }
+    return pc
   }
-  const joinWithOffer = async () => {
-    error.value = ''
-    state.value = 'joining'
-    const conn = createPc()
-    conn.ondatachannel = (e) => bindDataChannel(e.channel)
-    role = 'answerer'
+
+  const startHostSession = () => {
+    collabRole.value = 'host'
+    peers.value.clear()
+  }
+
+  const createInvite = async () => {
+    if (collabRole.value !== 'host' || isCreatingInvite.value) return
+    isCreatingInvite.value = true
     try {
-      await conn.setRemoteDescription(
-        JSON.parse(base64ToSdp(inputOfferText.value)) as RTCSessionDescriptionInit,
+      const peerId = makePeerId()
+      const pc = createPeerConnection(peerId)
+      const peer: Peer = { id: peerId, pc, dc: null, state: 'connecting', answer: '' }
+      peers.value.set(peerId, peer)
+
+      bindDataChannel(peerId, pc.createDataChannel(`sync-${peerId}`, { ordered: true }))
+      const offer = await pc.createOffer()
+      await pc.setLocalDescription(offer)
+      peer.offer = sdpToBase64(await waitIce(pc))
+    } finally {
+      isCreatingInvite.value = false
+    }
+  }
+
+  const acceptGuestAnswer = async (peerId: string, answerSdp: string) => {
+    const peer = peers.value.get(peerId)
+    if (!peer || collabRole.value !== 'host' || !answerSdp) {
+      error.value = 'Invalid peer, role, or missing answer.'
+      return
+    }
+    try {
+      await peer.pc.setRemoteDescription(
+        JSON.parse(base64ToSdp(answerSdp)) as RTCSessionDescriptionInit,
       )
-    } catch {
-      error.value = 'Offer không hợp lệ.'
-      state.value = 'error'
-      return
+    } catch (e) {
+      error.value = `Invalid answer from ${peerId}. Details: ${e}`
+      const p = peers.value.get(peerId)
+      if (p) p.state = 'failed'
     }
-    const ans = await conn.createAnswer()
-    await conn.setLocalDescription(ans)
-    answerText.value = sdpToBase64(await waitIce(conn))
   }
-  const acceptAnswer = async () => {
-    if (!pc) {
-      error.value = 'Không có kết nối để nhận Answer.'
-      state.value = 'error'
-      return
-    }
+
+  const joinAsGuest = async () => {
+    if (isGeneratingAnswer.value) return
+    isGeneratingAnswer.value = true
+    error.value = ''
     try {
+      collabRole.value = 'guest'
+      guestState.value = 'joining'
+      const peerId = makePeerId()
+      const pc = createPeerConnection(peerId)
+      const peer: Peer = { id: peerId, pc, dc: null, state: 'connecting' }
+      peers.value.set(peerId, peer)
+      pc.ondatachannel = (e) => bindDataChannel(peerId, e.channel)
       await pc.setRemoteDescription(
-        JSON.parse(base64ToSdp(inputAnswerText.value)) as RTCSessionDescriptionInit,
+        JSON.parse(base64ToSdp(sessionOffer.value)) as RTCSessionDescriptionInit,
       )
+      const ans = await pc.createAnswer()
+      await pc.setLocalDescription(ans)
+      sessionAnswer.value = sdpToBase64(await waitIce(pc))
     } catch {
-      error.value = 'Answer không hợp lệ.'
-      state.value = 'error'
+      error.value = 'Invalid offer code. Please check and try again.'
+      guestState.value = 'idle'
+    } finally {
+      isGeneratingAnswer.value = false
     }
   }
+
   const disconnect = () => {
-    dc?.close()
-    dc = null
-    pc?.close()
-    pc = null
-    role = 'none'
-    state.value = 'idle'
-    channelStatus.value = 'offline'
-    offerText.value = ''
-    answerText.value = ''
-    inputOfferText.value = ''
-    inputAnswerText.value = ''
+    for (const p of peers.value.values()) {
+      p.dc?.close()
+      p.pc?.close()
+    }
+    peers.value.clear()
+    collabRole.value = 'idle'
+    guestState.value = 'idle'
+    sessionOffer.value = ''
+    sessionAnswer.value = ''
     error.value = ''
   }
+
   onUnmounted(disconnect)
+
   return {
-    state,
+    collabRole,
     error,
-    channelStatus,
-    offerText,
-    answerText,
-    inputOfferText,
-    inputAnswerText,
-    createOffer,
-    joinWithOffer,
-    acceptAnswer,
-    sendMessage,
+    peers,
+    guestState,
+    sessionOffer,
+    sessionAnswer,
+    isCreatingInvite,
+    isGeneratingAnswer,
+    startHostSession,
+    createInvite,
+    acceptGuestAnswer,
+    joinAsGuest,
+    broadcastMessage,
     disconnect,
   }
 }
@@ -486,6 +669,7 @@ const {
   createNode,
   updateNodePosition,
   updateNodeLabel,
+  updateNodeSize,
   createEdge,
   deleteEdge,
   deleteNode,
@@ -498,7 +682,17 @@ const onSync = (m: SyncMessage) => {
     return
   }
   if (m.type === 'node:create') {
-    if (!nodes.value.some((n) => n.id === m.payload.id)) nodes.value.push({ ...m.payload })
+    if (!nodes.value.some((n) => n.id === m.payload.id)) {
+      nodes.value.push({
+        id: m.payload.id,
+        type: m.payload.type,
+        x: m.payload.x,
+        y: m.payload.y,
+        label: m.payload.label,
+        width: m.payload.width ?? NODE_WIDTH,
+        height: m.payload.height ?? NODE_HEIGHT,
+      })
+    }
     return
   }
   if (m.type === 'node:update-position') {
@@ -509,32 +703,44 @@ const onSync = (m: SyncMessage) => {
     updateNodeLabel(m.payload.id, m.payload.label)
     return
   }
+  if (m.type === 'node:update-size') {
+    updateNodeSize(m.payload.id, m.payload.width, m.payload.height)
+    return
+  }
   if (m.type === 'node:delete') {
     deleteNode(m.payload.id)
     return
   }
   if (m.type === 'edge:create') {
-    if (!edges.value.some((e) => e.id === m.payload.id))
-      edges.value.push({ ...m.payload, kind: m.payload.kind ?? 'line' })
+    if (!edges.value.some((e) => e.id === m.payload.id)) {
+      edges.value.push({
+        id: m.payload.id,
+        fromId: m.payload.fromId,
+        toId: m.payload.toId,
+        kind: m.payload.kind ?? 'line',
+      })
+    }
     return
   }
   if (m.type === 'edge:delete') deleteEdge(m.payload.id)
 }
-const rtc = useWebRtcSync(getSnapshot, onSync)
+const collab = useCollaboration(getSnapshot, onSync)
 const {
-  state: collabState,
+  collabRole,
   error: collabError,
-  channelStatus,
-  offerText,
-  answerText,
-  inputOfferText,
-  inputAnswerText,
-  createOffer,
-  joinWithOffer,
-  acceptAnswer,
+  peers,
+  guestState,
+  sessionOffer,
+  sessionAnswer,
+  isCreatingInvite,
+  isGeneratingAnswer,
+  startHostSession,
+  createInvite,
+  acceptGuestAnswer,
+  joinAsGuest,
+  broadcastMessage,
   disconnect,
-  sendMessage,
-} = rtc
+} = collab
 
 const selectedNode = computed(() => nodes.value.find((n) => n.id === selectedNodeId.value) ?? null)
 const activeText = computed(() =>
@@ -546,9 +752,42 @@ const transform = computed(
 const zoomText = computed(() => viewport.value.scale.toFixed(2))
 const snap = (v: number) => Math.round(v / GRID_SIZE) * GRID_SIZE
 
+watch(
+  nodes,
+  async () => {
+    await nextTick()
+    if (!svgRef.value) return
+    for (const node of nodes.value) {
+      const textEl = svgRef.value.querySelector(`[data-text-id="${node.id}"]`)
+      if (textEl) {
+        const bbox = (textEl as SVGTextElement).getBBox()
+        const newWidth = Math.max(NODE_WIDTH, bbox.width + 48)
+        if (node.width !== newWidth) {
+          updateNodeSize(node.id, newWidth, NODE_HEIGHT)
+          broadcastMessage({
+            type: 'node:update-size',
+            payload: { id: node.id, width: newWidth, height: NODE_HEIGHT },
+          })
+        }
+      }
+    }
+  },
+  { deep: true, flush: 'post' },
+)
+
 const copy = async (text: string, kind: 'preview' | 'signal') => {
+  if (!text) return
   try {
-    await navigator.clipboard.writeText(text)
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text)
+    } else {
+      const textArea = document.createElement('textarea')
+      textArea.value = text
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+    }
     if (kind === 'preview') {
       copiedPreview.value = true
       setTimeout(() => (copiedPreview.value = false), 1500)
@@ -556,7 +795,8 @@ const copy = async (text: string, kind: 'preview' | 'signal') => {
       copiedSignal.value = true
       setTimeout(() => (copiedSignal.value = false), 1500)
     }
-  } catch {
+  } catch (e) {
+    console.error(e)
     copiedPreview.value = false
     copiedSignal.value = false
   }
@@ -565,7 +805,7 @@ const addNodeFromPalette = (type: SystemType) => {
   const x = snap((360 - viewport.value.x) / viewport.value.scale)
   const y = snap((260 - viewport.value.y) / viewport.value.scale)
   const n = createNode(type, x, y)
-  sendMessage({ type: 'node:create', payload: n })
+  broadcastMessage({ type: 'node:create', payload: n })
 }
 const onPaletteDragStart = (e: DragEvent, type: SystemType) =>
   e.dataTransfer?.setData('application/x-system-type', type)
@@ -577,7 +817,7 @@ const onCanvasDrop = (e: DragEvent) => {
   if (!type) return
   const w = screenToWorld(svgRef.value, e.clientX, e.clientY)
   const n = createNode(type, snap(w.x), snap(w.y))
-  sendMessage({ type: 'node:create', payload: n })
+  broadcastMessage({ type: 'node:create', payload: n })
 }
 
 const onNodeClick = (node: DiagramNode) => {
@@ -592,7 +832,7 @@ const onNodeClick = (node: DiagramNode) => {
     }
     const edge = createEdge(connectSourceId.value, node.id, selectedEdgeKind.value)
     connectSourceId.value = ''
-    if (edge) sendMessage({ type: 'edge:create', payload: edge })
+    if (edge) broadcastMessage({ type: 'edge:create', payload: edge })
     return
   }
   selectedNodeId.value = node.id
@@ -601,21 +841,21 @@ const removeSelectedNode = () => {
   if (!selectedNodeId.value) return
   const id = selectedNodeId.value
   const removed = deleteNode(id)
-  sendMessage({ type: 'node:delete', payload: { id } })
-  for (const edgeId of removed) sendMessage({ type: 'edge:delete', payload: { id: edgeId } })
+  broadcastMessage({ type: 'node:delete', payload: { id } })
+  for (const edgeId of removed) broadcastMessage({ type: 'edge:delete', payload: { id: edgeId } })
 }
 const clearAll = () => {
   replaceDiagram({ nodes: [], edges: [] })
-  sendMessage({ type: 'diagram:replace', payload: getSnapshot() })
+  broadcastMessage({ type: 'diagram:replace', payload: getSnapshot() })
 }
-const syncAll = () => sendMessage({ type: 'diagram:replace', payload: getSnapshot() })
+const syncAll = () => broadcastMessage({ type: 'diagram:replace', payload: getSnapshot() })
 const deleteEdgeById = (edgeId: string) => {
-  if (deleteEdge(edgeId)) sendMessage({ type: 'edge:delete', payload: { id: edgeId } })
+  if (deleteEdge(edgeId)) broadcastMessage({ type: 'edge:delete', payload: { id: edgeId } })
 }
 const onLabelInput = (label: string) => {
   if (!selectedNode.value) return
   updateNodeLabel(selectedNode.value.id, label)
-  sendMessage({ type: 'node:update-label', payload: { id: selectedNode.value.id, label } })
+  broadcastMessage({ type: 'node:update-label', payload: { id: selectedNode.value.id, label } })
 }
 
 const isPanning = ref(false)
@@ -632,6 +872,7 @@ const startPan = (x: number, y: number) => {
   panStartY.value = y
   panOriginX.value = viewport.value.x
   panOriginY.value = viewport.value.y
+  document.body.style.userSelect = 'none'
 }
 const startNodeDrag = (node: DiagramNode, x: number, y: number) => {
   if (!svgRef.value) return
@@ -644,12 +885,26 @@ const stopNodeDrag = () => {
   dragNodeId.value = ''
 }
 const onCanvasMouseDown = (e: MouseEvent) => {
-  if (e.button !== 0 || mode.value !== 'pan') return
+  if (e.button !== 0) return
+  if ((e.target as SVGElement).closest('.cursor-pointer')) return
+  if (mode.value === 'select') {
+    selectedNodeId.value = ''
+  }
+  if (mode.value === 'connect') {
+    connectSourceId.value = ''
+  }
   startPan(e.clientX, e.clientY)
 }
 const onCanvasTouchStart = (e: TouchEvent) => {
   const t = e.touches[0]
-  if (!t || mode.value !== 'pan') return
+  if (!t) return
+  if ((t.target as SVGElement).closest('.cursor-pointer')) return
+  if (mode.value === 'select') {
+    selectedNodeId.value = ''
+  }
+  if (mode.value === 'connect') {
+    connectSourceId.value = ''
+  }
   startPan(t.clientX, t.clientY)
 }
 const onNodeMouseDown = (e: MouseEvent, node: DiagramNode) => {
@@ -673,7 +928,7 @@ const onWindowMouseMove = (e: MouseEvent) => {
     const x = snap(w.x - dragOffsetX.value)
     const y = snap(w.y - dragOffsetY.value)
     updateNodePosition(dragNodeId.value, x, y)
-    sendMessage({ type: 'node:update-position', payload: { id: dragNodeId.value, x, y } })
+    broadcastMessage({ type: 'node:update-position', payload: { id: dragNodeId.value, x, y } })
     return
   }
   if (!isPanning.value) return
@@ -688,7 +943,7 @@ const onWindowTouchMove = (e: TouchEvent) => {
     const x = snap(w.x - dragOffsetX.value)
     const y = snap(w.y - dragOffsetY.value)
     updateNodePosition(dragNodeId.value, x, y)
-    sendMessage({ type: 'node:update-position', payload: { id: dragNodeId.value, x, y } })
+    broadcastMessage({ type: 'node:update-position', payload: { id: dragNodeId.value, x, y } })
     return
   }
   if (!isPanning.value) return
@@ -698,6 +953,7 @@ const onWindowTouchMove = (e: TouchEvent) => {
 const onWindowUp = () => {
   isPanning.value = false
   stopNodeDrag()
+  document.body.style.userSelect = ''
 }
 window.addEventListener('mousemove', onWindowMouseMove)
 window.addEventListener('mouseup', onWindowUp)
@@ -727,7 +983,7 @@ const onCanvasWheel = (e: WheelEvent) => {
           Diagram to Code
         </h1>
         <p class="mt-3 max-w-3xl text-text-secondary">
-          Kéo thả block hệ thống, nối edge Bézier và sync P2P qua WebRTC DataChannel.
+          Kéo thả block hệ thống, nối edge và sync với nhiều người qua WebRTC DataChannel.
         </p>
       </header>
 
@@ -834,18 +1090,24 @@ const onCanvasWheel = (e: WheelEvent) => {
 
         <section class="animate-fade-up animate-delay-3">
           <section class="mb-3 border border-border-default bg-bg-surface p-4">
-            <h2 class="font-display text-lg flex items-center gap-2">
-              <span class="text-accent-sky text-sm tracking-widest">//</span>Node Editor
+            <h2 class="font-display text-lg flex items-center justify-between">
+              <span class="flex items-center gap-2">
+                <span class="text-accent-sky text-sm tracking-widest">//</span>Node Editor
+              </span>
+              <span v-if="selectedNode" class="text-xs font-semibold text-text-dim">
+                Type:
+                <span class="font-mono text-text-secondary">{{ selectedNode.type }}</span>
+              </span>
             </h2>
-            <div v-if="selectedNode" class="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-              <div>
-                <p class="mb-2 text-xs text-text-dim">Type: {{ selectedNode.type }}</p>
-                <input
-                  :value="selectedNode.label"
-                  class="w-full border border-border-default bg-bg-deep px-3 py-2 text-sm outline-none focus:border-accent-sky"
-                  @input="onLabelInput(($event.target as HTMLInputElement).value)"
-                />
-              </div>
+            <div
+              v-if="selectedNode"
+              class="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center"
+            >
+              <input
+                :value="selectedNode.label"
+                class="w-full border border-border-default bg-bg-deep px-3 py-2 text-sm outline-none focus:border-accent-sky"
+                @input="onLabelInput(($event.target as HTMLInputElement).value)"
+              />
               <button
                 class="border border-accent-coral bg-accent-coral/10 px-4 py-2 text-xs text-accent-coral"
                 @click="removeSelectedNode"
@@ -856,14 +1118,14 @@ const onCanvasWheel = (e: WheelEvent) => {
             <p v-else class="mt-3 text-xs text-text-dim">Chọn một node để sửa label.</p>
           </section>
           <div
-            class="border border-border-default bg-bg-surface overflow-hidden"
+            class="border border-border-default bg-bg-deep overflow-hidden select-none"
             @dragover="onCanvasDragOver"
             @drop="onCanvasDrop"
           >
             <svg
               ref="svgRef"
               class="h-[62vh] min-h-[460px] w-full touch-none"
-              viewBox="0 0 1200 760"
+              :class="{ 'cursor-move': mode === 'pan' && !isPanning, 'cursor-grabbing': isPanning }"
               @mousedown="onCanvasMouseDown"
               @touchstart="onCanvasTouchStart"
               @wheel="onCanvasWheel"
@@ -874,6 +1136,7 @@ const onCanvasWheel = (e: WheelEvent) => {
                   :width="GRID_SIZE"
                   :height="GRID_SIZE"
                   patternUnits="userSpaceOnUse"
+                  :patternTransform="transform"
                 >
                   <path
                     :d="`M ${GRID_SIZE} 0 L 0 0 0 ${GRID_SIZE}`"
@@ -911,9 +1174,8 @@ const onCanvasWheel = (e: WheelEvent) => {
                   />
                 </marker>
               </defs>
-              <rect width="1200" height="760" fill="#0F1923" />
+              <rect width="100%" height="100%" fill="url(#grid-pattern)" />
               <g :transform="transform">
-                <rect x="-3000" y="-3000" width="6000" height="6000" fill="url(#grid-pattern)" />
                 <path
                   v-for="edge in edgePaths"
                   :key="edge.id"
@@ -941,11 +1203,11 @@ const onCanvasWheel = (e: WheelEvent) => {
                       node.type !== 'triangle' &&
                       node.type !== 'tetrahedron'
                     "
-                    :x="node.type === 'square' ? (NODE_WIDTH - NODE_HEIGHT) / 2 : 0"
-                    :width="node.type === 'square' ? NODE_HEIGHT : NODE_WIDTH"
-                    :height="NODE_HEIGHT"
+                    :x="0"
+                    :width="node.width"
+                    :height="node.height"
                     fill="#162232"
-                    stroke-width="2"
+                    stroke-width="2.5"
                     :stroke="
                       connectSourceId === node.id
                         ? '#38BDF8'
@@ -956,12 +1218,12 @@ const onCanvasWheel = (e: WheelEvent) => {
                   />
                   <ellipse
                     v-else-if="node.type === 'circle'"
-                    :cx="NODE_WIDTH / 2"
-                    :cy="NODE_HEIGHT / 2"
-                    :rx="NODE_WIDTH / 2"
-                    :ry="NODE_HEIGHT / 2"
+                    :cx="node.width / 2"
+                    :cy="node.height / 2"
+                    :rx="node.width / 2"
+                    :ry="node.height / 2"
                     fill="#162232"
-                    stroke-width="2"
+                    stroke-width="2.5"
                     :stroke="
                       connectSourceId === node.id
                         ? '#38BDF8'
@@ -972,9 +1234,9 @@ const onCanvasWheel = (e: WheelEvent) => {
                   />
                   <polygon
                     v-else-if="node.type === 'triangle'"
-                    points="90,0 180,72 0,72"
+                    :points="`${node.width / 2},0 ${node.width},${node.height} 0,${node.height}`"
                     fill="#162232"
-                    stroke-width="2"
+                    stroke-width="2.5"
                     :stroke="
                       connectSourceId === node.id
                         ? '#38BDF8'
@@ -985,9 +1247,9 @@ const onCanvasWheel = (e: WheelEvent) => {
                   />
                   <polygon
                     v-else
-                    points="90,0 180,36 90,72 0,36"
+                    :points="`${node.width / 2},0 ${node.width},${node.height / 2} ${node.width / 2},${node.height} 0,${node.height / 2}`"
                     fill="#162232"
-                    stroke-width="2"
+                    stroke-width="2.5"
                     :stroke="
                       connectSourceId === node.id
                         ? '#38BDF8'
@@ -997,21 +1259,23 @@ const onCanvasWheel = (e: WheelEvent) => {
                     "
                   />
                   <text
-                    :x="NODE_WIDTH / 2"
+                    :data-text-id="node.id"
+                    :x="node.width / 2"
                     y="29"
                     fill="#F0EDE6"
                     font-size="14"
                     font-weight="600"
                     text-anchor="middle"
                   >
-                    {{ node.label }}
+                    {{ node.label.trim() }}
                   </text>
                   <text
-                    :x="NODE_WIDTH / 2"
-                    y="50"
+                    :x="node.width / 2"
+                    :y="node.height - 22"
                     fill="#8B9DB5"
                     font-size="11"
                     text-anchor="middle"
+                    class="pointer-events-none"
                   >
                     {{ node.type.toUpperCase() }}
                   </text>
@@ -1028,76 +1292,133 @@ const onCanvasWheel = (e: WheelEvent) => {
         <aside class="space-y-4 animate-fade-up animate-delay-4">
           <section class="border border-border-default bg-bg-surface p-4">
             <h2 class="font-display text-lg flex items-center gap-2">
-              <span class="text-accent-coral text-sm tracking-widest">//</span>P2P Collaboration
+              <span class="text-accent-coral text-sm tracking-widest">//</span>Collaboration
             </h2>
-            <p class="mt-2 text-xs text-text-dim">
-              State: {{ collabState }} | Channel: {{ channelStatus }}
-            </p>
-            <div
-              v-if="collabError"
-              class="mt-2 border border-accent-coral/30 bg-accent-coral/10 p-2 text-xs text-accent-coral"
-            >
-              {{ collabError }}
+
+            <div v-if="collabRole === 'idle'">
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  @click="startHostSession"
+                  class="border border-accent-coral bg-accent-coral/10 px-3 py-2 text-xs text-accent-coral"
+                >
+                  Start Session
+                </button>
+                <button
+                  @click="collabRole = 'guest'"
+                  class="border border-accent-sky bg-accent-sky/10 px-3 py-2 text-xs text-accent-sky"
+                >
+                  Join Session
+                </button>
+              </div>
             </div>
-            <button
-              class="mt-2 w-full border border-accent-coral bg-accent-coral/10 px-3 py-2 text-xs text-accent-coral"
-              @click="createOffer"
-            >
-              Create Offer
-            </button>
-            <textarea
-              :value="offerText"
-              readonly
-              class="mt-2 h-16 w-full resize-none border border-border-default bg-bg-deep p-2 text-[11px] text-text-secondary"
-              placeholder="Offer..."
-            />
-            <button
-              :disabled="!offerText"
-              class="mt-2 w-full border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary disabled:opacity-40"
-              @click="copy(offerText, 'signal')"
-            >
-              {{ copiedSignal ? 'Đã copy' : 'Copy Offer' }}
-            </button>
-            <textarea
-              v-model="inputOfferText"
-              class="mt-2 h-16 w-full resize-none border border-border-default bg-bg-deep p-2 text-[11px] text-text-primary"
-              placeholder="Paste Offer..."
-            />
-            <button
-              class="mt-2 w-full border border-accent-sky bg-accent-sky/10 px-3 py-2 text-xs text-accent-sky"
-              @click="joinWithOffer"
-            >
-              Join With Offer
-            </button>
-            <textarea
-              :value="answerText"
-              readonly
-              class="mt-2 h-16 w-full resize-none border border-border-default bg-bg-deep p-2 text-[11px] text-text-secondary"
-              placeholder="Answer..."
-            />
-            <textarea
-              v-model="inputAnswerText"
-              class="mt-2 h-16 w-full resize-none border border-border-default bg-bg-deep p-2 text-[11px] text-text-primary"
-              placeholder="Paste Answer..."
-            />
-            <button
-              class="mt-2 w-full border border-accent-amber bg-accent-amber/10 px-3 py-2 text-xs text-accent-amber"
-              @click="acceptAnswer"
-            >
-              Accept Answer
-            </button>
-            <div class="mt-2 grid grid-cols-2 gap-2">
+
+            <div v-if="collabRole === 'host'">
+              <p class="text-xs text-text-dim">You are the host. Invite others to join.</p>
               <button
-                class="border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary"
+                @click="createInvite"
+                :disabled="isCreatingInvite"
+                class="mt-2 w-full border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary disabled:opacity-50"
+              >
+                {{ isCreatingInvite ? 'Generating...' : 'Create Invite' }}
+              </button>
+
+              <div
+                v-for="peer in Array.from(peers.values())"
+                :key="peer.id"
+                class="mt-3 border-t border-border-default pt-3"
+              >
+                <p class="text-xs font-semibold">
+                  Participant: {{ peer.id.substring(0, 9) }}... ({{ peer.state }})
+                </p>
+                <div v-if="peer.offer && peer.state === 'connecting'">
+                  <p class="mt-1 text-xs text-text-dim">1. Send this invite code:</p>
+                  <textarea
+                    :value="peer.offer"
+                    readonly
+                    class="mt-1 h-16 w-full resize-none border border-border-default bg-bg-deep p-2 text-[11px] text-text-secondary"
+                  />
+                  <button
+                    @click="copy(peer.offer, 'signal')"
+                    class="mt-1 w-full border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary"
+                  >
+                    {{ copiedSignal ? 'Đã copy' : 'Copy Code' }}
+                  </button>
+
+                  <p class="mt-2 text-xs text-text-dim">2. Paste their answer here:</p>
+                  <textarea
+                    v-model="peer.answer"
+                    class="mt-1 h-16 w-full resize-none border border-border-default bg-bg-deep p-2 text-[11px] text-text-primary"
+                    placeholder="Answer code..."
+                  />
+                  <button
+                    @click="acceptGuestAnswer(peer.id, peer.answer!)"
+                    class="mt-1 w-full border border-accent-amber bg-accent-amber/10 px-3 py-2 text-xs text-accent-amber"
+                  >
+                    Connect
+                  </button>
+                </div>
+              </div>
+              <button
+                @click="disconnect"
+                class="mt-4 w-full border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary"
+              >
+                End Session
+              </button>
+            </div>
+
+            <div v-if="collabRole === 'guest'">
+              <div v-if="guestState === 'idle'">
+                <p class="text-xs text-text-dim">Paste the invite code from the host:</p>
+                <textarea
+                  v-model="sessionOffer"
+                  class="mt-1 h-20 w-full resize-none border border-border-default bg-bg-deep p-2 text-[11px] text-text-primary"
+                  placeholder="Invite code..."
+                />
+                <p v-if="collabError" class="mt-2 text-xs text-accent-coral">{{ collabError }}</p>
+                <button
+                  @click="joinAsGuest"
+                  :disabled="!sessionOffer || isGeneratingAnswer"
+                  class="mt-2 w-full border border-accent-sky bg-accent-sky/10 px-3 py-2 text-xs text-accent-sky disabled:opacity-40"
+                >
+                  {{ isGeneratingAnswer ? 'Generating...' : 'Generate Answer' }}
+                </button>
+                <button
+                  @click="disconnect"
+                  class="mt-2 w-full border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary"
+                >
+                  Cancel
+                </button>
+              </div>
+              <div v-if="guestState === 'joining'">
+                <p class="text-xs text-text-dim">Send this answer code back to the host:</p>
+                <textarea
+                  :value="sessionAnswer"
+                  readonly
+                  class="mt-1 h-20 w-full resize-none border border-border-default bg-bg-deep p-2 text-[11px] font-bold text-accent-amber"
+                />
+                <button
+                  @click="copy(sessionAnswer, 'signal')"
+                  class="mt-2 w-full border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary"
+                >
+                  {{ copiedSignal ? 'Đã copy' : 'Copy Answer' }}
+                </button>
+              </div>
+              <div v-if="guestState === 'connected'">
+                <p class="text-xs">Connected to session.</p>
+                <button
+                  @click="disconnect"
+                  class="mt-4 w-full border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary"
+                >
+                  Leave Session
+                </button>
+              </div>
+            </div>
+            <div class="mt-4" v-if="collabRole === 'host' || guestState === 'connected'">
+              <button
+                class="w-full border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary"
                 @click="syncAll"
               >
-                Sync full
-              </button>
-              <button
-                class="border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary"
-                @click="disconnect"
-              >
-                Disconnect
+                Sync full diagram
               </button>
             </div>
           </section>
