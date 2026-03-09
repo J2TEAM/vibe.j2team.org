@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import {
   incidents,
@@ -801,6 +801,13 @@ const {
   slimeIdleAsset,
 })
 
+const hasStartedRun = computed<boolean>(() => logs.value.length > 0 || round.value > 1 || isFinished.value)
+
+function scrollToIncidentSection(): void {
+  const section = document.getElementById('incident-playground')
+  section?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 watch(campaignScore, (value) => {
   if (!isFinished.value) {
     return
@@ -1323,6 +1330,44 @@ resetGame()
         </div>
       </header>
 
+      <section
+        v-if="!hasStartedRun"
+        class="animate-fade-up animate-delay-1 border border-accent-amber/45 bg-accent-amber/10 p-5 sm:p-6"
+      >
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p class="text-[11px] tracking-[0.14em] text-accent-amber">// START HERE</p>
+            <h2 class="mt-1 font-display text-xl text-text-primary sm:text-2xl">Bạn mới vào? Chơi theo 4 bước này</h2>
+          </div>
+          <button
+            type="button"
+            class="border border-accent-coral bg-accent-coral/10 px-3 py-2 text-xs tracking-wider text-accent-coral"
+            @click="scrollToIncidentSection"
+          >
+            ĐI TỚI INCIDENT NGAY
+          </button>
+        </div>
+
+        <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="border border-border-default bg-bg-deep p-3">
+            <p class="text-xs tracking-widest text-accent-coral">BƯỚC 1</p>
+            <p class="mt-1 text-sm text-text-secondary">Đọc <span class="text-text-primary">Priority Brief</span> để biết mục tiêu vòng hiện tại.</p>
+          </div>
+          <div class="border border-border-default bg-bg-deep p-3">
+            <p class="text-xs tracking-widest text-accent-amber">BƯỚC 2</p>
+            <p class="mt-1 text-sm text-text-secondary">Vào khung Incident, chọn 1 phương án có trade-off hợp lý.</p>
+          </div>
+          <div class="border border-border-default bg-bg-deep p-3">
+            <p class="text-xs tracking-widest text-accent-sky">BƯỚC 3</p>
+            <p class="mt-1 text-sm text-text-secondary">Quan sát 4 chỉ số <span class="text-text-primary">Stability / Trust / Energy / Chaos</span>.</p>
+          </div>
+          <div class="border border-border-default bg-bg-deep p-3">
+            <p class="text-xs tracking-widest text-accent-coral">BƯỚC 4</p>
+            <p class="mt-1 text-sm text-text-secondary">Sau vài vòng, mở Tactical/Learning để tối ưu chiến thuật sâu hơn.</p>
+          </div>
+        </div>
+      </section>
+
       <!-- Guide + Docs Section -->
       <section class="animate-fade-up animate-delay-1 border border-border-default bg-bg-surface p-5 sm:p-6">
         <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -1427,7 +1472,10 @@ resetGame()
         </div>
       </section>
 
-      <div class="animate-fade-up animate-delay-2 flex flex-wrap items-center justify-between gap-2 border border-border-default bg-bg-surface p-3">
+      <div
+        v-if="hasStartedRun"
+        class="animate-fade-up animate-delay-2 flex flex-wrap items-center justify-between gap-2 border border-border-default bg-bg-surface p-3"
+      >
         <p class="font-display text-xs tracking-[0.14em] text-accent-sky">// TACTICAL PANELS</p>
         <button
           type="button"
@@ -1439,6 +1487,7 @@ resetGame()
       </div>
 
       <section
+        v-if="hasStartedRun"
         class="collapsible-mobile animate-fade-up animate-delay-2 grid gap-3 lg:grid-cols-3"
         :class="{ 'collapsed-mobile': tacticalPanelCollapsed }"
       >
@@ -1466,7 +1515,10 @@ resetGame()
         </div>
       </section>
 
-      <section class="section-learning animate-fade-up animate-delay-2 border border-border-default bg-bg-surface p-4 sm:p-6">
+      <section
+        v-if="hasStartedRun"
+        class="section-learning animate-fade-up animate-delay-2 border border-border-default bg-bg-surface p-4 sm:p-6"
+      >
         <h2 class="mb-4 flex items-center gap-3 font-display text-xl font-semibold sm:text-2xl">
           <span class="font-display text-sm tracking-widest text-accent-amber">//</span>
           Learning Progress
@@ -1601,7 +1653,10 @@ resetGame()
         </div>
       </section>
 
-      <section class="section-mission animate-fade-up animate-delay-3 border border-border-default bg-bg-surface p-5 sm:p-6">
+      <section
+        v-if="hasStartedRun"
+        class="section-mission animate-fade-up animate-delay-3 border border-border-default bg-bg-surface p-5 sm:p-6"
+      >
         <h2 class="mb-4 flex items-center gap-3 font-display text-xl font-semibold sm:text-2xl">
           <span class="font-display text-sm tracking-widest text-accent-amber">//</span>
           Mission Contract
@@ -1628,7 +1683,7 @@ resetGame()
       </section>
 
       <!-- Game Content -->
-      <section class="section-game-content grid gap-5 lg:grid-cols-[1.35fr_1fr]">
+      <section id="incident-playground" class="section-game-content grid gap-5 lg:grid-cols-[1.35fr_1fr]">
         <!-- Left: Incident -->
         <article
           class="animate-fade-up animate-delay-2 border border-border-default bg-bg-surface p-6 sm:p-8"
