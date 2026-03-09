@@ -17,8 +17,9 @@ html {
   --color-border-default: #253549;
   --color-border-hover: #ff6b4a;
 
-  --font-display: 'Anybody', sans-serif;
+  --font-display: 'Philosopher', serif;
   --font-body: 'Be Vietnam Pro', sans-serif;
+  --font-script: 'Dancing Script', cursive;
 }
 
 body {
