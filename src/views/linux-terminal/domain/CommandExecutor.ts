@@ -312,7 +312,6 @@ export class CommandExecutor {
   }
 
   private cmdNeofetch(): OutputLine[] {
-    const now = new Date()
     const upMins = Math.floor(Math.random() * 120 + 10)
     const info = [
       `\x1b[bold]\x1b[cyan]user\x1b[reset]@\x1b[bold]\x1b[cyan]vibe-machine\x1b[reset]`,
@@ -371,7 +370,7 @@ export class CommandExecutor {
       'RTFM — Read The Friendly Manual.',
       'In code we trust... except when we debug.',
     ]
-    return [line('output', fortunes[Math.floor(Math.random() * fortunes.length)])]
+    return [line('output', fortunes[Math.floor(Math.random() * fortunes.length)] ?? '')]
   }
 
   private cmdUptime(): OutputLine[] {
@@ -486,8 +485,6 @@ export class CommandExecutor {
   }
 
   private cmdFind(args: string[]): OutputLine[] {
-    const nameArg = args.findIndex(a => a === '-name')
-    const pattern = nameArg !== -1 ? args[nameArg + 1] : '*'
     return [line('output', `./documents\n./documents/readme.txt\n./downloads\n./downloads/linux-6.7.tar.gz`)]
   }
 
@@ -518,7 +515,7 @@ export class CommandExecutor {
 
   private cmdHead(args: string[]): OutputLine[] {
     const nIdx = args.findIndex(a => a === '-n')
-    const n = nIdx !== -1 ? parseInt(args[nIdx + 1]) : 10
+    const n = nIdx !== -1 ? parseInt(args[nIdx + 1] ?? '10') : 10
     const file = args.find(a => !a.startsWith('-') && !/^\d+$/.test(a))
     if (!file) return [line('error', 'head: missing operand')]
     const result = this.fs.cat(file)
@@ -528,7 +525,7 @@ export class CommandExecutor {
 
   private cmdTail(args: string[]): OutputLine[] {
     const nIdx = args.findIndex(a => a === '-n')
-    const n = nIdx !== -1 ? parseInt(args[nIdx + 1]) : 10
+    const n = nIdx !== -1 ? parseInt(args[nIdx + 1] ?? '10') : 10
     const file = args.find(a => !a.startsWith('-') && !/^\d+$/.test(a))
     if (!file) return [line('error', 'tail: missing operand')]
     const result = this.fs.cat(file)
@@ -570,8 +567,8 @@ export class CommandExecutor {
     const parts = partial.split(' ')
     if (parts.length === 1) {
       const cmds = ['ls', 'll', 'cd', 'pwd', 'cat', 'echo', 'mkdir', 'touch', 'rm', 'clear', 'whoami', 'neofetch', 'cowsay', 'fortune', 'uptime', 'free', 'df', 'ps', 'git', 'pacman', 'history', 'help', 'man', 'which', 'grep', 'find', 'tree', 'ping', 'uname', 'date', 'export', 'env', 'cmatrix', 'sl', 'exit']
-      return cmds.filter(c => c.startsWith(parts[0]))
+      return cmds.filter(c => c.startsWith(parts[0] ?? ''))
     }
-    return this.fs.autocomplete(parts[parts.length - 1])
+    return this.fs.autocomplete(parts[parts.length - 1] ?? '')
   }
 }

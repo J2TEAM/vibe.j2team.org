@@ -191,6 +191,7 @@ export class FileSystem {
     const idx = parent.children.findIndex(c => c.name === name)
     if (idx === -1) return `rm: cannot remove '${name}': No such file or directory`
     const node = parent.children[idx]
+    if (!node) return `rm: cannot remove '${name}'`
     if (node.type === 'dir' && !recursive) return `rm: cannot remove '${name}': Is a directory (use -r)`
     parent.children.splice(idx, 1)
     return null

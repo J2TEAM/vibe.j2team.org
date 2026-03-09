@@ -7,14 +7,19 @@ defineProps<{
   currentInput: string
 }>()
 
-// Colorize ls output: mark dirs with [dir] prefix
+// ESC char as a string constant — avoids no-control-regex lint rule
+const ESC = String.fromCharCode(27)
+
 function renderText(text: string): string {
   return text
-    .replace(/\x1b\[bold\]/g, '')
-    .replace(/\x1b\[cyan\]/g, '')
-    .replace(/\x1b\[reset\]/g, '')
+    .split(ESC + '[bold]').join('')
+    .split(ESC + '[cyan]').join('')
+    .split(ESC + '[reset]').join('')
     // highlight dir entries in ls short output
-    .replace(/\x1b\[dir\](\S+)/g, '<span class="text-sky-400 font-bold">$1</span>')
+    .replace(
+      new RegExp(ESC.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\[dir\\](\\S+)', 'g'),
+      '<span class="text-sky-400 font-bold">$1</span>',
+    )
 }
 </script>
 
