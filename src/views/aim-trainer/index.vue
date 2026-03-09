@@ -173,34 +173,46 @@ onBeforeUnmount(() => {
 <template>
   <div class="min-h-screen bg-bg-deep text-text-primary font-body px-4 py-4 sm:px-6 sm:py-6">
     <div
-      class="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-6xl flex-col sm:min-h-[calc(100vh-3rem)]"
+      class="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-5xl flex-col sm:min-h-[calc(100vh-3rem)]"
     >
       <header class="mb-3 flex items-center justify-between gap-3 animate-fade-up sm:mb-4">
         <RouterLink
           to="/"
-          class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-3 py-2 text-xs text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
+          class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-3 py-2 text-xs text-text-secondary transition-all duration-300 hover:-translate-y-1 hover:border-accent-coral hover:bg-bg-elevated hover:text-text-primary"
         >
           &larr; Về trang chủ
         </RouterLink>
         <div class="font-display text-xs tracking-widest text-accent-coral">// AIM TRAINER</div>
       </header>
 
-      <div class="mb-3 grid grid-cols-2 gap-2 text-xs sm:mb-4 sm:grid-cols-4 sm:text-sm">
-        <div class="border border-border-default bg-bg-surface px-3 py-2">Score: {{ score }}</div>
-        <div class="border border-border-default bg-bg-surface px-3 py-2">
+      <div
+        class="mb-3 grid grid-cols-2 gap-2 text-xs animate-fade-up animate-delay-1 sm:mb-4 sm:grid-cols-4 sm:text-sm"
+      >
+        <div
+          class="border border-border-default bg-bg-surface px-3 py-2 transition-all duration-300 hover:-translate-y-1 hover:border-accent-coral hover:bg-bg-elevated"
+        >
+          Score: {{ score }}
+        </div>
+        <div
+          class="border border-border-default bg-bg-surface px-3 py-2 transition-all duration-300 hover:-translate-y-1 hover:border-accent-coral hover:bg-bg-elevated"
+        >
           Time: {{ displayTimeLeft.toFixed(1) }}s
         </div>
-        <div class="border border-border-default bg-bg-surface px-3 py-2">
+        <div
+          class="border border-border-default bg-bg-surface px-3 py-2 transition-all duration-300 hover:-translate-y-1 hover:border-accent-coral hover:bg-bg-elevated"
+        >
           Accuracy: {{ accuracy.toFixed(1) }}%
         </div>
-        <div class="border border-border-default bg-bg-surface px-3 py-2">
+        <div
+          class="border border-border-default bg-bg-surface px-3 py-2 transition-all duration-300 hover:-translate-y-1 hover:border-accent-coral hover:bg-bg-elevated"
+        >
           Avg: {{ avgReaction.toFixed(0) }}ms
         </div>
       </div>
 
       <div
         ref="gameArea"
-        class="relative min-h-[300px] flex-1 overflow-hidden border border-border-default bg-bg-surface"
+        class="relative min-h-[300px] flex-1 overflow-hidden border border-border-default bg-bg-surface animate-fade-up animate-delay-2"
         @pointerdown="handleMissClick"
       >
         <button
@@ -267,8 +279,12 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div class="mt-3 grid gap-3 text-xs sm:mt-4 sm:grid-cols-2 sm:text-sm">
-        <section class="border border-border-default bg-bg-surface p-3 sm:p-4">
+      <div
+        class="mt-3 grid gap-3 text-xs animate-fade-up animate-delay-3 sm:mt-4 sm:grid-cols-2 sm:text-sm"
+      >
+        <section
+          class="border border-border-default bg-bg-surface p-3 transition-all duration-300 hover:-translate-y-1 hover:border-accent-coral hover:bg-bg-elevated sm:p-4"
+        >
           <h2 class="mb-2 font-display text-sm tracking-wide text-accent-coral sm:text-base">
             // SCOREBOARD
           </h2>
@@ -292,7 +308,9 @@ onBeforeUnmount(() => {
           </ul>
         </section>
 
-        <section class="border border-border-default bg-bg-surface p-3 sm:p-4">
+        <section
+          class="border border-border-default bg-bg-surface p-3 transition-all duration-300 hover:-translate-y-1 hover:border-accent-coral hover:bg-bg-elevated sm:p-4"
+        >
           <h2 class="mb-2 font-display text-sm tracking-wide text-accent-sky sm:text-base">
             // HISTORY
           </h2>
