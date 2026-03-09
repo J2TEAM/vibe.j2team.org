@@ -25,11 +25,9 @@ const story: StoryData = {
   scenes: [
     {
       id: 'scene1',
-      background: '/visual-novel/bg-bamboo-forest.png',
+      background: '/visual-novel/bg-bamboo-forest.webp',
       bgTransition: 'fade-through-black',
-      stage: [
-        { characterId: 'minh', sprite: 'neutral', position: 'center', animation: 'fade-in' },
-      ],
+      stage: [{ characterId: 'minh', sprite: 'neutral', position: 'center', animation: 'fade-in' }],
       dialogue: [
         {
           text: 'Rừng trúc yên tĩnh dưới ánh trăng bạc. Không khí mát lạnh thấm qua từng lớp áo.',
@@ -46,11 +44,9 @@ const story: StoryData = {
     },
     {
       id: 'scene2',
-      background: '/visual-novel/bg-bamboo-forest.png',
+      background: '/visual-novel/bg-bamboo-forest.webp',
       effect: 'shake',
-      stage: [
-        { characterId: 'minh', sprite: 'serious', position: 'center' },
-      ],
+      stage: [{ characterId: 'minh', sprite: 'serious', position: 'center' }],
       dialogue: [
         { text: 'Một tiếng động mạnh vang lên từ phía xa, phá vỡ sự tĩnh lặng.' },
         {
@@ -65,7 +61,7 @@ const story: StoryData = {
     },
     {
       id: 'scene3',
-      background: '/visual-novel/bg-bamboo-forest.png',
+      background: '/visual-novel/bg-bamboo-forest.webp',
       stage: [
         { characterId: 'minh', sprite: 'serious', position: 'left' },
         { characterId: 'linh', sprite: 'scared', position: 'right', animation: 'slide-in' },
@@ -124,9 +120,7 @@ const story: StoryData = {
       background: '/visual-novel/bg-mountain-moonlight.jpg',
       bgTransition: 'crossfade',
       effect: 'flash',
-      stage: [
-        { characterId: 'linh', sprite: 'neutral', position: 'center', animation: 'fade-in' },
-      ],
+      stage: [{ characterId: 'linh', sprite: 'neutral', position: 'center', animation: 'fade-in' }],
       dialogue: [
         {
           characterId: 'linh',
@@ -152,7 +146,7 @@ const story: StoryData = {
     },
     {
       id: 'scene4b',
-      background: '/visual-novel/bg-bamboo-forest.png',
+      background: '/visual-novel/bg-bamboo-forest.webp',
       stage: [
         { characterId: 'minh', sprite: 'serious', position: 'left' },
         { characterId: 'linh', sprite: 'serious', position: 'right' },
@@ -216,9 +210,7 @@ const story: StoryData = {
       id: 'scene5d',
       background: '/visual-novel/bg-forest-path-dawn.jpg',
       bgTransition: 'fade-through-black',
-      stage: [
-        { characterId: 'minh', sprite: 'neutral', position: 'center', animation: 'fade-in' },
-      ],
+      stage: [{ characterId: 'minh', sprite: 'neutral', position: 'center', animation: 'fade-in' }],
       dialogue: [
         {
           characterId: 'minh',

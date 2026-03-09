@@ -10,20 +10,23 @@ const soundEnabled = ref(true)
 const { recordPomodoro, todayPomodoros, todayFocusMinutes, streak, weeklyData, weeklyMax } =
   useStats()
 
+let audioCtx: AudioContext | null = null
+
 function playSound() {
   if (!soundEnabled.value) return
   try {
-    const ctx = new AudioContext()
-    const oscillator = ctx.createOscillator()
-    const gain = ctx.createGain()
+    if (!audioCtx) audioCtx = new AudioContext()
+    if (audioCtx.state === 'suspended') audioCtx.resume()
+    const oscillator = audioCtx.createOscillator()
+    const gain = audioCtx.createGain()
     oscillator.connect(gain)
-    gain.connect(ctx.destination)
+    gain.connect(audioCtx.destination)
     oscillator.frequency.value = 830
     oscillator.type = 'sine'
-    gain.gain.setValueAtTime(0.3, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8)
-    oscillator.start(ctx.currentTime)
-    oscillator.stop(ctx.currentTime + 0.8)
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.8)
+    oscillator.start(audioCtx.currentTime)
+    oscillator.stop(audioCtx.currentTime + 0.8)
   } catch {
     /* audio not supported */
   }
@@ -118,7 +121,9 @@ watch(mode, () => {
     <header
       class="flex items-center justify-between px-4 sm:px-6 py-4 max-w-2xl w-full mx-auto animate-fade-up"
     >
-      <h1 class="font-display text-lg sm:text-xl font-bold text-accent-coral flex items-center gap-2">
+      <h1
+        class="font-display text-lg sm:text-xl font-bold text-accent-coral flex items-center gap-2"
+      >
         🍅 Pomodoro Focus
       </h1>
       <div class="flex items-center gap-3">
@@ -145,7 +150,7 @@ watch(mode, () => {
         class="flex gap-1 p-1 border border-border-default bg-bg-surface mb-8 animate-fade-up animate-delay-1"
       >
         <button
-          v-for="m in (['focus', 'short-break', 'long-break'] as const)"
+          v-for="m in ['focus', 'short-break', 'long-break'] as const"
           :key="m"
           class="px-4 py-2 text-sm font-display font-semibold transition-all duration-200"
           :class="

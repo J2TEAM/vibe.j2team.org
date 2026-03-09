@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
+import { Icon } from '@iconify/vue'
 import { REPO_URL } from '@/data/constants'
 </script>
 
@@ -19,7 +21,7 @@ import { REPO_URL } from '@/data/constants'
     </h1>
 
     <!-- Subtitle with coral left border -->
-    <div class="mt-8 border-l-4 border-accent-coral pl-5 max-w-xl animate-fade-up animate-delay-3">
+    <div class="mt-8 border-l-4 border-accent-coral pl-5 max-w-2xl animate-fade-up animate-delay-3">
       <p class="text-base sm:text-lg text-text-secondary leading-relaxed">
         Sẽ thế nào nếu cả nhóm
         <a
@@ -33,7 +35,8 @@ import { REPO_URL } from '@/data/constants'
         vibe code cùng nhau?
       </p>
       <p class="mt-2 text-sm text-text-dim">
-        Mỗi thành viên tạo một trang con — có thể là một ứng dụng nhỏ hoặc trò chơi nhỏ trên nền web, vibe code thoải mái, rồi thêm link vào đây.
+        Mỗi thành viên tạo một trang con — có thể là một ứng dụng nhỏ hoặc trò chơi nhỏ trên nền
+        web, vibe code thoải mái, rồi thêm link vào đây.
       </p>
     </div>
 
@@ -43,19 +46,29 @@ import { REPO_URL } from '@/data/constants'
         href="#cach-tham-gia"
         class="inline-block border border-accent-coral bg-accent-coral/10 px-6 py-3 font-display font-semibold text-accent-coral tracking-wide transition-all duration-300 hover:bg-accent-coral hover:text-bg-deep"
       >
+        <Icon icon="lucide:rocket" class="inline w-4 h-4 -mt-0.5" />
         Tham gia ngay
       </a>
+      <RouterLink
+        to="/leaderboard"
+        class="inline-flex items-center gap-2 border border-accent-sky bg-accent-sky/10 px-6 py-3 font-display font-semibold text-accent-sky tracking-wide transition-all duration-300 hover:bg-accent-sky hover:text-bg-deep"
+      >
+        <Icon icon="lucide:trophy" class="w-4 h-4" />
+        Top đóng góp
+      </RouterLink>
       <a
         :href="REPO_URL"
         target="_blank"
         rel="noopener noreferrer nofollow"
+        class="star-btn relative overflow-hidden transition-transform duration-300 hover:scale-105"
       >
+        <span class="star-shimmer" aria-hidden="true"></span>
         <img
           alt="GitHub Repo stars"
           src="https://img.shields.io/github/stars/J2TEAM/vibe.j2team.org?style=for-the-badge&logo=github&label=Stars"
           loading="lazy"
-          class="h-[46px]"
-        >
+          class="relative h-[46px]"
+        />
       </a>
     </div>
 
@@ -65,3 +78,30 @@ import { REPO_URL } from '@/data/constants'
     </div>
   </header>
 </template>
+
+<style scoped>
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+.star-shimmer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.2) 45%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0.2) 55%,
+    transparent 60%
+  );
+  animation: shimmer 3s ease-in-out 2s infinite backwards;
+  pointer-events: none;
+}
+</style>

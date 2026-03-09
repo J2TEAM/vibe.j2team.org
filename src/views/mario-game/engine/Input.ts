@@ -9,8 +9,11 @@ export class Input {
   touchJump = false
   private touchJumpJust = false
 
+  private handleKeyDown: (e: KeyboardEvent) => void
+  private handleKeyUp: (e: KeyboardEvent) => void
+
   constructor() {
-    window.addEventListener('keydown', (e) => {
+    this.handleKeyDown = (e: KeyboardEvent) => {
       if (!this.keys[e.code]) {
         this.justPressedKeys.add(e.code)
       }
@@ -18,10 +21,17 @@ export class Input {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
         e.preventDefault()
       }
-    })
-    window.addEventListener('keyup', (e) => {
+    }
+    this.handleKeyUp = (e: KeyboardEvent) => {
       this.keys[e.code] = false
-    })
+    }
+    window.addEventListener('keydown', this.handleKeyDown)
+    window.addEventListener('keyup', this.handleKeyUp)
+  }
+
+  destroy() {
+    window.removeEventListener('keydown', this.handleKeyDown)
+    window.removeEventListener('keyup', this.handleKeyUp)
   }
 
   isDown(code: string): boolean {

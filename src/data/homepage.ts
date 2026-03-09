@@ -13,15 +13,26 @@ export interface J2TeamProduct {
 
 export const j2teamProducts: J2TeamProduct[] = [
   { name: 'J2TEAM Security', url: 'https://j2team.org/' },
-  { name: 'J2TEAM Cookies', url: 'https://chromewebstore.google.com/detail/j2team-cookies/okpidcojinmlaakglciglbpcpajaibco' },
+  {
+    name: 'J2TEAM Cookies',
+    url: 'https://chromewebstore.google.com/detail/j2team-cookies/okpidcojinmlaakglciglbpcpajaibco',
+  },
   { name: 'J2TEAM Store', url: 'https://store.j2team.org/' },
 ]
 
 export const techStack: TechStackItem[] = [
   { name: 'Vue 3', description: 'Progressive JavaScript Framework', url: 'https://vuejs.org/' },
-  { name: 'TypeScript', description: 'JavaScript với static typing', url: 'https://www.typescriptlang.org/' },
+  {
+    name: 'TypeScript',
+    description: 'JavaScript với static typing',
+    url: 'https://www.typescriptlang.org/',
+  },
   { name: 'Vite', description: 'Build tool thế hệ mới, nhanh', url: 'https://vite.dev/' },
-  { name: 'Tailwind CSS', description: 'Utility-first CSS framework', url: 'https://tailwindcss.com/' },
+  {
+    name: 'Tailwind CSS',
+    description: 'Utility-first CSS framework',
+    url: 'https://tailwindcss.com/',
+  },
   { name: 'Vue Router', description: 'Routing cho Vue', url: 'https://router.vuejs.org/' },
   { name: 'Pinia', description: 'State management', url: 'https://pinia.vuejs.org/' },
 ]

@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
+import { useEventListener } from '@vueuse/core'
+import { Icon } from '@iconify/vue'
 
 const visible = ref(false)
 
@@ -11,30 +13,19 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-onMounted(() => {
-  window.addEventListener('scroll', onScroll, { passive: true })
-  onScroll()
-})
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', onScroll)
-})
+useEventListener(window, 'scroll', onScroll, { passive: true })
+onScroll()
 </script>
 
 <template>
   <Transition name="back-to-top">
     <button
       v-show="visible"
-      class="fixed bottom-6 right-6 z-40 flex h-10 w-10 items-center justify-center
-             border border-border-default bg-accent-coral text-bg-deep
-             font-display text-lg font-bold
-             transition-colors duration-300
-             hover:bg-accent-amber hover:border-accent-amber
-             cursor-pointer"
+      class="fixed bottom-6 right-6 z-40 flex h-10 w-10 items-center justify-center border border-border-default bg-accent-coral text-bg-deep font-display text-lg font-bold transition-colors duration-300 hover:bg-accent-amber hover:border-accent-amber cursor-pointer"
       aria-label="Về đầu trang"
       @click="scrollToTop"
     >
-      ↑
+      <Icon icon="lucide:arrow-up" class="w-5 h-5" />
     </button>
   </Transition>
 </template>
@@ -42,7 +33,9 @@ onUnmounted(() => {
 <style scoped>
 .back-to-top-enter-active,
 .back-to-top-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 .back-to-top-enter-from,

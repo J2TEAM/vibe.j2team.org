@@ -35,6 +35,7 @@ export class Game {
   private gameOverTimer = 0
   private rafId = 0
   private running = false
+  private handleMuteKey: (e: KeyboardEvent) => void
 
   width: number
   height: number
@@ -53,11 +54,12 @@ export class Game {
     this.boss = new Boss()
 
     // Mute toggle
-    window.addEventListener('keydown', (e) => {
+    this.handleMuteKey = (e: KeyboardEvent) => {
       if (e.code === 'KeyM') {
         this.sfx.toggleMute()
       }
-    })
+    }
+    window.addEventListener('keydown', this.handleMuteKey)
   }
 
   start() {
@@ -70,6 +72,8 @@ export class Game {
     this.running = false
     if (this.rafId) cancelAnimationFrame(this.rafId)
     this.sfx.stopBGM()
+    this.input.destroy()
+    window.removeEventListener('keydown', this.handleMuteKey)
   }
 
   resize(w: number, h: number) {
@@ -224,16 +228,18 @@ export class Game {
           const lives = this.player.lives
           const score = this.player.score
           const coins = this.player.coins
-          this.player.reset(
-            this.level.data.playerStart.x,
-            this.level.data.playerStart.y,
-          )
+          this.player.reset(this.level.data.playerStart.x, this.level.data.playerStart.y)
           this.player.lives = lives
           this.player.score = score
           this.player.coins = coins
         }
       }
-      this.camera.follow(this.player.x, this.player.y, this.level.pixelWidth, this.level.pixelHeight)
+      this.camera.follow(
+        this.player.x,
+        this.player.y,
+        this.level.pixelWidth,
+        this.level.pixelHeight,
+      )
       return
     }
 

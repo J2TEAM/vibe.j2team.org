@@ -1,25 +1,40 @@
 <script setup lang="ts">
+import { ref, defineAsyncComponent } from 'vue'
 import BackToTop from '@/components/BackToTop.vue'
+import FixedCTA from '@/components/home/FixedCTA.vue'
 import HeroSection from '@/components/home/HeroSection.vue'
 import PagesGrid from '@/components/home/PagesGrid.vue'
-import TechStackSection from '@/components/home/TechStackSection.vue'
-import ContributeSection from '@/components/home/ContributeSection.vue'
-import RulesSection from '@/components/home/RulesSection.vue'
-import ProductsSection from '@/components/home/ProductsSection.vue'
-import SponsorsSection from '@/components/home/SponsorsSection.vue'
-import SiteFooter from '@/components/home/SiteFooter.vue'
+
+const heroRef = ref<HTMLElement>()
+const hideCtaRef = ref<HTMLElement>()
+
+const TechStackSection = defineAsyncComponent(
+  () => import('@/components/home/TechStackSection.vue'),
+)
+const ContributeSection = defineAsyncComponent(
+  () => import('@/components/home/ContributeSection.vue'),
+)
+const RulesSection = defineAsyncComponent(() => import('@/components/home/RulesSection.vue'))
+const ProductsSection = defineAsyncComponent(() => import('@/components/home/ProductsSection.vue'))
+const SponsorsSection = defineAsyncComponent(() => import('@/components/home/SponsorsSection.vue'))
+const SiteFooter = defineAsyncComponent(() => import('@/components/home/SiteFooter.vue'))
 </script>
 
 <template>
   <div class="min-h-screen bg-bg-deep text-text-primary font-body">
-    <HeroSection />
+    <div ref="heroRef">
+      <HeroSection />
+    </div>
     <PagesGrid />
     <TechStackSection />
     <ContributeSection />
     <RulesSection />
-    <ProductsSection />
-    <SponsorsSection />
-    <SiteFooter />
+    <div ref="hideCtaRef">
+      <ProductsSection />
+      <SponsorsSection />
+      <SiteFooter />
+    </div>
+    <FixedCTA :observe-target="heroRef" :hide-target="hideCtaRef" />
     <BackToTop />
   </div>
 </template>
