@@ -421,12 +421,62 @@ export const ACTIVE_SKILLS: ActiveSkill[] = [
     {
         id: 'skill_foresight',
         name: '🔮 Nhìn trước tương lai',
-        description: 'Xem trước 3 lựa chọn tiếp theo và hậu quả của chúng.',
+        description: 'Xem trước sự kiện tiếp theo và các lựa chọn của nó.',
         cost: 40,
-        cooldown: 5, // Dùng 1 lần mỗi 5 năm
+        cooldown: 5,
         category: 'special',
         unlockAge: 30,
-        effect: 'preview_choices' // Hiển thị preview popup
+        effect: 'preview_choices'
+    },
+    {
+        id: 'skill_meditation',
+        name: '🧘 Thiền định sâu',
+        description: 'Giảm ngay 30 điểm Căng thẳng, hồi phục tinh thần.',
+        cost: 25,
+        cooldown: 3,
+        category: 'health',
+        unlockAge: 22,
+        effect: 'reset_stress'
+    },
+    {
+        id: 'skill_networking',
+        name: '🤝 Networking Pro',
+        description: 'Tăng ngay 25 điểm Quan hệ xã hội.',
+        cost: 35,
+        cooldown: 4,
+        category: 'social',
+        unlockAge: 25,
+        effect: 'boost_relationships'
+    },
+    {
+        id: 'skill_risk_taking',
+        name: '🎲 Liều ăn nhiều',
+        description: 'Tăng ngay 30 điểm Tài chính, nhưng cũng +15 Căng thẳng.',
+        cost: 30,
+        cooldown: 3,
+        category: 'finance',
+        unlockAge: 25,
+        effect: 'risk_money'
+    },
+    {
+        id: 'skill_time_management',
+        name: '⏰ Quản lý thời gian',
+        description: 'Tăng ngay 20 Kỹ năng và -10 Căng thẳng nhờ làm việc hiệu quả.',
+        cost: 35,
+        cooldown: 4,
+        category: 'work',
+        unlockAge: 24,
+        effect: 'boost_skill'
+    },
+    {
+        id: 'skill_resilience',
+        name: '💪 Tinh thần thép',
+        description: 'Tăng ngay 20 Sức khỏe và 15 Hạnh phúc.',
+        cost: 30,
+        cooldown: 4,
+        category: 'health',
+        unlockAge: 28,
+        effect: 'boost_health'
     }
 ];
 

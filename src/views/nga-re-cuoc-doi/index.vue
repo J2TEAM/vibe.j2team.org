@@ -37,7 +37,9 @@ function showToast(message: string, type = 'info') {
 function startNewGame() {
   if (!charNameInput.value.trim()) { showToast('Vui lòng nhập tên!', 'toast-negative'); return }
   if (!selectedCareerId.value) { showToast('Vui lòng chọn nghề!', 'toast-negative'); return }
-  gameState.value = engine.newGame(charNameInput.value, selectedCareerId.value) ?? null
+  gameState.value = engine.newGame(charNameInput.value, selectedCareerId.value)
+    ? JSON.parse(JSON.stringify(engine.state))
+    : null
   currentEvent.value = engine.getNextEvent()
   currentScreen.value = 'game'
 }
@@ -45,7 +47,7 @@ function startNewGame() {
 function loadGame() {
   const state = engine.loadGame()
   if (state) {
-    gameState.value = state
+    gameState.value = JSON.parse(JSON.stringify(engine.state))
     currentEvent.value = engine.getNextEvent()
     currentScreen.value = 'game'
     showToast('Đã tải game!', 'toast-info')
@@ -54,7 +56,7 @@ function loadGame() {
 
 function handleChoice(choice: DATA.Choice) {
   const result = engine.applyChoice(choice)
-  gameState.value = engine.state
+  gameState.value = JSON.parse(JSON.stringify(engine.state))
   
   if (result.effects && Object.keys(result.effects).length > 0) {
     statChanges.value = result.effects as Record<string, number>
@@ -96,13 +98,13 @@ function restartGame() {
 
 function buyItemFn(item: DATA.PassiveItem) {
   const result = engine.buyItem(item.id)
-  gameState.value = engine.state
+  gameState.value = JSON.parse(JSON.stringify(engine.state))
   showToast(result.message, result.success ? 'toast-info' : 'toast-negative')
 }
 
 function buySkillFn(skill: DATA.ActiveSkill) {
   const result = engine.buySkill(skill.id)
-  gameState.value = engine.state
+  gameState.value = JSON.parse(JSON.stringify(engine.state))
   showToast(result.message, result.success ? 'toast-info' : 'toast-negative')
 }
 
@@ -114,7 +116,7 @@ function useSkillFn(skillId: string) {
     if (r.isPreview && r.previewEvent) {
       previewModalEvent.value = r.previewEvent
     } else {
-      gameState.value = engine.state
+      gameState.value = JSON.parse(JSON.stringify(engine.state))
       currentEvent.value = engine.getNextEvent()
     }
   } else {

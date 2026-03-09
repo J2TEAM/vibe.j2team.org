@@ -426,6 +426,25 @@ export class GameEngine {
                     return { success: false, message: result.message };
                 }
                 break;
+            case 'boost_relationships':
+                this.state.stats.relationships = Math.min(100, this.state.stats.relationships + 25);
+                result.message = 'Quan hệ xã hội tăng 25 điểm!';
+                break;
+            case 'risk_money':
+                this.state.stats.money = Math.min(100, this.state.stats.money + 30);
+                this.state.stats.stress = Math.min(100, this.state.stats.stress + 15);
+                result.message = 'Tài chính +30 nhưng Căng thẳng +15!';
+                break;
+            case 'boost_skill':
+                this.state.stats.skill = Math.min(100, this.state.stats.skill + 20);
+                this.state.stats.stress = Math.max(0, this.state.stats.stress - 10);
+                result.message = 'Kỹ năng +20 và Căng thẳng -10!';
+                break;
+            case 'boost_health':
+                this.state.stats.health = Math.min(100, this.state.stats.health + 20);
+                this.state.stats.happiness = Math.min(100, this.state.stats.happiness + 15);
+                result.message = 'Sức khỏe +20 và Hạnh phúc +15!';
+                break;
             default:
                 result.message = 'Kỹ năng đã được kích hoạt!';
         }
