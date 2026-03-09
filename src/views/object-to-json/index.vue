@@ -203,6 +203,12 @@ function looseParse(text: string): Record<string, unknown> {
 }
 
 // --- Tab: Parse ---
+function resetParse() {
+  inputText.value = ''
+  parsedFields.value = []
+  parseError.value = ''
+}
+
 function parseInput() {
   parseError.value = ''
   parsedFields.value = []
@@ -400,11 +406,7 @@ const TYPE_BADGE: Record<string, string> = {
                 Parse →
               </button>
               <button
-                @click="
-                  inputText = ''
-                  parsedFields = []
-                  parseError = ''
-                "
+                @click="resetParse"
                 class="border border-border-default px-4 py-2 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
               >
                 Xóa
