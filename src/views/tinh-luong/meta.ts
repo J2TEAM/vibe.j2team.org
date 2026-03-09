@@ -5,7 +5,7 @@ const meta: PageMeta = {
   description: 'Tính Lương Gross → Net & Thuế TNCN',
   author: 'TechSpherex AI',
   facebook: 'https://www.facebook.com/NVC.9999',
-  category: 'fun',
+  category: 'tool',
 }
 
 export default meta
