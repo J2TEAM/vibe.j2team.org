@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, onUnmounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
@@ -79,7 +79,7 @@ const SYSTEMS: Array<{ type: SystemType; label: string; tone: string }> = [
 const EDGE_KINDS: Array<{ value: EdgeKind; label: string; hint: string }> = [
   { value: 'line', label: 'Line', hint: 'Đường cong cơ bản' },
   { value: 'flowchart', label: 'Flowchart', hint: 'Mũi tên điều hướng' },
-  { value: 'crowfoot', label: 'ChÃ¢n gÃ ', hint: 'Kiểu quan hệ dữ liệu' },
+  { value: 'crowfoot', label: 'Chân gà', hint: 'Kiểu quan hệ dữ liệu' },
 ]
 
 function useDiagramState() {
@@ -349,7 +349,7 @@ function useWebRtcSync(getSnapshot: () => DiagramSnapshot, onSync: (message: Syn
       state.value = 'idle'
     }
     channel.onerror = () => {
-      error.value = 'DataChannel gáº·p lá»—i.'
+      error.value = 'DataChannel gặp lỗi.'
       state.value = 'error'
     }
     channel.onmessage = (e) => {
@@ -410,7 +410,7 @@ function useWebRtcSync(getSnapshot: () => DiagramSnapshot, onSync: (message: Syn
         JSON.parse(base64ToSdp(inputOfferText.value)) as RTCSessionDescriptionInit,
       )
     } catch {
-      error.value = 'Offer khÃ´ng há»£p lá»‡.'
+      error.value = 'Offer không hợp lệ.'
       state.value = 'error'
       return
     }
@@ -420,7 +420,7 @@ function useWebRtcSync(getSnapshot: () => DiagramSnapshot, onSync: (message: Syn
   }
   const acceptAnswer = async () => {
     if (!pc) {
-      error.value = 'KhÃ´ng cÃ³ káº¿t ná»‘i Ä‘á»ƒ nháº­n Answer.'
+      error.value = 'Không có kết nối để nhận Answer.'
       state.value = 'error'
       return
     }
@@ -429,7 +429,7 @@ function useWebRtcSync(getSnapshot: () => DiagramSnapshot, onSync: (message: Syn
         JSON.parse(base64ToSdp(inputAnswerText.value)) as RTCSessionDescriptionInit,
       )
     } catch {
-      error.value = 'Answer khÃ´ng há»£p lá»‡.'
+      error.value = 'Answer không hợp lệ.'
       state.value = 'error'
     }
   }
@@ -727,7 +727,7 @@ const onCanvasWheel = (e: WheelEvent) => {
           Diagram to Code
         </h1>
         <p class="mt-3 max-w-3xl text-text-secondary">
-          KÃ©o tháº£ block há»‡ thá»‘ng, ná»‘i edge BÃ©zier vÃ  sync P2P qua WebRTC DataChannel.
+          Kéo thả block hệ thống, nối edge Bézier và sync P2P qua WebRTC DataChannel.
         </p>
       </header>
 
@@ -738,7 +738,7 @@ const onCanvasWheel = (e: WheelEvent) => {
               <span class="text-accent-coral text-sm tracking-widest">//</span>System Palette
             </h2>
             <p class="mt-2 text-xs text-text-dim">
-              KÃ©o tháº£ vÃ o canvas hoáº·c báº¥m nhanh Ä‘á»ƒ thÃªm pháº§n tá»­.
+              Kéo thả vào canvas hoặc bấm nhanh để thêm phần tử.
             </p>
             <div class="mt-3 grid grid-cols-2 gap-2">
               <button
@@ -793,7 +793,7 @@ const onCanvasWheel = (e: WheelEvent) => {
               </button>
             </div>
             <div v-if="mode === 'connect'" class="mt-3 border border-border-default bg-bg-deep p-2">
-              <p class="mb-2 text-[11px] text-text-dim">Loáº¡i káº¿t ná»‘i</p>
+              <p class="mb-2 text-[11px] text-text-dim">Loại kết nối</p>
               <div class="grid grid-cols-3 gap-2">
                 <button
                   v-for="kind in EDGE_KINDS"
