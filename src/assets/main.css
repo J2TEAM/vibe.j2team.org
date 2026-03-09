@@ -5,7 +5,26 @@ html {
 }
 
 @theme {
-  --font-display: 'Anybody', cursive;
+  --color-bg-deep: #0f1923;
+  --color-bg-surface: #162232;
+  --color-bg-elevated: #1e2f42;
+  --color-accent-coral: #ff6b4a;
+  --color-accent-amber: #ffb830;
+  --color-accent-sky: #38bdf8;
+  --color-text-primary: #f0ede6;
+  --color-text-secondary: #8b9db5;
+  --color-text-dim: #4a6180;
+  --color-border-default: #253549;
+  --color-border-hover: #ff6b4a;
+
+  --font-display: 'Anybody', sans-serif;
+  --font-body: 'Be Vietnam Pro', sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg-deep);
+  color: var(--color-text-primary);
 }
 
 /* Noise grain overlay */
