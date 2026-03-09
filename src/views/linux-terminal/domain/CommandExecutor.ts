@@ -484,7 +484,7 @@ export class CommandExecutor {
       : [line('error', `which: no ${cmd} in (/usr/local/bin:/usr/bin:/bin)`)]
   }
 
-  private cmdFind(args: string[]): OutputLine[] {
+  private cmdFind(_args: string[]): OutputLine[] {
     return [line('output', `./documents\n./documents/readme.txt\n./downloads\n./downloads/linux-6.7.tar.gz`)]
   }
 
