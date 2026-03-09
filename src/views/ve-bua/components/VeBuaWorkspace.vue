@@ -131,6 +131,7 @@ const frameTint = ref('#8f3d2d')
 const axisCount = ref(6)
 const showGuides = ref(true)
 const showMenu = ref(true)
+const showMobileControlHub = ref(false)
 const showBrushPanel = ref(false)
 const showAxisEditor = ref(false)
 const restoreAxisEditorAfterBurn = ref(false)
@@ -230,6 +231,7 @@ function burnPaper() {
     chantDisplayText.value = ''
   }
   isPostBurnHolding.value = false
+  showMobileControlHub.value = false
   showMenu.value = false
   showBrushPanel.value = false
   restoreAxisEditorAfterBurn.value = showAxisEditor.value
@@ -1148,9 +1150,237 @@ onBeforeUnmount(() => {
     <BuaPatternBg />
     <BuaHeaderPanel v-if="!isBurning && !isPostBurnHolding" />
 
+    <div v-if="!isBurning && !isPostBurnHolding" class="absolute inset-x-3 top-3 z-40 sm:hidden">
+      <div class="flex items-center gap-2">
+        <RouterLink
+          to="/"
+          class="inline-flex h-10 items-center border border-border-default bg-bg-surface px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-sky hover:text-text-primary"
+        >
+          ← Trang chủ
+        </RouterLink>
+        <button
+          class="h-10 border border-[#8a1212] bg-black px-3 text-xs font-display uppercase tracking-wide text-red-500 transition hover:bg-[#140404] hover:text-red-400"
+          aria-label="Đốt bùa"
+          title="Đốt bùa"
+          @click="burnPaper"
+        >
+          Đốt bùa
+        </button>
+        <button
+          class="ml-auto inline-flex h-10 items-center border border-border-default bg-bg-surface px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
+          :class="showMobileControlHub ? 'border-white bg-white text-black' : ''"
+          :aria-label="showMobileControlHub ? 'Ẩn công cụ' : 'Hiện công cụ'"
+          @click="showMobileControlHub = !showMobileControlHub"
+        >
+          {{ showMobileControlHub ? 'Đóng công cụ' : 'Công cụ' }}
+        </button>
+      </div>
+
+      <div
+        v-if="showMobileControlHub"
+        class="mt-2 space-y-2 border border-border-default bg-bg-surface p-2"
+      >
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            class="h-10 border px-3 text-xs font-display tracking-wide transition hover:border-accent-amber"
+            :class="
+              showAxisEditor
+                ? 'border-white bg-white text-black'
+                : 'border-border-default bg-bg-elevated text-text-secondary hover:text-text-primary'
+            "
+            :title="showAxisEditor ? 'Ẩn trục' : 'Hiện trục'"
+            @click="showAxisEditor = !showAxisEditor"
+          >
+            {{ showAxisEditor ? 'Ẩn trục' : 'Hiện trục' }}
+          </button>
+          <button
+            class="h-10 border px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
+            :class="
+              showBrushPanel
+                ? 'border-white bg-white text-black'
+                : 'border-border-default bg-bg-elevated'
+            "
+            title="Bút"
+            @click="showBrushPanel = !showBrushPanel"
+          >
+            Bút
+          </button>
+          <button
+            class="h-10 border px-3 text-xs font-display tracking-wide transition hover:border-accent-amber hover:text-text-primary"
+            :class="
+              showMokPanel
+                ? 'border-white bg-white text-black'
+                : 'border-border-default bg-bg-elevated text-text-secondary'
+            "
+            title="Gõ mõ"
+            @click="showMokPanel = !showMokPanel"
+          >
+            Mõ
+          </button>
+          <button
+            class="h-10 border px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
+            :class="
+              showAxisPanel
+                ? 'border-white bg-white text-black'
+                : 'border-border-default bg-bg-elevated'
+            "
+            title="Trục"
+            @click="showAxisPanel = !showAxisPanel"
+          >
+            Trục
+          </button>
+          <button
+            class="h-10 border px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-sky hover:text-text-primary"
+            :class="
+              showDrawablePanel
+                ? 'border-white bg-white text-black'
+                : 'border-border-default bg-bg-elevated'
+            "
+            title="Vùng vẽ"
+            @click="showDrawablePanel = !showDrawablePanel"
+          >
+            Vùng vẽ
+          </button>
+          <button
+            class="h-10 border border-border-default bg-bg-elevated px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
+            title="Bùa ngẫu nhiên"
+            @click="randomizeBuaColors"
+          >
+            Ngẫu nhiên
+          </button>
+          <button
+            class="h-10 border px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-sky hover:text-text-primary"
+            :class="
+              showMenu ? 'border-white bg-white text-black' : 'border-border-default bg-bg-elevated'
+            "
+            title="Menu"
+            @click="showMenu = !showMenu"
+          >
+            Menu
+          </button>
+          <button
+            class="h-10 border px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
+            :class="
+              showChantPanel
+                ? 'border-white bg-white text-black'
+                : 'border-border-default bg-bg-elevated'
+            "
+            title="Khấn"
+            @click="showChantPanel = !showChantPanel"
+          >
+            Khấn
+          </button>
+          <button
+            class="h-10 border px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
+            :class="
+              showPaperTransformEditor
+                ? 'border-white bg-white text-black'
+                : 'border-border-default bg-bg-elevated'
+            "
+            title="Chỉnh vị trí lá bùa"
+            @click="showPaperTransformEditor = !showPaperTransformEditor"
+          >
+            Chỉnh vị trí
+          </button>
+          <button
+            class="h-10 border border-border-default bg-bg-elevated px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
+            title="Reset vị trí lá bùa"
+            @click="resetPaperTransform"
+          >
+            Reset vị trí
+          </button>
+          <button
+            class="h-10 border border-border-default bg-bg-elevated px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
+            title="Undo"
+            @click="undoDrawing"
+          >
+            Undo
+          </button>
+          <button
+            class="h-10 border border-border-default bg-bg-elevated px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-sky hover:text-text-primary"
+            title="Xuất / nhập bùa"
+            @click="showTransferActions = !showTransferActions"
+            :class="showTransferActions ? 'border-white bg-white text-black' : ''"
+          >
+            Xuất/Nhập
+          </button>
+          <button
+            class="col-span-2 h-10 border border-border-default bg-bg-elevated px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
+            title="Bộ sưu tập"
+            @click="showCollection = true"
+            :class="showCollection ? 'border-white bg-white text-black' : ''"
+          >
+            Bộ sưu tập
+          </button>
+        </div>
+
+        <div
+          v-if="showTransferActions"
+          class="space-y-2 border border-border-default bg-bg-elevated p-2"
+        >
+          <button
+            class="w-full border border-border-default px-3 py-2 text-left text-sm text-text-secondary transition hover:border-accent-sky hover:bg-bg-surface hover:text-text-primary"
+            @click="(openExportModal('style'), (showTransferActions = false))"
+          >
+            Tạo mã style
+          </button>
+          <button
+            class="w-full border border-border-default px-3 py-2 text-left text-sm text-text-secondary transition hover:border-accent-amber hover:bg-bg-surface hover:text-text-primary"
+            @click="(openExportModal('drawing'), (showTransferActions = false))"
+          >
+            Tạo mã nét vẽ
+          </button>
+          <button
+            class="w-full border border-border-default px-3 py-2 text-left text-sm text-text-secondary transition hover:border-accent-amber hover:bg-bg-surface hover:text-text-primary"
+            @click="((showImportModal = true), (showTransferActions = false))"
+          >
+            Import style / nét
+          </button>
+        </div>
+
+        <BuaMokPanel
+          :open="showMokPanel && showMobileControlHub"
+          :mok-enabled="mokEnabled"
+          :mok-speed="mokSpeed"
+          @update:mok-enabled="mokEnabled = $event"
+          @update:mok-speed="mokSpeed = $event"
+        />
+
+        <BuaAxisPanel
+          :open="showAxisPanel && showMobileControlHub"
+          :axis-count="axisCount"
+          :show-guides="showGuides"
+          :show-axis-editor="showAxisEditor"
+          @update:axis-count="axisCount = $event"
+          @update:show-guides="showGuides = $event"
+          @toggle-axis-editor="showAxisEditor = !showAxisEditor"
+          @random-axes="randomAxes"
+          @reset-axes-even="resetAxesEven"
+        />
+
+        <BuaDrawablePanel
+          :open="showDrawablePanel && showMobileControlHub"
+          :show-drawable-editor="showDrawableEditor"
+          @toggle-drawable-editor="showDrawableEditor = !showDrawableEditor"
+          @reset-drawable-box="resetDrawableBox"
+        />
+
+        <BuaChantPanel
+          :open="showChantPanel && showMobileControlHub"
+          :chant-enabled="chantEnabled"
+          :chant-text="chantText"
+          :chant-samples="CHANT_SAMPLES"
+          :placeholder="CHANT_PLACEHOLDER"
+          @update:chant-enabled="chantEnabled = $event"
+          @update:chant-text="chantText = $event"
+          @use-sample="useSampleChant"
+        />
+      </div>
+    </div>
+
     <div
       v-if="!isBurning && !isPostBurnHolding"
-      class="absolute left-3 top-3 z-40 flex flex-col items-start gap-2"
+      class="absolute left-3 top-3 z-40 hidden flex-col items-start gap-2 sm:flex"
     >
       <div class="flex items-center gap-2">
         <RouterLink
@@ -1259,7 +1489,7 @@ onBeforeUnmount(() => {
 
     <div
       v-if="!isBurning && !isPostBurnHolding"
-      class="absolute right-3 top-3 z-40 flex flex-col items-end gap-2"
+      class="absolute right-3 top-3 z-40 hidden flex-col items-end gap-2 sm:flex"
     >
       <div class="pointer-events-auto flex flex-wrap items-center justify-end gap-2">
         <button

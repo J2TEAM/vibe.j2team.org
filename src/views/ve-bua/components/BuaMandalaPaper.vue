@@ -831,12 +831,16 @@ onMounted(() => {
   })
   window.addEventListener('pointermove', continueDrawing)
   window.addEventListener('pointerup', stopDrawing)
+  window.addEventListener('pointercancel', stopDrawing)
   window.addEventListener('pointermove', moveDrag)
   window.addEventListener('pointerup', stopDrag)
+  window.addEventListener('pointercancel', stopDrag)
   window.addEventListener('pointermove', moveDrawableDrag)
   window.addEventListener('pointerup', stopDrawableDrag)
+  window.addEventListener('pointercancel', stopDrawableDrag)
   window.addEventListener('pointermove', movePaperTransform)
   window.addEventListener('pointerup', stopPaperTransform)
+  window.addEventListener('pointercancel', stopPaperTransform)
 })
 
 onBeforeUnmount(() => {
@@ -846,12 +850,16 @@ onBeforeUnmount(() => {
   if (burnRaf) cancelAnimationFrame(burnRaf)
   window.removeEventListener('pointermove', continueDrawing)
   window.removeEventListener('pointerup', stopDrawing)
+  window.removeEventListener('pointercancel', stopDrawing)
   window.removeEventListener('pointermove', moveDrag)
   window.removeEventListener('pointerup', stopDrag)
+  window.removeEventListener('pointercancel', stopDrag)
   window.removeEventListener('pointermove', moveDrawableDrag)
   window.removeEventListener('pointerup', stopDrawableDrag)
+  window.removeEventListener('pointercancel', stopDrawableDrag)
   window.removeEventListener('pointermove', movePaperTransform)
   window.removeEventListener('pointerup', stopPaperTransform)
+  window.removeEventListener('pointercancel', stopPaperTransform)
 })
 
 defineExpose({
@@ -872,9 +880,9 @@ defineExpose({
   <div class="relative h-full w-full">
     <div
       ref="paperRef"
-      class="absolute select-none"
+      class="absolute select-none touch-none"
       :style="paperShellStyle"
-      @pointerdown="beginDrawing"
+      @pointerdown.prevent="beginDrawing"
     >
       <div class="absolute inset-0 overflow-hidden" :style="artifactLayerStyle">
         <div class="absolute inset-0 overflow-hidden">
