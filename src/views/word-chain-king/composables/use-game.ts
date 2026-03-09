@@ -22,6 +22,7 @@ export function useGame() {
   const shakePower = ref(0)
   const feedbackMessage = ref('')
   const feedbackType = ref<'success' | 'error' | ''>('')
+  const usedWords = new Set<string>()
 
   const turnTimeRemaining = ref(TURN_TIME)
   const turnTimerStart = ref(0)
@@ -80,9 +81,11 @@ export function useGame() {
     feedbackMessage.value = ''
     feedbackType.value = ''
     combo.resetCombo()
+    usedWords.clear()
 
-    const startWord = getRandomStartWord()
+    const startWord = getRandomStartWord(usedWords)
     currentWord.value = startWord
+    usedWords.add(normalizeWord(startWord))
     wordHistory.value.push({ word: startWord, isBot: true, isCorrect: true })
 
     startTurnTimer()
@@ -104,10 +107,7 @@ export function useGame() {
       return
     }
 
-    const alreadyUsed = wordHistory.value.some(
-      (h) => normalizeWord(h.word) === userAnswer && h.isCorrect,
-    )
-    if (alreadyUsed) {
+    if (usedWords.has(userAnswer)) {
       onWrongAnswer(userAnswer, 'Từ đã được dùng rồi!')
       return
     }
@@ -118,6 +118,7 @@ export function useGame() {
   function onCorrectAnswer(word: string) {
     sfx.playCorrect()
     wordHistory.value.push({ word, isBot: false, isCorrect: true })
+    usedWords.add(normalizeWord(word))
     wordsCount.value++
     combo.incrementStreak()
 
@@ -142,10 +143,11 @@ export function useGame() {
   }
 
   function botTurn() {
-    const botAnswer = botPickWord(currentWord.value)
+    const botAnswer = botPickWord(currentWord.value, usedWords)
     if (!botAnswer) {
-      const newWord = getRandomStartWord()
+      const newWord = getRandomStartWord(usedWords)
       currentWord.value = newWord
+      usedWords.add(normalizeWord(newWord))
       wordHistory.value.push({ word: newWord, isBot: true, isCorrect: true })
       feedbackMessage.value = 'Bot bí rồi! Từ mới nè~'
       feedbackType.value = 'success'
@@ -153,6 +155,7 @@ export function useGame() {
       return
     }
 
+    usedWords.add(normalizeWord(botAnswer))
     wordHistory.value.push({ word: botAnswer, isBot: true, isCorrect: true })
     currentWord.value = botAnswer
   }
