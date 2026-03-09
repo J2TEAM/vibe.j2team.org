@@ -3,7 +3,36 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import type { Platform, Particle, FloatingText, Monster, MonsterType, Player, Chest, ItemType, WeaponType, WeaponDrop, Projectile, SkillType, EquipmentConfig, EquipmentDrop, EquipSlot, ConsumableType, ConsumableItem } from './types'
 // Engine
-import { MAP_WIDTH, SHAKE_INTENSITY_HIT, SHAKE_INTENSITY_CRIT, SHAKE_INTENSITY_BOSS, SHAKE_DECAY, COMBO_TIMEOUT, COMBO_DMG_SCALE, COMBO_MAX_MULT, BOSS_PHASE2_HP, BOSS_PHASE3_HP, AUTOSAVE_KEY, CRIT_MULT_DEFAULT, CRIT_MULT_BURST } from './engine/constants'
+import {
+  CANVAS_WIDTH, CANVAS_HEIGHT, MAP_WIDTH,
+  PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_BASE_SPEED, PLAYER_JUMP_POWER,
+  PLAYER_MAX_HP, PLAYER_MAX_MP, PLAYER_BASE_ATK, PLAYER_MANA_REGEN, PLAYER_BASE_CRIT,
+  PLAYER_SPAWN_X, PLAYER_SPAWN_OFFSET_Y, PLAYER_SPAWN_INVINCIBLE,
+  FRICTION, MAX_JUMPS, INVINCIBLE_FRAMES, DASH_INVINCIBLE_FRAMES, HURT_TIMER_FRAMES, MINOR_HURT_TIMER,
+  CRIT_MULT_DEFAULT, CRIT_MULT_BURST,
+  LIFESTEAL_PERCENT, THORNS_PERCENT, LIGHTNING_CHANCE, LIGHTNING_MULT, MANA_SHIELD_REDUCTION, MANA_SHIELD_COST_MULT,
+  SHIELD_DAMAGE_MULT, KNOCKBACK_VX, KNOCKBACK_VY,
+  MONSTER_ATTACK_TIMER, MONSTER_ATTACK_COOLDOWN, MONSTER_HIT_KNOCKBACK, SCORE_COMBO_SCALE,
+  ATTACK_TIMER, ATTACK_COOLDOWN_BASE, ATTACK_COOLDOWN_MIN,
+  ATTACK_HITBOX_PAD_Y, ATTACK_HITBOX_PAD_H,
+  DAMAGE_LEVEL_SCALE, DAMAGE_ATK_BOOST_MULT, DAMAGE_VARIANCE,
+  SPEED_BOOST_MULT, EFFECT_DECAY_RATE, CHEST_OPEN_TIMER,
+  DASH_TIMER, DASH_SPEED, DASH_SLASH_DAMAGE, DASH_SLASH_LIFE,
+  HEAL_BASE, HEAL_LEVEL_SCALE,
+  CHEST_DROP_CHANCE, WEAPON_DROP_CHANCE, EQUIP_DROP_CHANCE, CONSUMABLE_DROP_CHANCE,
+  INITIAL_SPAWN_RATE, INITIAL_MAX_MONSTERS, MAX_MAX_MONSTERS, MIN_SPAWN_RATE, SPAWN_RATE_DECREASE,
+  CHEST_SPAWN_INTERVAL, INITIAL_HP_POTIONS, INITIAL_MP_POTIONS,
+  HP_POTION_HEAL, MP_POTION_HEAL, HP_POTION_HEAL_CHEST,
+  BASE_EXP_MAX, EXP_GEM_BASE, EXP_GEM_LEVEL_SCALE,
+  EXP_GROWTH, LEVEL_HP_BONUS, LEVEL_MP_BONUS, LEVEL_ATK_BONUS,
+  LEVEL_HP_HEAL, LEVEL_MP_HEAL, LEVEL_SPEED_BONUS,
+  SHAKE_INTENSITY_HIT, SHAKE_INTENSITY_CRIT, SHAKE_INTENSITY_BOSS, SHAKE_DECAY,
+  COMBO_TIMEOUT, COMBO_DMG_SCALE, COMBO_MAX_MULT,
+  BOSS_PHASE2_HP, BOSS_PHASE3_HP,
+  BOSS_PHASE1_SPEED, BOSS_PHASE2_SPEED, BOSS_PHASE3_SPEED,
+  BOSS_PHASE1_COOLDOWN, BOSS_PHASE2_COOLDOWN, BOSS_PHASE3_COOLDOWN,
+  AUTOSAVE_KEY, AUTOSAVE_INTERVAL,
+} from './engine/constants'
 import { rectCollide, resolveGravity } from './engine/physics'
 import { sfxAttack, sfxHit, sfxKill, sfxPlayerHurt, sfxJump, sfxLevelUp, sfxChestOpen, sfxItem, sfxGameOver, sfxMenuSelect, initAudio } from './engine/sound'
 // Entities
@@ -24,20 +53,20 @@ const canvasRef = ref<HTMLCanvasElement | null>(null)
 const gameState = ref<'menu' | 'playing' | 'gameover'>('menu')
 const score = ref(0)
 const level = ref(1)
-const playerHp = ref(100)
-const playerMaxHp = ref(100)
+const playerHp = ref(PLAYER_MAX_HP)
+const playerMaxHp = ref(PLAYER_MAX_HP)
 const playerExp = ref(0)
-const playerExpMax = ref(50)
+const playerExpMax = ref(BASE_EXP_MAX)
 const combo = ref(0)
-const playerMp = ref(60)
-const playerMaxMp = ref(60)
+const playerMp = ref(PLAYER_MAX_MP)
+const playerMaxMp = ref(PLAYER_MAX_MP)
 const killCount = ref(0)
 const showInventory = ref(false)
 
 let animationId = 0
 let ctx: CanvasRenderingContext2D | null = null
-let W = 960
-let H = 540
+let W = CANVAS_WIDTH
+let H = CANVAS_HEIGHT
 
 const keys: Record<string, boolean> = {}
 const keyJustPressed: Record<string, boolean> = {}
@@ -65,8 +94,8 @@ function onKeyDown(e: KeyboardEvent) {
   if (e.code === 'KeyF' && gameState.value === 'playing' && !showInventory.value) {
     const hp = consumables.find(c => c.type === 'hp_potion' && c.count > 0)
     if (hp && playerHp.value < playerMaxHp.value) {
-      hp.count--; playerHp.value = Math.min(playerHp.value + 35, playerMaxHp.value)
-      spawnFloatingText(player.x + player.w / 2, player.y - 20, '+35 HP', '#ef4444', 16)
+      hp.count--; playerHp.value = Math.min(playerHp.value + HP_POTION_HEAL, playerMaxHp.value)
+      spawnFloatingText(player.x + player.w / 2, player.y - 20, `+${HP_POTION_HEAL} HP`, '#ef4444', 16)
       spawnParticles(player.x + player.w / 2, player.y + player.h / 2, '#ef4444', 10, 4)
       sfxItem()
     }
@@ -74,8 +103,8 @@ function onKeyDown(e: KeyboardEvent) {
   if (e.code === 'KeyG' && gameState.value === 'playing' && !showInventory.value) {
     const mp = consumables.find(c => c.type === 'mp_potion' && c.count > 0)
     if (mp && playerMp.value < playerMaxMp.value) {
-      mp.count--; playerMp.value = Math.min(playerMp.value + 30, playerMaxMp.value)
-      spawnFloatingText(player.x + player.w / 2, player.y - 20, '+30 MP', '#3b82f6', 16)
+      mp.count--; playerMp.value = Math.min(playerMp.value + MP_POTION_HEAL, playerMaxMp.value)
+      spawnFloatingText(player.x + player.w / 2, player.y - 20, `+${MP_POTION_HEAL} MP`, '#3b82f6', 16)
       spawnParticles(player.x + player.w / 2, player.y + player.h / 2, '#818cf8', 10, 4)
       sfxItem()
     }
@@ -235,15 +264,15 @@ function onCanvasClick(e: MouseEvent) {
         if (items[i] === 'hp_potion') {
           const hp = consumables.find(c => c.type === 'hp_potion' && c.count > 0)
           if (hp && playerHp.value < playerMaxHp.value) {
-            hp.count--; playerHp.value = Math.min(playerHp.value + 35, playerMaxHp.value)
-            spawnFloatingText(player.x + player.w / 2, player.y - 20, '+35 HP', '#ef4444', 16)
+            hp.count--; playerHp.value = Math.min(playerHp.value + HP_POTION_HEAL, playerMaxHp.value)
+            spawnFloatingText(player.x + player.w / 2, player.y - 20, `+${HP_POTION_HEAL} HP`, '#ef4444', 16)
             sfxItem()
           }
         } else {
           const mp = consumables.find(c => c.type === 'mp_potion' && c.count > 0)
           if (mp && playerMp.value < playerMaxMp.value) {
-            mp.count--; playerMp.value = Math.min(playerMp.value + 30, playerMaxMp.value)
-            spawnFloatingText(player.x + player.w / 2, player.y - 20, '+30 MP', '#3b82f6', 16)
+            mp.count--; playerMp.value = Math.min(playerMp.value + MP_POTION_HEAL, playerMaxMp.value)
+            spawnFloatingText(player.x + player.w / 2, player.y - 20, `+${MP_POTION_HEAL} MP`, '#3b82f6', 16)
             sfxItem()
           }
         }
@@ -278,16 +307,16 @@ const projectiles: Projectile[] = []
 const equipmentDrops: EquipmentDrop[] = []
 const equipInventory: EquipmentConfig[] = []
 const consumables: ConsumableItem[] = [
-  { type: 'hp_potion', count: 3 },
-  { type: 'mp_potion', count: 2 },
+  { type: 'hp_potion', count: INITIAL_HP_POTIONS },
+  { type: 'mp_potion', count: INITIAL_MP_POTIONS },
 ]
 let invTab = 0 // 0=weapons, 1=equipment, 2=consumables
 let equipSelectedSlot = 0
 
 
 let spawnTimer = 0
-let spawnRate = 200
-let maxMonsters = 5
+let spawnRate = INITIAL_SPAWN_RATE
+let maxMonsters = INITIAL_MAX_MONSTERS
 let chestSpawnTimer = 0
 let scoreSaved = false
 let menuReady = 0
@@ -295,42 +324,42 @@ const invSelectedIdx = 0
 
 // ===== PLAYER =====
 const player: Player = {
-  x: 100, y: H - 100, vx: 0, vy: 0, w: 28, h: 40,
-  speed: 3.5, jumpPower: -10, onGround: false, facing: 1,
+  x: PLAYER_SPAWN_X, y: H - PLAYER_SPAWN_OFFSET_Y, vx: 0, vy: 0, w: PLAYER_WIDTH, h: PLAYER_HEIGHT,
+  speed: PLAYER_BASE_SPEED, jumpPower: PLAYER_JUMP_POWER, onGround: false, facing: 1,
   attacking: false, attackTimer: 0, attackCooldown: 0, attackFrame: 0,
   invincible: 0, animFrame: 0, animTimer: 0, state: 'idle',
-  baseAtk: 15, atkBoost: 0, speedBoost: 0, shield: 0,
-  jumpCount: 0, maxJumps: 2, weapon: 'sword',
-  mp: 60, maxMp: 60, manaRegen: 0.02,
+  baseAtk: PLAYER_BASE_ATK, atkBoost: 0, speedBoost: 0, shield: 0,
+  jumpCount: 0, maxJumps: MAX_JUMPS, weapon: 'sword',
+  mp: PLAYER_MAX_MP, maxMp: PLAYER_MAX_MP, manaRegen: PLAYER_MANA_REGEN,
   skillCooldowns: { dash: 0, heal: 0, ultimate: 0 },
   equipment: { head: null, chest: null, legs: null, gloves: null, boots: null, accessory: null },
-  defense: 0, critChance: 5,
+  defense: 0, critChance: PLAYER_BASE_CRIT,
   dashing: false, dashTimer: 0,
 }
 
 function resetPlayer() {
   Object.assign(player, {
-    x: 100, y: H - 100, vx: 0, vy: 0, onGround: false,
+    x: PLAYER_SPAWN_X, y: H - PLAYER_SPAWN_OFFSET_Y, vx: 0, vy: 0, onGround: false,
     attacking: false, attackTimer: 0, attackCooldown: 0,
-    invincible: 180, state: 'idle', facing: 1,
-    baseAtk: 15, atkBoost: 0, speedBoost: 0, shield: 0,
-    speed: 3.5, animFrame: 0, jumpCount: 0, weapon: 'sword',
-    mp: 60, maxMp: 60, manaRegen: 0.02,
+    invincible: PLAYER_SPAWN_INVINCIBLE, state: 'idle', facing: 1,
+    baseAtk: PLAYER_BASE_ATK, atkBoost: 0, speedBoost: 0, shield: 0,
+    speed: PLAYER_BASE_SPEED, animFrame: 0, jumpCount: 0, weapon: 'sword',
+    mp: PLAYER_MAX_MP, maxMp: PLAYER_MAX_MP, manaRegen: PLAYER_MANA_REGEN,
     skillCooldowns: { dash: 0, heal: 0, ultimate: 0 },
     equipment: { head: null, chest: null, legs: null, gloves: null, boots: null, accessory: null },
-    defense: 0, critChance: 5,
+    defense: 0, critChance: PLAYER_BASE_CRIT,
     dashing: false, dashTimer: 0,
   })
-  playerHp.value = 100; playerMaxHp.value = 100
-  playerMp.value = 60; playerMaxMp.value = 60
+  playerHp.value = PLAYER_MAX_HP; playerMaxHp.value = PLAYER_MAX_HP
+  playerMp.value = PLAYER_MAX_MP; playerMaxMp.value = PLAYER_MAX_MP
   playerExp.value = 0; level.value = 1
   score.value = 0; combo.value = 0; killCount.value = 0
-  playerExpMax.value = 50
+  playerExpMax.value = BASE_EXP_MAX
   inventory.length = 0; inventory.push('sword')
   weaponDrops.length = 0; projectiles.length = 0
   equipmentDrops.length = 0; equipInventory.length = 0
   consumables.length = 0
-  consumables.push({ type: 'hp_potion', count: 3 }, { type: 'mp_potion', count: 2 })
+  consumables.push({ type: 'hp_potion', count: INITIAL_HP_POTIONS }, { type: 'mp_potion', count: INITIAL_MP_POTIONS })
   showInventory.value = false; invTab = 0
 }
 
@@ -346,19 +375,19 @@ function tryUseSkill(skill: SkillType) {
   sfxAttack()
 
   if (skill === 'dash') {
-    player.dashing = true; player.dashTimer = 12
-    player.vx = player.facing * 12; player.invincible = 15
+    player.dashing = true; player.dashTimer = DASH_TIMER
+    player.vx = player.facing * DASH_SPEED; player.invincible = DASH_INVINCIBLE_FRAMES
     spawnFloatingText(player.x + player.w / 2, player.y - 20, '💨 DASH!', '#38bdf8', 16)
     spawnParticles(player.x + player.w / 2, player.y + player.h / 2, '#38bdf8', 15, 6)
     // Dash slash projectile
     projectiles.push({
       x: player.x + (player.facing > 0 ? player.w : -40), y: player.y,
       vx: player.facing * 8, vy: 0, w: 40, h: player.h,
-      damage: 20 + player.baseAtk, life: 15, type: 'dash_slash',
+      damage: DASH_SLASH_DAMAGE + player.baseAtk, life: DASH_SLASH_LIFE, type: 'dash_slash',
       color: '#38bdf8', rotation: 0, piercing: true, hitTargets: [],
     })
   } else if (skill === 'heal') {
-    const healAmt = 25 + level.value * 3
+    const healAmt = HEAL_BASE + level.value * HEAL_LEVEL_SCALE
     playerHp.value = Math.min(playerHp.value + healAmt, playerMaxHp.value)
     spawnFloatingText(player.x + player.w / 2, player.y - 20, `💚 +${healAmt} HP`, '#4ade80', 18)
     spawnParticles(player.x + player.w / 2, player.y + player.h / 2, '#4ade80', 25, 8)
@@ -830,9 +859,9 @@ function updatePlayer() {
   // Equipment bonuses
   const eqBonus = calcEquipmentBonuses(player.equipment)
   player.defense = eqBonus.def
-  player.critChance = 5 + eqBonus.critChance
+  player.critChance = PLAYER_BASE_CRIT + eqBonus.critChance
 
-  const spd = player.speed + player.speedBoost * 0.5 + eqBonus.speed
+  const spd = player.speed + player.speedBoost * SPEED_BOOST_MULT + eqBonus.speed
   let moving = false
   if (keys['ArrowLeft'] || keys['KeyA']) { player.vx = -spd; player.facing = -1; moving = true }
   else if (keys['ArrowRight'] || keys['KeyD']) { player.vx = spd; player.facing = 1; moving = true }
@@ -858,9 +887,9 @@ function updatePlayer() {
 
   // Attack with weapon stats
   const wCfg = WEAPONS[player.weapon]
-  const atkCooldown = Math.max(10, 25 + wCfg.speed)
+  const atkCooldown = Math.max(ATTACK_COOLDOWN_MIN, ATTACK_COOLDOWN_BASE + wCfg.speed)
   if ((keys['KeyZ'] || keys['KeyJ']) && player.attackCooldown <= 0 && !player.attacking) {
-    player.attacking = true; player.attackTimer = 18; player.attackCooldown = atkCooldown; player.attackFrame = 0; sfxAttack()
+    player.attacking = true; player.attackTimer = ATTACK_TIMER; player.attackCooldown = atkCooldown; player.attackFrame = 0; sfxAttack()
     // Spawn weapon projectiles for ranged weapons
     const proj = createWeaponProjectile(player, player.weapon)
     if (proj) projectiles.push(proj)
@@ -870,7 +899,7 @@ function updatePlayer() {
     player.attackTimer--; player.attackFrame++
     if (player.attackTimer <= 0) player.attacking = false
     const range = wCfg.range
-    const atkBox = { x: player.facing > 0 ? player.x + player.w : player.x - range, y: player.y - 4, w: range, h: player.h + 8 }
+    const atkBox = { x: player.facing > 0 ? player.x + player.w : player.x - range, y: player.y - ATTACK_HITBOX_PAD_Y, w: range, h: player.h + ATTACK_HITBOX_PAD_H }
     for (const m of monsters) {
       if (m.dead || m.hurtTimer > 0) continue
       if (rectCollide(atkBox, m)) {
@@ -878,17 +907,17 @@ function updatePlayer() {
         const passives = getActivePassives(player.equipment)
         // Combo damage scaling: +5% per combo hit, max 2x
         const comboMult = Math.min(COMBO_MAX_MULT, 1 + combo.value * COMBO_DMG_SCALE)
-        let dmg = Math.floor((wCfg.damage + player.baseAtk + level.value * 2 + player.atkBoost * 5 + eqBonus.atk + Math.random() * 5) * comboMult)
+        let dmg = Math.floor((wCfg.damage + player.baseAtk + level.value * DAMAGE_LEVEL_SCALE + player.atkBoost * DAMAGE_ATK_BOOST_MULT + eqBonus.atk + Math.random() * DAMAGE_VARIANCE) * comboMult)
         const critMult = passives.includes('crit_burst') ? CRIT_MULT_BURST : CRIT_MULT_DEFAULT
         if (isCrit) dmg = Math.floor(dmg * critMult)
         // Lightning passive: 15% bonus lightning damage
-        if (passives.includes('lightning') && Math.random() < 0.15) {
-          const lightningDmg = Math.floor(dmg * 0.4)
+        if (passives.includes('lightning') && Math.random() < LIGHTNING_CHANCE) {
+          const lightningDmg = Math.floor(dmg * LIGHTNING_MULT)
           dmg += lightningDmg
           spawnFloatingText(m.x + m.w / 2, m.y - 26, `⚡ ${lightningDmg}`, '#fbbf24', 14)
           spawnParticles(m.x + m.w / 2, m.y, '#fbbf24', 12, 5)
         }
-        m.hp -= dmg; m.hurtTimer = 15; m.vx = player.facing * 4; m.vy = m.flying ? -2 : -3
+        m.hp -= dmg; m.hurtTimer = HURT_TIMER_FRAMES; m.vx = player.facing * MONSTER_HIT_KNOCKBACK; m.vy = m.flying ? -2 : -3
         spawnParticles(m.x + m.w / 2, m.y + m.h / 2, wCfg.color, 8, 4)
         spawnFloatingText(m.x + m.w / 2, m.y - 10, isCrit ? `💥 ${dmg}` : `-${dmg}`, isCrit ? '#ff6b6b' : '#fbbf24', isCrit ? 18 : 14)
         // === SCREEN SHAKE (always) + HIT-STOP (only if not already frozen) ===
@@ -896,7 +925,7 @@ function updatePlayer() {
 
         // Lifesteal passive: heal 8% of damage
         if (passives.includes('lifesteal') && playerHp.value < playerMaxHp.value) {
-          const heal = Math.max(1, Math.floor(dmg * 0.08))
+          const heal = Math.max(1, Math.floor(dmg * LIFESTEAL_PERCENT))
           playerHp.value = Math.min(playerHp.value + heal, playerMaxHp.value)
           spawnFloatingText(player.x + player.w / 2, player.y - 10, `🩸 +${heal}`, '#4ade80', 10)
         }
@@ -906,20 +935,20 @@ function updatePlayer() {
           m.dead = true; killCount.value++
           // Boss kill = mega shake
           if (m.type === 'boss') { screenShake.intensity = SHAKE_INTENSITY_BOSS }
-          const sc = Math.floor(m.scoreValue * (1 + combo.value * 0.1))
+          const sc = Math.floor(m.scoreValue * (1 + combo.value * SCORE_COMBO_SCALE))
           score.value += sc; playerExp.value += m.exp; sfxKill()
           spawnFloatingText(m.x + m.w / 2, m.y - 20, `+${sc}`, '#4ade80', 16)
           spawnParticles(m.x + m.w / 2, m.y + m.h / 2, m.color, 20, 6)
           // Drop items
-          if (Math.random() < 0.2) chests.push(createChest(m.x, m.y + m.h))
-          if (Math.random() < 0.12) weaponDrops.push(createWeaponDrop(m.x + m.w / 2 - 10, m.y))
+          if (Math.random() < CHEST_DROP_CHANCE) chests.push(createChest(m.x, m.y + m.h))
+          if (Math.random() < WEAPON_DROP_CHANCE) weaponDrops.push(createWeaponDrop(m.x + m.w / 2 - 10, m.y))
           // Equipment drop
-          if (Math.random() < 0.18) {
+          if (Math.random() < EQUIP_DROP_CHANCE) {
             const eq = getRandomEquipment(m.type)
             equipmentDrops.push(createEquipmentDrop(m.x + m.w / 2, m.y, eq))
           }
           // Consumable drop
-          if (Math.random() < 0.15) {
+          if (Math.random() < CONSUMABLE_DROP_CHANCE) {
             const cType = Math.random() < 0.5 ? 'hp_potion' : 'mp_potion'
             const existing = consumables.find(c => c.type === cType)
             if (existing) existing.count++
@@ -939,9 +968,9 @@ function updatePlayer() {
   if (comboTimer > COMBO_TIMEOUT) { combo.value = 0; comboTimer = 0 }
 
   // Effects decay
-  if (player.atkBoost > 0) player.atkBoost -= 1 / 60
-  if (player.speedBoost > 0) player.speedBoost -= 1 / 60
-  if (player.shield > 0) player.shield -= 1 / 60
+  if (player.atkBoost > 0) player.atkBoost -= EFFECT_DECAY_RATE
+  if (player.speedBoost > 0) player.speedBoost -= EFFECT_DECAY_RATE
+  if (player.shield > 0) player.shield -= EFFECT_DECAY_RATE
   if (player.atkBoost < 0) player.atkBoost = 0
   if (player.speedBoost < 0) player.speedBoost = 0
   if (player.shield < 0) player.shield = 0
@@ -1017,7 +1046,7 @@ function updateMonsters() {
     const distY = Math.abs(dy)
     m.facing = dx > 0 ? 1 : -1
 
-    if (m.hurtTimer > 0) { m.hurtTimer--; m.state = 'hurt'; m.vx *= 0.85 }
+    if (m.hurtTimer > 0) { m.hurtTimer--; m.state = 'hurt'; m.vx *= FRICTION }
     // === BOSS MULTI-PHASE BEHAVIOR ===
     else if (m.type === 'boss') {
       const hpRatio = m.hp / m.maxHp
@@ -1026,26 +1055,26 @@ function updateMonsters() {
       if (phase >= 2 && Math.random() < 0.03) spawnParticles(m.x + m.w / 2, m.y, '#fbbf24', 2, 3)
       if (phase >= 3 && Math.random() < 0.06) spawnParticles(m.x + m.w / 2, m.y, '#ef4444', 3, 4)
       // Boss speed scales with phase
-      const phaseSpeedMult = phase === 3 ? 1.8 : phase === 2 ? 1.4 : 1.0
-      const phaseCooldown = phase === 3 ? 30 : phase === 2 ? 40 : 60
+      const phaseSpeedMult = phase === 3 ? BOSS_PHASE3_SPEED : phase === 2 ? BOSS_PHASE2_SPEED : BOSS_PHASE1_SPEED
+      const phaseCooldown = phase === 3 ? BOSS_PHASE3_COOLDOWN : phase === 2 ? BOSS_PHASE2_COOLDOWN : BOSS_PHASE1_COOLDOWN
 
       if (m.attackTimer > 0) { m.attackTimer--; m.state = 'attack'; m.vx = 0 }
       else if (distX < 45 && distY < 40 && m.attackCooldown <= 0 && player.invincible <= 0) {
-        m.attackTimer = 20; m.attackCooldown = phaseCooldown
-        const rawDmg = player.shield > 0 ? Math.floor(m.damage * 0.3) : m.damage
+        m.attackTimer = MONSTER_ATTACK_TIMER; m.attackCooldown = phaseCooldown
+        const rawDmg = player.shield > 0 ? Math.floor(m.damage * SHIELD_DAMAGE_MULT) : m.damage
         const passives = getActivePassives(player.equipment)
         let dmg = Math.max(1, rawDmg - player.defense)
         if (passives.includes('mana_shield') && playerMp.value > 0) {
-          const absorbed = Math.floor(dmg * 0.1); dmg -= absorbed
-          playerMp.value = Math.max(0, playerMp.value - absorbed * 0.5)
+          const absorbed = Math.floor(dmg * MANA_SHIELD_REDUCTION); dmg -= absorbed
+          playerMp.value = Math.max(0, playerMp.value - absorbed * MANA_SHIELD_COST_MULT)
         }
-        playerHp.value -= dmg; player.invincible = 30; player.vx = -m.facing * 5; player.vy = -4
+        playerHp.value -= dmg; player.invincible = INVINCIBLE_FRAMES; player.vx = -m.facing * KNOCKBACK_VX; player.vy = KNOCKBACK_VY
         spawnParticles(player.x + player.w / 2, player.y + player.h / 2, '#ef4444', 10, 5)
         spawnFloatingText(player.x + player.w / 2, player.y - 10, `-${dmg}`, '#ef4444', 16)
         sfxPlayerHurt(); screenShake.intensity = SHAKE_INTENSITY_CRIT
         if (passives.includes('thorns') && !m.dead) {
-          const thornsDmg = Math.max(1, Math.floor(rawDmg * 0.2))
-          m.hp -= thornsDmg; m.hurtTimer = 10
+          const thornsDmg = Math.max(1, Math.floor(rawDmg * THORNS_PERCENT))
+          m.hp -= thornsDmg; m.hurtTimer = MINOR_HURT_TIMER
           spawnFloatingText(m.x + m.w / 2, m.y - 10, `🌵 ${thornsDmg}`, '#4ade80', 12)
         }
         if (playerHp.value <= 0) { playerHp.value = 0; gameState.value = 'gameover'; sfxGameOver(); handleGameOver() }
@@ -1058,26 +1087,26 @@ function updateMonsters() {
     else if (distX < 35 && distY < 30) {
       // FIX: check BOTH horizontal AND vertical distance before attacking
       if (m.attackCooldown <= 0 && player.invincible <= 0) {
-        m.attackTimer = 20; m.attackCooldown = 60
-        const rawDmg = player.shield > 0 ? Math.floor(m.damage * 0.3) : m.damage
+        m.attackTimer = MONSTER_ATTACK_TIMER; m.attackCooldown = MONSTER_ATTACK_COOLDOWN
+        const rawDmg = player.shield > 0 ? Math.floor(m.damage * SHIELD_DAMAGE_MULT) : m.damage
         const passives = getActivePassives(player.equipment)
         let dmg = Math.max(1, rawDmg - player.defense)
         // Mana Shield passive: 10% dmg reduction, absorb via MP
         if (passives.includes('mana_shield') && playerMp.value > 0) {
-          const absorbed = Math.floor(dmg * 0.1)
+          const absorbed = Math.floor(dmg * MANA_SHIELD_REDUCTION)
           dmg -= absorbed
-          playerMp.value = Math.max(0, playerMp.value - absorbed * 0.5)
+          playerMp.value = Math.max(0, playerMp.value - absorbed * MANA_SHIELD_COST_MULT)
           spawnFloatingText(player.x + player.w / 2, player.y, `🛡 -${absorbed}`, '#818cf8', 10)
         }
-        playerHp.value -= dmg; player.invincible = 30; player.vx = -m.facing * 5; player.vy = -4
+        playerHp.value -= dmg; player.invincible = INVINCIBLE_FRAMES; player.vx = -m.facing * KNOCKBACK_VX; player.vy = KNOCKBACK_VY
         spawnParticles(player.x + player.w / 2, player.y + player.h / 2, '#ef4444', 10, 5)
         spawnFloatingText(player.x + player.w / 2, player.y - 10, `-${dmg}`, player.shield > 0 ? '#a855f7' : '#ef4444', 16)
         sfxPlayerHurt()
         screenShake.intensity = SHAKE_INTENSITY_CRIT // player hurt = big shake
         // Thorns passive: reflect 20% damage
         if (passives.includes('thorns') && !m.dead) {
-          const thornsDmg = Math.max(1, Math.floor(rawDmg * 0.2))
-          m.hp -= thornsDmg; m.hurtTimer = 10
+          const thornsDmg = Math.max(1, Math.floor(rawDmg * THORNS_PERCENT))
+          m.hp -= thornsDmg; m.hurtTimer = MINOR_HURT_TIMER
           spawnFloatingText(m.x + m.w / 2, m.y - 10, `🌵 ${thornsDmg}`, '#4ade80', 12)
         }
         if (playerHp.value <= 0) { playerHp.value = 0; gameState.value = 'gameover'; sfxGameOver(); handleGameOver() }
@@ -1117,7 +1146,7 @@ function updateMonsters() {
 function updateChests() {
   chestSpawnTimer++
   // Spawn chest on platforms periodically
-  if (chestSpawnTimer >= 600 && chests.length < 3) {
+  if (chestSpawnTimer >= CHEST_SPAWN_INTERVAL && chests.length < 3) {
     chestSpawnTimer = 0
     const validPlatforms = platforms.filter(p => p.type === 'floating')
     if (validPlatforms.length > 0) {
@@ -1132,7 +1161,7 @@ function updateChests() {
       c.openTimer--
       if (c.openTimer <= 0) { chests.splice(i, 1); continue }
     } else if (rectCollide(player, c)) {
-      c.opened = true; c.openTimer = 60; sfxChestOpen()
+      c.opened = true; c.openTimer = CHEST_OPEN_TIMER; sfxChestOpen()
       applyItem(c.item)
       spawnFloatingText(c.x + c.w / 2, c.y - 10, ITEM_NAMES[c.item], ITEM_COLORS[c.item], 14)
       spawnParticles(c.x + c.w / 2, c.y + c.h / 2, ITEM_COLORS[c.item], 15, 5)
@@ -1144,14 +1173,14 @@ function applyItem(item: ItemType) {
   sfxItem()
   switch (item) {
     case 'hp_potion':
-      playerHp.value = Math.min(playerHp.value + 30, playerMaxHp.value)
-      spawnFloatingText(player.x + player.w / 2, player.y - 20, '+30 HP', '#ef4444', 16)
+      playerHp.value = Math.min(playerHp.value + HP_POTION_HEAL_CHEST, playerMaxHp.value)
+      spawnFloatingText(player.x + player.w / 2, player.y - 20, `+${HP_POTION_HEAL_CHEST} HP`, '#ef4444', 16)
       break
     case 'atk_boost': player.atkBoost = ITEM_DURATIONS.atk_boost / 60; break
     case 'speed_boost': player.speedBoost = ITEM_DURATIONS.speed_boost / 60; break
     case 'shield': player.shield = ITEM_DURATIONS.shield / 60; break
     case 'exp_gem':
-      const expGain = 20 + level.value * 5
+      const expGain = EXP_GEM_BASE + level.value * EXP_GEM_LEVEL_SCALE
       playerExp.value += expGain
       spawnFloatingText(player.x + player.w / 2, player.y - 20, `+${expGain} EXP`, '#10b981', 16)
       if (playerExp.value >= playerExpMax.value) levelUp()
@@ -1160,10 +1189,10 @@ function applyItem(item: ItemType) {
 }
 
 function levelUp() {
-  level.value++; playerExp.value = 0; playerExpMax.value = Math.floor(playerExpMax.value * 1.5)
-  playerMaxHp.value += 15; playerHp.value = Math.min(playerHp.value + 30, playerMaxHp.value)
-  playerMaxMp.value += 8; playerMp.value = Math.min(playerMp.value + 20, playerMaxMp.value)
-  player.speed += 0.15; player.baseAtk += 2; sfxLevelUp()
+  level.value++; playerExp.value = 0; playerExpMax.value = Math.floor(playerExpMax.value * EXP_GROWTH)
+  playerMaxHp.value += LEVEL_HP_BONUS; playerHp.value = Math.min(playerHp.value + LEVEL_HP_HEAL, playerMaxHp.value)
+  playerMaxMp.value += LEVEL_MP_BONUS; playerMp.value = Math.min(playerMp.value + LEVEL_MP_HEAL, playerMaxMp.value)
+  player.speed += LEVEL_SPEED_BONUS; player.baseAtk += LEVEL_ATK_BONUS; sfxLevelUp()
   spawnFloatingText(player.x + player.w / 2, player.y - 40, 'LEVEL UP!', '#e879f9', 24)
   spawnParticles(player.x + player.w / 2, player.y + player.h / 2, '#e879f9', 30, 8)
   // Biome change notification
@@ -1172,8 +1201,8 @@ function levelUp() {
   if (newBiome.name !== prevBiome.name) {
     setTimeout(() => spawnFloatingText(player.x + player.w / 2, player.y - 60, `🗺️ ${newBiome.name}`, '#fbbf24', 20), 500)
   }
-  if (spawnRate > 60) spawnRate -= 10
-  if (maxMonsters < 12) maxMonsters++
+  if (spawnRate > MIN_SPAWN_RATE) spawnRate -= SPAWN_RATE_DECREASE
+  if (maxMonsters < MAX_MAX_MONSTERS) maxMonsters++
 }
 
 function handleGameOver() {
@@ -1189,7 +1218,7 @@ function handleGameOver() {
 let autoSaveTimer = 0
 function autoSave() {
   autoSaveTimer++
-  if (autoSaveTimer < 900) return // ~15s at 60fps
+  if (autoSaveTimer < AUTOSAVE_INTERVAL) return // ~15s at 60fps
   autoSaveTimer = 0
   try {
     const saveData = {
@@ -1255,8 +1284,8 @@ function updateProjectiles() {
       if (m.dead || m.hurtTimer > 0) continue
       if (!p.piercing && p.hitTargets.includes(m)) continue
       if (rectCollide(p, m)) {
-        const dmg = Math.floor(p.damage + Math.random() * 5)
-        m.hp -= dmg; m.hurtTimer = 10; m.vx = p.vx > 0 ? 3 : -3; m.vy = -2
+        const dmg = Math.floor(p.damage + Math.random() * DAMAGE_VARIANCE)
+        m.hp -= dmg; m.hurtTimer = MINOR_HURT_TIMER; m.vx = p.vx > 0 ? 3 : -3; m.vy = -2
         spawnParticles(m.x + m.w / 2, m.y + m.h / 2, p.color, 6, 3)
         spawnFloatingText(m.x + m.w / 2, m.y - 10, `-${dmg}`, p.color, 14)
         sfxHit(); combo.value++; comboTimer = 0
@@ -1501,7 +1530,7 @@ function drawGameOver() {
 function startGame() {
   gameState.value = 'playing'; scoreSaved = false
   resetPlayer(); generateMap(); monsters.length = 0; particles.length = 0
-  floatingTexts.length = 0; chests.length = 0; spawnTimer = 0; spawnRate = 200; maxMonsters = 5
+  floatingTexts.length = 0; chests.length = 0; spawnTimer = 0; spawnRate = INITIAL_SPAWN_RATE; maxMonsters = INITIAL_MAX_MONSTERS
   sfxMenuSelect()
 }
 
@@ -1518,8 +1547,8 @@ function gameLoop() {
         gameState.value = 'playing'; scoreSaved = false
         generateMap(); monsters.length = 0; particles.length = 0
         floatingTexts.length = 0; chests.length = 0; spawnTimer = 0
-        spawnRate = Math.max(60, 200 - level.value * 10)
-        maxMonsters = Math.min(12, 5 + level.value)
+        spawnRate = Math.max(MIN_SPAWN_RATE, INITIAL_SPAWN_RATE - level.value * SPAWN_RATE_DECREASE)
+        maxMonsters = Math.min(MAX_MAX_MONSTERS, INITIAL_MAX_MONSTERS + level.value)
         sfxMenuSelect()
         spawnFloatingText(player.x + player.w / 2, player.y - 30, '💾 Đã tải game!', '#4ade80', 18)
       }
@@ -1816,8 +1845,8 @@ function drawTabbedInventory() {
     ctx.textAlign = 'left'
 
     const items = [
-      { type: 'hp_potion', name: '❤️ HP Potion', desc: 'Hồi 35 HP', key: 'F', color: '#ef4444' },
-      { type: 'mp_potion', name: '💙 MP Potion', desc: 'Hồi 30 MP', key: 'G', color: '#3b82f6' },
+      { type: 'hp_potion', name: '❤️ HP Potion', desc: `Hồi ${HP_POTION_HEAL} HP`, key: 'F', color: '#ef4444' },
+      { type: 'mp_potion', name: '💙 MP Potion', desc: `Hồi ${MP_POTION_HEAL} MP`, key: 'G', color: '#3b82f6' },
     ]
     items.forEach((item, i) => {
       const iy = py + 70 + i * 60
@@ -1851,8 +1880,8 @@ function resizeCanvas() {
   if (!canvasRef.value) return
   const container = canvasRef.value.parentElement
   if (!container) return
-  const maxW = Math.min(container.clientWidth - 32, 960)
-  W = maxW; H = Math.floor(maxW / (960 / 540))
+  const maxW = Math.min(container.clientWidth - 32, CANVAS_WIDTH)
+  W = maxW; H = Math.floor(maxW / (CANVAS_WIDTH / CANVAS_HEIGHT))
   canvasRef.value.width = W; canvasRef.value.height = H
   if (gameState.value !== 'playing') generateMap()
 }
