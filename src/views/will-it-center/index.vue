@@ -45,6 +45,41 @@ const levels: Level[] = [
     initialCode: "/* CSS của khối 05 (Lưu ý: container đã có position: relative) */\n.box {\n  position: absolute;\n  inset: 0;\n  \n}",
     targetHtml: '<div class="box w-16 h-16 bg-text-primary rounded-xl flex items-center justify-center font-display font-bold text-bg-deep shadow-2xl skew-x-12">05</div>',
     hint: "Nếu inset: 0 (top/left/right/bottom = 0) thì trình duyệt không biết ép vào đâu nếu thiếu một thuộc tính margin thần thánh."
+  },
+  {
+    id: 6,
+    description: "Khác bọt: Canh giữa con trong Flexbox mà không đụng tới justify/align của cha.",
+    initialCode: "/* CSS của khối 06. (Cha đã có display: flex) */\n.box {\n  \n}",
+    targetHtml: '<div class="w-full h-full flex"><div class="box w-20 h-20 bg-accent-sky rounded text-bg-deep flex items-center justify-center font-display font-bold text-xl shadow-[0_0_20px_theme(colors.accent.sky)]">06</div></div>',
+    hint: "Trong Flexbox, một thuộc tính margin ma thuật có thể hút tất cả khoảng trống xung quanh."
+  },
+  {
+    id: 7,
+    description: "Kỷ Jura: Cách ông cha ta từng làm trước khi có lưới điện Grid và ống nước Flex.",
+    initialCode: "/* CSS của div ngoài. Note: Khối bên trong đã có display: inline-block */\n.container {\n  display: table-cell;\n  \n}",
+    targetHtml: '<div class="w-24 h-24 bg-accent-coral border-2 border-bg-deep text-bg-deep font-display font-bold text-2xl rotate-45 inline-flex items-center justify-center shadow-lg"><span class="-rotate-45 block">07</span></div>',
+    hint: "Hãy suy nghĩ về cách canh lề của văn bản (text) và căn chỉnh theo chiều dọc (vertical) của 1 ô (cell) trong bảng."
+  },
+  {
+    id: 8,
+    description: "Line-height ma thuật: Cách đơn giản nhất để canh lề dọc một dòng chữ.",
+    initialCode: "/* CSS của div ngoài (Cao 200px) */\n.container {\n  text-align: center;\n  \n}",
+    targetHtml: '<div class="w-full bg-border-default/20 border-y border-accent-amber font-display font-medium text-text-primary text-xl" style="height: 200px;">08</div>',
+    hint: "Nếu chiều cao dòng (line-height) bằng đúng chiều cao thẻ chứa nó, chữ sẽ nằm giữa."
+  },
+  {
+    id: 9,
+    description: "Toán học cơ bản: Canh giữa tuyệt đối bằng Position và Margin âm.",
+    initialCode: "/* CSS của khối 09 (Rộng 100px, Cao 100px). Container đã có position relative */\n.box {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  \n}",
+    targetHtml: '<div class="box w-[100px] h-[100px] bg-accent-sky rounded-full flex items-center justify-center font-display font-bold text-bg-deep text-3xl shadow-[0_0_15px_theme(colors.accent.sky)]">09</div>',
+    hint: "Khối này dài rộng 100px. Khi nó nằm bắt đầu từ tọa độ 50%, ta phải kéo lùi nó lại (bằng margin) một khoảng đúng bằng một nửa kích thước của nó."
+  },
+  {
+    id: 10,
+    description: "CSS Grid hiện đại: Canh giữa không cần viết CSS ở container.",
+    initialCode: "/* CSS của khối 10. Container đang là thẻ Mặc định (Block) */\n.box {\n  \n}",
+    targetHtml: '<div class="box w-32 h-16 bg-accent-coral flex items-center justify-center font-display font-bold text-bg-deep text-2xl shadow-xl skew-y-6">10</div>',
+    hint: "Bạn có biết thuộc tính margin có hàm inline kết hợp calc() không? Hoặc đơn giản là dùng margin: auto với width cụ thể (nhưng sẽ không canh dọc được). Thử dùng position fixed/absolute kết hợp inset và margin auto xem (Giống Level 5 nhưng áp dụng lên thẻ con)."
   }
 ]
 
@@ -62,22 +97,20 @@ const checkSuccess = () => {
   const code = userCode.value.toLowerCase().replace(/\s/g, '')
   const lvl = currentLevel.value.id
   
-  if (lvl === 1) {
-    if (code.includes('justify-content:center')) isSuccess.value = true
-    else isSuccess.value = false
-  } else if (lvl === 2) {
-    if (code.includes('justify-content:center') && code.includes('align-items:center')) isSuccess.value = true
-    else isSuccess.value = false
-  } else if (lvl === 3) {
-    if (code.includes('place-items:center') || (code.includes('justify-content:center') && code.includes('align-items:center'))) isSuccess.value = true
-    else isSuccess.value = false
-  } else if (lvl === 4) {
-    if (code.includes('transform:translate(-50%,-50%)') || code.includes('translate:-50%-50%')) isSuccess.value = true
-    else isSuccess.value = false
-  } else if (lvl === 5) {
-    if (code.includes('margin:auto')) isSuccess.value = true
-    else isSuccess.value = false
+  const rulesMap: Record<number, () => boolean> = {
+    1: () => code.includes('justify-content:center'),
+    2: () => code.includes('justify-content:center') && code.includes('align-items:center'),
+    3: () => code.includes('place-items:center') || (code.includes('justify-content:center') && code.includes('align-items:center')),
+    4: () => code.includes('transform:translate(-50%,-50%)') || code.includes('translate:-50%-50%'),
+    5: () => code.includes('margin:auto'),
+    6: () => code.includes('margin:auto'),
+    7: () => code.includes('text-align:center') && code.includes('vertical-align:middle'),
+    8: () => code.includes('line-height:200px') || code.includes('line-height:100%'),
+    9: () => (code.includes('margin-top:-50px') && code.includes('margin-left:-50px')) || code.includes('margin:-50px00-50px') || code.includes('margin:-50px'),
+    10: () => (code.includes('position:absolute') || code.includes('position:fixed')) && (code.includes('inset:0') || (code.includes('top:0') && code.includes('bottom:0'))) && code.includes('margin:auto')
   }
+
+  isSuccess.value = rulesMap[lvl]?.() ?? false
 }
 
 const extractCssRules = computed(() => {
