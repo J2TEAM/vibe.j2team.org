@@ -76,10 +76,10 @@ const levels: Level[] = [
   },
   {
     id: 10,
-    description: "CSS Grid hiện đại: Canh giữa không cần viết CSS ở container.",
-    initialCode: "/* CSS của khối 10. Container đang là thẻ Mặc định (Block) */\n.box {\n  \n}",
-    targetHtml: '<div class="box w-32 h-16 bg-accent-coral flex items-center justify-center font-display font-bold text-bg-deep text-2xl shadow-xl skew-y-6">10</div>',
-    hint: "Bạn có biết thuộc tính margin có hàm inline kết hợp calc() không? Hoặc đơn giản là dùng margin: auto với width cụ thể (nhưng sẽ không canh dọc được). Thử dùng position fixed/absolute kết hợp inset và margin auto xem (Giống Level 5 nhưng áp dụng lên thẻ con)."
+    description: "Toán học nâng cao: Căn giữa tuyệt đối kế thừa hàm calc().",
+    initialCode: "/* CSS của khối 10 (Rộng 128px, Cao 64px) Container đã có position relative */\n.box {\n  position: absolute;\n  \n}",
+    targetHtml: '<div class="box w-[128px] h-[64px] bg-accent-coral flex items-center justify-center font-display font-bold text-bg-deep text-2xl shadow-xl skew-y-6">10</div>',
+    hint: "Bạn có thể tính toán vị trí left và top thông qua hàm calc(), lấy 50% trừ đi một nửa kích thước của box. Nhớ để khoảng trắng trước và sau dấu trừ!"
   }
 ]
 
@@ -102,12 +102,12 @@ const checkSuccess = () => {
     2: () => code.includes('justify-content:center') && code.includes('align-items:center'),
     3: () => code.includes('place-items:center') || (code.includes('justify-content:center') && code.includes('align-items:center')),
     4: () => code.includes('transform:translate(-50%,-50%)') || code.includes('translate:-50%-50%'),
-    5: () => code.includes('margin:auto'),
+    5: () => code.includes('margin:auto') && (code.includes('inset:0') || (code.includes('top:0') && code.includes('bottom:0'))),
     6: () => code.includes('margin:auto'),
     7: () => code.includes('text-align:center') && code.includes('vertical-align:middle'),
     8: () => code.includes('line-height:200px') || code.includes('line-height:100%'),
     9: () => (code.includes('margin-top:-50px') && code.includes('margin-left:-50px')) || code.includes('margin:-50px00-50px') || code.includes('margin:-50px'),
-    10: () => (code.includes('position:absolute') || code.includes('position:fixed')) && (code.includes('inset:0') || (code.includes('top:0') && code.includes('bottom:0'))) && code.includes('margin:auto')
+    10: () => code.includes('left:calc(50%-64px)') && code.includes('top:calc(50%-32px)')
   }
 
   isSuccess.value = rulesMap[lvl]?.() ?? false
