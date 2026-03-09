@@ -1,10 +1,11 @@
-import type { PageMeta } from '@/types/page'
+import type { PageMeta } from "@/types/page";
 
 const meta: PageMeta = {
-  name: 'Escape The Maze',
-  description: 'Thoát khỏi mê cung được tạo ngẫu nhiên. Bạn có tìm được đường ra nhanh nhất?',
-  author: 'hoyvoh',
-  category: 'game',
-}
+  name: "Escape The Maze",
+  description: "Thoát khỏi mê cung được tạo ngẫu nhiên. Bạn có tìm được đường ra nhanh nhất?",
+  author: "hoyvoh",
+  category: "game",
+  facebook: "",
+};
 
-export default meta
+export default meta;

@@ -5,7 +5,7 @@ import { useAudio } from "./composables/useAudio";
 import { useRhythmEngine } from "./composables/useRhythmEngine";
 import { useGameMode } from "./composables/useGameMode";
 import { GAME_CONFIG } from "./assets/beatmap";
-import type { HitResult, GameMode, KeyButton, BeatChallenge } from "./types";
+import type { GamePhase, HitResult, GameMode, KeyButton, BeatChallenge } from "./types";
 
 // ─── Composables ─────────────────────────────────────────
 const audio = useAudio();
@@ -350,8 +350,7 @@ const i18n: Record<Lang, Locale> = {
 const t = computed(() => i18n[lang.value]);
 
 // ─── Game State ──────────────────────────────────────────
-type Phase = "idle" | "tutorial" | "countdown" | "playing" | "paused" | "dead";
-const phase = ref<Phase>("idle");
+const phase = ref<GamePhase>("idle");
 const lives = ref(3);
 const countdownNum = ref(3);
 const isVictory = ref(false);
