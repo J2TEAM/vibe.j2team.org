@@ -1339,28 +1339,19 @@ onBeforeUnmount(() => {
       >
         <button
           class="w-full border border-border-default px-3 py-2 text-left text-sm text-text-secondary transition hover:border-accent-sky hover:bg-bg-elevated hover:text-text-primary"
-          @click="
-            openExportModal('style')
-            showTransferActions = false
-          "
+          @click="(openExportModal('style'), (showTransferActions = false))"
         >
           Tạo mã style
         </button>
         <button
           class="mt-2 w-full border border-border-default px-3 py-2 text-left text-sm text-text-secondary transition hover:border-accent-amber hover:bg-bg-elevated hover:text-text-primary"
-          @click="
-            openExportModal('drawing')
-            showTransferActions = false
-          "
+          @click="(openExportModal('drawing'), (showTransferActions = false))"
         >
           Tạo mã nét vẽ
         </button>
         <button
           class="mt-2 w-full border border-border-default px-3 py-2 text-left text-sm text-text-secondary transition hover:border-accent-amber hover:bg-bg-elevated hover:text-text-primary"
-          @click="
-            showImportModal = true
-            showTransferActions = false
-          "
+          @click="((showImportModal = true), (showTransferActions = false))"
         >
           Import style / nét
         </button>
