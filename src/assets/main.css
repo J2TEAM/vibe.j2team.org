@@ -5,27 +5,7 @@ html {
 }
 
 @theme {
-  --color-bg-deep: #0f1923;
-  --color-bg-surface: #162232;
-  --color-bg-elevated: #1e2f42;
-  --color-accent-coral: #ff6b4a;
-  --color-accent-amber: #ffb830;
-  --color-accent-sky: #38bdf8;
-  --color-text-primary: #f0ede6;
-  --color-text-secondary: #8b9db5;
-  --color-text-dim: #4a6180;
-  --color-border-default: #253549;
-  --color-border-hover: #ff6b4a;
-
-  --font-display: 'Philosopher', serif;
-  --font-body: 'Be Vietnam Pro', sans-serif;
-  --font-script: 'Dancing Script', cursive;
-}
-
-body {
-  font-family: var(--font-body);
-  background-color: var(--color-bg-deep);
-  color: var(--color-text-primary);
+  --font-display: 'Anybody', cursive;
 }
 
 /* Noise grain overlay */
@@ -47,6 +27,7 @@ body::after {
     opacity: 0;
     transform: translateY(24px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -54,10 +35,12 @@ body::after {
 }
 
 @keyframes pulse-border {
+
   0%,
   100% {
     border-color: var(--color-border-default);
   }
+
   50% {
     border-color: var(--color-accent-coral);
   }
@@ -71,21 +54,27 @@ body::after {
 .animate-delay-1 {
   animation-delay: 100ms;
 }
+
 .animate-delay-2 {
   animation-delay: 200ms;
 }
+
 .animate-delay-3 {
   animation-delay: 300ms;
 }
+
 .animate-delay-4 {
   animation-delay: 400ms;
 }
+
 .animate-delay-5 {
   animation-delay: 500ms;
 }
+
 .animate-delay-6 {
   animation-delay: 600ms;
 }
+
 .animate-delay-7 {
   animation-delay: 700ms;
 }

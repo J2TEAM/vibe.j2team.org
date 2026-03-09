@@ -481,7 +481,7 @@ watch(
 <template>
   <div
     :class="[
-      'min-h-screen text-text-primary font-body overflow-x-hidden selection:bg-accent-coral/30 transition-colors duration-1000 relative',
+      'tiet-khi-wrapper min-h-screen text-text-primary font-body overflow-x-hidden selection:bg-accent-coral/30 transition-colors duration-1000 relative',
       getBgDynamic,
     ]"
   >
@@ -954,5 +954,79 @@ watch(
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+</style>
+
+<style>
+/* Lazy load fonts specifically for Tiet Khi page */
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Philosopher:ital,wght@0,400;0,700;1,400;1,700&family=Dancing+Script:wght@400;700&display=swap');
+
+.tiet-khi-wrapper {
+  /* Local theme tokens */
+  --tk-bg-deep: #0f1923;
+  --tk-bg-surface: #162232;
+  --tk-bg-elevated: #1e2f42;
+  --tk-accent-coral: #ff6b4a;
+  --tk-accent-amber: #ffb830;
+  --tk-accent-sky: #38bdf8;
+  --tk-text-primary: #f0ede6;
+  --tk-text-secondary: #8b9db5;
+  --tk-text-dim: #4a6180;
+  --tk-border-default: #253549;
+  --tk-border-hover: #ff6b4a;
+
+  --tk-font-display: 'Philosopher', serif;
+  --tk-font-body: 'Be Vietnam Pro', sans-serif;
+  --tk-font-script: 'Dancing Script', cursive;
+
+  font-family: var(--tk-font-body);
+  background-color: var(--tk-bg-deep);
+  color: var(--tk-text-primary);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Local Noise grain overlay */
+.tiet-khi-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* Animations */
+@keyframes tk-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tk-animate-fade-up {
+  animation: tk-fade-up 0.6s ease-out both;
+}
+
+/* Utility overrides using local tokens */
+.text-accent-coral {
+  color: var(--tk-accent-coral) !important;
+}
+.text-text-secondary {
+  color: var(--tk-text-secondary) !important;
+}
+.font-display {
+  font-family: var(--tk-font-display) !important;
+}
+.font-script {
+  font-family: var(--tk-font-script) !important;
 }
 </style>
