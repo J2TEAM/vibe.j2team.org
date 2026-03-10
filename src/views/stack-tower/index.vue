@@ -298,9 +298,10 @@ watch(stageWidth, (newWidth, oldWidth) => {
   }
 
   if (score.value === 0 && stack.value.length === 1 && !isDropping.value) {
+    const base = stack.value[0]!
     stack.value = [
       {
-        ...stack.value[0],
+        ...base,
         left: (newWidth - baseWidth) / 2,
       },
     ]
