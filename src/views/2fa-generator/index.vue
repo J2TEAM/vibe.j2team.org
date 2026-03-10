@@ -49,12 +49,12 @@ function base32ToBytes(base32: string): Uint8Array {
 async function hmacSHA1(key: Uint8Array, message: Uint8Array): Promise<Uint8Array> {
   const cryptoKey = await crypto.subtle.importKey(
     'raw',
-    key,
+    key as BufferSource,
     { name: 'HMAC', hash: 'SHA-1' },
     false,
     ['sign'],
   )
-  const signature = await crypto.subtle.sign('HMAC', cryptoKey, message)
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, message as BufferSource)
   return new Uint8Array(signature)
 }
 
@@ -96,12 +96,13 @@ async function generateTOTP(secret: string): Promise<string | null> {
     const hmac = await hmacSHA1(keyBytes, timeBytes)
 
     // Dynamic Truncation: lấy 4 bytes bắt đầu từ offset
-    const offset = hmac[hmac.length - 1] & 0x0f
+    const lastByte = hmac[hmac.length - 1]
+    const offset = (lastByte !== undefined ? lastByte : 0) & 0x0f
     const binaryCode =
-      ((hmac[offset] & 0x7f) << 24) |
-      ((hmac[offset + 1] & 0xff) << 16) |
-      ((hmac[offset + 2] & 0xff) << 8) |
-      (hmac[offset + 3] & 0xff)
+      (((hmac[offset] ?? 0) & 0x7f) << 24) |
+      (((hmac[offset + 1] ?? 0) & 0xff) << 16) |
+      (((hmac[offset + 2] ?? 0) & 0xff) << 8) |
+      ((hmac[offset + 3] ?? 0) & 0xff)
 
     // Lấy 6 chữ số cuối
     const otp = binaryCode % 1_000_000
