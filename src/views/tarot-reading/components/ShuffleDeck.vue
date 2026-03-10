@@ -56,12 +56,12 @@ function handleDeal() {
 
 <template>
   <div
-    class="flex flex-col items-center justify-center px-4 py-12"
+    class="flex flex-col items-center justify-center px-6 py-12"
     role="region"
     aria-label="Bộ bài tarot — xào và rút bài"
   >
     <!-- Tiêu đề -->
-    <div class="text-center mb-10 animate-fade-up">
+    <div class="text-center mb-8 animate-fade-up">
       <h2
         class="font-display text-2xl font-semibold text-text-primary flex items-center justify-center gap-3"
       >
