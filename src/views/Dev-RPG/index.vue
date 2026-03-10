@@ -464,7 +464,7 @@ function generateCard() {
   const mp = Math.floor(rand() * 400 + 50)
 
   const sum = stats.reduce((a: number, s: StatItem) => a + s.val, 0)
-  let rarity = RARITIES[0]
+  let rarity = RARITIES[0]!
   for (const r of RARITIES) {
     if (sum >= r.minSum) rarity = r
   }
