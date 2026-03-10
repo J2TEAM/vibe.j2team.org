@@ -42,30 +42,51 @@
       <!-- Khung quay Blame -->
       <div class="relative w-full max-w-2xl mx-auto mb-10 animate-fade-up animate-delay-1">
         <div
-          class="border-2 border-border-default bg-bg-surface p-1 relative overflow-hidden"
-          :class="sirenState ? 'border-accent-coral shadow-[0_0_50px_rgba(255,107,107,0.3)]' : ''"
+          class="border-2 bg-bg-surface p-1 relative overflow-hidden transition-all duration-300"
+          :class="[
+            sirenState
+              ? 'border-accent-coral shadow-[0_0_50px_rgba(255,107,107,0.3)]'
+              : hasResult
+                ? 'border-accent-coral shadow-[0_0_20px_rgba(255,107,107,0.15)]'
+                : 'border-border-default',
+          ]"
         >
           <!-- Cảnh báo góc trang trí -->
           <div
-            class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2"
-            :class="sirenState ? 'border-accent-coral' : 'border-text-dim'"
+            class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 transition-colors duration-300"
+            :class="sirenState || hasResult ? 'border-accent-coral' : 'border-text-dim'"
           ></div>
           <div
-            class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2"
-            :class="sirenState ? 'border-accent-coral' : 'border-text-dim'"
+            class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 transition-colors duration-300"
+            :class="sirenState || hasResult ? 'border-accent-coral' : 'border-text-dim'"
           ></div>
           <div
-            class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2"
-            :class="sirenState ? 'border-accent-coral' : 'border-text-dim'"
+            class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 transition-colors duration-300"
+            :class="sirenState || hasResult ? 'border-accent-coral' : 'border-text-dim'"
           ></div>
           <div
-            class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2"
-            :class="sirenState ? 'border-accent-coral' : 'border-text-dim'"
+            class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 transition-colors duration-300"
+            :class="sirenState || hasResult ? 'border-accent-coral' : 'border-text-dim'"
           ></div>
 
           <div class="flex flex-col items-center justify-center bg-bg-deep py-12 px-6 min-h-60">
-            <span class="font-display text-sm tracking-widest text-text-dim mb-4 block">
-              TARGET LOCKED:
+            <span
+              class="font-display text-sm tracking-widest mb-4 block transition-colors duration-300"
+              :class="
+                isSpinning
+                  ? 'text-accent-amber animate-pulse'
+                  : hasResult
+                    ? 'text-accent-coral font-bold'
+                    : 'text-text-dim'
+              "
+            >
+              {{
+                isSpinning
+                  ? 'SCANNING FOR SCAPEGOATS...'
+                  : hasResult
+                    ? 'TARGET LOCKED:'
+                    : 'SYSTEM STANDBY:'
+              }}
             </span>
             <Transition name="rapid" mode="out-in">
               <h2
