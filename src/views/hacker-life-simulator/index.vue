@@ -867,11 +867,11 @@ function tick(): void {
 }
 
 function startMatrix(): void {
-  const canvas = matrixCanvas.value
-  if (!canvas) return
+  const canvasEl = matrixCanvas.value
+  if (!canvasEl) return
 
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
+  const context = canvasEl.getContext('2d')
+  if (!context) return
 
   let drops: number[] = []
   let cols = 0
@@ -882,13 +882,13 @@ function startMatrix(): void {
   function resize(): void {
     const dpr = Math.max(1, window.devicePixelRatio || 1)
 
-    canvas.width = Math.floor(window.innerWidth * dpr)
-    canvas.height = Math.floor(window.innerHeight * dpr)
-    canvas.style.width = `${window.innerWidth}px`
-    canvas.style.height = `${window.innerHeight}px`
+    canvasEl.width = Math.floor(window.innerWidth * dpr)
+    canvasEl.height = Math.floor(window.innerHeight * dpr)
+    canvasEl.style.width = `${window.innerWidth}px`
+    canvasEl.style.height = `${window.innerHeight}px`
 
-    ctx.setTransform(1, 0, 0, 1, 0, 0)
-    ctx.scale(dpr, dpr)
+    context.setTransform(1, 0, 0, 1, 0, 0)
+    context.scale(dpr, dpr)
 
     fontSize = window.innerWidth < 700 ? 13 : 16
     cols = Math.floor(window.innerWidth / fontSize)
@@ -896,23 +896,25 @@ function startMatrix(): void {
   }
 
   function draw(): void {
-    ctx.fillStyle = 'rgba(2, 8, 5, 0.11)'
-    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight)
-    ctx.font = `${fontSize}px Consolas, monospace`
+    context.fillStyle = 'rgba(2, 8, 5, 0.11)'
+    context.fillRect(0, 0, window.innerWidth, window.innerHeight)
+    context.font = `${fontSize}px Consolas, monospace`
 
     for (let i = 0; i < drops.length; i++) {
       const index = Math.floor(Math.random() * chars.length)
       const text = chars.charAt(index)
       const x = i * fontSize
-      const y = drops[i] * fontSize
+      const currentDrop = drops[i] ?? 0
+      const y = currentDrop * fontSize
 
-      ctx.fillStyle = i % 7 === 0 ? 'rgba(210,255,220,.82)' : 'rgba(90,255,140,.72)'
-      ctx.fillText(text, x, y)
+      context.fillStyle = i % 7 === 0 ? 'rgba(210,255,220,.82)' : 'rgba(90,255,140,.72)'
+      context.fillText(text, x, y)
 
       if (y > window.innerHeight && Math.random() > 0.975) {
         drops[i] = rand(-10, 0)
+      } else {
+        drops[i] = currentDrop + 1
       }
-      drops[i] += 1
     }
 
     matrixRaf = requestAnimationFrame(draw)
