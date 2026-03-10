@@ -3,7 +3,7 @@
     class="relative min-h-screen bg-bg-deep overflow-hidden font-body flex flex-col items-center justify-center px-4 md:px-0"
   >
     <!-- Header: Links & Metadata -->
-    <div class="absolute top-0 left-0 right-0 p-6 flex justify-between items-start z-50">
+    <div class="absolute top-0 left-0 right-0 p-4 md:p-6 flex justify-between items-start z-50">
       <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <RouterLink
           to="/"
@@ -22,7 +22,7 @@
       </div>
 
       <div
-        class="hidden sm:block bg-accent-coral text-bg-deep font-display font-bold text-xs tracking-widest px-3 py-1.5 rotate-3 shadow-lg shadow-accent-coral/20 hover:rotate-0 transition-transform cursor-default select-none"
+        class="bg-accent-coral text-bg-deep font-display font-bold text-[10px] md:text-xs tracking-widest px-3 py-1.5 rotate-3 shadow-lg shadow-accent-coral/20 hover:rotate-0 transition-transform cursor-default select-none"
       >
         VOL.01 / 2026
       </div>
@@ -56,8 +56,9 @@
           class="mb-10 text-text-primary text-base md:text-lg font-body max-w-lg mx-auto !leading-relaxed text-left animate-fade-up animate-delay-3 p-6 border border-border-default bg-bg-surface/80 shadow-2xl"
         >
           <h3
-            class="text-accent-amber font-display font-bold text-2xl text-center mb-4 border-b border-border-default/50 pb-2"
+            class="text-text-primary font-display font-bold text-2xl text-center mb-6 flex items-center justify-center gap-3"
           >
+            <span class="text-accent-amber font-display text-sm tracking-widest">//</span>
             Luật Chơi
           </h3>
           <ul class="list-disc pl-5 space-y-3 text-text-secondary">
@@ -173,7 +174,7 @@
           />
           <!-- Cylinder -->
           <div
-            class="absolute -bottom-20 left-1/2 -translate-x-1/2 flex items-end gap-2 px-4 py-3 bg-black/40 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl min-w-[160px] justify-center"
+            class="absolute -bottom-20 left-1/2 -translate-x-1/2 flex items-end gap-2 px-4 py-3 bg-black/40 backdrop-blur-md border border-white/10 shadow-2xl min-w-[160px] justify-center"
           >
             <div
               v-for="(isLive, index) in cylinder"
@@ -332,10 +333,16 @@
           class="w-full max-w-sm border-2 border-accent-amber bg-bg-surface p-6 shadow-[0_0_30px_rgba(255,184,48,0.2)]"
         >
           <h2
-            class="mb-6 font-display text-2xl font-bold uppercase tracking-widest text-accent-amber text-center"
+            class="mb-6 font-display text-2xl font-bold uppercase tracking-widest text-text-primary text-center flex items-center justify-center gap-3"
           >
-            Cài Đặt Âm Thanh
+            <span class="text-accent-amber font-display text-sm tracking-widest">//</span>
+            Cài Đặt
           </h2>
+
+          <!-- Phần Âm Thanh -->
+          <p class="text-xs font-display tracking-widest text-text-dim mb-3 uppercase">
+            <span class="text-accent-coral mr-1">//</span> Âm Thanh
+          </p>
 
           <button
             type="button"
@@ -359,6 +366,31 @@
             />
           </div>
 
+          <!-- Phần Độ Khó AI -->
+          <p class="text-xs font-display tracking-widest text-text-dim mb-3 uppercase">
+            <span class="text-accent-coral mr-1">//</span> Độ Khó AI
+          </p>
+
+          <div class="mb-6 flex gap-2">
+            <button
+              v-for="opt in difficultyOptions"
+              :key="opt.value"
+              type="button"
+              class="flex-1 border px-3 py-3 text-center font-display text-sm tracking-wider transition-all duration-300 cursor-pointer"
+              :class="
+                aiDifficulty === opt.value
+                  ? 'border-accent-amber bg-accent-amber/15 text-accent-amber shadow-[0_0_15px_rgba(255,184,48,0.15)]'
+                  : 'border-border-default bg-bg-deep text-text-secondary hover:border-text-dim hover:text-text-primary'
+              "
+              @click="aiDifficulty = opt.value"
+            >
+              <span class="block font-bold uppercase">{{ opt.label }}</span>
+              <span class="block text-[10px] mt-1 text-text-dim tracking-normal">{{
+                opt.desc
+              }}</span>
+            </button>
+          </div>
+
           <button
             type="button"
             class="w-full border-2 border-border-default bg-transparent px-4 py-3 text-lg font-display font-bold tracking-widest transition hover:bg-border-default hover:text-bg-deep cursor-pointer"
@@ -370,11 +402,13 @@
       </div>
     </transition>
   </div>
+  <BackToTop />
 </template>
 
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import BackToTop from '@/components/BackToTop.vue'
 import { useGameLogic } from './composables/useGameLogic'
 
 const {
@@ -393,11 +427,19 @@ const {
   showSettingsModal,
   isSoundOn,
   sfxVolume,
+  aiDifficulty,
   initIntro,
   enterGame,
   startNewGame,
   disposeAudio,
 } = useGameLogic()
+
+// Danh sách độ khó của AI
+const difficultyOptions = [
+  { value: 'easy', label: 'Dễ', desc: 'AI đôi khi chơi ngẫu nhiên' },
+  { value: 'normal', label: 'Thường', desc: 'AI khá thông minh' },
+  { value: 'hard', label: 'Khó', desc: 'AI luôn chọn nước tối ưu' },
+] as const
 
 onMounted(() => {
   initIntro()

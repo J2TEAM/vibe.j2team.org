@@ -1,9 +1,13 @@
 import { ref, watch } from 'vue'
 
 import { createAudioController } from './useAudio'
+import { getAIDecision, type AIDifficulty } from './useAI'
 
 export function useGameLogic() {
   const audio = createAudioController()
+
+  // Mức độ khó của AI
+  const aiDifficulty = ref<AIDifficulty>('normal')
 
   const playerHp = ref(3)
   const aiHp = ref(3)
@@ -162,10 +166,28 @@ export function useGameLogic() {
 
     isActionDisabled.value = true
     turnMessage.value = 'Furina đang suy nghĩ...'
-    await new Promise((r) => setTimeout(r, 2000))
 
-    const target = Math.random() < 0.5 ? 'ai' : 'player'
-    await handleShoot('ai', target)
+    // Thời gian suy nghĩ ngẫu nhiên để tạo cảm giác tự nhiên (1.5s - 3.5s)
+    const thinkTime = 1500 + Math.random() * 2000
+    await new Promise((r) => setTimeout(r, thinkTime))
+
+    // AI quyết định dựa trên chiến thuật thông minh
+    const decision = getAIDecision(
+      {
+        cylinder: cylinder.value,
+        liveAtReload: liveAtReload.value,
+        blankAtReload: blankAtReload.value,
+        aiHp: aiHp.value,
+        playerHp: playerHp.value,
+      },
+      aiDifficulty.value,
+    )
+
+    // Hiển thị lý do quyết định trước khi bắn
+    turnMessage.value = `Furina: "${decision.reason}"`
+    await new Promise((r) => setTimeout(r, 1500))
+
+    await handleShoot('ai', decision.target)
   }
 
   const initIntro = async () => {
@@ -214,6 +236,7 @@ export function useGameLogic() {
     showSettingsModal,
     isSoundOn,
     sfxVolume,
+    aiDifficulty,
     initIntro,
     enterGame,
     startNewGame,
