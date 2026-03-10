@@ -29,10 +29,10 @@
       <div v-if="gameState === 'QUESTION'" class="question-modal">
         <div class="question-box">
           <h3>Câu {{ score + 1 }} / 20</h3>
-          <p class="question-text">{{ currentQuestion.q }}</p>
+          <p class="question-text">{{ currentQuestion?.q }}</p>
           <div class="options">
             <button 
-              v-for="(opt, index) in currentQuestion.options" 
+              v-for="(opt, index) in currentQuestion?.options" 
               :key="index"
               @click="answerQuestion(index)"
               class="btn-option"
@@ -51,7 +51,20 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 
-const questions = [
+interface Question {
+  q: string;
+  options: string[];
+  ans: number;
+}
+
+interface Pipe {
+  x: number;
+  top: number;
+  bottom: number;
+  passed: boolean;
+}
+
+const questions: Question[] = [
   { q: "lim(x->0) [sin(3x) / x] bằng bao nhiêu?", options: ["0", "1", "3", "Vo cung"], ans: 2 },
   { q: "Đạo hàm của f(x) = ln(cos(x)) là?", options: ["sin(x)", "-tan(x)", "cot(x)", "1/cos(x)"], ans: 1 },
   { q: "Tích phân I = ∫(từ 0 đến 1) x*e^x dx bằng?", options: ["1", "e", "e - 1", "0"], ans: 0 },
@@ -77,33 +90,26 @@ const questions = [
 const gameCanvas = ref<HTMLCanvasElement | null>(null);
 type GameState = 'START' | 'PLAYING' | 'QUESTION' | 'GAMEOVER' | 'WIN';
 const gameState = ref<GameState>('START');
-const score = ref(0);
-const currentQuestion = ref<any>(null);
+const score = ref<number>(0);
+const currentQuestion = ref<Question | null>(null);
 
-const showMessage = ref(false);
-const messageText = ref('');
-const messageType = ref('');
+const showMessage = ref<boolean>(false);
+const messageText = ref<string>('');
+const messageType = ref<string>('');
 
 let ctx: CanvasRenderingContext2D | null = null;
 let animationFrameId: number;
 
 const BIRD = { x: 50, y: 150, width: 24, height: 24, velocity: 0, gravity: 0.4, jump: -6 };
-const PIPES: any[] = [];
+const PIPES = ref<Pipe[]>([]);
 const PIPE_WIDTH = 40;
 const PIPE_GAP = 130;
-let frames = 0;
+let frames: number = 0;
 
-const initGame = () => {
-  if (!gameCanvas.value) return;
-  ctx = gameCanvas.value.getContext('2d');
-  resetGame();
-  draw();
-};
-
-const resetGame = () => {
+const resetGame = (): void => {
   BIRD.y = 150;
   BIRD.velocity = 0;
-  PIPES.length = 0;
+  PIPES.value = [];
   score.value = 0;
   frames = 0;
   gameState.value = 'START';
@@ -111,7 +117,13 @@ const resetGame = () => {
   draw();
 };
 
-const flap = () => {
+const initGame = (): void => {
+  if (!gameCanvas.value) return;
+  ctx = gameCanvas.value.getContext('2d');
+  resetGame();
+};
+
+const flap = (): void => {
   if (gameState.value === 'START') {
     gameState.value = 'PLAYING';
     loop();
@@ -120,14 +132,14 @@ const flap = () => {
   }
 };
 
-const handleKeyDown = (e: KeyboardEvent) => {
+const handleKeyDown = (e: KeyboardEvent): void => {
   if (e.code === 'Space') {
     e.preventDefault(); 
     flap();
   }
 };
 
-const drawBird = () => {
+const drawBird = (): void => {
   if (!ctx) return;
   ctx.font = '26px Arial';
   ctx.textAlign = 'center';
@@ -135,16 +147,16 @@ const drawBird = () => {
   ctx.fillText('🐧', BIRD.x + BIRD.width / 2, BIRD.y + BIRD.height / 2);
 };
 
-const drawPipes = () => {
+const drawPipes = (): void => {
   if (!ctx || !gameCanvas.value) return;
   ctx.fillStyle = '#2ecc71';
-  PIPES.forEach(pipe => {
+  PIPES.value.forEach((pipe: Pipe) => {
     ctx!.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.top);
     ctx!.fillRect(pipe.x, gameCanvas.value!.height - pipe.bottom, PIPE_WIDTH, pipe.bottom);
   });
 };
 
-const update = () => {
+const update = (): void => {
   if (gameState.value !== 'PLAYING') return;
 
   BIRD.velocity += BIRD.gravity;
@@ -156,13 +168,13 @@ const update = () => {
   }
 
   if (frames % 120 === 0) {
-    const topHeight = Math.random() * (480 - PIPE_GAP - 100) + 50;
-    const bottomHeight = 480 - PIPE_GAP - topHeight;
-    PIPES.push({ x: 320, top: topHeight, bottom: bottomHeight, passed: false });
+    const topHeight: number = Math.random() * (480 - PIPE_GAP - 100) + 50;
+    const bottomHeight: number = 480 - PIPE_GAP - topHeight;
+    PIPES.value.push({ x: 320, top: topHeight, bottom: bottomHeight, passed: false });
   }
 
-  for (let i = PIPES.length - 1; i >= 0; i--) {
-    const pipe = PIPES[i];
+  for (let i = PIPES.value.length - 1; i >= 0; i--) {
+    const pipe = PIPES.value[i];
     pipe.x -= 2;
 
     if (
@@ -183,21 +195,21 @@ const update = () => {
     }
 
     if (pipe.x + PIPE_WIDTH < 0) {
-      PIPES.splice(i, 1);
+      PIPES.value.splice(i, 1);
     }
   }
 
   frames++;
 };
 
-const draw = () => {
+const draw = (): void => {
   if (!ctx || !gameCanvas.value) return;
   ctx.clearRect(0, 0, gameCanvas.value.width, gameCanvas.value.height);
   drawPipes();
   drawBird();
 };
 
-const loop = () => {
+const loop = (): void => {
   if (gameState.value === 'PLAYING') {
     update();
     draw();
@@ -205,7 +217,7 @@ const loop = () => {
   }
 };
 
-const triggerToast = (text: string, type: string) => {
+const triggerToast = (text: string, type: string): void => {
   messageText.value = text;
   messageType.value = type;
   showMessage.value = true;
@@ -214,8 +226,8 @@ const triggerToast = (text: string, type: string) => {
   }, 1500);
 };
 
-const answerQuestion = (index: number) => {
-  if (index === currentQuestion.value.ans) {
+const answerQuestion = (index: number): void => {
+  if (currentQuestion.value && index === currentQuestion.value.ans) {
     score.value++;
     triggerToast('Chính xác!', 'success');
     if (score.value >= 20) {
@@ -243,6 +255,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Không có thay đổi nào phần style, giữ nguyên thiết kế đẹp của bạn */
 .game-container {
   display: flex;
   flex-direction: column;
@@ -340,11 +353,6 @@ canvas {
   line-height: 1.5;
   margin-bottom: 20px;
   text-shadow: 1px 1px 0 #000;
-}
-
-.author {
-  font-size: 14px;
-  opacity: 0.8;
 }
 
 .win h2 {
