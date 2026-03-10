@@ -75,7 +75,7 @@ function handleTab() {
 
   if (suggestions.length === 0) return
   if (suggestions.length === 1) {
-    parts[parts.length - 1] = suggestions[0]
+    parts[parts.length - 1] = suggestions[0] ?? ''
     currentInput.value = parts.join(' ')
     return
   }
@@ -98,7 +98,7 @@ function historyUp() {
   } else if (historyIndex.value > 0) {
     historyIndex.value--
   }
-  currentInput.value = history[historyIndex.value]
+  currentInput.value = history[historyIndex.value] ?? ''
 }
 
 function historyDown() {
@@ -106,7 +106,7 @@ function historyDown() {
   if (historyIndex.value === -1) return
   if (historyIndex.value < history.length - 1) {
     historyIndex.value++
-    currentInput.value = history[historyIndex.value]
+    currentInput.value = history[historyIndex.value] ?? ''
   } else {
     historyIndex.value = -1
     currentInput.value = ''
