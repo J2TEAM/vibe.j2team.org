@@ -7,6 +7,8 @@ export interface PageMeta {
   author: string
   facebook?: string
   category: CategoryId
+  /** Set to false to hide the edge toolbar on this page. Default: true */
+  showToolbar?: boolean
 }
 
 /** Full page info with computed path (used by router and PagesGrid) */

@@ -7,6 +7,8 @@ declare module 'vue-router' {
     title?: string
     description?: string
     author?: string
+    showToolbar?: boolean
+    pagePath?: string
   }
 }
 
@@ -30,6 +32,8 @@ const pageRoutes: RouteRecordRaw[] = pages.map((page) => {
       title: `${page.name} - vibe.j2team.org`,
       description: page.description,
       author: page.author,
+      showToolbar: page.showToolbar !== false,
+      pagePath: page.path,
     },
   }
 })
