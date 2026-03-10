@@ -1,0 +1,10 @@
+---
+description: Ngữ cảnh dự án vibe.j2team.org — không database, mỗi trang độc lập trong src/views
+alwaysApply: true
+---
+
+# Vibe.j2team.org
+
+- **Không dùng database.** Mọi trang chạy độc lập, dữ liệu chỉ ở frontend (state, localStorage nếu cần).
+- Trang con nằm trong `src/views/<tên-trang>/` với `index.vue` + `meta.ts`. Route tự sinh từ tên thư mục.
+- Khi thêm/sửa trang trong `src/views/`, tuân theo rule **vibe-contribution** (cách tham gia, link về trang chủ, responsive, ghi rõ tác giả).

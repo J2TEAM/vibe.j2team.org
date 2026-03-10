@@ -49,3 +49,5 @@ package-lock.json
 .agents/
 .claude/
 skills-lock.json
+
+.env
