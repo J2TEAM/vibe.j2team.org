@@ -30,7 +30,7 @@ function handleFlip(index: number) {
 </script>
 
 <template>
-  <div class="px-4 py-8" role="region" aria-label="Trải bài ba lá tarot">
+  <div class="px-6 py-8" role="region" aria-label="Trải bài ba lá tarot">
     <!-- Tiêu đề -->
     <div class="text-center mb-8">
       <h2
