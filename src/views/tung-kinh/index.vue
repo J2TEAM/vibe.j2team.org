@@ -179,9 +179,9 @@ function resetMerit() {
         );
       "
     />
-    <!-- Warm golden ambient -->
+    <!-- Warm golden ambient (pulsing) -->
     <div
-      class="pointer-events-none fixed inset-0"
+      class="pointer-events-none fixed inset-0 ambient-pulse"
       style="
         background: radial-gradient(
           ellipse 60% 55% at 50% 45%,
@@ -192,7 +192,7 @@ function resetMerit() {
     />
 
     <!-- ── Header ── -->
-    <div class="relative z-10 flex w-full items-center justify-between px-4 py-3">
+    <div class="anim-fade-down relative z-10 flex w-full items-center justify-between px-4 py-3">
       <RouterLink
         to="/"
         class="flex items-center gap-1.5 rounded-full border border-amber-700/50 bg-black/40 px-4 py-2 text-sm text-amber-300 backdrop-blur-md transition hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-100"
@@ -217,7 +217,7 @@ function resetMerit() {
     </div>
 
     <!-- ── Merit panel ── -->
-    <div class="relative z-10 mt-1 w-full max-w-xs px-4">
+    <div class="anim-fade-up relative z-10 mt-1 w-full max-w-xs px-4" style="animation-delay: 0.1s">
       <div class="merit-panel rounded-2xl px-6 py-4 text-center">
         <p class="text-[10px] tracking-[0.4em] uppercase text-amber-500/90">Công Đức Tích Lũy</p>
         <p
@@ -253,7 +253,7 @@ function resetMerit() {
     </div>
 
     <!-- ── Incense row (kept, no candles) ── -->
-    <div class="relative z-10 mt-4 flex items-end gap-8">
+    <div class="anim-fade-up relative z-10 mt-4 flex items-end gap-8" style="animation-delay: 0.2s">
       <div v-for="i in 3" :key="i" class="incense-wrap">
         <div class="smoke-col">
           <div class="smoke-puff" :style="{ animationDelay: `${(i - 1) * 0.7}s` }" />
@@ -264,7 +264,10 @@ function resetMerit() {
     </div>
 
     <!-- ── Mõ area (pushed to bottom) ── -->
-    <div class="relative z-10 mt-auto mb-10 flex flex-col items-center">
+    <div
+      class="anim-fade-up relative z-10 mt-auto mb-10 flex flex-col items-center"
+      style="animation-delay: 0.3s"
+    >
       <!-- Floating sutras -->
       <TransitionGroup
         name="float"
@@ -294,7 +297,7 @@ function resetMerit() {
           :src="bonkImage"
           alt="Mõ"
           class="mo-img relative z-10 select-none"
-          :class="isStriking ? 'bounce' : ''"
+          :class="isStriking ? 'bounce' : 'float-idle'"
         />
         <span
           v-for="r in ripples"
@@ -398,6 +401,61 @@ function resetMerit() {
 </template>
 
 <style scoped>
+/* ── Entrance animations ────────────────────────────────────────────────────── */
+.anim-fade-down {
+  animation: fade-down 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.anim-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Idle float (mõ) ───────────────────────────────────────────────────────── */
+.float-idle {
+  animation: mo-float 3.6s ease-in-out infinite;
+}
+@keyframes mo-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* ── Ambient pulse ─────────────────────────────────────────────────────────── */
+.ambient-pulse {
+  animation: ambient-breathe 6s ease-in-out infinite;
+}
+@keyframes ambient-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
 /* ── Merit panel ────────────────────────────────────────────────────────── */
 .merit-panel {
   background: linear-gradient(135deg, rgba(30, 12, 0, 0.82) 0%, rgba(55, 22, 0, 0.78) 100%);
