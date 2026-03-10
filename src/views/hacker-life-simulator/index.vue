@@ -114,7 +114,7 @@
           <div class="stats-grid">
             <div class="stat">
               <div class="label">KEYS PRESSED</div>
-              <div class="value">{{ keysPressed.toLocaleString("en-US") }}</div>
+              <div class="value">{{ keysPressed.toLocaleString('en-US') }}</div>
               <small>Tổng số phím đã spam</small>
             </div>
 
@@ -172,10 +172,10 @@
               <span class="badge">
                 {{
                   index < breached
-                    ? "BREACHED"
+                    ? 'BREACHED'
                     : index === activeTarget && !finished
-                      ? "ACTIVE"
-                      : "PENDING"
+                      ? 'ACTIVE'
+                      : 'PENDING'
                 }}
               </span>
             </div>
@@ -189,7 +189,7 @@
               <div class="rank-name">{{ rankName }}</div>
               <div class="rank-sub">{{ rankSub }}</div>
             </div>
-            <div class="badge">AUDIO: {{ muted ? "OFF" : "ON" }}</div>
+            <div class="badge">AUDIO: {{ muted ? 'OFF' : 'ON' }}</div>
           </div>
 
           <div class="controls">
@@ -235,481 +235,502 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 type MainLine = {
-  html: string;
-  type: string;
-};
+  html: string
+  type: string
+}
 
 type IntelLine = {
-  text: string;
-  type: string;
-};
+  text: string
+  type: string
+}
 
-const matrixCanvas = ref<HTMLCanvasElement | null>(null);
-const terminalMainRef = ref<HTMLDivElement | null>(null);
-const terminalIntelRef = ref<HTMLDivElement | null>(null);
-const intelLogRef = ref<HTMLDivElement | null>(null);
+const matrixCanvas = ref<HTMLCanvasElement | null>(null)
+const terminalMainRef = ref<HTMLDivElement | null>(null)
+const terminalIntelRef = ref<HTMLDivElement | null>(null)
+const intelLogRef = ref<HTMLDivElement | null>(null)
 
-const started = ref(false);
-const finished = ref(false);
-const muted = ref(false);
+const started = ref(false)
+const finished = ref(false)
+const muted = ref(false)
 
-const glitching = ref(false);
-const flashing = ref(false);
-const popupVisible = ref(false);
-const popupShaking = ref(false);
+const glitching = ref(false)
+const flashing = ref(false)
+const popupVisible = ref(false)
+const popupShaking = ref(false)
 
-const toastVisible = ref(false);
-const toastMessage = ref("");
+const toastVisible = ref(false)
+const toastMessage = ref('')
 
-const terminalMain = ref<MainLine[]>([]);
-const intelLog = ref<IntelLine[]>([]);
+const terminalMain = ref<MainLine[]>([])
+const intelLog = ref<IntelLine[]>([])
 
-const keysPressed = ref(0);
-const progress = ref(0);
-const breached = ref(0);
-const activeTarget = ref(0);
-const elapsed = ref(0);
-const kps = ref(0);
+const keysPressed = ref(0)
+const progress = ref(0)
+const breached = ref(0)
+const activeTarget = ref(0)
+const elapsed = ref(0)
+const kps = ref(0)
 
-const systemStatus = ref("IDLE");
-const threatStatus = ref("LOW");
-const mainHeadStatus = ref("offline");
-const intelHeadStatus = ref("standby");
-const missionLabel = ref("Initializing cinematic exploit stack...");
-const lastKeyLabel = ref("-");
+const systemStatus = ref('IDLE')
+const threatStatus = ref('LOW')
+const mainHeadStatus = ref('offline')
+const intelHeadStatus = ref('standby')
+const missionLabel = ref('Initializing cinematic exploit stack...')
+const lastKeyLabel = ref('-')
 
 const popupSub = ref(
-  "Root shell established. Mainframe compromised. You are now officially too cool for a normal terminal."
-);
+  'Root shell established. Mainframe compromised. You are now officially too cool for a normal terminal.'
+)
 
-const recentKeys = ref<number[]>([]);
-const startTime = ref(0);
-const stageIndex = ref(0);
+const recentKeys = ref<number[]>([])
+const startTime = ref(0)
+const stageIndex = ref(0)
 
-let audioCtx: AudioContext | null = null;
-let toastTimer: number | null = null;
-let popupTimer: number | null = null;
-let tickRaf = 0;
-let matrixRaf = 0;
+let audioCtx: AudioContext | null = null
+let toastTimer: number | null = null
+let popupTimer: number | null = null
+let tickRaf = 0
+let matrixRaf = 0
+let cleanupMatrixResize: (() => void) | null = null
 
 const targets = [
-  "PERIMETER FIREWALL",
-  "MAIL GATEWAY",
-  "OPS BASTION NODE",
-  "ARCHIVE VAULT",
-  "SATELLITE UPLINK",
-  "SHADOW MAINFRAME",
-];
+  'PERIMETER FIREWALL',
+  'MAIL GATEWAY',
+  'OPS BASTION NODE',
+  'ARCHIVE VAULT',
+  'SATELLITE UPLINK',
+  'SHADOW MAINFRAME',
+]
 
 const stages = [
-  "Initializing cinematic exploit stack...",
-  "Scanning open ports across hostile subnet...",
-  "Fingerprinting services and weak signatures...",
-  "Bypassing perimeter firewall with movie logic...",
-  "Injecting payload into suspicious endpoint...",
-  "Escalating privileges into root fantasy...",
-  "Decrypting vault archives in style...",
-  "Exfiltrating definitely-not-real data packets...",
-  "Cleaning traces and forging elegant logs...",
-  "Mainframe close to collapse. Keep typing...",
-];
+  'Initializing cinematic exploit stack...',
+  'Scanning open ports across hostile subnet...',
+  'Fingerprinting services and weak signatures...',
+  'Bypassing perimeter firewall with movie logic...',
+  'Injecting payload into suspicious endpoint...',
+  'Escalating privileges into root fantasy...',
+  'Decrypting vault archives in style...',
+  'Exfiltrating definitely-not-real data packets...',
+  'Cleaning traces and forging elegant logs...',
+  'Mainframe close to collapse. Keep typing...',
+]
 
 const mainCommands = [
-  "> loading exploit kernel...",
-  "> tracing tcp routes through ghost relays...",
-  "> syncing rogue agent signatures...",
-  "> hijacking session tokens...",
-  "> brute forcing cinematic password vault...",
-  "> patching shell into privileged daemon...",
-  "> poisoning cache with false telemetry...",
-  "> spinning up covert proxy tunnel...",
-  "> extracting shadow env variables...",
-  "> replaying authorized credentials...",
-  "> scraping metadata from dormant node...",
-  "> reassembling fragmented packets...",
-  "> deobfuscating suspicious javascript bundle...",
-  "> brute syncing hash table [%HASH%]...",
-  "> mounting encrypted volume /mnt/%VOL%...",
-  "> traversing hidden route /deep/%ROUTE%...",
-  "> correlating intel across %N% mirrors...",
-  "> synthesizing admin cookie injection...",
-  "> bypassing 2FA using pure confidence...",
-  "> escalating through forgotten daemon...",
-];
+  '> loading exploit kernel...',
+  '> tracing tcp routes through ghost relays...',
+  '> syncing rogue agent signatures...',
+  '> hijacking session tokens...',
+  '> brute forcing cinematic password vault...',
+  '> patching shell into privileged daemon...',
+  '> poisoning cache with false telemetry...',
+  '> spinning up covert proxy tunnel...',
+  '> extracting shadow env variables...',
+  '> replaying authorized credentials...',
+  '> scraping metadata from dormant node...',
+  '> reassembling fragmented packets...',
+  '> deobfuscating suspicious javascript bundle...',
+  '> brute syncing hash table [%HASH%]...',
+  '> mounting encrypted volume /mnt/%VOL%...',
+  '> traversing hidden route /deep/%ROUTE%...',
+  '> correlating intel across %N% mirrors...',
+  '> synthesizing admin cookie injection...',
+  '> bypassing 2FA using pure confidence...',
+  '> escalating through forgotten daemon...',
+]
 
 const intelLines = [
-  "[intel] packet anomaly detected",
-  "[intel] thermal noise increasing",
-  "[intel] trace daemon heartbeat unstable",
-  "[intel] secondary relay handshake accepted",
-  "[intel] vault checksum mismatch",
-  "[intel] outbound tunnel stability good",
-  "[intel] spoofed token accepted by edge node",
-  "[intel] signal lock improving",
-  "[intel] watching counter-intrusion patterns",
-  "[intel] cinematic intrusion heat rising",
-];
+  '[intel] packet anomaly detected',
+  '[intel] thermal noise increasing',
+  '[intel] trace daemon heartbeat unstable',
+  '[intel] secondary relay handshake accepted',
+  '[intel] vault checksum mismatch',
+  '[intel] outbound tunnel stability good',
+  '[intel] spoofed token accepted by edge node',
+  '[intel] signal lock improving',
+  '[intel] watching counter-intrusion patterns',
+  '[intel] cinematic intrusion heat rising',
+]
 
 const okLines = [
-  "root access handshake accepted",
-  "stealth tunnel stable",
-  "payload executed cleanly",
-  "privilege escalation confirmed",
-  "archive decryption unlocked",
-  "trace wipe completed",
-  "mainframe trust compromised",
-];
+  'root access handshake accepted',
+  'stealth tunnel stable',
+  'payload executed cleanly',
+  'privilege escalation confirmed',
+  'archive decryption unlocked',
+  'trace wipe completed',
+  'mainframe trust compromised',
+]
 
 const warnLines = [
-  "WARNING: IDS signature matched",
-  "ALERT: counter-intrusion signal detected",
-  "NOTICE: target rerouting traffic",
-  "CAUTION: encryption layer thickening",
-];
+  'WARNING: IDS signature matched',
+  'ALERT: counter-intrusion signal detected',
+  'NOTICE: target rerouting traffic',
+  'CAUTION: encryption layer thickening',
+]
 
-const heat = computed(() => clamp(Math.floor(progress.value * 0.88 + kps.value * 3), 0, 100));
+const heat = computed(() => clamp(Math.floor(progress.value * 0.88 + kps.value * 3), 0, 100))
 const trace = computed(() =>
   clamp(Math.floor(progress.value * 0.52 + Math.max(0, 14 - kps.value) * 2), 0, 100)
-);
-const signal = computed(() => clamp(Math.floor(progress.value * 0.95 + kps.value * 2.2), 0, 100));
+)
+const signal = computed(() => clamp(Math.floor(progress.value * 0.95 + kps.value * 2.2), 0, 100))
 
 const sessionValue = computed(() => {
-  if (!started.value) return "NONE";
-  return finished.value ? "ROOT_SHELL" : "INTRUSION";
-});
+  if (!started.value) return 'NONE'
+  return finished.value ? 'ROOT_SHELL' : 'INTRUSION'
+})
 
-const rankInfo = computed(() => getRank(kps.value, progress.value, elapsed.value));
-const rankName = computed(() => rankInfo.value[0]);
-const rankSub = computed(() => rankInfo.value[1]);
+const rankInfo = computed(() => getRank(kps.value, progress.value, elapsed.value))
+const rankName = computed(() => rankInfo.value[0])
+const rankSub = computed(() => rankInfo.value[1])
 
-watch(trace, (v) => {
-  if (v > 70) threatStatus.value = "HIGH";
-  else if (v > 35) threatStatus.value = "MEDIUM";
-  else threatStatus.value = "LOW";
-});
+watch(trace, (value) => {
+  if (value > 70) threatStatus.value = 'HIGH'
+  else if (value > 35) threatStatus.value = 'MEDIUM'
+  else threatStatus.value = 'LOW'
+})
 
 watch(
   terminalMain,
   async () => {
-    await nextTick();
+    await nextTick()
     if (terminalMainRef.value) {
-      terminalMainRef.value.scrollTop = terminalMainRef.value.scrollHeight;
+      terminalMainRef.value.scrollTop = terminalMainRef.value.scrollHeight
     }
   },
   { deep: true }
-);
+)
 
 watch(
   intelLog,
   async () => {
-    await nextTick();
+    await nextTick()
     if (terminalIntelRef.value) {
-      terminalIntelRef.value.scrollTop = terminalIntelRef.value.scrollHeight;
+      terminalIntelRef.value.scrollTop = terminalIntelRef.value.scrollHeight
     }
   },
   { deep: true }
-);
+)
 
 function choice<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(Math.random() * arr.length)]
 }
 
 function rand(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
 function clamp(v: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, v));
+  return Math.max(min, Math.min(max, v))
 }
 
 function formatTime(s: number) {
-  return `${s.toFixed(1)}s`;
+  return `${s.toFixed(1)}s`
 }
 
 function fakeHash() {
-  const chars = "abcdef0123456789";
-  let out = "";
-  for (let i = 0; i < 12; i++) out += chars[Math.floor(Math.random() * chars.length)];
-  return out;
+  const chars = 'abcdef0123456789'
+  let out = ''
+  for (let i = 0; i < 12; i++) out += chars[Math.floor(Math.random() * chars.length)]
+  return out
 }
 
 function fakeVol() {
-  return choice(["blackbox", "vault-x", "phi-node", "ghostdisk", "archive-7"]);
+  return choice(['blackbox', 'vault-x', 'phi-node', 'ghostdisk', 'archive-7'])
 }
 
 function fakeRoute() {
-  return choice(["shadow", "alpha", "echo", "omega", "relay", "delta"]);
+  return choice(['shadow', 'alpha', 'echo', 'omega', 'relay', 'delta'])
 }
 
 function escapeHtml(str: string) {
   return String(str).replace(/[&<>"']/g, (m) => {
     const map: Record<string, string> = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;",
-    };
-    return map[m] ?? m;
-  });
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;',
+    }
+    return map[m] ?? m
+  })
 }
 
 function showToast(msg: string) {
-  toastMessage.value = msg;
-  toastVisible.value = true;
+  toastMessage.value = msg
+  toastVisible.value = true
 
-  if (toastTimer) window.clearTimeout(toastTimer);
+  if (toastTimer) window.clearTimeout(toastTimer)
   toastTimer = window.setTimeout(() => {
-    toastVisible.value = false;
-  }, 1800);
+    toastVisible.value = false
+  }, 1800)
 }
 
-function addMainLine(html: string, type = "dim") {
-  terminalMain.value.push({ html, type });
-  if (terminalMain.value.length > 150) terminalMain.value.shift();
+function addMainLine(html: string, type = 'dim') {
+  terminalMain.value.push({ html, type })
+  if (terminalMain.value.length > 150) terminalMain.value.shift()
 }
 
-function addIntelLine(text: string, type = "dim") {
-  intelLog.value.push({ text, type });
-  if (intelLog.value.length > 100) intelLog.value.shift();
+function addIntelLine(text: string, type = 'dim') {
+  intelLog.value.push({ text, type })
+  if (intelLog.value.length > 100) intelLog.value.shift()
 }
 
 function glitchUI() {
-  glitching.value = false;
+  glitching.value = false
   requestAnimationFrame(() => {
-    glitching.value = true;
+    glitching.value = true
     window.setTimeout(() => {
-      glitching.value = false;
-    }, 120);
-  });
+      glitching.value = false
+    }, 120)
+  })
 }
 
 function flashUI() {
-  flashing.value = false;
+  flashing.value = false
   requestAnimationFrame(() => {
-    flashing.value = true;
+    flashing.value = true
     window.setTimeout(() => {
-      flashing.value = false;
-    }, 150);
-  });
+      flashing.value = false
+    }, 150)
+  })
 }
 
 function shakePopup() {
-  popupShaking.value = false;
+  popupShaking.value = false
   requestAnimationFrame(() => {
-    popupShaking.value = true;
+    popupShaking.value = true
     window.setTimeout(() => {
-      popupShaking.value = false;
-    }, 220);
-  });
+      popupShaking.value = false
+    }, 220)
+  })
 }
 
-function beep(freq = 220, duration = 0.03, type: OscillatorType = "square", gainValue = 0.015) {
-  if (muted.value) return;
+function beep(freq = 220, duration = 0.03, type: OscillatorType = 'square', gainValue = 0.015) {
+  if (muted.value) return
 
   try {
     if (!audioCtx) {
-      audioCtx = new (window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext!)();
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+
+      if (!AudioContextClass) return
+      audioCtx = new AudioContextClass()
     }
 
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
+    const osc = audioCtx.createOscillator()
+    const gain = audioCtx.createGain()
 
-    osc.type = type;
-    osc.frequency.value = freq;
-    gain.gain.value = gainValue;
+    osc.type = type
+    osc.frequency.value = freq
+    gain.gain.value = gainValue
 
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
+    osc.connect(gain)
+    gain.connect(audioCtx.destination)
 
-    osc.start();
-    osc.stop(audioCtx.currentTime + duration);
+    osc.start()
+    osc.stop(audioCtx.currentTime + duration)
   } catch {
     // ignore
   }
 }
 
 function comboSound(currentKps: number) {
-  const base = 180 + Math.min(900, currentKps * 34 + (keysPressed.value % 7) * 15);
-  beep(base, 0.028, Math.random() > 0.45 ? "square" : "sawtooth", 0.012);
+  const base = 180 + Math.min(900, currentKps * 34 + (keysPressed.value % 7) * 15)
+  beep(base, 0.028, Math.random() > 0.45 ? 'square' : 'sawtooth', 0.012)
 
   if (currentKps >= 6) {
-    window.setTimeout(() => beep(base + 90, 0.022, "triangle", 0.01), 20);
+    window.setTimeout(() => beep(base + 90, 0.022, 'triangle', 0.01), 20)
   }
   if (currentKps >= 9) {
-    window.setTimeout(() => beep(base + 170, 0.018, "square", 0.008), 40);
+    window.setTimeout(() => beep(base + 170, 0.018, 'square', 0.008), 40)
   }
 }
 
 function finishChord() {
-  beep(760, 0.08, "triangle", 0.022);
-  window.setTimeout(() => beep(920, 0.1, "triangle", 0.02), 90);
-  window.setTimeout(() => beep(1180, 0.13, "triangle", 0.018), 180);
+  beep(760, 0.08, 'triangle', 0.022)
+  window.setTimeout(() => beep(920, 0.1, 'triangle', 0.02), 90)
+  window.setTimeout(() => beep(1180, 0.13, 'triangle', 0.018), 180)
 }
 
 function computeKps() {
-  const cutoff = performance.now() - 1000;
-  recentKeys.value = recentKeys.value.filter((t) => t >= cutoff);
-  kps.value = recentKeys.value.length;
+  const cutoff = performance.now() - 1000
+  recentKeys.value = recentKeys.value.filter((t) => t >= cutoff)
+  kps.value = recentKeys.value.length
 }
 
-function getRank(currentKps: number, progressValue: number, elapsedValue: number): [string, string] {
+function getRank(
+  currentKps: number,
+  progressValue: number,
+  elapsedValue: number
+): [string, string] {
   if (progressValue >= 100) {
-    if (currentKps >= 11) return ["Mr. Robot", "Bạn vừa hack như đang ở đoạn cao trào cuối phim."];
-    if (currentKps >= 8) return ["Cyber Phantom", "Terminal cháy sáng, mainframe gãy gọn, rất điện ảnh."];
-    if (currentKps >= 6) return ["Elite Intruder", "Nhịp spam đẹp, shell sạch, phong thái lạnh lùng."];
-    if (currentKps >= 4) return ["Shadow Operator", "Mission hoàn thành với độ ngầu ổn định."];
-    return ["Script Kiddie+", "Đã xong nhiệm vụ, nhưng vẫn còn dư địa để ngầu hơn."];
+    if (currentKps >= 11) return ['Mr. Robot', 'Bạn vừa hack như đang ở đoạn cao trào cuối phim.']
+    if (currentKps >= 8) {
+      return ['Cyber Phantom', 'Terminal cháy sáng, mainframe gãy gọn, rất điện ảnh.']
+    }
+    if (currentKps >= 6) {
+      return ['Elite Intruder', 'Nhịp spam đẹp, shell sạch, phong thái lạnh lùng.']
+    }
+    if (currentKps >= 4) return ['Shadow Operator', 'Mission hoàn thành với độ ngầu ổn định.']
+    return ['Script Kiddie+', 'Đã xong nhiệm vụ, nhưng vẫn còn dư địa để ngầu hơn.']
   }
 
-  if (!started.value) return ["Script Kiddie", "Nhấn phím để bật cinematic intrusion mode."];
-  if (currentKps >= 10) return ["Cyber Phantom", "Bàn phím của bạn đang bước vào hyperspace."];
-  if (currentKps >= 7) return ["Elite Intruder", "Nhịp spam rất đẹp. Intel monitor đang phát sáng."];
-  if (currentKps >= 4) return ["Shadow Operator", "Tiến độ tăng đều, đúng phong cách lạnh lùng."];
-  if (elapsedValue > 0 && currentKps < 2) return ["AFK Intruder", "Spam ít quá. Counter-intrusion sắp bắt kịp rồi."];
-  return ["Script Kiddie", "Khởi động ổn, cần thêm tốc độ để ngầu hơn."];
+  if (!started.value) return ['Script Kiddie', 'Nhấn phím để bật cinematic intrusion mode.']
+  if (currentKps >= 10) return ['Cyber Phantom', 'Bàn phím của bạn đang bước vào hyperspace.']
+  if (currentKps >= 7) {
+    return ['Elite Intruder', 'Nhịp spam rất đẹp. Intel monitor đang phát sáng.']
+  }
+  if (currentKps >= 4) {
+    return ['Shadow Operator', 'Tiến độ tăng đều, đúng phong cách lạnh lùng.']
+  }
+  if (elapsedValue > 0 && currentKps < 2) {
+    return ['AFK Intruder', 'Spam ít quá. Counter-intrusion sắp bắt kịp rồi.']
+  }
+  return ['Script Kiddie', 'Khởi động ổn, cần thêm tốc độ để ngầu hơn.']
 }
 
 function updateStage() {
-  const idx = Math.min(stages.length - 1, Math.floor((progress.value / 100) * stages.length));
+  const idx = Math.min(stages.length - 1, Math.floor((progress.value / 100) * stages.length))
   if (idx !== stageIndex.value) {
-    stageIndex.value = idx;
-    missionLabel.value = stages[idx];
-    addIntelLine(`[intel] stage shift -> ${stages[idx]}`, "cyan");
+    stageIndex.value = idx
+    missionLabel.value = stages[idx]
+    addIntelLine(`[intel] stage shift -> ${stages[idx]}`, 'cyan')
   }
 }
 
 function randomMainBurst(key: string) {
-  const count = rand(1, 3);
+  const count = rand(1, 3)
 
   for (let i = 0; i < count; i++) {
     let cmd = choice(mainCommands)
-      .replace("%HASH%", fakeHash())
-      .replace("%VOL%", fakeVol())
-      .replace("%ROUTE%", fakeRoute())
-      .replace("%N%", String(rand(2, 9)));
+      .replace('%HASH%', fakeHash())
+      .replace('%VOL%', fakeVol())
+      .replace('%ROUTE%', fakeRoute())
+      .replace('%N%', String(rand(2, 9)))
 
-    const roll = Math.random();
-    let type = "dim";
+    const roll = Math.random()
+    let type = 'dim'
 
     if (roll < 0.12) {
-      cmd = "> " + choice(warnLines).toLowerCase();
-      type = "warn";
+      cmd = '> ' + choice(warnLines).toLowerCase()
+      type = 'warn'
     } else if (roll < 0.26) {
-      cmd = "> " + choice(okLines).toLowerCase();
-      type = "ok";
+      cmd = '> ' + choice(okLines).toLowerCase()
+      type = 'ok'
     }
 
-    addMainLine(cmd, type);
+    addMainLine(cmd, type)
   }
 
   addMainLine(
     `<span class="prompt">key@capture</span>:<span class="path">~/input</span>$ "${escapeHtml(
       key
     )}"<span class="fake-cursor"></span>`,
-    "dim"
-  );
+    'dim'
+  )
 }
 
 function randomIntelBurst(currentKps: number) {
-  const n = Math.random() < 0.72 ? 1 : 2;
+  const n = Math.random() < 0.72 ? 1 : 2
 
   for (let i = 0; i < n; i++) {
-    const line = choice(intelLines);
-    const type = Math.random() < 0.16 ? "warn" : Math.random() < 0.28 ? "ok" : "cyan";
-    addIntelLine(line, type);
+    const line = choice(intelLines)
+    const type = Math.random() < 0.16 ? 'warn' : Math.random() < 0.28 ? 'ok' : 'cyan'
+    addIntelLine(line, type)
   }
 
   if (currentKps >= 8 && Math.random() < 0.35) {
-    addIntelLine("[intel] combo sound resonance stable", "ok");
+    addIntelLine('[intel] combo sound resonance stable', 'ok')
   }
 }
 
 function maybeBreach() {
-  const should = breached.value < targets.length &&
-    progress.value >= (breached.value + 1) * (100 / targets.length);
+  const should =
+    breached.value < targets.length &&
+    progress.value >= (breached.value + 1) * (100 / targets.length)
 
-  if (!should) return;
+  if (!should) return
 
-  breached.value++;
-  activeTarget.value = Math.min(targets.length - 1, breached.value);
+  breached.value++
+  activeTarget.value = Math.min(targets.length - 1, breached.value)
 
-  addMainLine(`> target "${targets[breached.value - 1].toLowerCase()}" breached successfully.`, "ok");
-  addIntelLine(`[intel] ${targets[breached.value - 1].toLowerCase()} marked compromised`, "ok");
+  addMainLine(`> target "${targets[breached.value - 1].toLowerCase()}" breached successfully.`, 'ok')
+  addIntelLine(`[intel] ${targets[breached.value - 1].toLowerCase()} marked compromised`, 'ok')
 
-  systemStatus.value = breached.value >= targets.length ? "CORE ACCESS" : "BREACH CONFIRMED";
+  systemStatus.value = breached.value >= targets.length ? 'CORE ACCESS' : 'BREACH CONFIRMED'
 
-  flashUI();
-  beep(620, 0.06, "sawtooth", 0.02);
+  flashUI()
+  beep(620, 0.06, 'sawtooth', 0.02)
 
   if (Math.random() < 0.5) {
-    window.setTimeout(() => beep(760, 0.03, "triangle", 0.014), 55);
+    window.setTimeout(() => beep(760, 0.03, 'triangle', 0.014), 55)
   }
 }
 
 function showAccessPopup() {
   popupSub.value = `Root shell established in ${formatTime(elapsed.value)} with ${
     keysPressed.value
-  } keys pressed and ${breached.value}/${targets.length} targets breached.`;
+  } keys pressed and ${breached.value}/${targets.length} targets breached.`
 
-  popupVisible.value = true;
-  shakePopup();
+  popupVisible.value = true
+  shakePopup()
 
-  if (popupTimer) window.clearTimeout(popupTimer);
+  if (popupTimer) window.clearTimeout(popupTimer)
   popupTimer = window.setTimeout(() => {
-    popupVisible.value = false;
-  }, 2300);
+    popupVisible.value = false
+  }, 2300)
 }
 
 function finishMission() {
-  finished.value = true;
-  progress.value = 100;
-  systemStatus.value = "ROOT ACCESS GRANTED";
-  mainHeadStatus.value = "root";
-  intelHeadStatus.value = "breached";
+  finished.value = true
+  progress.value = 100
+  systemStatus.value = 'ROOT ACCESS GRANTED'
+  mainHeadStatus.value = 'root'
+  intelHeadStatus.value = 'breached'
 
-  addMainLine("> root access granted.", "ok");
-  addMainLine("> exfiltration complete. logs cleaned. ego boosted.", "ok");
-  addIntelLine("[intel] all target layers collapsed", "ok");
-  addIntelLine("[intel] counter-intrusion signal lost", "ok");
+  addMainLine('> root access granted.', 'ok')
+  addMainLine('> exfiltration complete. logs cleaned. ego boosted.', 'ok')
+  addIntelLine('[intel] all target layers collapsed', 'ok')
+  addIntelLine('[intel] counter-intrusion signal lost', 'ok')
 
-  finishChord();
-  flashUI();
-  showAccessPopup();
-  showToast("ACCESS GRANTED.");
+  finishChord()
+  flashUI()
+  showAccessPopup()
+  showToast('ACCESS GRANTED.')
 }
 
 function addBoot() {
   const boot = [
-    `<span class="prompt">root@fsociety</span>:<span class="path">~/console</span>$ init --mr-robot-mode`,
-    "loading split terminal environment...",
-    "binding fake shell + intel monitor...",
-    "synchronizing matrix rain...",
-    "arming cyberpunk sound engine...",
-    "operator ready. smash the keyboard.",
-  ];
+    '<span class="prompt">root@fsociety</span>:<span class="path">~/console</span>$ init --mr-robot-mode',
+    'loading split terminal environment...',
+    'binding fake shell + intel monitor...',
+    'synchronizing matrix rain...',
+    'arming cyberpunk sound engine...',
+    'operator ready. smash the keyboard.',
+  ]
 
   boot.forEach((line, i) => {
-    window.setTimeout(() => addMainLine(line, i === 0 ? "ok" : "dim"), i * 85);
-  });
+    window.setTimeout(() => addMainLine(line, i === 0 ? 'ok' : 'dim'), i * 85)
+  })
 
   const intelBoot = [
-    "[intel] monitor online",
-    "[intel] passive trace daemon online",
-    "[intel] standby mode engaged",
-  ];
+    '[intel] monitor online',
+    '[intel] passive trace daemon online',
+    '[intel] standby mode engaged',
+  ]
 
   intelBoot.forEach((line, i) => {
-    window.setTimeout(() => addIntelLine(line, "cyan"), i * 90);
-  });
+    window.setTimeout(() => addIntelLine(line, 'cyan'), i * 90)
+  })
 }
 
 function toggleMute() {
-  muted.value = !muted.value;
-  showToast(muted.value ? "Đã tắt âm." : "Đã bật âm.");
+  muted.value = !muted.value
+  showToast(muted.value ? 'Đã tắt âm.' : 'Đã bật âm.')
 }
 
 async function copyResult() {
@@ -719,191 +740,195 @@ Keys pressed: ${keysPressed.value}
 Keys/second: ${kps.value.toFixed(1)}
 Mission time: ${formatTime(elapsed.value)}
 Systems breached: ${breached.value}
-Progress: ${Math.floor(progress.value)}%`;
+Progress: ${Math.floor(progress.value)}%`
 
   try {
-    await navigator.clipboard.writeText(text);
-    showToast("Đã copy kết quả.");
+    await navigator.clipboard.writeText(text)
+    showToast('Đã copy kết quả.')
   } catch {
-    showToast("Trình duyệt chặn clipboard.");
+    showToast('Trình duyệt chặn clipboard.')
   }
 }
 
 function resetMission() {
-  started.value = false;
-  finished.value = false;
-  keysPressed.value = 0;
-  progress.value = 0;
-  breached.value = 0;
-  activeTarget.value = 0;
-  elapsed.value = 0;
-  recentKeys.value = [];
-  startTime.value = 0;
-  stageIndex.value = 0;
+  started.value = false
+  finished.value = false
+  keysPressed.value = 0
+  progress.value = 0
+  breached.value = 0
+  activeTarget.value = 0
+  elapsed.value = 0
+  recentKeys.value = []
+  startTime.value = 0
+  stageIndex.value = 0
 
-  terminalMain.value = [];
-  intelLog.value = [];
-  popupVisible.value = false;
+  terminalMain.value = []
+  intelLog.value = []
+  popupVisible.value = false
 
-  systemStatus.value = "IDLE";
-  threatStatus.value = "LOW";
-  mainHeadStatus.value = "offline";
-  intelHeadStatus.value = "standby";
-  missionLabel.value = stages[0];
-  lastKeyLabel.value = "-";
+  systemStatus.value = 'IDLE'
+  threatStatus.value = 'LOW'
+  mainHeadStatus.value = 'offline'
+  intelHeadStatus.value = 'standby'
+  missionLabel.value = stages[0]
+  lastKeyLabel.value = '-'
 
-  addMainLine(`<span class="prompt">root@fsociety</span>:<span class="path">~/console</span>$ reset --mission`, "ok");
-  addMainLine("waiting for operator input...", "dim");
-  addIntelLine("[intel] monitor cleared", "cyan");
+  addMainLine(
+    '<span class="prompt">root@fsociety</span>:<span class="path">~/console</span>$ reset --mission',
+    'ok'
+  )
+  addMainLine('waiting for operator input...', 'dim')
+  addIntelLine('[intel] monitor cleared', 'cyan')
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (["Shift", "Control", "Alt", "Meta", "CapsLock", "Tab"].includes(e.key)) return;
-  if (e.repeat && !started.value) return;
+  if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab'].includes(e.key)) return
+  if (e.repeat && !started.value) return
 
-  const key = e.key;
+  const key = e.key
 
   if (!started.value) {
-    started.value = true;
-    startTime.value = performance.now() / 1000;
-    systemStatus.value = "INTRUSION ACTIVE";
-    mainHeadStatus.value = "live";
-    intelHeadStatus.value = "tracking";
-    addBoot();
+    started.value = true
+    startTime.value = performance.now() / 1000
+    systemStatus.value = 'INTRUSION ACTIVE'
+    mainHeadStatus.value = 'live'
+    intelHeadStatus.value = 'tracking'
+    addBoot()
   }
 
-  if (key.toLowerCase() === "r") {
-    resetMission();
-    return;
+  if (key.toLowerCase() === 'r') {
+    resetMission()
+    return
   }
-  if (key.toLowerCase() === "m") {
-    toggleMute();
-    return;
+  if (key.toLowerCase() === 'm') {
+    toggleMute()
+    return
   }
-  if (key.toLowerCase() === "c") {
-    void copyResult();
-    return;
+  if (key.toLowerCase() === 'c') {
+    void copyResult()
+    return
   }
-  if (finished.value) return;
+  if (finished.value) return
 
-  keysPressed.value++;
-  recentKeys.value.push(performance.now());
-  computeKps();
+  keysPressed.value++
+  recentKeys.value.push(performance.now())
+  computeKps()
 
-  lastKeyLabel.value = key.length === 1 ? key.toUpperCase() : key;
+  lastKeyLabel.value = key.length === 1 ? key.toUpperCase() : key
 
-  const gain = 0.42 + Math.min(2.2, kps.value * 0.085);
-  progress.value = clamp(progress.value + gain, 0, 100);
+  const gain = 0.42 + Math.min(2.2, kps.value * 0.085)
+  progress.value = clamp(progress.value + gain, 0, 100)
 
-  randomMainBurst(key);
-  randomIntelBurst(kps.value);
-  comboSound(kps.value);
+  randomMainBurst(key)
+  randomIntelBurst(kps.value)
+  comboSound(kps.value)
 
-  if (Math.random() < 0.22) glitchUI();
-  if (Math.random() < 0.09) flashUI();
+  if (Math.random() < 0.22) glitchUI()
+  if (Math.random() < 0.09) flashUI()
 
-  updateStage();
-  maybeBreach();
+  updateStage()
+  maybeBreach()
 
   if (progress.value >= 100) {
-    finishMission();
+    finishMission()
   }
 }
 
 function tick() {
-  computeKps();
+  computeKps()
 
   if (started.value && !finished.value) {
-    elapsed.value = performance.now() / 1000 - startTime.value;
+    elapsed.value = performance.now() / 1000 - startTime.value
   }
 
-  tickRaf = requestAnimationFrame(tick);
+  tickRaf = requestAnimationFrame(tick)
 }
 
 function startMatrix() {
-  const canvas = matrixCanvas.value;
-  if (!canvas) return;
+  const canvas = matrixCanvas.value
+  if (!canvas) return
 
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
 
-  let drops: number[] = [];
-  let cols = 0;
-  let fontSize = 16;
+  let drops: number[] = []
+  let cols = 0
+  let fontSize = 16
 
-  const chars = "アァカサタナハマヤャラワン0123456789ABCDEF<>/*+-=%$#@{}[];:|";
+  const chars = 'アァカサタナハマヤャラワン0123456789ABCDEF<>/*+-=%$#@{}[];:|'
 
   function resize() {
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
-    canvas.width = Math.floor(window.innerWidth * dpr);
-    canvas.height = Math.floor(window.innerHeight * dpr);
-    canvas.style.width = `${window.innerWidth}px`;
-    canvas.style.height = `${window.innerHeight}px`;
+    const dpr = Math.max(1, window.devicePixelRatio || 1)
+    canvas.width = Math.floor(window.innerWidth * dpr)
+    canvas.height = Math.floor(window.innerHeight * dpr)
+    canvas.style.width = `${window.innerWidth}px`
+    canvas.style.height = `${window.innerHeight}px`
 
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(dpr, dpr);
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.scale(dpr, dpr)
 
-    fontSize = window.innerWidth < 700 ? 13 : 16;
-    cols = Math.floor(window.innerWidth / fontSize);
-    drops = new Array(cols).fill(0).map(() => rand(-40, 0));
+    fontSize = window.innerWidth < 700 ? 13 : 16
+    cols = Math.floor(window.innerWidth / fontSize)
+    drops = Array.from({ length: cols }, () => rand(-40, 0))
   }
 
   function draw() {
-    ctx.fillStyle = "rgba(2, 8, 5, 0.11)";
-    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-    ctx.font = `${fontSize}px Consolas, monospace`;
+    ctx.fillStyle = 'rgba(2, 8, 5, 0.11)'
+    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight)
+    ctx.font = `${fontSize}px Consolas, monospace`
 
     for (let i = 0; i < drops.length; i++) {
-      const text = chars[Math.floor(Math.random() * chars.length)];
-      const x = i * fontSize;
-      const y = drops[i] * fontSize;
+      const text = chars[Math.floor(Math.random() * chars.length)]
+      const x = i * fontSize
+      const y = drops[i] * fontSize
 
-      ctx.fillStyle = i % 7 === 0 ? "rgba(210,255,220,.82)" : "rgba(90,255,140,.72)";
-      ctx.fillText(text, x, y);
+      ctx.fillStyle = i % 7 === 0 ? 'rgba(210,255,220,.82)' : 'rgba(90,255,140,.72)'
+      ctx.fillText(text, x, y)
 
       if (y > window.innerHeight && Math.random() > 0.975) {
-        drops[i] = rand(-10, 0);
+        drops[i] = rand(-10, 0)
       }
-      drops[i]++;
+      drops[i]++
     }
 
-    matrixRaf = requestAnimationFrame(draw);
+    matrixRaf = requestAnimationFrame(draw)
   }
 
-  resize();
-  draw();
+  resize()
+  draw()
 
-  window.addEventListener("resize", resize);
-
-  onBeforeUnmount(() => {
-    window.removeEventListener("resize", resize);
-  });
+  const handleResize = () => resize()
+  window.addEventListener('resize', handleResize)
+  cleanupMatrixResize = () => {
+    window.removeEventListener('resize', handleResize)
+  }
 }
 
 onMounted(() => {
-  addMainLine(`<span class="prompt">root@fsociety</span>:<span class="path">~/console</span>$ status`, "ok");
-  addMainLine("mr. robot edition loaded.", "dim");
-  addMainLine("press any key to begin.", "dim");
-  addIntelLine("[intel] standby", "cyan");
+  addMainLine('<span class="prompt">root@fsociety</span>:<span class="path">~/console</span>$ status', 'ok')
+  addMainLine('mr. robot edition loaded.', 'dim')
+  addMainLine('press any key to begin.', 'dim')
+  addIntelLine('[intel] standby', 'cyan')
 
-  window.addEventListener("keydown", handleKeydown);
-  tick();
-  startMatrix();
-});
+  window.addEventListener('keydown', handleKeydown)
+  tick()
+  startMatrix()
+})
 
 onBeforeUnmount(() => {
-  window.removeEventListener("keydown", handleKeydown);
+  window.removeEventListener('keydown', handleKeydown)
 
-  if (tickRaf) cancelAnimationFrame(tickRaf);
-  if (matrixRaf) cancelAnimationFrame(matrixRaf);
-  if (toastTimer) window.clearTimeout(toastTimer);
-  if (popupTimer) window.clearTimeout(popupTimer);
+  if (tickRaf) cancelAnimationFrame(tickRaf)
+  if (matrixRaf) cancelAnimationFrame(matrixRaf)
+  if (toastTimer) window.clearTimeout(toastTimer)
+  if (popupTimer) window.clearTimeout(popupTimer)
+  if (cleanupMatrixResize) cleanupMatrixResize()
 
   if (audioCtx) {
-    void audioCtx.close().catch(() => undefined);
-    audioCtx = null;
+    void audioCtx.close().catch(() => undefined)
+    audioCtx = null
   }
-});
+})
 </script>
 
 <style scoped>
@@ -921,7 +946,7 @@ onBeforeUnmount(() => {
     radial-gradient(circle at top, rgba(40, 120, 80, 0.09), transparent 34%),
     linear-gradient(180deg, #07100c 0%, #030705 36%, #010201 100%);
   color: #8effb7;
-  font-family: Consolas, Monaco, "Courier New", monospace;
+  font-family: Consolas, Monaco, 'Courier New', monospace;
   letter-spacing: 0.2px;
 }
 
@@ -935,7 +960,7 @@ onBeforeUnmount(() => {
 }
 
 .scanlines::before {
-  content: "";
+  content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -953,7 +978,7 @@ onBeforeUnmount(() => {
 }
 
 .vignette::after {
-  content: "";
+  content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -985,7 +1010,7 @@ onBeforeUnmount(() => {
 }
 
 .panel::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -1112,9 +1137,15 @@ onBeforeUnmount(() => {
   background: rgba(255, 255, 255, 0.18);
 }
 
-.dot:nth-child(1) { background: #ff5f56; }
-.dot:nth-child(2) { background: #ffbd2e; }
-.dot:nth-child(3) { background: #27c93f; }
+.dot:nth-child(1) {
+  background: #ff5f56;
+}
+.dot:nth-child(2) {
+  background: #ffbd2e;
+}
+.dot:nth-child(3) {
+  background: #27c93f;
+}
 
 .term-body {
   height: 100%;
@@ -1146,15 +1177,31 @@ onBeforeUnmount(() => {
   text-shadow: 0 0 8px rgba(61, 255, 140, 0.08);
 }
 
-.line.dim { color: rgba(170, 255, 198, 0.66); }
-.line.ok { color: #eefff4; }
-.line.warn { color: #ffef8a; }
-.line.err { color: #ff4f6f; }
-.line.cyan { color: #8ef7ff; }
+.line.dim {
+  color: rgba(170, 255, 198, 0.66);
+}
+.line.ok {
+  color: #eefff4;
+}
+.line.warn {
+  color: #ffef8a;
+}
+.line.err {
+  color: #ff4f6f;
+}
+.line.cyan {
+  color: #8ef7ff;
+}
 
-:deep(.prompt) { color: #e4fff0; }
-:deep(.path) { color: #78f2a9; }
-:deep(.accent) { color: #fff6a8; }
+:deep(.prompt) {
+  color: #e4fff0;
+}
+:deep(.path) {
+  color: #78f2a9;
+}
+:deep(.accent) {
+  color: #fff6a8;
+}
 
 :deep(.fake-cursor) {
   display: inline-block;
@@ -1168,8 +1215,14 @@ onBeforeUnmount(() => {
 }
 
 @keyframes blink {
-  0%, 45% { opacity: 1; }
-  46%, 100% { opacity: 0; }
+  0%,
+  45% {
+    opacity: 1;
+  }
+  46%,
+  100% {
+    opacity: 0;
+  }
 }
 
 .sys-grid {
@@ -1328,7 +1381,7 @@ onBeforeUnmount(() => {
 }
 
 .progress-fill::after {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   bottom: 0;
@@ -1599,27 +1652,57 @@ button.secondary {
 }
 
 @keyframes glitch {
-  0% { transform: translate(0); }
-  20% { transform: translate(-1px, 1px); }
-  40% { transform: translate(1px, -1px); }
-  60% { transform: translate(-1px, 0); }
-  80% { transform: translate(1px, 1px); }
-  100% { transform: translate(0); }
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-1px, 1px);
+  }
+  40% {
+    transform: translate(1px, -1px);
+  }
+  60% {
+    transform: translate(-1px, 0);
+  }
+  80% {
+    transform: translate(1px, 1px);
+  }
+  100% {
+    transform: translate(0);
+  }
 }
 
 @keyframes flash {
-  0% { filter: brightness(1); }
-  45% { filter: brightness(1.25); }
-  100% { filter: brightness(1); }
+  0% {
+    filter: brightness(1);
+  }
+  45% {
+    filter: brightness(1.25);
+  }
+  100% {
+    filter: brightness(1);
+  }
 }
 
 @keyframes shake {
-  0% { transform: translate(-50%, -50%) translateX(0); }
-  20% { transform: translate(-50%, -50%) translateX(-2px); }
-  40% { transform: translate(-50%, -50%) translateX(2px); }
-  60% { transform: translate(-50%, -50%) translateX(-2px); }
-  80% { transform: translate(-50%, -50%) translateX(2px); }
-  100% { transform: translate(-50%, -50%) translateX(0); }
+  0% {
+    transform: translate(-50%, -50%) translateX(0);
+  }
+  20% {
+    transform: translate(-50%, -50%) translateX(-2px);
+  }
+  40% {
+    transform: translate(-50%, -50%) translateX(2px);
+  }
+  60% {
+    transform: translate(-50%, -50%) translateX(-2px);
+  }
+  80% {
+    transform: translate(-50%, -50%) translateX(2px);
+  }
+  100% {
+    transform: translate(-50%, -50%) translateX(0);
+  }
 }
 
 @media (max-width: 1050px) {
