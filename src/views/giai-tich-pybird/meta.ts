@@ -5,7 +5,7 @@ const meta: PageMeta = {
   description: 'Giải tích but in Flappy Bird.',
   author: 'whooslizi',
   github: 'https://github.com/whooslizi',
-  category: 'games',
+  category: 'game',
 }
 
 export default meta
