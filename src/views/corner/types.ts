@@ -102,3 +102,22 @@ export interface H2HFile {
   updatedAt: string
   pairs: Record<string, H2HPairData>
 }
+
+// --- Dữ liệu dự đoán mô hình XGBoost (all_matchups.json) ---
+export interface MatchupThreshold {
+  prob_over: number
+  prob_under: number
+}
+
+export interface MatchupPrediction {
+  homeTeam: string
+  awayTeam: string
+  expectedCorners: number
+  thresholds: Record<CornerThresholdKey, MatchupThreshold>
+}
+
+export interface AllMatchupsFile {
+  updatedAt: string
+  totalMatchups: number
+  predictions: MatchupPrediction[]
+}

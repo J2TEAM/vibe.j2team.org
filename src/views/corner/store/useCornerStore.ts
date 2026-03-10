@@ -3,11 +3,14 @@ import { computed, ref } from 'vue'
 import rawCorners from '../data/corners.json'
 import rawTeamsStats from '../data/teams_stats.json'
 import rawH2H from '../data/h2h_corners.json'
+import rawMatchups from '../data/all_matchups.json'
 import type {
+  AllMatchupsFile,
   CornerDataFile,
   CornerThresholdKey,
   H2HFile,
   H2HPairData,
+  MatchupPrediction,
   TeamInfo,
   TeamSideStats,
   TeamsStatsFile,
@@ -17,6 +20,7 @@ import type {
 const cornersData = rawCorners as CornerDataFile
 const teamsData = rawTeamsStats as TeamsStatsFile
 const h2hData = rawH2H as H2HFile
+const matchupsData = rawMatchups as AllMatchupsFile
 
 const DEFAULT_THRESHOLDS: CornerThresholdKey[] = ['8.5', '9.5', '10.5', '11.5', '12.5']
 
@@ -79,6 +83,22 @@ export const useCornerStore = defineStore('corner', () => {
     const key2 = `${away}_${home}`
 
     return h2hData.pairs[key1] ?? h2hData.pairs[key2] ?? null
+  })
+
+  // --- Getter: tìm dự đoán mô hình XGBoost cho cặp đội ---
+  const matchupForSelection = computed<MatchupPrediction | null>(() => {
+    const home = selectedHomeTeam.value
+    const away = selectedAwayTeam.value
+    if (!home || !away) return null
+
+    // Tìm theo tên đội (all_matchups.json dùng tên, không phải id)
+    return (
+      matchupsData.predictions.find(
+        (p) =>
+          p.homeTeam.toLowerCase() === home.name.toLowerCase() &&
+          p.awayTeam.toLowerCase() === away.name.toLowerCase(),
+      ) ?? null
+    )
   })
 
   // Kiểm tra đã chọn đủ cặp đội chưa
@@ -165,6 +185,7 @@ export const useCornerStore = defineStore('corner', () => {
     selectedHomeStats,
     selectedAwayStats,
     h2hForSelection,
+    matchupForSelection,
     hasFullSelection,
     h2hSummary,
 
