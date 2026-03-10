@@ -137,8 +137,8 @@ onUnmounted(() => {
 const handleInteraction = (e: MouseEvent | TouchEvent) => {
   let clientX, clientY
   if ('touches' in e && e.touches.length > 0) {
-    clientX = e.touches[0].clientX
-    clientY = e.touches[0].clientY
+    clientX = e.touches[0]!.clientX
+    clientY = e.touches[0]!.clientY
   } else {
     clientX = (e as MouseEvent).clientX
     clientY = (e as MouseEvent).clientY
