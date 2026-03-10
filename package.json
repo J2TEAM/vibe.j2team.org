@@ -18,7 +18,8 @@
     "lint:ci:oxlint": "oxlint .",
     "lint:ci:eslint": "eslint . --cache",
     "prepare": "simple-git-hooks",
-    "optimize:images": "node scripts/optimize-image.mjs"
+    "optimize:images": "node scripts/optimize-image.mjs",
+    "create:page": "node scripts/create-page.mjs"
   },
   "dependencies": {
     "@iconify/vue": "^5.0.0",

@@ -99,6 +99,8 @@ Before implementing any browser/DOM/state logic, **check if VueUse already has a
 
 Full list: https://vueuse.org/functions.html
 
+**Live reference**: See `src/views/hello-world/index.vue` for interactive demos of the composables listed above.
+
 ### @iconify/vue (MUST use for all icons)
 
 Use the `<Icon>` component for all icons instead of inline SVGs, emoji characters, or custom icon components:
@@ -116,6 +118,8 @@ import { Icon } from '@iconify/vue'
 ```
 
 **Preferred icon set: `lucide`** (e.g., `lucide:home`, `lucide:settings`, `lucide:arrow-left`). Only use other sets (`mdi`, `heroicons`, `ph`, `tabler`, `ri`, `solar`, `ion`) if Lucide doesn't have the needed icon. Browse at https://icon-sets.iconify.design/
+
+**Live reference**: See `src/views/hello-world/index.vue` for icon usage examples across multiple icon sets.
 
 ## Code Conventions
 
@@ -192,6 +196,22 @@ src/utils/shared/          # Shared utility functions
 Apps can import from these directories but are never required to. Each app remains self-contained by default.
 
 ## Adding a New Page
+
+Run the generator script:
+
+```sh
+# Interactive (prompts for missing fields)
+pnpm create:page <slug>
+
+# Non-interactive (all fields via flags — use this in scripts and AI agents)
+pnpm create:page <slug> --name "Display Name" --description "Page description" --author "Author" --category game [--facebook "https://..."]
+```
+
+Available categories: `game`, `tool`, `fun`, `learn`, `spiritual`, `connect`, `other`.
+
+This creates `src/views/<slug>/index.vue` + `meta.ts` with the correct structure. Any flag not provided will be prompted interactively.
+
+**Manual alternative** (if not using the script):
 
 1. Create a new directory under `src/views/<your-page-name>/`
 2. Add `index.vue` as the main component inside that directory

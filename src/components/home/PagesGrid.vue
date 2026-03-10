@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, type Directive } from 'vue'
-import { useEventListener, useIntersectionObserver } from '@vueuse/core'
+import { useEventListener, useIntersectionObserver, refDebounced } from '@vueuse/core'
 import { RouterLink, useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { pages } from '@/data/pages-loader'
@@ -43,6 +43,7 @@ function normalize(str: string): string {
 }
 
 const searchQuery = ref('')
+const debouncedQuery = refDebounced(searchQuery, 300)
 const activeCategory = ref<CategoryId | null>(null)
 
 const searchablePages = pages.map((p) => ({
@@ -53,7 +54,7 @@ const searchablePages = pages.map((p) => ({
 }))
 
 const filteredPages = computed(() => {
-  const query = normalize(searchQuery.value.trim())
+  const query = normalize(debouncedQuery.value.trim())
   const category = activeCategory.value
 
   return searchablePages.filter((page) => {
@@ -158,7 +159,7 @@ useEventListener(document, 'keydown', handleKeydown)
         </div>
         <button
           :disabled="filteredPages.length === 0"
-          class="flex items-center justify-center gap-2 px-4 py-3 text-sm font-display tracking-wide border border-accent-coral text-accent-coral bg-accent-coral/10 transition-colors duration-200 hover:bg-accent-coral hover:text-bg-deep disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+          class="flex items-center justify-center gap-2 px-4 py-3 text-sm font-display tracking-wide border border-accent-coral text-accent-coral bg-accent-coral/10 transition-colors duration-200 hover:bg-accent-coral hover:text-bg-deep disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer whitespace-nowrap"
           @click="goToRandom"
         >
           <Icon icon="lucide:shuffle" aria-hidden="true" class="w-4 h-4" />
@@ -190,7 +191,7 @@ useEventListener(document, 'keydown', handleKeydown)
           v-for="cat in categories"
           v-show="categoryCounts[cat.id]"
           :key="cat.id"
-          class="px-3 py-1.5 text-xs font-display tracking-wide border transition-colors duration-200"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-display tracking-wide border transition-colors duration-200"
           :class="
             activeCategory === cat.id
               ? 'bg-accent-coral text-bg-deep border-accent-coral'
@@ -198,6 +199,7 @@ useEventListener(document, 'keydown', handleKeydown)
           "
           @click="toggleCategory(cat.id)"
         >
+          <Icon :icon="cat.icon" aria-hidden="true" class="w-3.5 h-3.5" />
           {{ cat.label }} ({{ categoryCounts[cat.id] || 0 }})
         </button>
       </div>
