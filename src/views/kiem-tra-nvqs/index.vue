@@ -84,87 +84,40 @@ const checklistItems = ref([
   { id: 7, text: 'Thuốc lá, bài bạc, rượu bia', checked: false, type: 'Cấm mang' },
 ])
 
-const eyeRightNoGlass = ref<number | null>(null)
-const eyeLeftNoGlass = ref<number | null>(null)
-const eyeRightGlass = ref<number | null>(null)
-const eyeLeftGlass = ref<number | null>(null)
-const eyeTestResult = ref<{
-  score: number
-  class: string
-  note: string
-  evalMethod: string
-} | null>(null)
+const eyeTestLeft = ref<number | null>(null)
+const eyeTestRight = ref<number | null>(null)
+const eyeTestResult = ref<{ score: number; class: string; note: string } | null>(null)
 
 const calculateEyeTest = () => {
-  if (eyeRightNoGlass.value === null || eyeLeftNoGlass.value === null) return
-
-  const rNG = Math.min(Number(eyeRightNoGlass.value), 10)
-  const lNG = Math.min(Number(eyeLeftNoGlass.value), 10)
-  const totalNG = rNG + lNG
-
-  let rUse = rNG
-  let totalUse = totalNG
-  let evalMethod = 'Đánh giá bằng thị lực KHÔNG KÍNH'
+  if (!eyeTestLeft.value || !eyeTestRight.value) return
+  const total = eyeTestLeft.value + eyeTestRight.value
   let score = 6
+  let note = 'Rớt (Sức khỏe loại 6)'
+  let colorClass = 'text-accent-coral font-bold'
 
-  if (totalNG < 19) {
-    if (eyeRightGlass.value === null || eyeLeftGlass.value === null) {
-      eyeTestResult.value = {
-        score: 0,
-        class: 'text-accent-amber font-bold',
-        note: 'Vui lòng nhập "Thị lực Có kính" ở bên cạnh',
-        evalMethod: 'Do tổng không kính < 19/10 nên bắt buộc xét thêm thị lực sau chỉnh kính.',
-      }
-      return
-    }
-    const rG = Math.min(Number(eyeRightGlass.value), 10)
-    const lG = Math.min(Number(eyeLeftGlass.value), 10)
-    rUse = rG
-    totalUse = rG + lG
-    evalMethod = 'Đánh giá bằng thị lực SAU CHỈNH KÍNH (do không kính < 19/10)'
-  }
-
-  // FIX: Bảng phân loại chuẩn theo TT105
-  if (rUse === 10 && totalUse === 20)
-    score = 1 // Loại 1: Phải=10, Trái=10
-  else if ((totalUse >= 19 && rUse >= 9) || (totalUse === 18 && rUse === 10))
-    score = 2 // Loại 2
-  else if (
-    (totalUse === 18 && rUse === 9) ||
-    (totalUse === 17 && rUse >= 9) ||
-    (totalUse >= 16 && rUse >= 8)
-  )
-    score = 3 // Loại 3
-  else if (totalUse >= 13 && rUse >= 6)
-    score = 4 // Loại 4
-  else if (totalUse >= 7 && rUse >= 3)
-    score = 5 // Loại 5 (trước bị thiếu hoàn toàn)
-  else score = 6 // Loại 6
-
-  let note = ''
-  let colorClass = ''
-
-  if (score === 1) {
+  if (eyeTestLeft.value === 10 && total === 19) {
+    score = 1
     note = 'Rất Tốt (Loại 1)'
     colorClass = 'text-green-400 font-bold'
-  } else if (score === 2) {
+  } else if (eyeTestLeft.value === 10 && total === 18) {
+    score = 2
     note = 'Tốt (Loại 2)'
     colorClass = 'text-green-400 font-bold'
-  } else if (score === 3) {
+  } else if (eyeTestLeft.value >= 9 && total === 17) {
+    score = 3
     note = 'Khá (Loại 3)'
     colorClass = 'text-green-400 font-bold'
-  } else if (score === 4) {
+  } else if (eyeTestLeft.value >= 8 && total === 16) {
+    score = 4
     note = 'Trung bình (Loại 4) - KHÔNG GỌI'
     colorClass = 'text-accent-coral font-bold'
-  } else if (score === 5) {
+  } else if (eyeTestLeft.value >= 6 && total >= 13) {
+    score = 5
     note = 'Yếu (Loại 5) - KHÔNG GỌI'
-    colorClass = 'text-accent-coral font-bold'
-  } else {
-    note = 'Rất Yếu (Loại 6) - KHÔNG GỌI'
     colorClass = 'text-accent-coral font-bold'
   }
 
-  eyeTestResult.value = { score, class: colorClass, note, evalMethod }
+  eyeTestResult.value = { score, class: colorClass, note }
 }
 
 const exportImage = async () => {
@@ -1155,77 +1108,31 @@ const calculate = () => {
         </p>
 
         <div class="grid sm:grid-cols-2 gap-6 mb-6">
-          <div
-            class="space-y-4 border border-border-default p-4 hover:border-accent-sky/50 transition-colors"
-          >
-            <h3
-              class="font-display font-medium text-text-primary border-b border-border-default pb-2"
+          <div class="space-y-2">
+            <label class="block text-sm font-display tracking-wide text-text-secondary"
+              >Thị lực Mắt Trái (x/10)</label
             >
-              Thị lực KHÔNG kính (Bắt buộc)
-            </h3>
-            <div class="space-y-2">
-              <label class="block text-sm font-display tracking-wide text-text-secondary"
-                >Mắt Phải (x/10)</label
-              >
-              <input
-                type="number"
-                v-model="eyeRightNoGlass"
-                min="0"
-                max="12"
-                placeholder="VD: 10"
-                class="w-full bg-bg-elevated border border-border-default text-text-primary focus:border-accent-sky focus:outline-none px-4 py-2"
-              />
-            </div>
-            <div class="space-y-2">
-              <label class="block text-sm font-display tracking-wide text-text-secondary"
-                >Mắt Trái (x/10)</label
-              >
-              <input
-                type="number"
-                v-model="eyeLeftNoGlass"
-                min="0"
-                max="12"
-                placeholder="VD: 10"
-                class="w-full bg-bg-elevated border border-border-default text-text-primary focus:border-accent-sky focus:outline-none px-4 py-2"
-              />
-            </div>
+            <input
+              type="number"
+              v-model="eyeTestLeft"
+              min="1"
+              max="10"
+              placeholder="VD: 10"
+              class="w-full bg-bg-elevated border border-border-default text-text-primary focus:border-accent-sky focus:outline-none px-4 py-2"
+            />
           </div>
-
-          <div
-            class="space-y-4 border border-border-default p-4 hover:border-accent-sky/50 transition-colors bg-bg-deep/50"
-          >
-            <h3
-              class="font-display font-medium text-text-primary border-b border-border-default pb-2"
+          <div class="space-y-2">
+            <label class="block text-sm font-display tracking-wide text-text-secondary"
+              >Thị lực Mắt Phải (x/10)</label
             >
-              Thị lực CÓ kính
-              <span class="text-xs text-text-dim font-normal italic">(Chỉ nhập nếu có tật)</span>
-            </h3>
-            <div class="space-y-2">
-              <label class="block text-sm font-display tracking-wide text-text-secondary"
-                >Mắt Phải (Sau chỉnh kính)</label
-              >
-              <input
-                type="number"
-                v-model="eyeRightGlass"
-                min="0"
-                max="12"
-                placeholder="VD: 10"
-                class="w-full bg-bg-elevated border border-border-default text-text-primary focus:border-accent-sky focus:outline-none px-4 py-2"
-              />
-            </div>
-            <div class="space-y-2">
-              <label class="block text-sm font-display tracking-wide text-text-secondary"
-                >Mắt Trái (Sau chỉnh kính)</label
-              >
-              <input
-                type="number"
-                v-model="eyeLeftGlass"
-                min="0"
-                max="12"
-                placeholder="VD: 10"
-                class="w-full bg-bg-elevated border border-border-default text-text-primary focus:border-accent-sky focus:outline-none px-4 py-2"
-              />
-            </div>
+            <input
+              type="number"
+              v-model="eyeTestRight"
+              min="1"
+              max="10"
+              placeholder="VD: 10"
+              class="w-full bg-bg-elevated border border-border-default text-text-primary focus:border-accent-sky focus:outline-none px-4 py-2"
+            />
           </div>
         </div>
 
@@ -1239,15 +1146,10 @@ const calculate = () => {
         <div v-if="eyeTestResult" class="bg-bg-elevated p-4 border-l-4 border-accent-sky">
           <div class="flex items-center gap-2 mb-1">
             <span class="text-text-secondary text-sm">Điểm số thị lực quy đổi:</span>
-            <strong class="text-xl" :class="eyeTestResult.class">{{
-              eyeTestResult.score > 0 ? eyeTestResult.score : '⚠️'
-            }}</strong>
+            <strong class="text-xl" :class="eyeTestResult.class">{{ eyeTestResult.score }}</strong>
           </div>
           <div class="text-sm">
             Kết luận: <span :class="eyeTestResult.class">{{ eyeTestResult.note }}</span>
-          </div>
-          <div class="text-xs text-text-dim mt-2 italic border-t border-border-default pt-2">
-            * {{ eyeTestResult.evalMethod }}
           </div>
         </div>
       </div>
