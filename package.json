@@ -28,6 +28,7 @@
     "html-to-image": "^1.11.13",
     "pinia": "^3.0.4",
     "vue": "^3.5.30",
+    "shiki": "^4.0.2",
     "vue-router": "^5.0.3"
   },
   "devDependencies": {
