@@ -4,7 +4,7 @@ import { RouterLink } from 'vue-router'
 import { useFetch, useIntervalFn } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 
-// --- 1. Lấy dữ liệu NASA APOD ---
+// --- 1. Fetch NASA APOD data ---
 const NASA_API_KEY = 'DEMO_KEY'
 const nasaApiUrl = `https://api.nasa.gov/planetary/apod?api_key=${NASA_API_KEY}`
 
@@ -27,14 +27,14 @@ async function translateText(text: string): Promise<string> {
   try {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&q=${encodeURIComponent(text)}`
     const { data } = await useFetch(url).get().json()
-    // data có dạng: [ [ ["bản dịch 1", "source 1"], ["bản dịch 2", "source 2"] ], ... ]
+    // data format: [ [ ["translation 1", "source 1"], ["translation 2", "source 2"] ], ... ]
     if (data.value && Array.isArray(data.value[0])) {
       return data.value[0].map((item: string[]) => item[0]).join('')
     }
   } catch {
     console.error('Translation error')
   }
-  return text // Fallback về bản gốc nếu lỗi
+  return text // Fallback to original text if error occurs
 }
 
 function formatDate(dateStr: string) {
@@ -61,7 +61,7 @@ async function fetchAndTranslateApod() {
 
     const rawData = data.value
 
-    // Dịch tiêu đề và nội dung giải thích
+    // Translate title and explanation content
     const [translatedTitle, translatedExplanation] = await Promise.all([
       translateText(rawData.title),
       translateText(rawData.explanation),
@@ -81,7 +81,7 @@ async function fetchAndTranslateApod() {
 
 fetchAndTranslateApod()
 
-// --- 2. Theo dõi Trạm ISS ---
+// --- 2. ISS Tracking ---
 interface IssLocation {
   message: string
   timestamp: number
@@ -98,47 +98,71 @@ const {
   execute: fetchIssData,
 } = useFetch(issLocationUrl, { immediate: true }).get().json<IssLocation>()
 
-// Tự động cập nhật ISS mỗi 5 giây
+// Auto-update ISS location every 5 seconds
 useIntervalFn(() => {
   fetchIssData()
 }, 5000)
 </script>
 
 <template>
-  <div class="min-h-screen bg-bg-deep text-text-primary font-body pb-12">
+  <div class="min-h-screen bg-bg-deep text-text-primary font-body pb-20 relative overflow-hidden">
+    <!-- Issue Badge -->
+    <div class="fixed top-6 right-6 z-50 animate-fade-up animate-delay-5 hidden md:block">
+      <div
+        class="bg-accent-coral text-bg-deep font-display font-bold text-xs tracking-widest px-3 py-1.5 rotate-3 shadow-lg"
+      >
+        VOL.01 / 2026
+      </div>
+    </div>
+
     <!-- Header -->
     <div class="w-full pt-20 px-6 max-w-5xl mx-auto">
       <RouterLink
         to="/"
-        class="inline-flex items-center gap-2 text-sm text-text-secondary transition hover:text-accent-coral mb-8 link-underline"
+        class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-5 py-2.5 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary animate-fade-up mb-12"
       >
-        <Icon icon="lucide:arrow-left" class="size-4" />
-        Về trang chủ
+        &larr; Về trang chủ
       </RouterLink>
 
-      <h1 class="font-display text-4xl sm:text-6xl font-bold text-accent-coral animate-fade-up">
+      <h1
+        class="font-display text-7xl md:text-8xl font-bold text-accent-coral tracking-tight animate-fade-up animate-delay-1"
+      >
         Space Explorer
       </h1>
-      <p class="mt-4 text-text-secondary text-lg max-w-2xl animate-fade-up animate-delay-2">
+      <p
+        class="mt-6 text-text-secondary text-lg md:text-xl max-w-2xl animate-fade-up animate-delay-2 leading-relaxed"
+      >
         Bảng điều khiển theo dõi không gian thời gian thực. Khám phá Vũ trụ qua góc nhìn của NASA và
         theo dõi Trạm vũ trụ Quốc tế (ISS).
       </p>
+
+      <!-- Dot Divider -->
+      <div class="flex gap-1.5 mt-12 animate-fade-up animate-delay-3">
+        <span v-for="n in 30" :key="n" class="w-1 h-1 rounded-full bg-border-default" />
+      </div>
     </div>
 
     <div
-      class="w-full max-w-5xl mx-auto px-6 mt-12 grid gap-6 lg:grid-cols-3 animate-fade-up animate-delay-3"
+      class="w-full max-w-5xl mx-auto px-6 mt-12 grid gap-6 lg:grid-cols-3 animate-fade-up animate-delay-4"
     >
       <!-- NASA APOD Card -->
       <div
-        class="lg:col-span-2 border border-border-default bg-bg-surface p-6 transition-all duration-300 hover:border-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5 group relative overflow-hidden flex flex-col h-full"
+        class="lg:col-span-2 border border-border-default bg-bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5 group relative overflow-hidden flex flex-col h-full"
       >
+        <!-- Background Number -->
+        <span
+          class="absolute top-4 right-6 font-display text-8xl font-bold text-accent-coral/5 select-none pointer-events-none"
+        >
+          01
+        </span>
+
         <!-- Badge -->
-        <span class="absolute top-6 right-6 font-display text-xs tracking-widest text-text-dim"
+        <span class="font-display text-xs tracking-widest text-text-dim mb-2 uppercase"
           >NASA // APOD</span
         >
         <!-- Section Header -->
         <h2
-          class="font-display text-2xl font-semibold text-text-primary mb-6 flex items-center gap-3"
+          class="font-display text-2xl font-semibold text-text-primary mb-8 flex items-center gap-3"
         >
           <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
           Ảnh Thiên văn Hôm nay
@@ -150,7 +174,7 @@ useIntervalFn(() => {
           class="flex-1 flex flex-col items-center justify-center py-12 text-text-secondary gap-4"
         >
           <Icon icon="lucide:loader" class="size-8 animate-spin text-accent-coral" />
-          <p>Đang kết nối tín hiệu vệ tinh...</p>
+          <p class="font-display text-sm tracking-wide">Đang kết nối tín hiệu vệ tinh...</p>
         </div>
 
         <!-- Error State -->
@@ -159,12 +183,14 @@ useIntervalFn(() => {
           class="flex-1 flex flex-col items-center justify-center py-12 text-accent-coral gap-4"
         >
           <Icon icon="lucide:alert-triangle" class="size-8" />
-          <p>Mất kết nối với cơ sở dữ liệu NASA.</p>
+          <p class="font-display text-sm tracking-wide">Mất kết nối với cơ sở dữ liệu NASA.</p>
         </div>
 
         <!-- Data State -->
         <div v-else-if="apodData" class="flex-1 flex flex-col gap-6">
-          <div class="w-full aspect-video border border-border-default relative overflow-hidden">
+          <div
+            class="w-full aspect-video border border-border-default relative overflow-hidden ring-1 ring-border-default"
+          >
             <template v-if="apodData.media_type === 'image'">
               <img
                 :src="apodData.url"
@@ -183,7 +209,6 @@ useIntervalFn(() => {
                 class="w-full h-full"
               ></iframe>
             </template>
-            <div class="absolute inset-0 ring-1 ring-inset ring-black/10 pointer-events-none"></div>
           </div>
 
           <div>
@@ -192,8 +217,10 @@ useIntervalFn(() => {
             >
               {{ apodData.title }}
             </h3>
-            <p class="text-sm text-text-dim mt-1">{{ formatDate(apodData.date) }}</p>
-            <p class="mt-4 text-sm text-text-secondary leading-relaxed text-justify">
+            <p class="text-xs text-text-dim font-display tracking-wide mt-2 uppercase">
+              {{ formatDate(apodData.date) }}
+            </p>
+            <p class="mt-4 text-text-secondary leading-relaxed text-justify">
               {{ apodData.explanation }}
             </p>
           </div>
@@ -202,15 +229,22 @@ useIntervalFn(() => {
 
       <!-- ISS Tracker Card -->
       <div
-        class="border border-border-default bg-bg-surface p-6 transition-all duration-300 hover:border-accent-sky hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-sky/5 flex flex-col h-full group"
+        class="border border-border-default bg-bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent-sky hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-sky/5 flex flex-col h-full group relative overflow-hidden"
       >
+        <!-- Background Number -->
+        <span
+          class="absolute top-4 right-6 font-display text-8xl font-bold text-accent-sky/5 select-none pointer-events-none"
+        >
+          02
+        </span>
+
         <!-- Badge -->
-        <span class="absolute top-6 right-6 font-display text-xs tracking-widest text-text-dim"
+        <span class="font-display text-xs tracking-widest text-text-dim mb-2 uppercase"
           >LIVE // ISS</span
         >
 
         <h2
-          class="font-display text-2xl font-semibold text-text-primary mb-6 flex items-center gap-3"
+          class="font-display text-2xl font-semibold text-text-primary mb-8 flex items-center gap-3"
         >
           <span class="text-accent-sky font-display text-sm tracking-widest">//</span>
           Vị trí Trạm ISS
@@ -222,7 +256,7 @@ useIntervalFn(() => {
             class="text-center py-8 text-text-secondary"
           >
             <Icon icon="lucide:satellite-dish" class="size-12 mx-auto mb-4 opacity-50" />
-            <p>Đang tìm kiếm tín hiệu...</p>
+            <p class="font-display text-sm tracking-wide">Đang tìm kiếm tín hiệu...</p>
           </div>
 
           <div v-if="issData?.iss_position" class="space-y-8 relative">
@@ -244,9 +278,11 @@ useIntervalFn(() => {
 
             <div class="space-y-4">
               <div
-                class="p-4 bg-bg-deep border border-border-default font-mono text-sm tracking-wider group-hover:border-accent-sky/30 transition-colors"
+                class="p-4 bg-bg-deep border border-border-default font-mono text-sm tracking-wider transition-colors group-hover:border-accent-sky/30"
               >
-                <div class="text-text-dim text-xs mb-1">VĨ ĐỘ (LATITUDE)</div>
+                <div class="text-text-dim text-xs font-display tracking-widest mb-1 uppercase">
+                  VĨ ĐỘ (LATITUDE)
+                </div>
                 <div class="text-accent-sky flex justify-between items-center">
                   <span class="text-lg"
                     >{{ Number(issData.iss_position.latitude).toFixed(4) }}°</span
@@ -258,9 +294,11 @@ useIntervalFn(() => {
               </div>
 
               <div
-                class="p-4 bg-bg-deep border border-border-default font-mono text-sm tracking-wider group-hover:border-accent-sky/30 transition-colors"
+                class="p-4 bg-bg-deep border border-border-default font-mono text-sm tracking-wider transition-colors group-hover:border-accent-sky/30"
               >
-                <div class="text-text-dim text-xs mb-1">KINH ĐỘ (LONGITUDE)</div>
+                <div class="text-text-dim text-xs font-display tracking-widest mb-1 uppercase">
+                  KINH ĐỘ (LONGITUDE)
+                </div>
                 <div class="text-accent-sky flex justify-between items-center">
                   <span class="text-lg"
                     >{{ Number(issData.iss_position.longitude).toFixed(4) }}°</span
