@@ -172,17 +172,6 @@ const creditsContentRef = ref<HTMLElement | null>(null)
 const collection = ref<CollectionItem[]>(loadCollection())
 const collectionPreviews = ref<CollectionPreview[]>(buildCollectionPreviews(collection.value))
 
-const STARTER_BUA_NAME_PREFIXES = ['Bùa', 'Lá bùa', 'Phù']
-const STARTER_BUA_NAME_SUFFIXES = [
-  'pass test',
-  'giải bug',
-  'fix nóng',
-  'merge êm',
-  'chống conflict',
-  'đỡ toang',
-  'deploy mượt',
-  'chịu tải',
-]
 const CHANT_SAMPLES = [
   'Nam mô hộ pháp, xin cho công việc hanh thông, bug tiêu tán.',
   'Cầu cho test pass xanh, deploy êm, khách hàng vui vẻ.',
@@ -761,11 +750,7 @@ function loadCollection(): CollectionItem[] {
     }
 
     const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY)
-    if (!legacyRaw) {
-      const starter = createStarterCollection()
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(starter))
-      return starter
-    }
+    if (!legacyRaw) return []
 
     const legacyItems = JSON.parse(legacyRaw) as LegacyCollectionItem[]
     const migrated: CollectionItem[] = legacyItems
@@ -796,82 +781,10 @@ function loadCollection(): CollectionItem[] {
       })
       .slice(0, 60)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated))
-    if (migrated.length > 0) return migrated
-    const starter = createStarterCollection()
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(starter))
-    return starter
+    return migrated
   } catch {
-    return createStarterCollection()
+    return []
   }
-}
-
-function randomStarterName(): string {
-  const prefix =
-    STARTER_BUA_NAME_PREFIXES[Math.floor(Math.random() * STARTER_BUA_NAME_PREFIXES.length)] ?? 'Bùa'
-  const suffix =
-    STARTER_BUA_NAME_SUFFIXES[Math.floor(Math.random() * STARTER_BUA_NAME_SUFFIXES.length)] ??
-    'pass test'
-  return `${prefix} ${suffix}`
-}
-
-function createStarterPayload(name: string, createdAt: string): BuaExportPayload {
-  return {
-    version: 1,
-    createdAt,
-    name,
-    settings: {
-      brushColor: '#c73a2b',
-      brushSize: 7,
-      brushOpacity: 100,
-      brushSizeRandomness: 50,
-      brushOpacityRandomness: 50,
-      paperTint: '#B96F0E',
-      frameTint: '#8f3d2d',
-      axisCount: 6,
-      showGuides: true,
-      showAxisEditor: false,
-      freeDraw: false,
-      drawableBox: { x: 0.13, y: 0.1, width: 0.74, height: 0.78 },
-      paperTransform: { offsetX: 0, offsetY: 0, scale: 1 },
-    },
-    snapshot: {
-      drawingDataUrl: '',
-      center: { x: 0.5, y: 0.74 },
-      axisAngles: [0, 0.52, 1.05, 1.57, 2.09, 2.62],
-    },
-  }
-}
-
-function createStarterCollection(): CollectionItem[] {
-  const names = new Set<string>()
-  while (names.size < 5) {
-    names.add(randomStarterName())
-  }
-  return Array.from(names).map((name, index) => {
-    const createdAt = new Date(Date.now() - index * 30000).toISOString()
-    const payload = createStarterPayload(name, createdAt)
-    return {
-      id: `starter-${index}-${Math.round(Math.random() * 100000)}`,
-      name,
-      styleCode: encodeStyleCode({
-        version: 1,
-        createdAt,
-        name,
-        style: { ...payload.settings },
-        axis: {
-          center: { ...payload.snapshot.center },
-          axisAngles: payload.snapshot.axisAngles.slice(),
-        },
-      }),
-      drawingCode: encodeDrawingCode({
-        version: 1,
-        createdAt,
-        name,
-        drawingDataUrl: payload.snapshot.drawingDataUrl,
-      }),
-      createdAt,
-    }
-  })
 }
 
 function buildCollectionPreviews(items: CollectionItem[]): CollectionPreview[] {
