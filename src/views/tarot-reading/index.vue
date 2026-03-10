@@ -25,12 +25,10 @@ const store = useTarotStore()
 <template>
   <div class="min-h-screen bg-bg-deep text-text-primary font-body">
     <!-- Thanh điều hướng -->
-    <nav
-      class="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border-default/50"
-    >
+    <nav class="flex items-center justify-between px-6 py-4 border-b border-border-default/50">
       <RouterLink
         to="/"
-        class="inline-flex items-center gap-2 text-text-secondary text-sm transition-colors hover:text-accent-coral focus-visible:outline-2 focus-visible:outline-accent-coral focus-visible:outline-offset-4"
+        class="inline-flex items-center gap-2 text-text-secondary text-sm transition-all duration-300 hover:text-accent-coral focus-visible:outline-2 focus-visible:outline-accent-coral focus-visible:outline-offset-4"
         aria-label="Quay về trang chủ"
       >
         <Icon icon="lucide:arrow-left" class="w-4 h-4" />
