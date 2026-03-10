@@ -14,7 +14,7 @@ const emit = defineEmits<{
 
 <template>
   <div
-    class="min-h-[80vh] flex flex-col items-center justify-center px-4 py-16 text-center"
+    class="min-h-[80vh] flex flex-col items-center justify-center px-6 py-16 text-center"
     role="main"
     aria-label="Giới thiệu Trải Bài Tarot"
   >
@@ -27,7 +27,7 @@ const emit = defineEmits<{
 
     <!-- Tiêu đề -->
     <h1
-      class="font-display text-5xl sm:text-6xl md:text-7xl font-bold text-accent-coral animate-fade-up animate-delay-1"
+      class="font-display text-7xl md:text-8xl font-bold tracking-tight text-accent-coral animate-fade-up animate-delay-1"
     >
       Trải Bài Tarot
     </h1>
