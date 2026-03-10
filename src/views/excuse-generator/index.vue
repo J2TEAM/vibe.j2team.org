@@ -303,10 +303,11 @@ const generateExcuse = () => {
     : excuses
 
   // Random lý do, tránh trùng với cái trước
-  let randomExcuse: Excuse
-  do {
-    randomExcuse = pool[Math.floor(Math.random() * pool.length)]
-  } while (pool.length > 1 && currentExcuse.value?.id === randomExcuse.id)
+  if (pool.length === 0) return
+  let randomExcuse: Excuse = pool[Math.floor(Math.random() * pool.length)]!
+  while (pool.length > 1 && currentExcuse.value?.id === randomExcuse.id) {
+    randomExcuse = pool[Math.floor(Math.random() * pool.length)]!
+  }
 
   // Giả lập loading
   setTimeout(() => {
@@ -339,23 +340,28 @@ const copyExcuse = async () => {
 .reveal-enter-active {
   transition: all 0.4s ease-out;
 }
+
 .reveal-leave-active {
   transition: all 0.3s ease-in;
 }
+
 .reveal-enter-from {
   opacity: 0;
   transform: translateY(-10px);
   max-height: 0;
 }
+
 .reveal-enter-to {
   opacity: 1;
   transform: translateY(0);
   max-height: 200px;
 }
+
 .reveal-leave-from {
   opacity: 1;
   max-height: 200px;
 }
+
 .reveal-leave-to {
   opacity: 0;
   max-height: 0;
