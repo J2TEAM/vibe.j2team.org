@@ -4,7 +4,7 @@ const meta: PageMeta = {
   name: 'Resident Evil',
   description:
     'Bullet hell single-player trên Mapbox. WASD di chuyển, chuột bắn, zombie spawn xung quanh.',
-  author: 'J2Team',
+  author: 'Riskyyy',
   category: 'game',
 }
 
