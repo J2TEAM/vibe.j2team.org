@@ -173,7 +173,7 @@
       </div>
       <div class="text-sm text-text-dim">
         Built by 
-        <a href="https://github.com/h1n4mx0" target="_blank" class="font-bold text-accent-sky hover:underline transition-all">
+        <a href="https://github.com/h1n4mx0" target="_blank" rel="noopener noreferrer" class="font-bold text-accent-sky hover:underline transition-all">
           h1n4mx0
         </a>
       </div>

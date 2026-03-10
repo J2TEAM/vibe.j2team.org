@@ -82,7 +82,7 @@
       </div>
       <div class="text-sm text-text-dim">
         Built by 
-        <a href="https://github.com/h1n4mx0" target="_blank" class="font-bold text-accent-sky hover:underline transition-all">
+        <a href="https://github.com/h1n4mx0" target="_blank" rel="noopener noreferrer" class="font-bold text-accent-sky hover:underline transition-all">
           h1n4mx0
         </a>
       </div>
@@ -105,11 +105,13 @@ const router = useRouter()
 
 const showTrollMessage = ref(false)
 
-const componentMap: Record<string, any> = {
-  reaction: ChallengeReaction,
-  typing: ChallengeTyping,
-  timing: ChallengeTiming,
-  mouse: ChallengeMouse,
+import type { Component } from 'vue'
+
+const componentMap: Record<string, Component> = {
+  reaction: ChallengeReaction as Component,
+  typing: ChallengeTyping as Component,
+  timing: ChallengeTiming as Component,
+  mouse: ChallengeMouse as Component,
 }
 
 const currentComponent = computed(() => {
