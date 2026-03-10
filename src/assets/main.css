@@ -62,6 +62,20 @@ body::after {
   }
 }
 
+@keyframes progress-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+.animate-progress-bar {
+  width: 25%;
+  animation: progress-bar 1.2s ease-in-out infinite;
+}
+
 /* Staggered load animation */
 .animate-fade-up {
   animation: fade-up 0.6s ease-out both;

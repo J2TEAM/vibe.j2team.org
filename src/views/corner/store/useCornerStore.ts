@@ -26,6 +26,8 @@ export const useCornerStore = defineStore('corner', () => {
   const selectedHomeTeamId = ref<string | null>(null)
   const selectedAwayTeamId = ref<string | null>(null)
   const teamQuery = ref('')
+  const isPredicting = ref(false)
+  const showResults = ref(false)
 
   // --- Metadata ---
   const updatedAt = cornersData.updatedAt
@@ -117,15 +119,28 @@ export const useCornerStore = defineStore('corner', () => {
     // Không cho chọn cùng đội cho cả 2 bên
     if (id === selectedAwayTeamId.value) return
     selectedHomeTeamId.value = id
+    // Reset kết quả khi đổi đội
+    showResults.value = false
   }
 
   function setAwayTeam(id: string) {
     if (id === selectedHomeTeamId.value) return
     selectedAwayTeamId.value = id
+    showResults.value = false
   }
 
   function setTeamQuery(query: string) {
     teamQuery.value = query
+  }
+
+  // Giả lập quá trình dự đoán (loading 1.5s)
+  async function predict() {
+    if (!hasFullSelection.value || isPredicting.value) return
+    isPredicting.value = true
+    showResults.value = false
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+    isPredicting.value = false
+    showResults.value = true
   }
 
   return {
@@ -134,6 +149,8 @@ export const useCornerStore = defineStore('corner', () => {
     selectedHomeTeamId,
     selectedAwayTeamId,
     teamQuery,
+    isPredicting,
+    showResults,
 
     // Metadata
     updatedAt,
@@ -155,5 +172,6 @@ export const useCornerStore = defineStore('corner', () => {
     setHomeTeam,
     setAwayTeam,
     setTeamQuery,
+    predict,
   }
 })

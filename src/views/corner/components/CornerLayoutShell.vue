@@ -20,7 +20,7 @@ const store = useCornerStore()
           </RouterLink>
           <div class="hidden sm:block text-xs text-text-dim">
             <span class="font-display tracking-widest text-accent-sky">//</span>
-            <span class="ml-1">SCOPE CORNER · PREMIER LEAGUE</span>
+            <span class="ml-1">CORNER PREDICTION · PREMIER LEAGUE</span>
           </div>
         </div>
         <div
@@ -34,15 +34,27 @@ const store = useCornerStore()
         <h1
           class="font-display text-3xl min-[375px]:text-4xl sm:text-5xl font-bold text-accent-coral tracking-tight"
         >
-          Scope Corner
+          Corner Prediction
         </h1>
+
         <p class="mt-3 text-text-secondary text-sm sm:text-base max-w-2xl">
-          Dashboard dự đoán tổng phạt góc cho các trận đấu Premier League, hiển thị xác suất
-          Over/Under ở nhiều ngưỡng kèo khác nhau dựa trên mô hình ensemble offline.
+          Phân tích phạt góc Premier League theo mô hình thống kê — chọn cặp đội, xem xác suất
+          Over/Under và lịch sử đối đầu.
         </p>
-        <p v-if="store.updatedAt" class="mt-2 text-text-dim text-xs">
-          Cập nhật dữ liệu:
-          <span class="font-mono">{{ store.updatedAt }}</span>
+        <div class="mt-3 border border-border-default bg-bg-surface p-3 max-w-2xl">
+          <p class="text-text-dim text-xs leading-relaxed">
+            <Icon icon="lucide:shield-alert" class="size-3 inline-block mr-1 text-accent-amber" />
+            <strong class="text-text-secondary">Disclaimer:</strong>
+            Đây chỉ là công cụ giải trí & nghiên cứu. Cờ bạc, cá độ là
+            <span class="text-accent-coral font-semibold">bất hợp pháp</span>. Để tuân theo nguyên
+            tắc của vibe.j2team.org, dữ liệu được train offline rồi xuất JSON tĩnh, có thể chậm so
+            với thực tế.
+          </p>
+        </div>
+        <p v-if="store.updatedAt" class="mt-2 text-text-dim text-xs flex items-center gap-1.5">
+          <Icon icon="lucide:clock" class="size-3" />
+          Cập nhật lần cuối:
+          <span class="font-mono text-text-secondary">{{ store.updatedAt }}</span>
         </p>
       </section>
 
