@@ -28,12 +28,12 @@ const levels: Level[] = [
   { id: 2, label: 'Level 2', size: 7, density: 0.55, moving: false },
   { id: 3, label: 'Level 3', size: 10, density: 0.6, moving: false },
   { id: 4, label: 'Level 4', size: 13, density: 0.65, moving: false },
-  { id: 5, label: 'Level 5', size: 15, density: 0.65, moving: false },
+  { id: 5, label: 'Level 5', size: 15, density: 0.7, moving: false },
   {
     id: 6,
     label: 'Level Địa ngục 😈',
     size: 15,
-    density: 0.7,
+    density: 0.75,
     moving: true,
   },
 ]
@@ -53,12 +53,15 @@ const { width: viewportWidth } = useWindowSize()
 const boardPx = computed(() => {
   const isWide = viewportWidth.value >= 1024
   const padding = isWide ? 100 : 50
-  const maxWidth = Math.min(1024, viewportWidth.value - padding)
+  const viewportMax = viewportWidth.value - padding
+  const containerMax = Math.min(1280, viewportWidth.value - 48)
+  const leftColumn = Math.floor(containerMax * 0.66) - 16
+  const maxWidth = isWide ? Math.min(leftColumn, viewportMax) : viewportMax
   return Math.floor(maxWidth)
 })
 const cellGap = 4
 const gridMetrics = computed(() => {
-  const size = currentLevel.value.size
+  const size = currentLevel.value?.size
   const cell = Math.max(10, Math.floor((boardPx.value - cellGap * (size - 1)) / size))
   const grid = cell * size + cellGap * (size - 1)
   return { cell, grid }
@@ -108,13 +111,15 @@ const buildGrid = (level: Level) => {
     const cellIndex = indices[i]
     const animalIndex = Math.floor(Math.random() * animals.length)
     const emoji = animals[animalIndex]
-    nextGrid[cellIndex] = emoji
-    nextMoving.push({
-      id: i,
-      emoji,
-      x: cellIndex % level.size,
-      y: Math.floor(cellIndex / level.size),
-    })
+    if (cellIndex !== undefined && emoji !== undefined) {
+      nextGrid[cellIndex] = emoji
+      nextMoving.push({
+        id: i,
+        emoji,
+        x: cellIndex % level.size,
+        y: Math.floor(cellIndex / level.size),
+      })
+    }
   }
 
   grid.value = nextGrid
@@ -125,14 +130,14 @@ const moveAnimals = () => {
   const total = grid.value.length
   if (total === 0) return
 
-  if (currentLevel.value.moving) {
+  if (currentLevel.value?.moving) {
     const indices = shuffleIndices(total)
     movingAnimals.value = movingAnimals.value.map((animal, idx) => {
       const index = indices[idx]
       return {
         ...animal,
-        x: index % currentLevel.value.size,
-        y: Math.floor(index / currentLevel.value.size),
+        x: index % currentLevel.value?.size,
+        y: Math.floor(index / currentLevel.value?.size),
       }
     })
     return
@@ -315,7 +320,9 @@ watch(
         v-if="phase !== 'idle'"
         class="grid flex-1 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
       >
-        <div class="border border-border-default bg-bg-surface p-3 animate-fade-up animate-delay-4">
+        <div
+          class="border border-border-default bg-bg-surface p-3 animate-fade-up animate-delay-4 w-fit"
+        >
           <div class="flex items-center justify-between gap-4 pb-3 text-xs text-text-secondary">
             <div class="font-display text-text-primary">
               {{ currentLevel?.label }}
