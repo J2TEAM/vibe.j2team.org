@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description:
     'Discover what the cards reveal — a three-card past / present / future spread with 78-card deck',
   author: 'NguyenVanViet2004',
+  facebook: 'https://www.facebook.com/VietNguyenVan2004',
   category: 'spiritual',
 }
 
