@@ -46,7 +46,6 @@ export function usePlayerShooting(
   options?: UsePlayerShootingOptions
 ) {
   const { isWalkable, zombies: zombiesRef, onZombieHit } = options ?? {}
-  const zombies = zombiesRef?.value ?? []
   const bullets = ref<Bullet[]>([])
   const lastShot = ref(0)
   const isHolding = ref(false)
@@ -110,8 +109,6 @@ export function usePlayerShooting(
 
   let rafId: number
   const tick = () => {
-    const map = mapRef.value
-    const pos = playerPosition.value
     bullets.value = bullets.value
       .map((b) => {
         const newLat = b.lat + b.dirLat * BULLET_SPEED

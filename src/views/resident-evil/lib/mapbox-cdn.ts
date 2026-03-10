@@ -8,12 +8,12 @@ const CDN_BASE = 'https://unpkg.com/mapbox-gl@' + MAPBOX_VERSION + '/dist'
 
 export interface MapboxMapInstance {
   project(lnglat: [number, number]): { x: number; y: number }
-  setCenter(center: [number, number], options?: { duration?: number }): void
-  addLayer(layer: Record<string, unknown>, beforeId?: string): void
+  setCenter(center: [number, number], options?: { duration?: number }): MapboxMapInstance
+  addLayer(layer: Record<string, unknown>, beforeId?: string): MapboxMapInstance
   getStyle(): { layers?: { id: string; type: string; layout?: Record<string, unknown> }[] }
-  on(type: string, fn: () => void): void
+  on(type: string, fn: () => void): MapboxMapInstance
   remove(): void
-  addControl(control: unknown, position?: string): void
+  addControl(control: unknown, position?: string): MapboxMapInstance
   unproject(point: [number, number]): { lng: number; lat: number }
   queryRenderedFeatures(bbox: [[number, number], [number, number]], options?: { layers?: string[] }): unknown[]
 }

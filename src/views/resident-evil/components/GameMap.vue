@@ -83,7 +83,7 @@ onMounted(async () => {
   })
 
   mapInstance = map
-  mapRef.value = map as MapboxMap
+  mapRef.value = map as unknown as MapboxMap
 })
 
 onUnmounted(() => {

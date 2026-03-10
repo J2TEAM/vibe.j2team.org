@@ -33,7 +33,7 @@ function getDirectionToward(
     'south-east',
   ]
   const index = Math.round(normalized / 45) % 8
-  return sectors[index]
+  return sectors[index] ?? 'south'
 }
 
 function randomSpeed() {
