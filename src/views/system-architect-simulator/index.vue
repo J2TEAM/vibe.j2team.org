@@ -183,6 +183,16 @@
         </div>
       </div>
 
+      <!-- Back to Home Button -->
+      <RouterLink
+        to="/"
+        class="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-bg-surface/90 backdrop-blur-md border border-default hover:border-accent-sky px-4 py-2 rounded-full shadow-xl text-text-secondary hover:text-accent-sky font-display tracking-widest text-xs transition-all z-40 group cursor-pointer"
+        title="Quay lại Trang Chủ"
+      >
+        <span class="group-hover:-translate-x-1 transition-transform">←</span>
+        <span>TRANG CHỦ</span>
+      </RouterLink>
+
       <!-- Zoom Controls -->
       <div
         class="absolute bottom-6 right-6 flex items-center bg-bg-surface/90 backdrop-blur-md border border-default rounded-sm shadow-xl p-1 z-40 cursor-default"
