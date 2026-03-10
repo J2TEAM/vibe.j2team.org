@@ -81,7 +81,7 @@
 
               <div style="height: 12px"></div>
 
-              <div ref="intelLogRef">
+              <div>
                 <p
                   v-for="(line, i) in intelLog"
                   :key="`intel-${i}`"
@@ -247,10 +247,11 @@ type IntelLine = {
   type: string
 }
 
+type AudioContextCtor = new () => AudioContext
+
 const matrixCanvas = ref<HTMLCanvasElement | null>(null)
 const terminalMainRef = ref<HTMLDivElement | null>(null)
 const terminalIntelRef = ref<HTMLDivElement | null>(null)
-const intelLogRef = ref<HTMLDivElement | null>(null)
 
 const started = ref(false)
 const finished = ref(false)
@@ -303,7 +304,7 @@ const targets = [
   'ARCHIVE VAULT',
   'SATELLITE UPLINK',
   'SHADOW MAINFRAME',
-]
+] as const
 
 const stages = [
   'Initializing cinematic exploit stack...',
@@ -316,7 +317,7 @@ const stages = [
   'Exfiltrating definitely-not-real data packets...',
   'Cleaning traces and forging elegant logs...',
   'Mainframe close to collapse. Keep typing...',
-]
+] as const
 
 const mainCommands = [
   '> loading exploit kernel...',
@@ -339,7 +340,7 @@ const mainCommands = [
   '> synthesizing admin cookie injection...',
   '> bypassing 2FA using pure confidence...',
   '> escalating through forgotten daemon...',
-]
+] as const
 
 const intelLines = [
   '[intel] packet anomaly detected',
@@ -352,7 +353,7 @@ const intelLines = [
   '[intel] signal lock improving',
   '[intel] watching counter-intrusion patterns',
   '[intel] cinematic intrusion heat rising',
-]
+] as const
 
 const okLines = [
   'root access handshake accepted',
@@ -362,14 +363,14 @@ const okLines = [
   'archive decryption unlocked',
   'trace wipe completed',
   'mainframe trust compromised',
-]
+] as const
 
 const warnLines = [
   'WARNING: IDS signature matched',
   'ALERT: counter-intrusion signal detected',
   'NOTICE: target rerouting traffic',
   'CAUTION: encryption layer thickening',
-]
+] as const
 
 const heat = computed(() => clamp(Math.floor(progress.value * 0.88 + kps.value * 3), 0, 100))
 const trace = computed(() =>
@@ -396,9 +397,8 @@ watch(
   terminalMain,
   async () => {
     await nextTick()
-    if (terminalMainRef.value) {
-      terminalMainRef.value.scrollTop = terminalMainRef.value.scrollHeight
-    }
+    const el = terminalMainRef.value
+    if (el) el.scrollTop = el.scrollHeight
   },
   { deep: true }
 )
@@ -407,45 +407,46 @@ watch(
   intelLog,
   async () => {
     await nextTick()
-    if (terminalIntelRef.value) {
-      terminalIntelRef.value.scrollTop = terminalIntelRef.value.scrollHeight
-    }
+    const el = terminalIntelRef.value
+    if (el) el.scrollTop = el.scrollHeight
   },
   { deep: true }
 )
 
-function choice<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]
+function choice<T>(arr: readonly T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)] as T
 }
 
-function rand(min: number, max: number) {
+function rand(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-function clamp(v: number, min: number, max: number) {
+function clamp(v: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, v))
 }
 
-function formatTime(s: number) {
+function formatTime(s: number): string {
   return `${s.toFixed(1)}s`
 }
 
-function fakeHash() {
+function fakeHash(): string {
   const chars = 'abcdef0123456789'
   let out = ''
-  for (let i = 0; i < 12; i++) out += chars[Math.floor(Math.random() * chars.length)]
+  for (let i = 0; i < 12; i++) {
+    out += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
   return out
 }
 
-function fakeVol() {
-  return choice(['blackbox', 'vault-x', 'phi-node', 'ghostdisk', 'archive-7'])
+function fakeVol(): string {
+  return choice(['blackbox', 'vault-x', 'phi-node', 'ghostdisk', 'archive-7'] as const)
 }
 
-function fakeRoute() {
-  return choice(['shadow', 'alpha', 'echo', 'omega', 'relay', 'delta'])
+function fakeRoute(): string {
+  return choice(['shadow', 'alpha', 'echo', 'omega', 'relay', 'delta'] as const)
 }
 
-function escapeHtml(str: string) {
+function escapeHtml(str: string): string {
   return String(str).replace(/[&<>"']/g, (m) => {
     const map: Record<string, string> = {
       '&': '&amp;',
@@ -458,7 +459,7 @@ function escapeHtml(str: string) {
   })
 }
 
-function showToast(msg: string) {
+function showToast(msg: string): void {
   toastMessage.value = msg
   toastVisible.value = true
 
@@ -468,17 +469,17 @@ function showToast(msg: string) {
   }, 1800)
 }
 
-function addMainLine(html: string, type = 'dim') {
+function addMainLine(html: string, type = 'dim'): void {
   terminalMain.value.push({ html, type })
   if (terminalMain.value.length > 150) terminalMain.value.shift()
 }
 
-function addIntelLine(text: string, type = 'dim') {
+function addIntelLine(text: string, type = 'dim'): void {
   intelLog.value.push({ text, type })
   if (intelLog.value.length > 100) intelLog.value.shift()
 }
 
-function glitchUI() {
+function glitchUI(): void {
   glitching.value = false
   requestAnimationFrame(() => {
     glitching.value = true
@@ -488,7 +489,7 @@ function glitchUI() {
   })
 }
 
-function flashUI() {
+function flashUI(): void {
   flashing.value = false
   requestAnimationFrame(() => {
     flashing.value = true
@@ -498,7 +499,7 @@ function flashUI() {
   })
 }
 
-function shakePopup() {
+function shakePopup(): void {
   popupShaking.value = false
   requestAnimationFrame(() => {
     popupShaking.value = true
@@ -508,17 +509,35 @@ function shakePopup() {
   })
 }
 
-function beep(freq = 220, duration = 0.03, type: OscillatorType = 'square', gainValue = 0.015) {
+function getAudioContextCtor(): AudioContextCtor | null {
+  const w = window as Window & {
+    webkitAudioContext?: AudioContextCtor
+  }
+
+  if (typeof window.AudioContext !== 'undefined') {
+    return window.AudioContext as AudioContextCtor
+  }
+
+  if (typeof w.webkitAudioContext !== 'undefined') {
+    return w.webkitAudioContext
+  }
+
+  return null
+}
+
+function beep(
+  freq = 220,
+  duration = 0.03,
+  type: OscillatorType = 'square',
+  gainValue = 0.015
+): void {
   if (muted.value) return
 
   try {
     if (!audioCtx) {
-      const AudioContextClass =
-        window.AudioContext ||
-        (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-
-      if (!AudioContextClass) return
-      audioCtx = new AudioContextClass()
+      const AudioCtor = getAudioContextCtor()
+      if (!AudioCtor) return
+      audioCtx = new AudioCtor()
     }
 
     const osc = audioCtx.createOscillator()
@@ -534,11 +553,11 @@ function beep(freq = 220, duration = 0.03, type: OscillatorType = 'square', gain
     osc.start()
     osc.stop(audioCtx.currentTime + duration)
   } catch {
-    // ignore
+    // ignore audio errors
   }
 }
 
-function comboSound(currentKps: number) {
+function comboSound(currentKps: number): void {
   const base = 180 + Math.min(900, currentKps * 34 + (keysPressed.value % 7) * 15)
   beep(base, 0.028, Math.random() > 0.45 ? 'square' : 'sawtooth', 0.012)
 
@@ -550,13 +569,13 @@ function comboSound(currentKps: number) {
   }
 }
 
-function finishChord() {
+function finishChord(): void {
   beep(760, 0.08, 'triangle', 0.022)
   window.setTimeout(() => beep(920, 0.1, 'triangle', 0.02), 90)
   window.setTimeout(() => beep(1180, 0.13, 'triangle', 0.018), 180)
 }
 
-function computeKps() {
+function computeKps(): void {
   const cutoff = performance.now() - 1000
   recentKeys.value = recentKeys.value.filter((t) => t >= cutoff)
   kps.value = recentKeys.value.length
@@ -593,20 +612,21 @@ function getRank(
   return ['Script Kiddie', 'Khởi động ổn, cần thêm tốc độ để ngầu hơn.']
 }
 
-function updateStage() {
+function updateStage(): void {
   const idx = Math.min(stages.length - 1, Math.floor((progress.value / 100) * stages.length))
   if (idx !== stageIndex.value) {
     stageIndex.value = idx
-    missionLabel.value = stages[idx]
-    addIntelLine(`[intel] stage shift -> ${stages[idx]}`, 'cyan')
+    missionLabel.value = stages[idx] ?? stages[0]
+    addIntelLine(`[intel] stage shift -> ${missionLabel.value}`, 'cyan')
   }
 }
 
-function randomMainBurst(key: string) {
+function randomMainBurst(key: string): void {
   const count = rand(1, 3)
 
   for (let i = 0; i < count; i++) {
-    let cmd = choice(mainCommands)
+    const selected = choice(mainCommands)
+    let cmd = selected
       .replace('%HASH%', fakeHash())
       .replace('%VOL%', fakeVol())
       .replace('%ROUTE%', fakeRoute())
@@ -616,10 +636,10 @@ function randomMainBurst(key: string) {
     let type = 'dim'
 
     if (roll < 0.12) {
-      cmd = '> ' + choice(warnLines).toLowerCase()
+      cmd = `> ${choice(warnLines).toLowerCase()}`
       type = 'warn'
     } else if (roll < 0.26) {
-      cmd = '> ' + choice(okLines).toLowerCase()
+      cmd = `> ${choice(okLines).toLowerCase()}`
       type = 'ok'
     }
 
@@ -634,7 +654,7 @@ function randomMainBurst(key: string) {
   )
 }
 
-function randomIntelBurst(currentKps: number) {
+function randomIntelBurst(currentKps: number): void {
   const n = Math.random() < 0.72 ? 1 : 2
 
   for (let i = 0; i < n; i++) {
@@ -648,18 +668,20 @@ function randomIntelBurst(currentKps: number) {
   }
 }
 
-function maybeBreach() {
+function maybeBreach(): void {
   const should =
     breached.value < targets.length &&
     progress.value >= (breached.value + 1) * (100 / targets.length)
 
   if (!should) return
 
-  breached.value++
+  breached.value += 1
   activeTarget.value = Math.min(targets.length - 1, breached.value)
 
-  addMainLine(`> target "${targets[breached.value - 1].toLowerCase()}" breached successfully.`, 'ok')
-  addIntelLine(`[intel] ${targets[breached.value - 1].toLowerCase()} marked compromised`, 'ok')
+  const breachedTarget = targets[breached.value - 1] ?? targets[0]
+
+  addMainLine(`> target "${breachedTarget.toLowerCase()}" breached successfully.`, 'ok')
+  addIntelLine(`[intel] ${breachedTarget.toLowerCase()} marked compromised`, 'ok')
 
   systemStatus.value = breached.value >= targets.length ? 'CORE ACCESS' : 'BREACH CONFIRMED'
 
@@ -671,7 +693,7 @@ function maybeBreach() {
   }
 }
 
-function showAccessPopup() {
+function showAccessPopup(): void {
   popupSub.value = `Root shell established in ${formatTime(elapsed.value)} with ${
     keysPressed.value
   } keys pressed and ${breached.value}/${targets.length} targets breached.`
@@ -685,7 +707,7 @@ function showAccessPopup() {
   }, 2300)
 }
 
-function finishMission() {
+function finishMission(): void {
   finished.value = true
   progress.value = 100
   systemStatus.value = 'ROOT ACCESS GRANTED'
@@ -703,8 +725,8 @@ function finishMission() {
   showToast('ACCESS GRANTED.')
 }
 
-function addBoot() {
-  const boot = [
+function addBoot(): void {
+  const boot: readonly string[] = [
     '<span class="prompt">root@fsociety</span>:<span class="path">~/console</span>$ init --mr-robot-mode',
     'loading split terminal environment...',
     'binding fake shell + intel monitor...',
@@ -717,7 +739,7 @@ function addBoot() {
     window.setTimeout(() => addMainLine(line, i === 0 ? 'ok' : 'dim'), i * 85)
   })
 
-  const intelBoot = [
+  const intelBoot: readonly string[] = [
     '[intel] monitor online',
     '[intel] passive trace daemon online',
     '[intel] standby mode engaged',
@@ -728,12 +750,12 @@ function addBoot() {
   })
 }
 
-function toggleMute() {
+function toggleMute(): void {
   muted.value = !muted.value
   showToast(muted.value ? 'Đã tắt âm.' : 'Đã bật âm.')
 }
 
-async function copyResult() {
+async function copyResult(): Promise<void> {
   const text = `Hacker Life Simulator // Mr. Robot Edition
 Rank: ${rankName.value}
 Keys pressed: ${keysPressed.value}
@@ -750,7 +772,7 @@ Progress: ${Math.floor(progress.value)}%`
   }
 }
 
-function resetMission() {
+function resetMission(): void {
   started.value = false
   finished.value = false
   keysPressed.value = 0
@@ -781,7 +803,7 @@ function resetMission() {
   addIntelLine('[intel] monitor cleared', 'cyan')
 }
 
-function handleKeydown(e: KeyboardEvent) {
+function handleKeydown(e: KeyboardEvent): void {
   if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab'].includes(e.key)) return
   if (e.repeat && !started.value) return
 
@@ -810,7 +832,7 @@ function handleKeydown(e: KeyboardEvent) {
   }
   if (finished.value) return
 
-  keysPressed.value++
+  keysPressed.value += 1
   recentKeys.value.push(performance.now())
   computeKps()
 
@@ -834,7 +856,7 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
-function tick() {
+function tick(): void {
   computeKps()
 
   if (started.value && !finished.value) {
@@ -844,7 +866,7 @@ function tick() {
   tickRaf = requestAnimationFrame(tick)
 }
 
-function startMatrix() {
+function startMatrix(): void {
   const canvas = matrixCanvas.value
   if (!canvas) return
 
@@ -857,8 +879,9 @@ function startMatrix() {
 
   const chars = 'アァカサタナハマヤャラワン0123456789ABCDEF<>/*+-=%$#@{}[];:|'
 
-  function resize() {
+  function resize(): void {
     const dpr = Math.max(1, window.devicePixelRatio || 1)
+
     canvas.width = Math.floor(window.innerWidth * dpr)
     canvas.height = Math.floor(window.innerHeight * dpr)
     canvas.style.width = `${window.innerWidth}px`
@@ -872,13 +895,14 @@ function startMatrix() {
     drops = Array.from({ length: cols }, () => rand(-40, 0))
   }
 
-  function draw() {
+  function draw(): void {
     ctx.fillStyle = 'rgba(2, 8, 5, 0.11)'
     ctx.fillRect(0, 0, window.innerWidth, window.innerHeight)
     ctx.font = `${fontSize}px Consolas, monospace`
 
     for (let i = 0; i < drops.length; i++) {
-      const text = chars[Math.floor(Math.random() * chars.length)]
+      const index = Math.floor(Math.random() * chars.length)
+      const text = chars.charAt(index)
       const x = i * fontSize
       const y = drops[i] * fontSize
 
@@ -888,7 +912,7 @@ function startMatrix() {
       if (y > window.innerHeight && Math.random() > 0.975) {
         drops[i] = rand(-10, 0)
       }
-      drops[i]++
+      drops[i] += 1
     }
 
     matrixRaf = requestAnimationFrame(draw)
@@ -897,7 +921,10 @@ function startMatrix() {
   resize()
   draw()
 
-  const handleResize = () => resize()
+  const handleResize = (): void => {
+    resize()
+  }
+
   window.addEventListener('resize', handleResize)
   cleanupMatrixResize = () => {
     window.removeEventListener('resize', handleResize)
@@ -905,7 +932,10 @@ function startMatrix() {
 }
 
 onMounted(() => {
-  addMainLine('<span class="prompt">root@fsociety</span>:<span class="path">~/console</span>$ status', 'ok')
+  addMainLine(
+    '<span class="prompt">root@fsociety</span>:<span class="path">~/console</span>$ status',
+    'ok'
+  )
   addMainLine('mr. robot edition loaded.', 'dim')
   addMainLine('press any key to begin.', 'dim')
   addIntelLine('[intel] standby', 'cyan')
