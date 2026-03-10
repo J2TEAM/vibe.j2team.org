@@ -8,7 +8,7 @@
     </RouterLink>
   </div>
   <div class="troll-container">
-    <h2 class="title">🔮 Trợ Lý Tâm Linh Bắt Cầu</h2>
+    <h2 class="title">Tài hay Xỉu? Tui là trợ lý tâm linh bắt cầu giúp bạn nha</h2>
 
     <div v-if="!isFinished && !isCalculating" class="question-box">
       <p class="step-indicator">Bước {{ currentStep + 1 }} / {{ totalQuestions }}</p>
