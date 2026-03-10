@@ -18,6 +18,7 @@
         :wind="wind"
         :diff-label="diffLabel"
         @exit="exitToMenu"
+        @home="goHome"
       />
 
       <div class="canvas-container">
@@ -75,6 +76,7 @@
         :accuracy="accuracy"
         @restart="handleStart"
         @menu="gameState = 'menu'"
+        @home="goHome"
       />
     </div>
   </div>
@@ -82,6 +84,7 @@
 
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { MAX_ANGLE, MIN_ANGLE } from './constants'
 import GameControls from './GameControls.vue'
 import GameHud from './GameHud.vue'
@@ -90,6 +93,7 @@ import MenuScreen from './MenuScreen.vue'
 import { useGameEngine } from './useGameEngine'
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
+const router = useRouter()
 
 const {
   gameState,
@@ -140,6 +144,11 @@ function handleStart() {
       initCanvas(canvasRef.value)
     }
   })
+}
+
+function goHome() {
+  stopGame()
+  router.push('/')
 }
 
 // ============ MOUSE / TOUCH (canvas drag for angle) ============

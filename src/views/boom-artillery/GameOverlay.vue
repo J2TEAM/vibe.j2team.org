@@ -35,7 +35,8 @@
       </div>
       <div class="gameover-actions">
         <button class="restart-btn" @click="$emit('restart')">🔄 Chơi lại</button>
-        <button class="menu-btn-back" @click="$emit('menu')">🏠 Menu</button>
+        <button class="menu-btn-back" @click="$emit('menu')">📋 Menu</button>
+        <button class="home-btn-back" @click="$emit('home')">🌐 Trang chủ</button>
       </div>
     </div>
   </div>
@@ -55,6 +56,7 @@ defineProps<{
 defineEmits<{
   restart: []
   menu: []
+  home: []
 }>()
 </script>
 
@@ -169,5 +171,21 @@ defineEmits<{
 
 .menu-btn-back:hover {
   background: rgba(255, 255, 255, 0.15);
+}
+
+.home-btn-back {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+  padding: 0.7rem 1.5rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.home-btn-back:hover {
+  background: rgba(59, 130, 246, 0.3);
+  transform: translateY(-2px);
 }
 </style>

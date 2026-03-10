@@ -29,6 +29,7 @@
           </span>
         </div>
       </div>
+      <button class="home-btn" @click="$emit('home')" title="Về trang chủ">🏠</button>
       <button class="exit-btn" @click="$emit('exit')" title="Thoát về Menu">✕</button>
     </div>
   </div>
@@ -48,6 +49,7 @@ defineProps<{
 
 defineEmits<{
   exit: []
+  home: []
 }>()
 </script>
 
@@ -120,6 +122,32 @@ defineEmits<{
   flex: 1;
   justify-content: flex-end;
   min-width: 160px;
+}
+
+.home-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.home-btn:hover {
+  background: rgba(59, 130, 246, 0.35);
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: scale(1.1);
+}
+
+.home-btn:active {
+  transform: scale(0.95);
 }
 
 .exit-btn {

@@ -1,5 +1,6 @@
 <template>
   <div class="menu-screen">
+    <button class="home-btn-float" @click="goHome" title="Về trang chủ">← Trang chủ</button>
     <div class="menu-container">
       <h1 class="game-title">
         <span class="title-boom">BOOM</span>
@@ -47,7 +48,10 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { DIFFICULTIES } from './constants'
+
+const router = useRouter()
 
 defineProps<{
   modelValue: string
@@ -59,6 +63,10 @@ defineEmits<{
   'update:gameMode': [value: string]
   start: []
 }>()
+
+function goHome() {
+  router.push('/')
+}
 </script>
 
 <style scoped>
@@ -69,6 +77,30 @@ defineEmits<{
   min-height: 100vh;
   width: 100%;
   background: radial-gradient(ellipse at top, #1e293b 0%, #0f172a 70%);
+  position: relative;
+}
+
+.home-btn-float {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+}
+
+.home-btn-float:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateX(-2px);
 }
 
 .menu-container {
