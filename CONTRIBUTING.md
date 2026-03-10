@@ -29,6 +29,38 @@ pnpm dev
 2. Tạo file `meta.ts` trong cùng thư mục để khai báo tên, mô tả và tác giả (route tự động được tạo)
 3. Xem trang mẫu: `src/views/hello-world/`
 
+## Cấu trúc thư mục khuyến nghị
+
+Mỗi trang là một thư mục độc lập trong `src/views/<tên-trang>/`. Với trang đơn giản, chỉ cần `index.vue` + `meta.ts`. Với trang phức tạp (4+ file), nên tổ chức như sau:
+
+```
+src/views/<tên-trang>/
+  index.vue              # Bắt buộc: component chính
+  meta.ts                # Bắt buộc: metadata (tên, mô tả, tác giả)
+  components/            # Khuyến nghị: các Vue component con
+  composables/           # Khuyến nghị: composition functions (use-*.ts)
+  types.ts               # Khuyến nghị: định nghĩa TypeScript types
+  utils/                 # Khuyến nghị: các hàm tiện ích
+  assets/                # Khuyến nghị: hình ảnh, âm thanh, CSS (được Vite tối ưu)
+```
+
+### Tài nguyên tĩnh (Static Assets)
+
+- `src/views/<tên-trang>/assets/` — hình ảnh, âm thanh, CSS sẽ được Vite hash và tối ưu. **Dùng cho hầu hết trường hợp.**
+- `public/<tên-trang>/` — file media lớn (video, bộ ảnh lớn) phục vụ trực tiếp, không qua Vite.
+
+### Tiện ích dùng chung (opt-in)
+
+Code dùng chung bởi 3+ trang có thể đặt tại:
+
+```
+src/components/shared/     # Component UI dùng chung
+src/composables/shared/    # Composables dùng chung
+src/utils/shared/          # Hàm tiện ích dùng chung
+```
+
+Các trang có thể import từ đây nhưng không bắt buộc. Mỗi trang vẫn hoạt động độc lập.
+
 ## Quy tắc code
 
 - Sử dụng `<script setup lang="ts">` cho tất cả Vue component

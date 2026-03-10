@@ -655,7 +655,9 @@ onUnmounted(() => {
       >
         &larr; Về trang chủ
       </RouterLink>
-      <div class="font-display text-xs tracking-widest text-accent-coral">// PARTICLE NAME CARD</div>
+      <div class="font-display text-xs tracking-widest text-accent-coral">
+        // PARTICLE NAME CARD
+      </div>
     </header>
 
     <!-- Canvas Area -->
@@ -674,8 +676,12 @@ onUnmounted(() => {
       </div>
 
       <!-- Floating Controls -->
-      <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-6 animate-fade-up animate-delay-2 relative z-10">
-        <div class="max-w-2xl mx-auto bg-bg-surface/90 backdrop-blur-sm border border-border-default p-4 sm:p-5">
+      <div
+        class="absolute bottom-0 left-0 right-0 p-4 sm:p-6 animate-fade-up animate-delay-2 relative z-10"
+      >
+        <div
+          class="max-w-2xl mx-auto bg-bg-surface/90 backdrop-blur-sm border border-border-default p-4 sm:p-5"
+        >
           <!-- Name Input + Export -->
           <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div class="flex-1">
@@ -696,7 +702,16 @@ onUnmounted(() => {
                 :disabled="isExporting"
                 class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-accent-coral text-bg-deep font-display font-bold text-sm tracking-wide px-5 py-2.5 transition hover:bg-accent-amber disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
@@ -754,27 +769,56 @@ onUnmounted(() => {
           </div>
 
           <!-- Sliders -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3 pt-3 border-t border-border-default">
+          <div
+            class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3 pt-3 border-t border-border-default"
+          >
             <div>
-              <label class="flex items-center justify-between text-xs text-text-dim font-display tracking-wide mb-1.5">
+              <label
+                class="flex items-center justify-between text-xs text-text-dim font-display tracking-wide mb-1.5"
+              >
                 <span>Kích thước hạt</span>
                 <span class="text-accent-amber">{{ particleSize }}</span>
               </label>
-              <input v-model.number="particleSize" type="range" min="1" max="5" step="0.5" class="slider w-full" />
+              <input
+                v-model.number="particleSize"
+                type="range"
+                min="1"
+                max="5"
+                step="0.5"
+                class="slider w-full"
+              />
             </div>
             <div>
-              <label class="flex items-center justify-between text-xs text-text-dim font-display tracking-wide mb-1.5">
+              <label
+                class="flex items-center justify-between text-xs text-text-dim font-display tracking-wide mb-1.5"
+              >
                 <span>Mật độ</span>
                 <span class="text-accent-amber">{{ 6 - particleDensity }}</span>
               </label>
-              <input v-model.number="particleDensity" type="range" min="2" max="5" step="1" class="slider w-full" />
+              <input
+                v-model.number="particleDensity"
+                type="range"
+                min="2"
+                max="5"
+                step="1"
+                class="slider w-full"
+              />
             </div>
             <div>
-              <label class="flex items-center justify-between text-xs text-text-dim font-display tracking-wide mb-1.5">
+              <label
+                class="flex items-center justify-between text-xs text-text-dim font-display tracking-wide mb-1.5"
+              >
                 <span>Vùng tương tác</span>
                 <span class="text-accent-amber">{{ mouseRadius }}px</span>
               </label>
-              <input v-model.number="mouseRadius" type="range" min="40" max="200" step="10" class="slider w-full" />
+              <input
+                v-model.number="mouseRadius"
+                type="range"
+                min="40"
+                max="200"
+                step="10"
+                class="slider w-full"
+              />
             </div>
           </div>
 

@@ -1,10 +1,4 @@
-import type {
-  CsvRow,
-  JsonValue,
-  JwtTimeField,
-  ParsedHeader,
-  RegexMatch,
-} from '../types'
+import type { CsvRow, JsonValue, JwtTimeField, ParsedHeader, RegexMatch } from '../types'
 
 export function normalizeUrlInput(source: string) {
   if (source.startsWith('?')) return new URL(source, 'https://example.dev')
@@ -162,14 +156,19 @@ function jsonValueToType(value: JsonValue, indentLevel: number): string {
       return 'never[]'
     }
 
-    const itemTypes = Array.from(new Set(value.map((item) => jsonValueToType(item, indentLevel)))).join(' | ')
+    const itemTypes = Array.from(
+      new Set(value.map((item) => jsonValueToType(item, indentLevel))),
+    ).join(' | ')
     return `(${itemTypes})[]`
   }
 
   if (isJsonObject(value)) {
     const indent = '  '.repeat(indentLevel)
     const childIndent = '  '.repeat(indentLevel + 1)
-    const lines = Object.entries(value).map(([key, child]) => `${childIndent}${formatPropertyKey(key)}: ${jsonValueToType(child, indentLevel + 1)}`)
+    const lines = Object.entries(value).map(
+      ([key, child]) =>
+        `${childIndent}${formatPropertyKey(key)}: ${jsonValueToType(child, indentLevel + 1)}`,
+    )
 
     return `{\n${lines.join(';\n')};\n${indent}}`
   }
@@ -298,7 +297,10 @@ export function csvRowToObject(headers: string[], row: string[]) {
 export function normalizeHexColor(value: string) {
   if (/^#?[0-9a-fA-F]{3}$/.test(value)) {
     const raw = value.replace('#', '')
-    return `#${raw.split('').map((char) => `${char}${char}`).join('')}`
+    return `#${raw
+      .split('')
+      .map((char) => `${char}${char}`)
+      .join('')}`
   }
 
   if (/^#?[0-9a-fA-F]{6}$/.test(value)) {
@@ -350,5 +352,11 @@ export function rgbToHsl(r: number, g: number, b: number) {
 }
 
 export function headersToJson(headers: ParsedHeader[]) {
-  return headers.length ? JSON.stringify(Object.fromEntries(headers.map((header) => [header.key, header.value])), null, 2) : ''
+  return headers.length
+    ? JSON.stringify(
+        Object.fromEntries(headers.map((header) => [header.key, header.value])),
+        null,
+        2,
+      )
+    : ''
 }

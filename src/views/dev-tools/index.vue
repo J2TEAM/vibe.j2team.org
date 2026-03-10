@@ -332,8 +332,7 @@ async function runSecurityScan(): Promise<void> {
 
     if (mainRes.status === 'fulfilled') {
       const res = mainRes.value
-      const xfo =
-        res.headers.get('x-frame-options') ?? res.headers.get('X-Frame-Options') ?? null
+      const xfo = res.headers.get('x-frame-options') ?? res.headers.get('X-Frame-Options') ?? null
       const csp =
         res.headers.get('content-security-policy') ??
         res.headers.get('Content-Security-Policy') ??
@@ -419,8 +418,8 @@ function copyToClipboard(text: string): void {
               // Osint-fast
             </h1>
             <p class="mt-1 text-sm text-text-secondary">
-              Dev Debug Toolbox · OSINT Fast · Website Security Scanner Lite — chạy 100% trên
-              trình duyệt, không lưu dữ liệu.
+              Dev Debug Toolbox · OSINT Fast · Website Security Scanner Lite — chạy 100% trên trình
+              duyệt, không lưu dữ liệu.
             </p>
           </div>
           <RouterLink
@@ -450,7 +449,9 @@ function copyToClipboard(text: string): void {
           class="border border-border-default bg-bg-surface p-5 transition-all duration-300 hover:border-accent-coral/50 hover:bg-bg-elevated sm:p-6 animate-fade-up animate-delay-2"
         >
           <div class="mb-4 flex flex-wrap items-center gap-3">
-            <h2 class="font-display text-lg font-semibold text-text-primary flex items-center gap-2">
+            <h2
+              class="font-display text-lg font-semibold text-text-primary flex items-center gap-2"
+            >
               <span class="font-display text-sm tracking-widest text-accent-coral">//</span>
               Base64
             </h2>
@@ -489,7 +490,9 @@ function copyToClipboard(text: string): void {
                 v-model="base64Input"
                 rows="4"
                 class="w-full border border-border-default bg-bg-deep px-3 py-2 text-sm text-text-primary placeholder:text-text-dim focus:border-accent-coral focus:outline-none"
-                :placeholder="base64Mode === 'encode' ? 'Nhập text cần encode...' : 'Nhập Base64 cần decode...'"
+                :placeholder="
+                  base64Mode === 'encode' ? 'Nhập text cần encode...' : 'Nhập Base64 cần decode...'
+                "
               />
             </div>
             <div>
@@ -524,7 +527,9 @@ function copyToClipboard(text: string): void {
           class="border border-border-default bg-bg-surface p-5 transition-all duration-300 hover:border-accent-amber/50 hover:bg-bg-elevated sm:p-6 animate-fade-up animate-delay-3"
         >
           <div class="mb-4 flex flex-wrap items-center gap-3">
-            <h2 class="font-display text-lg font-semibold text-text-primary flex items-center gap-2">
+            <h2
+              class="font-display text-lg font-semibold text-text-primary flex items-center gap-2"
+            >
               <span class="font-display text-sm tracking-widest text-accent-amber">//</span>
               URL Encode / Decode
             </h2>
@@ -563,7 +568,9 @@ function copyToClipboard(text: string): void {
                 v-model="urlInput"
                 rows="3"
                 class="w-full border border-border-default bg-bg-deep px-3 py-2 text-sm text-text-primary placeholder:text-text-dim focus:border-accent-amber focus:outline-none"
-                :placeholder="urlMode === 'encode' ? 'Chuỗi cần encode...' : 'Chuỗi %XX cần decode...'"
+                :placeholder="
+                  urlMode === 'encode' ? 'Chuỗi cần encode...' : 'Chuỗi %XX cần decode...'
+                "
               />
             </div>
             <div>
@@ -597,7 +604,9 @@ function copyToClipboard(text: string): void {
         <article
           class="border border-border-default bg-bg-surface p-5 transition-all duration-300 hover:border-accent-sky/50 hover:bg-bg-elevated sm:p-6 animate-fade-up animate-delay-4"
         >
-          <h2 class="mb-4 font-display text-lg font-semibold text-text-primary flex items-center gap-2">
+          <h2
+            class="mb-4 font-display text-lg font-semibold text-text-primary flex items-center gap-2"
+          >
             <span class="font-display text-sm tracking-widest text-accent-sky">//</span>
             Format JSON
           </h2>
@@ -647,7 +656,9 @@ function copyToClipboard(text: string): void {
         <article
           class="border border-border-default bg-bg-surface p-5 transition-all duration-300 hover:border-accent-amber/50 hover:bg-bg-elevated sm:p-6 animate-fade-up animate-delay-5"
         >
-          <h2 class="mb-2 font-display text-lg font-semibold text-text-primary flex items-center gap-2">
+          <h2
+            class="mb-2 font-display text-lg font-semibold text-text-primary flex items-center gap-2"
+          >
             <span class="font-display text-sm tracking-widest text-accent-amber">//</span>
             JWT Decode
           </h2>
@@ -696,7 +707,9 @@ function copyToClipboard(text: string): void {
         <article
           class="border border-border-default bg-bg-surface p-5 transition-all duration-300 hover:border-accent-sky/50 hover:bg-bg-elevated sm:p-6 animate-fade-up animate-delay-6"
         >
-          <h2 class="mb-2 font-display text-lg font-semibold text-text-primary flex items-center gap-2">
+          <h2
+            class="mb-2 font-display text-lg font-semibold text-text-primary flex items-center gap-2"
+          >
             <span class="font-display text-sm tracking-widest text-accent-sky">//</span>
             Timestamp Convert
           </h2>
@@ -771,7 +784,9 @@ function copyToClipboard(text: string): void {
         >
           <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 class="font-display text-lg font-semibold text-text-primary flex items-center gap-2">
+              <h3
+                class="font-display text-lg font-semibold text-text-primary flex items-center gap-2"
+              >
                 <span class="font-display text-sm tracking-widest text-accent-amber">//</span>
                 OSINT Fast
               </h3>
@@ -851,7 +866,9 @@ function copyToClipboard(text: string): void {
         <article
           class="border border-border-default bg-bg-surface p-5 transition-all duration-300 hover:border-accent-sky/50 hover:bg-bg-elevated sm:p-6 animate-fade-up animate-delay-4"
         >
-          <h3 class="mb-2 font-display text-lg font-semibold text-text-primary flex items-center gap-2">
+          <h3
+            class="mb-2 font-display text-lg font-semibold text-text-primary flex items-center gap-2"
+          >
             <span class="font-display text-sm tracking-widest text-accent-sky">//</span>
             Website Security Scanner Lite
           </h3>
@@ -924,18 +941,10 @@ function copyToClipboard(text: string): void {
                   class="text-accent-sky link-underline"
                 >
                   robots.txt
-                  <span
-                    v-if="securityResult.robotsTxtFound"
-                    class="text-text-secondary"
-                  >
+                  <span v-if="securityResult.robotsTxtFound" class="text-text-secondary">
                     (tìm thấy / phản hồi OK)
                   </span>
-                  <span
-                    v-else
-                    class="text-text-dim"
-                  >
-                    (không truy cập được)
-                  </span>
+                  <span v-else class="text-text-dim"> (không truy cập được) </span>
                 </a>
                 <a
                   :href="securityResult.securityTxtUrl"
@@ -944,18 +953,10 @@ function copyToClipboard(text: string): void {
                   class="text-accent-sky link-underline"
                 >
                   security.txt
-                  <span
-                    v-if="securityResult.securityTxtFound"
-                    class="text-text-secondary"
-                  >
+                  <span v-if="securityResult.securityTxtFound" class="text-text-secondary">
                     (tìm thấy / phản hồi OK)
                   </span>
-                  <span
-                    v-else
-                    class="text-text-dim"
-                  >
-                    (không truy cập được)
-                  </span>
+                  <span v-else class="text-text-dim"> (không truy cập được) </span>
                 </a>
               </div>
             </div>

@@ -91,7 +91,7 @@ async function startShuffle() {
 
 // Category
 const categoryLabel = computed(() =>
-  currentQuestion.value ? t.value.categories[currentQuestion.value.category] ?? '' : '',
+  currentQuestion.value ? (t.value.categories[currentQuestion.value.category] ?? '') : '',
 )
 
 const categoryColor: Record<string, string> = {
@@ -107,8 +107,8 @@ const categoryColor: Record<string, string> = {
   reflection: 'accent-sky',
 }
 
-const categoryBorder = computed(() =>
-  categoryColor[currentQuestion.value.category] ?? 'accent-coral'
+const categoryBorder = computed(
+  () => categoryColor[currentQuestion.value.category] ?? 'accent-coral',
 )
 
 const categoryQuestionColor: Record<string, string> = {
@@ -139,16 +139,16 @@ const categoryAccent: Record<string, string> = {
 
 // RGB values for category colors (for dynamic shadows)
 const categoryRGB: Record<string, string> = {
-  career: '168, 85, 247',      // purple
-  wealth: '255, 184, 48',      // amber
-  health: '34, 197, 94',       // green
+  career: '168, 85, 247', // purple
+  wealth: '255, 184, 48', // amber
+  health: '34, 197, 94', // green
   relationships: '236, 72, 153', // pink
-  growth: '132, 204, 22',      // lime
-  lifestyle: '249, 115, 22',   // orange
-  impact: '20, 184, 166',      // teal
-  technology: '6, 182, 212',   // cyan
+  growth: '132, 204, 22', // lime
+  lifestyle: '249, 115, 22', // orange
+  impact: '20, 184, 166', // teal
+  technology: '6, 182, 212', // cyan
   alternative: '255, 107, 74', // coral
-  reflection: '56, 189, 248',  // sky
+  reflection: '56, 189, 248', // sky
 }
 
 // Dynamic shadows matching category color
@@ -177,8 +177,8 @@ const categoryShadowFront = computed(() => {
 
 // Idle deck: diagonal stack showing bottom and right edges
 function deckOffset(i: number) {
-  const shiftY = (6 - i) * 3  // Vertical offset
-  const shiftX = (6 - i) * 3  // Horizontal offset for diagonal effect
+  const shiftY = (6 - i) * 3 // Vertical offset
+  const shiftX = (6 - i) * 3 // Horizontal offset for diagonal effect
   return {
     transform: `translate(${shiftX}px, ${shiftY}px)`,
     zIndex: i,
@@ -225,13 +225,18 @@ onMounted(() => {
 
 <template>
   <div class="min-h-dvh bg-bg-deep text-text-primary font-body flex flex-col overflow-hidden">
-
     <!-- ── Header ─────────────────────────────────────────────────────────── -->
     <header class="border-b border-border-default animate-fade-up shrink-0">
-      <div class="mx-auto max-w-6xl px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3">
+      <div
+        class="mx-auto max-w-6xl px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3"
+      >
         <div>
-          <p class="font-display text-[10px] sm:text-xs tracking-widest text-accent-coral mb-0.5">// WHAT IF?</p>
-          <h1 class="font-display text-xl sm:text-2xl md:text-3xl font-bold text-text-primary leading-none">
+          <p class="font-display text-[10px] sm:text-xs tracking-widest text-accent-coral mb-0.5">
+            // WHAT IF?
+          </p>
+          <h1
+            class="font-display text-xl sm:text-2xl md:text-3xl font-bold text-text-primary leading-none"
+          >
             What <span class="text-accent-coral">if</span>?
           </h1>
         </div>
@@ -247,7 +252,9 @@ onMounted(() => {
             <span class="lang-toggle-option" :class="{ active: lang === 'vi' }">VI</span>
             <span class="lang-toggle-option" :class="{ active: lang === 'en' }">EN</span>
           </div>
-          <div class="hidden sm:block bg-accent-coral text-bg-deep font-display font-bold text-[10px] sm:text-xs tracking-widest px-2.5 py-1 sm:px-3 sm:py-1.5 rotate-2">
+          <div
+            class="hidden sm:block bg-accent-coral text-bg-deep font-display font-bold text-[10px] sm:text-xs tracking-widest px-2.5 py-1 sm:px-3 sm:py-1.5 rotate-2"
+          >
             VOL.01 / 2026
           </div>
         </div>
@@ -255,22 +262,20 @@ onMounted(() => {
     </header>
 
     <!-- ── Main ───────────────────────────────────────────────────────────── -->
-    <main class="flex-1 flex flex-col items-center justify-center px-4 py-6 sm:py-10 gap-5 sm:gap-8">
-
+    <main
+      class="flex-1 flex flex-col items-center justify-center px-4 py-6 sm:py-10 gap-5 sm:gap-8"
+    >
       <!-- Status text -->
-      <p class="font-display text-xs sm:text-sm tracking-wide text-text-secondary text-center animate-fade-up animate-delay-1 min-h-[1.5em] max-w-3xl leading-relaxed">
+      <p
+        class="font-display text-xs sm:text-sm tracking-wide text-text-secondary text-center animate-fade-up animate-delay-1 min-h-[1.5em] max-w-3xl leading-relaxed"
+      >
         {{ phase === 'shuffling' ? t.shuffling : t.heroSubtitle }}
       </p>
 
       <!-- ── Stage ────────────────────────────────────────────────────────── -->
       <div ref="stageRef" class="stage">
-
         <!-- ① IDLE: vertical stacked deck -->
-        <div
-          v-if="phase === 'idle'"
-          class="idle-deck cursor-pointer"
-          @click="startShuffle"
-        >
+        <div v-if="phase === 'idle'" class="idle-deck cursor-pointer" @click="startShuffle">
           <div
             v-for="i in 7"
             :key="'deck-' + i"
@@ -286,22 +291,20 @@ onMounted(() => {
 
         <!-- ② SHUFFLING belt (stays on screen during settling/flip/revealed as BG) -->
         <div
-          v-if="phase === 'shuffling' || phase === 'settling' || phase === 'flip' || phase === 'revealed'"
+          v-if="
+            phase === 'shuffling' ||
+            phase === 'settling' ||
+            phase === 'flip' ||
+            phase === 'revealed'
+          "
           class="belt-clip"
         >
           <div
             class="belt"
             :style="{ transform: `translateX(${beltTranslateX}px)`, transition: beltTransition }"
           >
-            <div
-              v-for="i in BELT_CARDS"
-              :key="'belt-' + i"
-              class="belt-card shrink-0"
-            >
-              <div
-                class="card-back-design"
-                :class="beltCardClass(i)"
-              >
+            <div v-for="i in BELT_CARDS" :key="'belt-' + i" class="belt-card shrink-0">
+              <div class="card-back-design" :class="beltCardClass(i)">
                 <span class="card-back-question" :class="beltIconClass(i)">?</span>
                 <span class="card-back-label">What if</span>
               </div>
@@ -311,10 +314,7 @@ onMounted(() => {
 
         <!-- Dark overlay over belt background -->
         <Transition name="overlay-fade">
-          <div
-            v-if="showOverlay"
-            class="belt-overlay"
-          />
+          <div v-if="showOverlay" class="belt-overlay" />
         </Transition>
 
         <!-- ③④ FLIP card on top of overlay -->
@@ -325,28 +325,43 @@ onMounted(() => {
         >
           <div class="flip-inner" :class="{ flipped: isFlipped }">
             <!-- Back -->
-            <div class="flip-face flip-back card-back-design border-2" :class="`border-${categoryBorder}`" :style="categoryShadowBack">
-              <span class="card-back-question" :class="categoryQuestionColor[currentQuestion.category]">?</span>
+            <div
+              class="flip-face flip-back card-back-design border-2"
+              :class="`border-${categoryBorder}`"
+              :style="categoryShadowBack"
+            >
+              <span
+                class="card-back-question"
+                :class="categoryQuestionColor[currentQuestion.category]"
+                >?</span
+              >
               <span class="card-back-label">What if</span>
             </div>
             <!-- Front -->
-            <div class="flip-face flip-front border-2 bg-bg-elevated flex flex-col items-start p-5 sm:p-8" :class="`border-${categoryBorder}`" :style="categoryShadowFront">
+            <div
+              class="flip-face flip-front border-2 bg-bg-elevated flex flex-col items-start p-5 sm:p-8"
+              :class="`border-${categoryBorder}`"
+              :style="categoryShadowFront"
+            >
               <span
                 class="font-display text-[10px] sm:text-xs tracking-widest px-2 py-0.5 border mb-4 shrink-0"
                 :class="categoryAccent[currentQuestion.category]"
               >
                 {{ categoryLabel }}
               </span>
-              <p class="font-display text-base sm:text-lg md:text-xl font-semibold text-text-primary leading-snug flex-1 flex items-center">
+              <p
+                class="font-display text-base sm:text-lg md:text-xl font-semibold text-text-primary leading-snug flex-1 flex items-center"
+              >
                 {{ lang === 'en' ? currentQuestion.en : currentQuestion.vi }}
               </p>
-              <span class="font-display text-4xl sm:text-5xl font-bold text-accent-amber/10 self-end select-none mt-3 shrink-0">
+              <span
+                class="font-display text-4xl sm:text-5xl font-bold text-accent-amber/10 self-end select-none mt-3 shrink-0"
+              >
                 {{ String(currentQuestion.id).padStart(2, '0') }}
               </span>
             </div>
           </div>
         </div>
-
       </div>
 
       <!-- ── Actions ──────────────────────────────────────────────────────── -->
@@ -365,14 +380,14 @@ onMounted(() => {
           {{ t.drawAnother }}
         </button>
       </div>
-
     </main>
 
     <!-- ── Footer ─────────────────────────────────────────────────────────── -->
     <footer class="border-t border-border-default shrink-0">
       <div class="mx-auto max-w-5xl px-6 py-6 flex items-center justify-between flex-wrap gap-4">
         <p class="text-text-dim text-xs font-display tracking-wide">
-          Được tạo bởi <span class="text-accent-coral">Nhật ký học tập của Khang - KBOT</span> — vibe.j2team.org
+          Được tạo bởi <span class="text-accent-coral">Nhật ký học tập của Khang - KBOT</span> —
+          vibe.j2team.org
         </p>
         <RouterLink
           to="/"
@@ -382,65 +397,140 @@ onMounted(() => {
         </RouterLink>
       </div>
     </footer>
-
   </div>
 </template>
 
 <style scoped>
 /* ── Neon color palette (self-contained) ──────────────────── */
 :root {
-  --neon-purple: #E879F9;
-  --neon-green: #10B981;
-  --neon-teal: #14B8A6;
-  --neon-pink: #EC4899;
-  --neon-cyan: #06B6D4;
-  --neon-lime: #84CC16;
-  --neon-orange: #F97316;
+  --neon-purple: #e879f9;
+  --neon-green: #10b981;
+  --neon-teal: #14b8a6;
+  --neon-pink: #ec4899;
+  --neon-cyan: #06b6d4;
+  --neon-lime: #84cc16;
+  --neon-orange: #f97316;
 }
 
 /* Utility classes for neon colors */
-.border-accent-purple { border-color: #E879F9; }
-.border-accent-green { border-color: #10B981; }
-.border-accent-teal { border-color: #14B8A6; }
-.border-accent-pink { border-color: #EC4899; }
-.border-accent-cyan { border-color: #06B6D4; }
-.border-accent-lime { border-color: #84CC16; }
-.border-accent-orange { border-color: #F97316; }
+.border-accent-purple {
+  border-color: #e879f9;
+}
+.border-accent-green {
+  border-color: #10b981;
+}
+.border-accent-teal {
+  border-color: #14b8a6;
+}
+.border-accent-pink {
+  border-color: #ec4899;
+}
+.border-accent-cyan {
+  border-color: #06b6d4;
+}
+.border-accent-lime {
+  border-color: #84cc16;
+}
+.border-accent-orange {
+  border-color: #f97316;
+}
 
-.text-accent-purple { color: #E879F9; }
-.text-accent-green { color: #10B981; }
-.text-accent-teal { color: #14B8A6; }
-.text-accent-pink { color: #EC4899; }
-.text-accent-cyan { color: #06B6D4; }
-.text-accent-lime { color: #84CC16; }
-.text-accent-orange { color: #F97316; }
+.text-accent-purple {
+  color: #e879f9;
+}
+.text-accent-green {
+  color: #10b981;
+}
+.text-accent-teal {
+  color: #14b8a6;
+}
+.text-accent-pink {
+  color: #ec4899;
+}
+.text-accent-cyan {
+  color: #06b6d4;
+}
+.text-accent-lime {
+  color: #84cc16;
+}
+.text-accent-orange {
+  color: #f97316;
+}
 
-.border-accent-purple\/30 { border-color: rgba(232, 121, 249, 0.3); }
-.border-accent-green\/30 { border-color: rgba(16, 185, 129, 0.3); }
-.border-accent-teal\/30 { border-color: rgba(20, 184, 166, 0.3); }
-.border-accent-pink\/30 { border-color: rgba(236, 72, 153, 0.3); }
-.border-accent-cyan\/30 { border-color: rgba(6, 182, 212, 0.3); }
-.border-accent-lime\/30 { border-color: rgba(132, 204, 22, 0.3); }
-.border-accent-orange\/30 { border-color: rgba(249, 115, 22, 0.3); }
+.border-accent-purple\/30 {
+  border-color: rgba(232, 121, 249, 0.3);
+}
+.border-accent-green\/30 {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+.border-accent-teal\/30 {
+  border-color: rgba(20, 184, 166, 0.3);
+}
+.border-accent-pink\/30 {
+  border-color: rgba(236, 72, 153, 0.3);
+}
+.border-accent-cyan\/30 {
+  border-color: rgba(6, 182, 212, 0.3);
+}
+.border-accent-lime\/30 {
+  border-color: rgba(132, 204, 22, 0.3);
+}
+.border-accent-orange\/30 {
+  border-color: rgba(249, 115, 22, 0.3);
+}
 
-.text-accent-purple\/70 { color: rgba(232, 121, 249, 0.7); }
-.text-accent-green\/70 { color: rgba(16, 185, 129, 0.7); }
-.text-accent-teal\/70 { color: rgba(20, 184, 166, 0.7); }
-.text-accent-pink\/70 { color: rgba(236, 72, 153, 0.7); }
-.text-accent-cyan\/70 { color: rgba(6, 182, 212, 0.7); }
-.text-accent-lime\/70 { color: rgba(132, 204, 22, 0.7); }
-.text-accent-orange\/70 { color: rgba(249, 115, 22, 0.7); }
+.text-accent-purple\/70 {
+  color: rgba(232, 121, 249, 0.7);
+}
+.text-accent-green\/70 {
+  color: rgba(16, 185, 129, 0.7);
+}
+.text-accent-teal\/70 {
+  color: rgba(20, 184, 166, 0.7);
+}
+.text-accent-pink\/70 {
+  color: rgba(236, 72, 153, 0.7);
+}
+.text-accent-cyan\/70 {
+  color: rgba(6, 182, 212, 0.7);
+}
+.text-accent-lime\/70 {
+  color: rgba(132, 204, 22, 0.7);
+}
+.text-accent-orange\/70 {
+  color: rgba(249, 115, 22, 0.7);
+}
 
-.text-accent-purple\/12 { color: rgba(232, 121, 249, 0.12); }
-.text-accent-green\/12 { color: rgba(16, 185, 129, 0.12); }
-.text-accent-teal\/12 { color: rgba(20, 184, 166, 0.12); }
-.text-accent-pink\/12 { color: rgba(236, 72, 153, 0.12); }
-.text-accent-cyan\/12 { color: rgba(6, 182, 212, 0.12); }
-.text-accent-lime\/12 { color: rgba(132, 204, 22, 0.12); }
-.text-accent-orange\/12 { color: rgba(249, 115, 22, 0.12); }
-.text-accent-coral\/12 { color: rgba(255, 107, 74, 0.12); }
-.text-accent-amber\/12 { color: rgba(255, 184, 48, 0.12); }
-.text-accent-sky\/12 { color: rgba(56, 189, 248, 0.12); }
+.text-accent-purple\/12 {
+  color: rgba(232, 121, 249, 0.12);
+}
+.text-accent-green\/12 {
+  color: rgba(16, 185, 129, 0.12);
+}
+.text-accent-teal\/12 {
+  color: rgba(20, 184, 166, 0.12);
+}
+.text-accent-pink\/12 {
+  color: rgba(236, 72, 153, 0.12);
+}
+.text-accent-cyan\/12 {
+  color: rgba(6, 182, 212, 0.12);
+}
+.text-accent-lime\/12 {
+  color: rgba(132, 204, 22, 0.12);
+}
+.text-accent-orange\/12 {
+  color: rgba(249, 115, 22, 0.12);
+}
+.text-accent-coral\/12 {
+  color: rgba(255, 107, 74, 0.12);
+}
+.text-accent-amber\/12 {
+  color: rgba(255, 184, 48, 0.12);
+}
+.text-accent-sky\/12 {
+  color: rgba(56, 189, 248, 0.12);
+}
 
 /* ── Stage ──────────────────────────────────────────────── */
 .stage {
@@ -454,7 +544,9 @@ onMounted(() => {
 }
 
 @media (min-width: 640px) {
-  .stage { height: 420px; }
+  .stage {
+    height: 420px;
+  }
 }
 
 /* ── Card back design: big "?" background + "What if" overlaid ── */
@@ -485,7 +577,9 @@ onMounted(() => {
 }
 
 @media (min-width: 640px) {
-  .card-back-question { font-size: 12rem; }
+  .card-back-question {
+    font-size: 12rem;
+  }
 }
 
 /* Larger size for idle deck */
@@ -494,7 +588,9 @@ onMounted(() => {
 }
 
 @media (min-width: 640px) {
-  .idle-card .card-back-question { font-size: 15rem; }
+  .idle-card .card-back-question {
+    font-size: 15rem;
+  }
 }
 
 /* Even larger for flip cards (card is bigger) */
@@ -503,7 +599,9 @@ onMounted(() => {
 }
 
 @media (min-width: 640px) {
-  .flip-back .card-back-question { font-size: 20rem; }
+  .flip-back .card-back-question {
+    font-size: 20rem;
+  }
 }
 
 .card-back-label {
@@ -518,7 +616,9 @@ onMounted(() => {
 }
 
 @media (min-width: 640px) {
-  .card-back-label { font-size: 1.35rem; }
+  .card-back-label {
+    font-size: 1.35rem;
+  }
 }
 
 /* ── ① IDLE deck (vertical, no rotation) ────────────────── */
@@ -530,12 +630,20 @@ onMounted(() => {
 }
 
 @media (min-width: 640px) {
-  .idle-deck { width: 220px; height: 310px; }
+  .idle-deck {
+    width: 220px;
+    height: 310px;
+  }
 }
 
 @keyframes floatDeck {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .idle-card {
@@ -580,7 +688,9 @@ onMounted(() => {
 
 @media (min-width: 640px) {
   .belt-clip::before,
-  .belt-clip::after { width: 80px; }
+  .belt-clip::after {
+    width: 80px;
+  }
 }
 
 .belt {
@@ -600,7 +710,10 @@ onMounted(() => {
 }
 
 @media (min-width: 640px) {
-  .belt-card { width: 160px; height: 230px; }
+  .belt-card {
+    width: 160px;
+    height: 230px;
+  }
 }
 
 /* ── Dark overlay over belt ──────────────────────────────── */
@@ -658,7 +771,9 @@ onMounted(() => {
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
 }
 
 .flip-inner.flipped {
@@ -670,6 +785,17 @@ onMounted(() => {
   inset: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  transition: visibility 0s linear 0.35s;
+}
+
+/* Hide back face when flipped */
+.flip-inner.flipped .flip-back {
+  visibility: hidden;
+}
+
+/* Hide front face when not flipped */
+.flip-inner:not(.flipped) .flip-front {
+  visibility: hidden;
 }
 
 .flip-front {

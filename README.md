@@ -12,6 +12,8 @@ Trang chủ là một Launcher, dẫn link tới các trang con do thành viên 
 - [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
 - [Vue Router](https://router.vuejs.org/) - Routing
 - [Pinia](https://pinia.vuejs.org/) - State management
+- [VueUse](https://vueuse.org/) - 200+ composables cho Vue
+- [Iconify](https://iconify.design/) - 200,000+ icons từ 150+ bộ icon
 
 ## Bắt đầu
 
@@ -28,7 +30,13 @@ pnpm dev
 4. **Không trùng ứng dụng con đã có** — kiểm tra danh sách trang trước khi tạo mới
 5. **Mỗi trang con hoạt động độc lập** — chỉ làm việc trong thư mục trang của mình
 6. **Responsive** — trang phải hiển thị tốt trên mobile
-7. **Không thêm dependency mới** trừ khi thật sự cần và được approve
+7. **Không thêm dependency mới** trừ khi thật sự cần và được approve. Các thư viện sau đã được **cài sẵn** — tự do sử dụng:
+   - `@vueuse/core` — 200+ composables cho Vue
+   - `@iconify/vue` — 200,000+ icons từ 150+ bộ icon
+
+   Các thư viện sau được **chấp thuận sẵn** và có thể thêm mà không cần approve:
+   - `vue-konva` — Thư viện canvas 2D cho vẽ, game, đồ hoạ tương tác
+   - `shiki` — Syntax highlighter
 8. **Ghi rõ tên tác giả** trong file `meta.ts` của trang
 
 ## Cách tham gia
@@ -36,7 +44,7 @@ pnpm dev
 1. Fork repo và clone về máy
 2. Tạo branch mới từ `main` (ví dụ: `git checkout -b feat/tên-trang`)
 3. Tạo thư mục mới trong `src/views/<tên-trang>/` với file `index.vue`
-4. Tạo file `meta.ts` trong cùng thư mục để khai báo tên, mô tả và tác giả (route tự động được tạo)
+4. Tạo file `meta.ts` trong cùng thư mục để khai báo tên, mô tả, tác giả và danh mục (route tự động được tạo)
 5. Tạo Pull Request và chờ merge!
 
 Xem trang mẫu: [`src/views/hello-world/`](src/views/hello-world/)
@@ -72,3 +80,11 @@ src/
 ## IDE
 
 [VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
+
+## Contributors
+
+<a href="https://github.com/J2TEAM/vibe.j2team.org/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=J2TEAM/vibe.j2team.org" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
