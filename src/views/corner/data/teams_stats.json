@@ -1,0 +1,485 @@
+{
+  "updatedAt": "2026-03-10T11:56:33.488138",
+  "teams": [
+    {
+      "id": "arsenal",
+      "name": "Arsenal",
+      "shortName": "ARS"
+    },
+    {
+      "id": "aston_villa",
+      "name": "Aston Villa",
+      "shortName": "AVL"
+    },
+    {
+      "id": "bournemouth",
+      "name": "Bournemouth",
+      "shortName": "BOU"
+    },
+    {
+      "id": "brentford",
+      "name": "Brentford",
+      "shortName": "BRE"
+    },
+    {
+      "id": "brighton",
+      "name": "Brighton",
+      "shortName": "BHA"
+    },
+    {
+      "id": "burnley",
+      "name": "Burnley",
+      "shortName": "BUR"
+    },
+    {
+      "id": "chelsea",
+      "name": "Chelsea",
+      "shortName": "CHE"
+    },
+    {
+      "id": "crystal_palace",
+      "name": "Crystal Palace",
+      "shortName": "CRY"
+    },
+    {
+      "id": "everton",
+      "name": "Everton",
+      "shortName": "EVE"
+    },
+    {
+      "id": "fulham",
+      "name": "Fulham",
+      "shortName": "FUL"
+    },
+    {
+      "id": "ipswich",
+      "name": "Ipswich",
+      "shortName": "IPS"
+    },
+    {
+      "id": "leeds",
+      "name": "Leeds",
+      "shortName": "LEE"
+    },
+    {
+      "id": "leicester",
+      "name": "Leicester",
+      "shortName": "LEI"
+    },
+    {
+      "id": "liverpool",
+      "name": "Liverpool",
+      "shortName": "LIV"
+    },
+    {
+      "id": "luton",
+      "name": "Luton",
+      "shortName": "LUT"
+    },
+    {
+      "id": "man_city",
+      "name": "Man City",
+      "shortName": "MCI"
+    },
+    {
+      "id": "man_united",
+      "name": "Man United",
+      "shortName": "MUN"
+    },
+    {
+      "id": "newcastle",
+      "name": "Newcastle",
+      "shortName": "NEW"
+    },
+    {
+      "id": "norwich",
+      "name": "Norwich",
+      "shortName": "NOR"
+    },
+    {
+      "id": "nottm_forest",
+      "name": "Nott'm Forest",
+      "shortName": "NFO"
+    },
+    {
+      "id": "sheffield_united",
+      "name": "Sheffield United",
+      "shortName": "SHU"
+    },
+    {
+      "id": "southampton",
+      "name": "Southampton",
+      "shortName": "SOU"
+    },
+    {
+      "id": "sunderland",
+      "name": "Sunderland",
+      "shortName": "SUN"
+    },
+    {
+      "id": "tottenham",
+      "name": "Tottenham",
+      "shortName": "TOT"
+    },
+    {
+      "id": "watford",
+      "name": "Watford",
+      "shortName": "WAT"
+    },
+    {
+      "id": "west_brom",
+      "name": "West Brom",
+      "shortName": "WBA"
+    },
+    {
+      "id": "west_ham",
+      "name": "West Ham",
+      "shortName": "WHU"
+    },
+    {
+      "id": "wolves",
+      "name": "Wolves",
+      "shortName": "WOL"
+    }
+  ],
+  "homeStats": {
+    "arsenal": {
+      "for": 5.2,
+      "against": 3.1,
+      "total": 8.3,
+      "recentForm": "DDWWW"
+    },
+    "aston_villa": {
+      "for": 6.0,
+      "against": 4.4,
+      "total": 10.4,
+      "recentForm": "DWDLL"
+    },
+    "bournemouth": {
+      "for": 5.5,
+      "against": 4.4,
+      "total": 9.9,
+      "recentForm": "DWDDD"
+    },
+    "brentford": {
+      "for": 4.6,
+      "against": 4.8,
+      "total": 9.4,
+      "recentForm": "WDLWD"
+    },
+    "brighton": {
+      "for": 5.6,
+      "against": 4.3,
+      "total": 9.9,
+      "recentForm": "LLWWL"
+    },
+    "burnley": {
+      "for": 3.6,
+      "against": 5.1,
+      "total": 8.7,
+      "recentForm": "LWDLL"
+    },
+    "chelsea": {
+      "for": 6.9,
+      "against": 4.0,
+      "total": 10.9,
+      "recentForm": "WDDLW"
+    },
+    "crystal_palace": {
+      "for": 4.7,
+      "against": 3.9,
+      "total": 8.6,
+      "recentForm": "WLWLW"
+    },
+    "everton": {
+      "for": 5.6,
+      "against": 4.0,
+      "total": 9.6,
+      "recentForm": "WLLWW"
+    },
+    "fulham": {
+      "for": 5.0,
+      "against": 5.9,
+      "total": 10.9,
+      "recentForm": "LLWWL"
+    },
+    "ipswich": {
+      "for": 3.3,
+      "against": 5.8,
+      "total": 9.1,
+      "recentForm": "LDLLL"
+    },
+    "leeds": {
+      "for": 5.7,
+      "against": 4.8,
+      "total": 10.5,
+      "recentForm": "WDDLL"
+    },
+    "leicester": {
+      "for": 4.9,
+      "against": 5.0,
+      "total": 9.9,
+      "recentForm": "LWDWL"
+    },
+    "liverpool": {
+      "for": 6.3,
+      "against": 4.3,
+      "total": 10.6,
+      "recentForm": "LWWWL"
+    },
+    "luton": {
+      "for": 7.2,
+      "against": 4.8,
+      "total": 12.0,
+      "recentForm": "LLDLL"
+    },
+    "man_city": {
+      "for": 6.0,
+      "against": 3.3,
+      "total": 9.3,
+      "recentForm": "WWWWD"
+    },
+    "man_united": {
+      "for": 4.9,
+      "against": 4.6,
+      "total": 9.5,
+      "recentForm": "WDWWL"
+    },
+    "newcastle": {
+      "for": 7.1,
+      "against": 5.4,
+      "total": 12.5,
+      "recentForm": "LWLLW"
+    },
+    "norwich": {
+      "for": 4.7,
+      "against": 6.1,
+      "total": 10.8,
+      "recentForm": "LLLDL"
+    },
+    "nottm_forest": {
+      "for": 6.4,
+      "against": 4.1,
+      "total": 10.5,
+      "recentForm": "LDLLD"
+    },
+    "sheffield_united": {
+      "for": 4.8,
+      "against": 5.8,
+      "total": 10.6,
+      "recentForm": "LLLLL"
+    },
+    "southampton": {
+      "for": 2.9,
+      "against": 7.5,
+      "total": 10.4,
+      "recentForm": "LLDLL"
+    },
+    "sunderland": {
+      "for": 3.4,
+      "against": 4.7,
+      "total": 8.1,
+      "recentForm": "LLLDW"
+    },
+    "tottenham": {
+      "for": 4.9,
+      "against": 5.1,
+      "total": 10.0,
+      "recentForm": "LLLLL"
+    },
+    "watford": {
+      "for": 4.1,
+      "against": 5.7,
+      "total": 9.8,
+      "recentForm": "LLDLL"
+    },
+    "west_brom": {
+      "for": 5.3,
+      "against": 6.7,
+      "total": 12.0,
+      "recentForm": "DLLLL"
+    },
+    "west_ham": {
+      "for": 5.9,
+      "against": 4.0,
+      "total": 9.9,
+      "recentForm": "WDDLW"
+    },
+    "wolves": {
+      "for": 2.8,
+      "against": 6.5,
+      "total": 9.3,
+      "recentForm": "DDLWW"
+    }
+  },
+  "awayStats": {
+    "arsenal": {
+      "for": 5.0,
+      "against": 3.6,
+      "total": 8.6,
+      "recentForm": "DDWWW"
+    },
+    "aston_villa": {
+      "for": 4.5,
+      "against": 4.3,
+      "total": 8.8,
+      "recentForm": "DWDLL"
+    },
+    "bournemouth": {
+      "for": 5.7,
+      "against": 7.3,
+      "total": 13.0,
+      "recentForm": "DWDDD"
+    },
+    "brentford": {
+      "for": 5.1,
+      "against": 5.7,
+      "total": 10.8,
+      "recentForm": "WDLWD"
+    },
+    "brighton": {
+      "for": 4.2,
+      "against": 5.3,
+      "total": 9.5,
+      "recentForm": "LLWWL"
+    },
+    "burnley": {
+      "for": 3.9,
+      "against": 6.3,
+      "total": 10.2,
+      "recentForm": "LWDLL"
+    },
+    "chelsea": {
+      "for": 5.5,
+      "against": 4.1,
+      "total": 9.6,
+      "recentForm": "WDDLW"
+    },
+    "crystal_palace": {
+      "for": 4.2,
+      "against": 5.1,
+      "total": 9.3,
+      "recentForm": "WLWLW"
+    },
+    "everton": {
+      "for": 3.6,
+      "against": 5.7,
+      "total": 9.3,
+      "recentForm": "WLLWW"
+    },
+    "fulham": {
+      "for": 3.9,
+      "against": 6.0,
+      "total": 9.9,
+      "recentForm": "LLWWL"
+    },
+    "ipswich": {
+      "for": 3.1,
+      "against": 7.7,
+      "total": 10.8,
+      "recentForm": "LDLLL"
+    },
+    "leeds": {
+      "for": 3.8,
+      "against": 5.2,
+      "total": 9.0,
+      "recentForm": "WDDLL"
+    },
+    "leicester": {
+      "for": 3.0,
+      "against": 5.5,
+      "total": 8.5,
+      "recentForm": "LWDWL"
+    },
+    "liverpool": {
+      "for": 6.2,
+      "against": 4.2,
+      "total": 10.4,
+      "recentForm": "LWWWL"
+    },
+    "luton": {
+      "for": 4.1,
+      "against": 7.1,
+      "total": 11.2,
+      "recentForm": "LLDLL"
+    },
+    "man_city": {
+      "for": 4.6,
+      "against": 4.1,
+      "total": 8.7,
+      "recentForm": "WWWWD"
+    },
+    "man_united": {
+      "for": 4.1,
+      "against": 4.9,
+      "total": 9.0,
+      "recentForm": "WDWWL"
+    },
+    "newcastle": {
+      "for": 7.1,
+      "against": 4.7,
+      "total": 11.8,
+      "recentForm": "LWLLW"
+    },
+    "norwich": {
+      "for": 3.2,
+      "against": 7.8,
+      "total": 11.0,
+      "recentForm": "LLLDL"
+    },
+    "nottm_forest": {
+      "for": 5.2,
+      "against": 4.9,
+      "total": 10.1,
+      "recentForm": "LDLLD"
+    },
+    "sheffield_united": {
+      "for": 3.5,
+      "against": 8.3,
+      "total": 11.8,
+      "recentForm": "LLLLL"
+    },
+    "southampton": {
+      "for": 4.5,
+      "against": 4.3,
+      "total": 8.8,
+      "recentForm": "LLDLL"
+    },
+    "sunderland": {
+      "for": 3.5,
+      "against": 5.7,
+      "total": 9.2,
+      "recentForm": "LLLDW"
+    },
+    "tottenham": {
+      "for": 4.1,
+      "against": 4.9,
+      "total": 9.0,
+      "recentForm": "LLLLL"
+    },
+    "watford": {
+      "for": 4.1,
+      "against": 7.0,
+      "total": 11.1,
+      "recentForm": "LLDLL"
+    },
+    "west_brom": {
+      "for": 2.9,
+      "against": 7.0,
+      "total": 9.9,
+      "recentForm": "DLLLL"
+    },
+    "west_ham": {
+      "for": 4.1,
+      "against": 7.9,
+      "total": 12.0,
+      "recentForm": "WDDLW"
+    },
+    "wolves": {
+      "for": 3.1,
+      "against": 7.0,
+      "total": 10.1,
+      "recentForm": "DDLWW"
+    }
+  }
+}
