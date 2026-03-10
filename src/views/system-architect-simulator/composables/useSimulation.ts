@@ -1,5 +1,5 @@
 import { ref, type Ref } from 'vue'
-import type { NodeData, EdgeData, SimHint, SimStats, EventLog } from '../types'
+import type { NodeData, EdgeData, SimHint, SimStats, EventLog, StressEvent } from '../types'
 import { nodeTypeMap } from '../constants'
 import { getEffectiveCapacity, formatTraffic, getNodeCost } from '../utils'
 
@@ -28,6 +28,7 @@ export function useSimulation(
   const timelineProgress = ref(0)
   const eventLogs = ref<EventLog[]>([])
   const showEventLogs = ref(true)
+  const activeStressEvent = ref<StressEvent | null>(null)
 
   const addLog = (
     source: string,
@@ -55,7 +56,7 @@ export function useSimulation(
     timelineProgress.value = 0
   }
 
-  const runSimulation = (trafficMultiplier = 1) => {
+  const runSimulation = (trafficMultiplier = 1, readPercentOverride?: number) => {
     resetSimulation()
 
     const clients = nodes.value.filter((n) => n.type === 'CLIENT')
@@ -68,7 +69,7 @@ export function useSimulation(
 
     clients.forEach((c) => {
       const total = (c.config.inputTraffic || 0) * trafficMultiplier
-      const readPct = (c.config.readPercent || 70) / 100
+      const readPct = (readPercentOverride ?? c.config.readPercent ?? 70) / 100
       c.currentTraffic = total
       queue.push({ id: c.id, readTraffic: total * readPct, writeTraffic: total * (1 - readPct) })
     })
@@ -151,7 +152,7 @@ export function useSimulation(
         if (target.type !== 'CLIENT') {
           const cap = getEffectiveCapacity(target)
           const util = cap > 0 ? (target.currentTraffic || 0) / cap : 0
-          const baseErr = target.config.baseErrorRate || 0
+          const baseErr = target.config.chaosErrorRate ?? target.config.baseErrorRate ?? 0
           const loadErr = util > 0.8 ? Math.pow((util - 0.8) * 5, 2) * 10 : 0
           target.currentErrorRate = Math.min(100, baseErr + loadErr)
           failedRequests += nodeTraffic * (target.currentErrorRate / 100)
@@ -479,37 +480,118 @@ export function useSimulation(
     timelineProgress.value = 0
     eventLogs.value = []
 
-    addLog('SYSTEM', 'Timeline simulation started', 'info')
+    const event = activeStressEvent.value
+    if (event) {
+      addLog('SYSTEM', `Started Stress Event: ${event.name}`, 'warning')
+    } else {
+      addLog('SYSTEM', 'Timeline simulation started', 'info')
+    }
     const totalBaseTraffic = nodes.value
       .filter((n) => n.type === 'CLIENT')
       .reduce((sum, c) => sum + (c.config.inputTraffic || 0), 0)
 
-    const steps = 20
+    const steps = event ? Math.ceil(event.duration / 0.4) : 20
     let step = 0
 
     const interval = setInterval(() => {
       step++
       timelineProgress.value = (step / steps) * 100
-      const multiplier = 0.1 + (step / steps) * 1.9
+
+      let multiplier = 0.1 + (step / steps) * 1.9
+      let readOverride = undefined
+
+      if (event) {
+        readOverride = event.readPercentOverride
+        if (event.rampUp) {
+          multiplier = 1 + (step / steps) * (event.trafficMultiplier - 1)
+        } else {
+          const ramp = Math.min(1, step / 3) // Fast ramp in ~1.2s
+          multiplier = 1 + ramp * (event.trafficMultiplier - 1)
+        }
+      }
+
       const currentTraffic = Math.round(totalBaseTraffic * multiplier)
 
       if (step % 4 === 1)
         addLog(
           'TRAFFIC',
-          `Scaling to ${Math.round(multiplier * 100)}% (${formatTraffic(currentTraffic)} req/s total)`,
+          `Traffic load at ${Math.round(multiplier * 100)}% (${formatTraffic(currentTraffic)} req/s total)`,
           'debug',
         )
 
-      runSimulation(multiplier)
+      runSimulation(multiplier, readOverride)
+
+      // Auto-scale Logic
+      nodes.value.forEach((n) => {
+        if (n.type === 'CLIENT' || n.type === 'RATELIMIT') return
+        if (n.config.autoScale) {
+          const cap = getEffectiveCapacity(n)
+          const traffic = n.currentTraffic || 0
+          const util = cap > 0 ? traffic / cap : 0
+          const threshold = (n.config.scaleUpThreshold || 80) / 100
+
+          if (util > threshold) {
+            const lastScale = n.config._lastScaleStep || 0
+            if (step - lastScale >= 3) {
+              const current = n.config.replicas || 1
+              const max = n.config.maxReplicas || 10
+              if (current < max) {
+                n.config.replicas = current + 1
+                n.config._lastScaleStep = step
+                addLog(n.id, `⚡ Auto-scaled from ${current} → ${current + 1} replicas`, 'info')
+              }
+            }
+          }
+        }
+      })
 
       if (step >= steps) {
         clearInterval(interval)
         setTimeout(() => {
           timelineRunning.value = false
           addLog('SYSTEM', 'Simulation completed. Generating analysis report...', 'info')
+          if (event) stopStressEvent()
         }, 500)
       }
     }, 400)
+  }
+
+  const triggerStressEvent = (event: StressEvent) => {
+    activeStressEvent.value = event
+
+    if (event.id === 'region-failover') {
+      addLog('CHAOS', '💥 Region Failover triggered! Halving replicas for all services...', 'error')
+      nodes.value.forEach((n) => {
+        if (['SERVICE', 'CACHE', 'DB', 'GATEWAY', 'QUEUE'].includes(n.type)) {
+          const r = n.config.replicas || 1
+          if (r > 1) n.config.replicas = Math.max(1, Math.floor(r / 2))
+        }
+      })
+    } else if (event.id === 'cascade-failure') {
+      const services = nodes.value.filter((n) => n.type === 'SERVICE')
+      if (services.length > 0) {
+        const target = services[Math.floor(Math.random() * services.length)]
+        if (target) {
+          addLog(
+            'CHAOS',
+            `⛓️ Cascade Failure: Injecting 100% error rate into ${target.id}`,
+            'error',
+          )
+          target.config.chaosErrorRate = 100
+        }
+      }
+    }
+
+    startTimelineSimulation()
+  }
+
+  const stopStressEvent = () => {
+    if (activeStressEvent.value?.id === 'cascade-failure') {
+      nodes.value.forEach((n) => {
+        delete n.config.chaosErrorRate
+      })
+    }
+    activeStressEvent.value = null
   }
 
   return {
@@ -523,5 +605,8 @@ export function useSimulation(
     resetSimulation,
     runSimulation,
     startTimelineSimulation,
+    triggerStressEvent,
+    stopStressEvent,
+    activeStressEvent,
   }
 }

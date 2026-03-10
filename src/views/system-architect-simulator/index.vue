@@ -6,12 +6,15 @@
     <Sidebar
       :collapsed="sidebarCollapsed"
       :timelineRunning="timelineRunning"
+      :activeStressEventId="activeStressEvent?.id"
       @toggle-collapse="sidebarCollapsed = !sidebarCollapsed"
       @drag-start="onDragStart"
       @load-template="loadTemplate"
       @start-simulation="startTimelineSimulation"
       @reset-simulation="resetSimulation"
       @clear-canvas="clearCanvas"
+      @trigger-stress-event="triggerStressEvent"
+      @stop-stress-event="stopStressEvent"
     />
 
     <!-- Main Canvas Area -->
@@ -300,6 +303,9 @@ const {
   showEventLogs,
   resetSimulation,
   startTimelineSimulation,
+  triggerStressEvent,
+  stopStressEvent,
+  activeStressEvent,
 } = useSimulation(nodes, edges, totalMonthlyCost)
 </script>
 

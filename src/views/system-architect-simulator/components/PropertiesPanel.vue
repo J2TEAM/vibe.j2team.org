@@ -3,6 +3,8 @@
   <div
     v-if="selectedNode"
     class="absolute top-4 right-4 w-64 bg-bg-surface/90 backdrop-blur-md border border-default rounded-sm shadow-2xl z-40 pointer-events-auto flex flex-col max-h-[calc(100vh-2rem)]"
+    @mousedown.stop
+    @click.stop
   >
     <div
       class="px-3 py-2 border-b border-default flex justify-between items-center bg-bg-elevated/50 shrink-0"
@@ -136,6 +138,64 @@
                 class="w-full bg-bg-deep border border-default px-2 py-1 text-xs text-white focus:border-accent-sky outline-none transition-colors"
               />
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto Scale -->
+      <div
+        v-if="!['CLIENT', 'RATELIMIT'].includes(selectedNode.type)"
+        class="bg-bg-deep/50 p-2 border border-default/30 rounded-sm mb-4"
+      >
+        <label class="flex items-center gap-2 cursor-pointer group">
+          <input
+            type="checkbox"
+            v-model="selectedNode.config.autoScale"
+            class="accent-accent-sky w-3 h-3 cursor-pointer"
+          />
+          <span
+            class="text-[10px] font-display tracking-wider transition-colors"
+            :class="
+              selectedNode.config.autoScale
+                ? 'text-accent-sky'
+                : 'text-text-dim group-hover:text-text-secondary'
+            "
+          >
+            ENABLE AUTO-SCALE
+          </span>
+        </label>
+
+        <div
+          v-if="selectedNode.config.autoScale"
+          class="mt-3 pl-5 border-l-2 border-accent-sky/20 space-y-3"
+        >
+          <div>
+            <label class="block text-[9px] text-text-secondary mb-1">Max Replicas Limit</label>
+            <input
+              type="number"
+              min="2"
+              max="100"
+              step="1"
+              v-model.number="selectedNode.config.maxReplicas"
+              class="w-full bg-bg-deep border border-default px-2 py-1 text-xs text-white focus:border-accent-sky outline-none transition-colors"
+              placeholder="10"
+            />
+          </div>
+          <div>
+            <label class="block text-[9px] text-text-secondary mb-1 flex justify-between">
+              <span>Scale Up Threshold</span>
+              <span class="text-accent-amber"
+                >{{ selectedNode.config.scaleUpThreshold || 80 }}% Load</span
+              >
+            </label>
+            <input
+              type="range"
+              min="40"
+              max="95"
+              step="5"
+              v-model.number="selectedNode.config.scaleUpThreshold"
+              class="w-full accent-accent-amber"
+            />
           </div>
         </div>
       </div>

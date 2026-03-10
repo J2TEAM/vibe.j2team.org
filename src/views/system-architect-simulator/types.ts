@@ -23,6 +23,10 @@ export interface NodeData {
     instanceTier?: InstanceTier
     customVCpu?: number
     customRamGb?: number
+    autoScale?: boolean
+    minReplicas?: number
+    maxReplicas?: number
+    scaleUpThreshold?: number
   }
   isOverloaded?: boolean
   hasWarning?: boolean
@@ -66,4 +70,16 @@ export interface EventLog {
   source: string
   message: string
   type: 'info' | 'warning' | 'error' | 'debug'
+}
+
+export interface StressEvent {
+  id: string
+  name: string
+  icon: string
+  desc: string
+  color: string
+  trafficMultiplier: number
+  readPercentOverride?: number
+  duration: number
+  rampUp?: boolean
 }

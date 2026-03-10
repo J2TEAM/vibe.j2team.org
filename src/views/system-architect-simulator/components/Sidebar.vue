@@ -83,6 +83,61 @@
           </button>
         </div>
       </div>
+
+      <!-- Chaos Events -->
+      <div class="p-4 border-t border-default/50" v-if="!collapsed">
+        <div class="flex items-center justify-between mb-3 pl-1">
+          <div
+            class="text-[9px] text-text-dim uppercase tracking-widest font-display flex items-center gap-1.5"
+          >
+            <span class="text-[12px]">⚠️</span> Chaos Events
+          </div>
+          <button
+            v-if="activeStressEventId"
+            @click="$emit('stop-stress-event')"
+            class="text-[9px] bg-accent-coral/20 text-accent-coral border border-accent-coral/30 px-1.5 py-0.5 rounded-sm hover:bg-accent-coral hover:text-bg-deep transition-colors"
+          >
+            STOP
+          </button>
+        </div>
+        <div class="space-y-1.5 flex flex-col items-stretch">
+          <button
+            v-for="evt in stressEvents"
+            :key="evt.id"
+            @click="$emit('trigger-stress-event', evt)"
+            :disabled="timelineRunning && activeStressEventId !== null"
+            class="w-full text-left border p-2 text-[10px] tracking-wide flex flex-col gap-1 transition-all rounded-sm disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
+            :class="[
+              activeStressEventId === evt.id
+                ? 'bg-accent-coral/10 border-accent-coral/50 text-accent-coral shadow-[inset_0_0_10px_rgba(255,107,74,0.2)] bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,107,74,0.05)_10px,rgba(255,107,74,0.05)_20px)] animate-[pan_10s_linear_infinite]'
+                : 'bg-bg-elevated/20 border-default/30 hover:border-default hover:bg-bg-elevated/60 text-text-primary',
+            ]"
+            :style="
+              activeStressEventId === evt.id
+                ? {}
+                : { borderLeftColor: evt.color, borderLeftWidth: '2px' }
+            "
+          >
+            <div class="flex items-center gap-2 font-display">
+              <span class="text-sm shrink-0">{{ evt.icon }}</span>
+              <span class="font-bold relative z-10">{{ evt.name }}</span>
+            </div>
+            <div class="text-[8px] opacity-70 flex items-center justify-between mt-0.5">
+              <span>{{ evt.desc }}</span>
+              <span class="font-mono bg-bg-deep/50 px-1 py-0.5 rounded-sm"
+                >{{ evt.duration }}s</span
+              >
+            </div>
+
+            <div
+              v-if="activeStressEventId === evt.id"
+              class="absolute top-0 left-0 w-full h-0.5 bg-accent-coral/30"
+            >
+              <div class="h-full bg-accent-coral animate-flow w-[30%]"></div>
+            </div>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Actions -->
@@ -116,14 +171,15 @@
 </template>
 
 <script setup lang="ts">
-import { nodeTypes, templates } from '../constants'
-import type { NodeType, Template } from '../types'
+import { nodeTypes, templates, stressEvents } from '../constants'
+import type { NodeType, Template, StressEvent } from '../types'
 
 defineOptions({ name: 'SimulatorSidebar' })
 
 defineProps<{
   collapsed: boolean
   timelineRunning: boolean
+  activeStressEventId?: string | null
 }>()
 
 defineEmits<{
@@ -133,5 +189,7 @@ defineEmits<{
   (e: 'start-simulation'): void
   (e: 'reset-simulation'): void
   (e: 'clear-canvas'): void
+  (e: 'trigger-stress-event', event: StressEvent): void
+  (e: 'stop-stress-event'): void
 }>()
 </script>

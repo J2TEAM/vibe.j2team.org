@@ -1,4 +1,4 @@
-import type { NodeType, Template } from './types'
+import type { NodeType, Template, StressEvent } from './types'
 
 export const nodeTypes: NodeType[] = [
   {
@@ -184,5 +184,56 @@ export const templates: Template[] = [
       { from: 4, to: 6 },
       { from: 5, to: 6 },
     ],
+  },
+]
+
+export const stressEvents: StressEvent[] = [
+  {
+    id: 'ddos',
+    name: 'DDoS Attack',
+    icon: '🔴',
+    desc: 'Traffic x10, 100% read',
+    color: '#ef4444',
+    trafficMultiplier: 10,
+    readPercentOverride: 100,
+    duration: 15,
+  },
+  {
+    id: 'flash-sale',
+    name: 'Flash Sale',
+    icon: '🛒',
+    desc: 'Traffic x5, 80% write',
+    color: '#f97316',
+    trafficMultiplier: 5,
+    readPercentOverride: 20,
+    duration: 12,
+  },
+  {
+    id: 'black-friday',
+    name: 'Black Friday',
+    icon: '🖤',
+    desc: 'Traffic x3→x8 ramp',
+    color: '#8b5cf6',
+    trafficMultiplier: 8,
+    duration: 20,
+    rampUp: true,
+  },
+  {
+    id: 'region-failover',
+    name: 'Region Failover',
+    icon: '💥',
+    desc: '50% replicas down',
+    color: '#dc2626',
+    trafficMultiplier: 1,
+    duration: 10,
+  },
+  {
+    id: 'cascade-failure',
+    name: 'Cascade Failure',
+    icon: '⛓️',
+    desc: '1 service fails 100%',
+    color: '#b91c1c',
+    trafficMultiplier: 1,
+    duration: 10,
   },
 ]
