@@ -5,9 +5,13 @@
     <div class="game-wrapper">
       <canvas ref="gameCanvas" @click="flap" @touchstart="flap" width="320" height="480"></canvas>
 
+      <div v-if="showMessage" class="toast-message" :class="messageType">
+        {{ messageText }}
+      </div>
+
       <div v-if="gameState === 'START'" class="overlay">
         <h2>Giải Tích Py-Bird</h2>
-        <p>Nhấn để chơi. Mỗi cột là 1 câu Giải tích.</p>
+        <p>Nhấn phím Space để chơi. Mỗi cột là 1 câu Giải tích.</p>
       </div>
 
       <div v-if="gameState === 'GAMEOVER'" class="overlay">
@@ -76,10 +80,14 @@ const gameState = ref<GameState>('START');
 const score = ref(0);
 const currentQuestion = ref<any>(null);
 
+const showMessage = ref(false);
+const messageText = ref('');
+const messageType = ref('');
+
 let ctx: CanvasRenderingContext2D | null = null;
 let animationFrameId: number;
 
-const BIRD = { x: 50, y: 150, width: 20, height: 20, velocity: 0, gravity: 0.4, jump: -6 };
+const BIRD = { x: 50, y: 150, width: 24, height: 24, velocity: 0, gravity: 0.4, jump: -6 };
 const PIPES: any[] = [];
 const PIPE_WIDTH = 40;
 const PIPE_GAP = 130;
@@ -99,6 +107,7 @@ const resetGame = () => {
   score.value = 0;
   frames = 0;
   gameState.value = 'START';
+  showMessage.value = false;
   draw();
 };
 
@@ -111,21 +120,27 @@ const flap = () => {
   }
 };
 
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (e.code === 'Space') {
+    e.preventDefault(); 
+    flap();
+  }
+};
+
 const drawBird = () => {
   if (!ctx) return;
-  ctx.fillStyle = '#f1c40f';
-  ctx.beginPath();
-  ctx.arc(BIRD.x + BIRD.width/2, BIRD.y + BIRD.height/2, BIRD.width/2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
+  ctx.font = '26px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🐧', BIRD.x + BIRD.width / 2, BIRD.y + BIRD.height / 2);
 };
 
 const drawPipes = () => {
   if (!ctx || !gameCanvas.value) return;
   ctx.fillStyle = '#2ecc71';
   PIPES.forEach(pipe => {
-    ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.top);
-    ctx.fillRect(pipe.x, gameCanvas.value!.height - pipe.bottom, PIPE_WIDTH, pipe.bottom);
+    ctx!.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.top);
+    ctx!.fillRect(pipe.x, gameCanvas.value!.height - pipe.bottom, PIPE_WIDTH, pipe.bottom);
   });
 };
 
@@ -190,9 +205,19 @@ const loop = () => {
   }
 };
 
+const triggerToast = (text: string, type: string) => {
+  messageText.value = text;
+  messageType.value = type;
+  showMessage.value = true;
+  setTimeout(() => {
+    showMessage.value = false;
+  }, 1500);
+};
+
 const answerQuestion = (index: number) => {
   if (index === currentQuestion.value.ans) {
     score.value++;
+    triggerToast('Chính xác!', 'success');
     if (score.value >= 20) {
       gameState.value = 'WIN';
     } else {
@@ -201,16 +226,19 @@ const answerQuestion = (index: number) => {
       loop();
     }
   } else {
+    triggerToast('Sai rồi!', 'error');
     gameState.value = 'GAMEOVER';
   }
 };
 
 onMounted(() => {
   initGame();
+  window.addEventListener('keydown', handleKeyDown);
 });
 
 onUnmounted(() => {
   cancelAnimationFrame(animationFrameId);
+  window.removeEventListener('keydown', handleKeyDown);
 });
 </script>
 
@@ -260,6 +288,7 @@ canvas {
   display: block;
   width: 100%;
   height: 100%;
+  outline: none;
 }
 
 .score-display {
@@ -406,8 +435,38 @@ canvas {
   box-shadow: 0 0 0 #2980b9;
 }
 
+.toast-message {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  border-radius: 20px;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  z-index: 30;
+  animation: slideDown 0.3s ease-out;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.toast-message.success {
+  background-color: #2ecc71;
+  border: 2px solid #27ae60;
+}
+
+.toast-message.error {
+  background-color: #e74c3c;
+  border: 2px solid #c0392b;
+}
+
 @keyframes popIn {
   0% { transform: scale(0.8); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideDown {
+  0% { top: 50px; opacity: 0; }
+  100% { top: 70px; opacity: 1; }
 }
 </style>
