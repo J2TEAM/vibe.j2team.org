@@ -38,15 +38,15 @@ const formColors: Record<string, string> = {
     <!-- Stats grid 2×2 -->
     <div class="grid grid-cols-3 gap-2 mb-3">
       <div class="border border-border-default bg-bg-elevated p-2">
-        <div class="text-[10px] text-text-dim mb-0.5">FOR</div>
+        <div class="text-[10px] text-text-dim mb-0.5">ĐƯỢC HƯỞNG</div>
         <div class="font-mono text-sm text-accent-coral">{{ props.stats.for.toFixed(1) }}</div>
       </div>
       <div class="border border-border-default bg-bg-elevated p-2">
-        <div class="text-[10px] text-text-dim mb-0.5">AGAINST</div>
+        <div class="text-[10px] text-text-dim mb-0.5">BỊ PHẠT</div>
         <div class="font-mono text-sm text-accent-amber">{{ props.stats.against.toFixed(1) }}</div>
       </div>
       <div class="border border-border-default bg-bg-elevated p-2">
-        <div class="text-[10px] text-text-dim mb-0.5">TOTAL</div>
+        <div class="text-[10px] text-text-dim mb-0.5">TỔNG CỘNG</div>
         <div class="font-mono text-sm text-text-primary">{{ props.stats.total.toFixed(1) }}</div>
       </div>
     </div>

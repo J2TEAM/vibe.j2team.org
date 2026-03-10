@@ -15,7 +15,7 @@ const thresholdKeys = store.DEFAULT_THRESHOLDS
   >
     <h2 class="font-display text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
       <span class="text-accent-sky font-display text-sm tracking-widest">//</span>
-      Probability by Threshold
+      Xác suất theo Ngưỡng
     </h2>
 
     <div v-if="!h2hForSelection" class="text-text-dim text-sm">
@@ -51,7 +51,7 @@ const thresholdKeys = store.DEFAULT_THRESHOLDS
           </div>
         </div>
         <!-- Label ngưỡng -->
-        <div class="mt-1.5 text-[10px] text-text-dim font-mono">O/U {{ key }}</div>
+        <div class="mt-1.5 text-[10px] text-text-dim font-mono">T/X {{ key }}</div>
       </div>
     </div>
 
@@ -62,11 +62,11 @@ const thresholdKeys = store.DEFAULT_THRESHOLDS
     >
       <div class="flex items-center gap-1">
         <span class="size-2 bg-accent-coral/80" />
-        <span>Over</span>
+        <span>Tài</span>
       </div>
       <div class="flex items-center gap-1">
         <span class="size-2 bg-accent-amber/80" />
-        <span>Under</span>
+        <span>Xỉu</span>
       </div>
     </div>
   </section>

@@ -93,14 +93,14 @@ const topThreshold = computed(() => {
       <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
         <div class="flex items-center gap-2">
           <Icon icon="lucide:target" class="size-4 text-accent-coral" />
-          <span class="text-text-secondary">Predicted Total Corners:</span>
+          <span class="text-text-secondary">Dự đoán Tổng Phạt góc:</span>
           <span class="font-mono font-bold text-accent-coral text-base">
             {{ expectedCorners.toFixed(1) }}
           </span>
         </div>
         <div class="flex items-center gap-2">
           <Icon icon="lucide:shield-check" class="size-4" :class="confidenceLevel.color" />
-          <span class="text-text-secondary">Confidence:</span>
+          <span class="text-text-secondary">Độ tin cậy:</span>
           <span class="font-display font-semibold" :class="confidenceLevel.color">
             {{ confidenceLevel.label }}
           </span>
@@ -113,12 +113,12 @@ const topThreshold = computed(() => {
       <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-dim">
         <span v-if="dataSource" class="inline-flex items-center gap-1">
           <Icon icon="lucide:database" class="size-3 text-accent-sky" />
-          Source: <span class="text-text-secondary">{{ dataSource }}</span>
+          Nguồn: <span class="text-text-secondary">{{ dataSource }}</span>
         </span>
         <span v-if="topThreshold" class="inline-flex items-center gap-1">
           <Icon icon="lucide:trending-up" class="size-3 text-accent-coral" />
-          Best: O/U <span class="font-mono text-text-secondary">{{ topThreshold.key }}</span>
-          → Over
+          Tốt nhất: T/X <span class="font-mono text-text-secondary">{{ topThreshold.key }}</span>
+          → Tài
           <span class="font-mono text-accent-coral font-semibold">
             {{ (topThreshold.prob * 100).toFixed(0) }}%
           </span>
@@ -133,7 +133,7 @@ const topThreshold = computed(() => {
           class="text-[11px] text-text-dim font-display tracking-widest uppercase mb-3 flex items-center gap-1.5"
         >
           <span class="text-accent-sky">//</span>
-          Over / Under Probability
+          Xác suất Tài / Xỉu
         </div>
       </div>
       <div class="grid grid-cols-5 divide-x divide-border-default border-t border-border-default">
@@ -144,7 +144,7 @@ const topThreshold = computed(() => {
         >
           <!-- Label ngưỡng -->
           <div class="text-[10px] sm:text-xs text-text-dim font-mono text-center">
-            O/U {{ key }}
+            T/X {{ key }}
           </div>
 
           <!-- Mini bars ngang -->
@@ -178,10 +178,10 @@ const topThreshold = computed(() => {
           <!-- Labels -->
           <div class="flex items-center gap-2 text-[8px] text-text-dim">
             <span class="flex items-center gap-0.5">
-              <span class="size-1.5 bg-accent-coral/80" /> O
+              <span class="size-1.5 bg-accent-coral/80" /> T
             </span>
             <span class="flex items-center gap-0.5">
-              <span class="size-1.5 bg-accent-amber/80" /> U
+              <span class="size-1.5 bg-accent-amber/80" /> X
             </span>
           </div>
         </div>

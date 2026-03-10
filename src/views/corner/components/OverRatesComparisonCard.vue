@@ -13,7 +13,7 @@ const { h2hForSelection, selectedHomeTeam, selectedAwayTeam } = storeToRefs(stor
   >
     <h2 class="font-display text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
       <span class="text-accent-sky font-display text-sm tracking-widest">//</span>
-      Over Rates Comparison
+      So sánh Tỷ lệ Tài
     </h2>
 
     <div v-if="!h2hForSelection" class="text-text-dim text-sm">Chọn cặp đội để xem tỷ lệ Over.</div>
@@ -21,7 +21,7 @@ const { h2hForSelection, selectedHomeTeam, selectedAwayTeam } = storeToRefs(stor
     <div v-else class="space-y-3">
       <div v-for="entry in h2hForSelection.overRates" :key="entry.threshold" class="space-y-1.5">
         <!-- Tiêu đề ngưỡng -->
-        <div class="text-[11px] text-text-dim font-mono">O/U {{ entry.threshold }}</div>
+        <div class="text-[11px] text-text-dim font-mono">T/X {{ entry.threshold }}</div>
 
         <!-- Home rate bar -->
         <div class="flex items-center gap-2">

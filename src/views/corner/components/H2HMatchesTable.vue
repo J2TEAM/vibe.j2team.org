@@ -25,7 +25,7 @@ const sortedMatches = computed(() => {
   >
     <h2 class="font-display text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
       <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
-      H2H Matches
+      Lịch sử Đối đầu
     </h2>
 
     <div v-if="!h2hForSelection" class="text-text-dim text-sm">
@@ -38,10 +38,10 @@ const sortedMatches = computed(() => {
           <tr
             class="border-b border-border-default text-text-dim text-[10px] font-display tracking-wider uppercase"
           >
-            <th class="text-left py-2 pr-2">Date</th>
-            <th class="text-left py-2 pr-2">Match</th>
-            <th class="text-right py-2">Corners</th>
-            <th class="text-right py-2 pl-2">Total</th>
+            <th class="text-left py-2 pr-2">Ngày</th>
+            <th class="text-left py-2 pr-2">Trận đấu</th>
+            <th class="text-right py-2">Phạt góc</th>
+            <th class="text-right py-2 pl-2">Tổng</th>
           </tr>
         </thead>
         <tbody>

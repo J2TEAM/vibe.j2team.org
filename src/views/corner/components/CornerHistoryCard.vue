@@ -32,7 +32,7 @@ const maxCorner = computed(() => {
   >
     <h2 class="font-display text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
       <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
-      Corner History (Last 10)
+      Lịch sử Phạt góc (10 trận gần nhất)
     </h2>
 
     <div v-if="!homeHistory || !awayHistory" class="text-text-dim text-sm">

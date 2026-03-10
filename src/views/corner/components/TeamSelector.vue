@@ -91,7 +91,7 @@ function selectAway(id: string) {
         <div
           class="text-[10px] text-text-dim mt-1 font-display tracking-widest uppercase text-center"
         >
-          HOME
+          SÂN NHÀ
         </div>
         <!-- Dropdown list -->
         <div
@@ -151,7 +151,7 @@ function selectAway(id: string) {
         <div
           class="text-[10px] text-text-dim mt-1 font-display tracking-widest uppercase text-center"
         >
-          AWAY
+          SÂN KHÁCH
         </div>
         <!-- Dropdown list -->
         <div
@@ -210,7 +210,7 @@ function selectAway(id: string) {
       </template>
       <template v-else>
         <Icon icon="lucide:zap" class="size-4" />
-        <span>Predict</span>
+        <span>Dự đoán</span>
       </template>
     </button>
 

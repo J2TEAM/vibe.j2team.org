@@ -20,7 +20,7 @@ const maxTotal = computed(() => {
   >
     <h2 class="font-display text-lg font-semibold text-text-primary mb-3 flex items-center gap-2">
       <span class="text-accent-amber font-display text-sm tracking-widest">//</span>
-      H2H Total Corners
+      Tổng Phạt góc H2H
     </h2>
 
     <div v-if="!h2hForSelection" class="text-text-dim text-sm">
@@ -34,7 +34,7 @@ const maxTotal = computed(() => {
         class="mb-3 text-xs text-text-secondary flex flex-wrap gap-x-4 gap-y-1"
       >
         <span>
-          Avg Total:
+          Trung bình:
           <span class="font-mono text-accent-coral">{{
             h2hSummary.avgTotalCorners.toFixed(1)
           }}</span>
@@ -90,11 +90,11 @@ const maxTotal = computed(() => {
       <div class="flex items-center gap-4 mt-2 text-[10px] text-text-secondary">
         <div class="flex items-center gap-1">
           <span class="size-2 bg-accent-coral/70" />
-          <span>Home</span>
+          <span>Sân nhà</span>
         </div>
         <div class="flex items-center gap-1">
           <span class="size-2 bg-accent-amber/70" />
-          <span>Away</span>
+          <span>Sân khách</span>
         </div>
       </div>
     </div>
