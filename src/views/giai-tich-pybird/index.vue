@@ -175,6 +175,9 @@ const update = (): void => {
 
   for (let i = PIPES.value.length - 1; i >= 0; i--) {
     const pipe = PIPES.value[i];
+    
+    if (!pipe) continue;
+
     pipe.x -= 2;
 
     if (
@@ -189,7 +192,7 @@ const update = (): void => {
     if (pipe.x + PIPE_WIDTH < BIRD.x && !pipe.passed) {
       pipe.passed = true;
       if (score.value < questions.length) {
-        currentQuestion.value = questions[score.value];
+        currentQuestion.value = questions[score.value] || null;
         gameState.value = 'QUESTION';
       }
     }
@@ -255,7 +258,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Không có thay đổi nào phần style, giữ nguyên thiết kế đẹp của bạn */
 .game-container {
   display: flex;
   flex-direction: column;
