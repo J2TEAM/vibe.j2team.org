@@ -58,7 +58,8 @@ const meritTitle = computed(() => {
 
 // ── Next milestone ────────────────────────────────────────────────────────────
 const nextMilestone = computed(() => {
-  const prev = milestones.filter((m) => m.threshold <= merit.value).at(-1)
+  const passed = milestones.filter((m) => m.threshold <= merit.value)
+  const prev = passed.length > 0 ? passed[passed.length - 1] : undefined
   const next = milestones.find((m) => m.threshold > merit.value)
   if (!next) return null
   const from = prev?.threshold ?? 0
@@ -106,7 +107,7 @@ function doStrike(x: number, y: number) {
     ripples.value = ripples.value.filter((r) => r.id !== id)
   }, 900)
 
-  const text = sutras[merit.value % sutras.length]
+  const text = sutras[merit.value % sutras.length] ?? 'Nam mô A Di Đà Phật 🙏'
   const fId = floatId++
   const fx = 30 + Math.random() * 40
   floatingTexts.value.push({ id: fId, text, x: fx })
