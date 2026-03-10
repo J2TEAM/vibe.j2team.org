@@ -1,158 +1,159 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { useLocalStorage } from '@vueuse/core'
-import rawData from '../data/corners.json'
+import rawCorners from '../data/corners.json'
+import rawTeamsStats from '../data/teams_stats.json'
+import rawH2H from '../data/h2h_corners.json'
 import type {
   CornerDataFile,
-  CornerFilters,
-  CornerPreferences,
-  CornerPredictionItem,
   CornerThresholdKey,
+  H2HFile,
+  H2HPairData,
+  TeamInfo,
+  TeamSideStats,
+  TeamsStatsFile,
 } from '../types'
 
-const data = rawData as CornerDataFile
+// Ép kiểu JSON import
+const cornersData = rawCorners as CornerDataFile
+const teamsData = rawTeamsStats as TeamsStatsFile
+const h2hData = rawH2H as H2HFile
 
 const DEFAULT_THRESHOLDS: CornerThresholdKey[] = ['8.5', '9.5', '10.5', '11.5', '12.5']
 
 export const useCornerStore = defineStore('corner', () => {
-  const predictions = ref<CornerPredictionItem[]>(data.predictions)
+  // --- State ---
+  const predictions = ref(cornersData.predictions)
+  const selectedHomeTeamId = ref<string | null>(null)
+  const selectedAwayTeamId = ref<string | null>(null)
+  const teamQuery = ref('')
 
-  const selectedIndex = ref(0)
-  const selectedThreshold = ref<CornerThresholdKey | null>(null)
+  // --- Metadata ---
+  const updatedAt = cornersData.updatedAt
+  const modelInfo = cornersData.model
 
-  const filters = ref<CornerFilters>({
-    teamQuery: '',
-    onlyFuture: false,
-    bookmarkedOnly: false,
+  // --- Getters: danh sách đội ---
+  const allTeams = computed<TeamInfo[]>(() => teamsData.teams)
+
+  // Lọc đội theo search query
+  const filteredTeams = computed<TeamInfo[]>(() => {
+    const q = teamQuery.value.trim().toLowerCase()
+    if (!q) return allTeams.value
+    return allTeams.value.filter(
+      (t) => t.name.toLowerCase().includes(q) || t.shortName.toLowerCase().includes(q),
+    )
   })
 
-  const bookmarks = useLocalStorage<number[]>('corner-bookmarks', [])
-
-  const preferences = useLocalStorage<CornerPreferences>('corner-preferences', {
-    confidenceThreshold: 0.52,
-    showAdvancedStats: true,
+  // --- Getters: stats đội được chọn ---
+  const selectedHomeStats = computed<TeamSideStats | null>(() => {
+    if (!selectedHomeTeamId.value) return null
+    return teamsData.homeStats[selectedHomeTeamId.value] ?? null
   })
 
-  const updatedAt = data.updatedAt
-  const modelInfo = data.model
-
-  const filteredPredictions = computed(() => {
-    const query = filters.value.teamQuery.trim().toLowerCase()
-
-    return predictions.value
-      .map((item, index) => ({ item, index }))
-      .filter(({ item, index }) => {
-        if (filters.value.onlyFuture && !item.isFuture) return false
-        if (filters.value.bookmarkedOnly && !bookmarks.value.includes(index)) return false
-        if (!query) return true
-
-        const text = `${item.homeTeam} ${item.awayTeam}`.toLowerCase()
-        return text.includes(query)
-      })
+  const selectedAwayStats = computed<TeamSideStats | null>(() => {
+    if (!selectedAwayTeamId.value) return null
+    return teamsData.awayStats[selectedAwayTeamId.value] ?? null
   })
 
-  const selectedEntry = computed(() => {
-    const list = filteredPredictions.value
-    if (!list.length) return null
-
-    const current = list.find((x) => x.index === selectedIndex.value)
-    return current ?? list[0]
+  // Tìm tên đội từ id
+  const selectedHomeTeam = computed<TeamInfo | null>(() => {
+    if (!selectedHomeTeamId.value) return null
+    return allTeams.value.find((t) => t.id === selectedHomeTeamId.value) ?? null
   })
 
-  const thresholdsForSelected = computed(() => {
-    if (!selectedEntry.value) return null
-
-    const { thresholds } = selectedEntry.value.item
-    const keys: CornerThresholdKey[] = DEFAULT_THRESHOLDS.filter((key) => thresholds[key])
-
-    return keys.map((key) => ({
-      key,
-      detail: thresholds[key],
-    }))
+  const selectedAwayTeam = computed<TeamInfo | null>(() => {
+    if (!selectedAwayTeamId.value) return null
+    return allTeams.value.find((t) => t.id === selectedAwayTeamId.value) ?? null
   })
 
-  const summaryForSelected = computed(() => {
-    if (!selectedEntry.value) {
-      return null
-    }
+  // --- Getter: tìm H2H cho cặp đội đã chọn ---
+  // H2H key trong JSON dùng alphabetical order, lookup cả 2 chiều
+  const h2hForSelection = computed<H2HPairData | null>(() => {
+    const home = selectedHomeTeamId.value
+    const away = selectedAwayTeamId.value
+    if (!home || !away) return null
 
-    const thresholds = thresholdsForSelected.value
-    if (!thresholds || thresholds.length === 0) return null
+    // Thử cả 2 chiều key
+    const key1 = `${home}_${away}`
+    const key2 = `${away}_${home}`
 
-    let overCount = 0
-    let underCount = 0
-    let noBetCount = 0
+    return h2hData.pairs[key1] ?? h2hData.pairs[key2] ?? null
+  })
 
-    let strongest = thresholds[0]
+  // Kiểm tra đã chọn đủ cặp đội chưa
+  const hasFullSelection = computed(() => {
+    return selectedHomeTeamId.value !== null && selectedAwayTeamId.value !== null
+  })
 
-    for (const entry of thresholds) {
-      const rec = entry.detail.recommendation
-      if (rec === 'OVER') overCount++
-      else if (rec === 'UNDER') underCount++
-      else noBetCount++
+  // Tính summary từ H2H data
+  const h2hSummary = computed(() => {
+    const h2h = h2hForSelection.value
+    if (!h2h || !h2h.h2hTotals.length) return null
 
-      if (entry.detail.edge > strongest.detail.edge) {
-        strongest = entry
-      }
+    const totals = h2h.h2hTotals
+    const totalCorners = totals.reduce((sum, m) => sum + m.homeCorners + m.awayCorners, 0)
+    const avgTotalCorners = totalCorners / totals.length
+
+    let homeMoreCorners = 0
+    let awayMoreCorners = 0
+    let equalCorners = 0
+
+    for (const match of totals) {
+      if (match.homeCorners > match.awayCorners) homeMoreCorners++
+      else if (match.awayCorners > match.homeCorners) awayMoreCorners++
+      else equalCorners++
     }
 
     return {
-      overCount,
-      underCount,
-      noBetCount,
-      strongest,
+      avgTotalCorners,
+      homeMoreCorners,
+      awayMoreCorners,
+      equalCorners,
+      totalMatches: totals.length,
     }
   })
 
-  function setSelectedIndex(index: number) {
-    selectedIndex.value = index
+  // --- Actions ---
+  function setHomeTeam(id: string) {
+    // Không cho chọn cùng đội cho cả 2 bên
+    if (id === selectedAwayTeamId.value) return
+    selectedHomeTeamId.value = id
   }
 
-  function toggleBookmark(index: number) {
-    const current = new Set(bookmarks.value)
-    if (current.has(index)) {
-      current.delete(index)
-    } else {
-      current.add(index)
-    }
-    bookmarks.value = Array.from(current).sort((a, b) => a - b)
+  function setAwayTeam(id: string) {
+    if (id === selectedHomeTeamId.value) return
+    selectedAwayTeamId.value = id
   }
 
-  function updateFilters(partial: Partial<CornerFilters>) {
-    filters.value = {
-      ...filters.value,
-      ...partial,
-    }
-  }
-
-  function updatePreferences(partial: Partial<CornerPreferences>) {
-    preferences.value = {
-      ...preferences.value,
-      ...partial,
-    }
-  }
-
-  function setSelectedThreshold(key: CornerThresholdKey | null) {
-    selectedThreshold.value = key
+  function setTeamQuery(query: string) {
+    teamQuery.value = query
   }
 
   return {
+    // State
     predictions,
-    selectedIndex,
-    selectedThreshold,
-    filters,
-    bookmarks,
-    preferences,
+    selectedHomeTeamId,
+    selectedAwayTeamId,
+    teamQuery,
+
+    // Metadata
     updatedAt,
     modelInfo,
-    filteredPredictions,
-    selectedEntry,
-    thresholdsForSelected,
-    summaryForSelected,
-    setSelectedIndex,
-    toggleBookmark,
-    updateFilters,
-    updatePreferences,
-    setSelectedThreshold,
+    DEFAULT_THRESHOLDS,
+
+    // Getters
+    allTeams,
+    filteredTeams,
+    selectedHomeTeam,
+    selectedAwayTeam,
+    selectedHomeStats,
+    selectedAwayStats,
+    h2hForSelection,
+    hasFullSelection,
+    h2hSummary,
+
+    // Actions
+    setHomeTeam,
+    setAwayTeam,
+    setTeamQuery,
   }
 })
