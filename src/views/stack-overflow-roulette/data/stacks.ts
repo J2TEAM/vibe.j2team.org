@@ -48,91 +48,114 @@ export function getSeniorReview(
   backend: string,
   database: string,
 ): { rating: number; review: string } {
-  // Combo hủy diệt 1: Excel / Txt / Brain DB
-  if (database === 'txt' || database === 'brain' || database === 'json' || backend === 'excel') {
-    let reviewText = 'Cái mớ rác rưởi này mà cũng gọi là tech stack à? '
-    if (backend === 'excel') {
-      reviewText +=
-        'Backend dùng Macros Excel? Bạn tính cho hệ thống sập khi request thứ 2 bay vào à?'
-    } else if (database === 'txt') {
-      reviewText += 'Database là file txt? Bạn định viết hệ thống gửi thiệp cưới hở?'
-    } else if (database === 'json') {
-      reviewText += 'Lưu data vào file JSON? Vài bữa file phình lên 1GB rồi đơ cả app nhé.'
-    } else {
-      reviewText += 'Database là "Trí nhớ của Dev"? Chúc bạn không bị mất trí nhớ ngày mai.'
-    }
+  const fName = techStacks.frontend.find((f) => f.id === frontend)?.name || frontend
+  const bName = techStacks.backend.find((b) => b.id === backend)?.name || backend
+  const dName = techStacks.database.find((d) => d.id === database)?.name || database
+
+  // 1. Combo Hủy Diệt Cấp Độ Vũ Trụ
+  if (database === 'brain') {
     return {
       rating: 1,
-      review: reviewText,
-    }
-  }
-
-  // Cổ đại combo
-  if (frontend === 'jquery' || frontend === 'jsp' || backend === 'cobol') {
-    return {
-      rating: 2,
       review:
-        'Combo này tôi thấy quen lắm... hình như từ hồi tôi mới vào nghề năm 2005. Bạn đang bảo trì hệ thống của ngân hàng à?',
+        'Dùng "Trí nhớ của Dev" làm Database? Thế sáng nay ăn gì có nhớ không mà đòi nhớ data của user? Cậu định vỗ đầu mỗi lần cần query à?',
+    }
+  }
+  if (database === 'txt' || database === 'json') {
+    return {
+      rating: 1,
+      review: `Database lưu bằng ${dName}? Chúc mừng, cậu vừa phát minh lại cách lưu trữ thời tiền sử. Đợi file phình lên 2GB rồi cậu sẽ biết thế nào là "race condition". Xuống phòng HR chờ lấy lương luôn đi.`,
+    }
+  }
+  if (backend === 'excel') {
+    return {
+      rating: 1,
+      review:
+        'Backend chạy qua Macros Excel? Cậu định cho kế toán làm System Admin đúng không? Thử 5 request chạy cùng lúc xem cái bảng tính của cậu có bốc khói không?',
     }
   }
 
-  // React / Node / Mongo (MERN)
+  // 2. Chửi đặc trưng từng stack
+  if (frontend === 'htmx' && backend === 'rust' && database === 'postgres') {
+    return {
+      rating: 5,
+      review:
+        'HTMX + Rust + Postgres hả? Lại một thanh niên cuồng tech-bro và chửi "React là rác" đây mà. Setup thì ngầu đấy, 0KB JS, compile nhanh, nhưng cậu lôi đâu ra người maintain cái mớ code Rust thượng đẳng này khi cậu nghỉ việc?',
+    }
+  }
+
   if (frontend === 'react' && backend === 'node' && database === 'mongodb') {
     return {
       rating: 3,
       review:
-        'MERN stack. Tutorial trên mạng dạy sao làm y vậy hả? Được cái dễ tuyển Dev rẻ mạt thay thế mặt bạn.',
+        'Ah, MERN stack - "starter pack" của mọi trung tâm dạy lập trình cấp tốc. Không phải nó dở, mà là nhìn nó nhàm chán như cái áo sơ mi trắng đi xin việc vậy. Đừng nói với tôi cậu lưu password bằng plaintext trên Mongo nhé?',
     }
   }
 
-  // Hype train (Rust + Svelte/HTMX + Postgres)
-  if (
-    (frontend === 'svelte' || frontend === 'htmx') &&
-    (backend === 'rust' || backend === 'go') &&
-    database === 'postgres'
-  ) {
+  if ((frontend === 'jquery' || frontend === 'jsp') && backend === 'cobol') {
     return {
-      rating: 5,
+      rating: 2,
       review:
-        'Bạn đọc tin tức công nghệ quá nhiều rồi đấy. Nhưng công nhận là setup này chạy mượt, 0KB Javascript đúng ý tôi! Chấm 5 sao.',
+        'Combo khảo cổ học! Cậu đang bảo trì hệ thống cho cục thuế năm 1998 đúng không? Hay cậu định triệu hồi các bô lão 60 tuổi về code? Stack này chỉ có giá để viết luận văn lịch sử IT.',
     }
   }
 
-  // PHP/Laravel thần thánh
-  if (backend === 'php' && database === 'mysql') {
-    if (frontend === 'blade' || frontend === 'vue') {
-      return {
-        rating: 4,
-        review:
-          'Kiểu classic của anh em làm web dạo kiếm tiền. Chạy ổn, deploy nhanh, kiếm tiền tỉ mà bị mấy đứa xài JS nó khinh. Kệ!',
-      }
-    }
-  }
-
-  // Java Spring + Angular + Oracle/Postgres (Enterprise)
   if (backend === 'java' && frontend === 'angular') {
     return {
       rating: 4,
       review:
-        'Anh sếp doanh nghiệp to thích combo này. Mất 3 tháng để setup dự án và hello world, bù lại thì bảo mật tốt (chắc thế).',
+        'Đúng chuẩn Enterprise! Angular + Spring Boot. Mất 4 tuần cấu hình Boilerplate, 2 ngày để render dòng "Hello World". Chắc ngân sách phải chục tỷ thì sếp mới duyệt cho cái stack nặng nề như xe lu thế này.',
     }
   }
 
-  // Random fallback reviews dựa vào các biến
+  if (backend === 'php' && (frontend === 'blade' || frontend === 'vue') && database === 'mysql') {
+    return {
+      rating: 4,
+      review:
+        '"PHP is dead", họ nói. Trong khi cái hệ thống Laravel + Vue này đang âm thầm gánh 60% web ngoài kia và giúp mấy ông dev dạo mua Mẹc. Đơn giản, cục súc, deploy phát ăn ngay. Cơ mà đừng khoe khoang, JS dev nó khinh đấy.',
+    }
+  }
+
+  if (frontend === 'vanilla' && backend === 'node') {
+    return {
+      rating: 3,
+      review:
+        'Vanilla JS? Cậu thích khổ dâm tự tay thao tác document.getElementById() cơ à? Thử handle state của 50 cái input xem ngón tay có gãy không. Lên production rồi lại ước gì mình dùng React cho đời thanh thản.',
+    }
+  }
+
+  if (backend === 'go' || backend === 'rust') {
+    if (frontend === 'react' || frontend === 'vue' || frontend === 'svelte') {
+      return {
+        rating: 4,
+        review: `Dùng ${bName} thì tốc độ xé gió rồi, nhưng cái ${fName} kia có render kịp mấy chục ngàn request/s mà backend ném về không? Lại bài ca "Dao mổ trâu đi giết ruồi nhặng" à?`,
+      }
+    }
+  }
+
+  if (database === 'firebase' && frontend === 'vanilla') {
+    return {
+      rating: 2,
+      review:
+        'Thiệt luôn? Dùng Firebase để đỡ phải code Backend mà lại đi code Frontend bằng Vanilla JS? Cậu đang cân bằng giữa sự hiện đại và đồ cổ đấy à?',
+    }
+  }
+
+  // Fallback random cực gắt
   const randomReviews = [
-    `Dùng ${techStacks.frontend.find((f) => f.id === frontend)?.name} với ${techStacks.backend.find((b) => b.id === backend)?.name}? Hơi dị nhưng nếu deploy ra tiền thì cứ làm.`,
-    `Database là ${techStacks.database.find((d) => d.id === database)?.name} thì cũng ổn, mong là bạn biết đánh index chứ đừng Select * from Users.`,
-    `Trông cũng ra gì đấy. Nhưng stack gì thì sớm muộn cũng thành legacy code để thế hệ sau lại chửi đổng lên thôi.`,
-    `Tổ hợp này sẽ dạy cho bạn nhiều bài học về... sự kiên nhẫn. Cố lên nhé!`,
-    `Để chạy được đống này chắc mất nguyên ngày config Docker. À quên... bạn đã biết dùng Docker chưa?`,
-    `Stack xịn đấy. Nhưng cái app Todo List của bạn có cần phức tạp đến mức này không?`,
+    `Cậu định ghép ${fName} với ${bName} á? Nó giống như ăn bún đậu mắm tôm nhưng rưới tương ớt Chinsu vậy. Nghe thôi đã thấy đau bụng và xúc phạm người nhìn.`,
+    `Database là ${dName}... Thôi được, mong là cậu biết Index là cái gì, chứ cái trò SELECT * bừa bãi thì bố cái server ${bName} cũng không gánh nổi đâu.`,
+    `Một sự cố chấp trong việc tỏ ra khác biệt! Cậu ghép ${fName} và ${dName} chỉ vì muốn CV trông ngầu hơn lúc đi phỏng vấn đúng không? Ai thèm quan tâm cơ chứ.`,
+    `Nhìn đống này tôi chỉ muốn nhắm mắt nộp đơn từ chức. ${fName} kết nối với ${bName} kiểu gì? Mà thôi kệ đi, kiểu gì 3 tháng nữa chả đập đi viết lại toàn bộ.`,
+    `App này làm ra để kiếm tiền hay để cúng tiền cho AWS? Nhét ${bName} và ${dName} vào một server, tôi cá là tiền Cloud hàng tháng tốn bằng 3 tháng lương cơ bản của cậu đấy.`,
+    `Review ngắn ngọn: Đống rác. Nhưng rác này có tái chế được không thì để xem khả năng cậu maintain cái ${fName} tàn tạ tốn RAM kia thế nào. Chúc kiên nhẫn!`,
+    `Ai xúi cậu dùng ${bName} vậy? Xem Tutorial trên Youtube năm 2018 rồi làm theo à? Tôi thà đi fix bug cho plugin Wordpress còn hơn đụng vào cái đống này.`,
+    `Thôi bỏ đi! Cậu cứ dùng ${fName} với ${dName} đi, để rồi khi có bug thì cậu tự lên StackOverflow mà khóc. Chứ tôi là tôi không review cái mớ hổ lốn này đâu nhé.`,
   ]
 
-  // Pseudo-random dựa vào string
   const hash = (frontend + backend + database).length % randomReviews.length
 
   return {
-    rating: 3,
+    rating: Math.floor(Math.random() * 3) + 2,
     review: randomReviews[hash]!,
   }
 }
