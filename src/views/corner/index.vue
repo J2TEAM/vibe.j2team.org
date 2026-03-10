@@ -9,6 +9,7 @@ import CornerHistoryCard from './components/CornerHistoryCard.vue'
 import OverRatesComparisonCard from './components/OverRatesComparisonCard.vue'
 import H2HTotalCornersCard from './components/H2HTotalCornersCard.vue'
 import H2HMatchesTable from './components/H2HMatchesTable.vue'
+import ModelPerformanceCard from './components/ModelPerformanceCard.vue'
 import { useCornerStore } from './store/useCornerStore'
 
 const store = useCornerStore()
@@ -95,6 +96,11 @@ const {
           <H2HTotalCornersCard />
           <H2HMatchesTable />
         </div>
+      </section>
+
+      <!-- ROW 6: Model Performance -->
+      <section class="animate-fade-up mt-5" style="animation-delay: 400ms">
+        <ModelPerformanceCard />
       </section>
     </template>
   </CornerLayoutShell>

@@ -1,0 +1,58 @@
+{
+    "updatedAt": "2026-03-10T13:15:00",
+    "testSeason": "2025-26",
+    "testSize": 262,
+    "regression": {
+        "rmse": 3.2933,
+        "mae": 2.6377,
+        "r2": -0.0127,
+        "corr": 0.1051
+    },
+    "thresholds": [
+        {
+            "threshold": "8.5",
+            "accuracy": 0.668,
+            "bets": 262,
+            "winRate": 0.668,
+            "avgEdge": 0.2283,
+            "roi": 0.2357,
+            "profit": 61.75
+        },
+        {
+            "threshold": "9.5",
+            "accuracy": 0.565,
+            "bets": 262,
+            "winRate": 0.565,
+            "avgEdge": 0.1193,
+            "roi": 0.0733,
+            "profit": 19.20
+        },
+        {
+            "threshold": "10.5",
+            "accuracy": 0.546,
+            "bets": 73,
+            "winRate": 0.575,
+            "avgEdge": 0.0303,
+            "roi": 0.0932,
+            "profit": 6.80
+        },
+        {
+            "threshold": "11.5",
+            "accuracy": 0.698,
+            "bets": 261,
+            "winRate": 0.701,
+            "avgEdge": 0.1256,
+            "roi": 0.2971,
+            "profit": 77.55
+        },
+        {
+            "threshold": "12.5",
+            "accuracy": 0.794,
+            "bets": 262,
+            "winRate": 0.794,
+            "avgEdge": 0.2332,
+            "roi": 0.4290,
+            "profit": 112.40
+        }
+    ]
+}
