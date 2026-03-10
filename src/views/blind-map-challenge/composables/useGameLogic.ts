@@ -1,5 +1,5 @@
 import { ref, computed, type Ref } from 'vue'
-import type { Province, PlacedProvince, GameConfig, GameResult, Difficulty, Zone } from '../types'
+import type { Province, PlacedProvince, GameConfig, GameResult, Difficulty } from '../types'
 import { provinces as allProvinces } from '../data/provinces'
 import { useTimer } from './useTimer'
 import { useLocalStorage } from './useLocalStorage'
@@ -42,7 +42,9 @@ function seededShuffle<T>(arr: T[], seed: number): T[] {
     for (let i = result.length - 1; i > 0; i--) {
         s = (s * 1103515245 + 12345) & 0x7fffffff
         const j = s % (i + 1)
-            ;[result[i], result[j]] = [result[j], result[i]]
+        const tmp = result[i]!
+        result[i] = result[j]!
+        result[j] = tmp
     }
     return result
 }
@@ -245,6 +247,7 @@ export function useGameLogic() {
 
         const randomIndex = Math.floor(Math.random() * remainingProvinces.value.length)
         const province = remainingProvinces.value[randomIndex]
+        if (!province) return null
 
         score.value -= HINT_PENALTY
         hintsUsed.value++
@@ -260,6 +263,17 @@ export function useGameLogic() {
         isGameActive.value = false
         isGameOver.value = true
         timer.stop()
+
+        // Mark remaining provinces as wrong (e.g. when time expires)
+        gameProvinces.value.forEach(p => {
+            if (!placedProvinces.value.has(p.id) || placedProvinces.value.get(p.id)?.status !== 'correct') {
+                placedProvinces.value.set(p.id, {
+                    provinceId: p.id,
+                    status: 'wrong',
+                    attempts: placedProvinces.value.get(p.id)?.attempts ?? 0,
+                })
+            }
+        })
 
         // Time bonus (only for timed modes)
         const timeLimit = TIME_LIMITS[config.value.difficulty]
@@ -289,16 +303,6 @@ export function useGameLogic() {
 
     // Give up
     function giveUp() {
-        // Mark remaining as wrong
-        gameProvinces.value.forEach(p => {
-            if (!placedProvinces.value.has(p.id) || placedProvinces.value.get(p.id)?.status !== 'correct') {
-                placedProvinces.value.set(p.id, {
-                    provinceId: p.id,
-                    status: 'wrong',
-                    attempts: placedProvinces.value.get(p.id)?.attempts || 0,
-                })
-            }
-        })
         endGame()
     }
 

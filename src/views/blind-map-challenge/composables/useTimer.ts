@@ -14,12 +14,16 @@ export function useTimer() {
         return `${m}:${s}`
     })
     const isExpired = computed(() => remainingSeconds.value <= 0 && totalSeconds.value > 0)
-    const elapsedSeconds = computed(() => totalSeconds.value - remainingSeconds.value)
+    const isCountingUp = ref(false)
+    const elapsedSeconds = computed(() =>
+        isCountingUp.value ? totalSeconds.value : totalSeconds.value - remainingSeconds.value
+    )
 
     function start(durationSeconds: number) {
         stop()
         totalSeconds.value = durationSeconds
         remainingSeconds.value = durationSeconds
+        isCountingUp.value = false
         isRunning.value = true
         intervalId = setInterval(() => {
             if (remainingSeconds.value > 0) {
@@ -69,6 +73,7 @@ export function useTimer() {
         stop()
         totalSeconds.value = 0
         remainingSeconds.value = 0
+        isCountingUp.value = true
         isRunning.value = true
         intervalId = setInterval(() => {
             totalSeconds.value++

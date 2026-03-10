@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { Province } from '../types'
 
-const props = defineProps<{
+defineProps<{
   province: Province | null
   x: number
   y: number

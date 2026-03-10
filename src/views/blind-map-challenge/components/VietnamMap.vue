@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref } from 'vue'
+import { Icon } from '@iconify/vue'
 import type { Province } from '../types'
 import { provinces } from '../data/provinces'
+import { mapPaths, vietnamOutline } from '../data/map-paths'
+import { useMapZoom } from '../composables/useMapZoom'
 
 const props = defineProps<{
   gameProvinces: Province[]
@@ -18,7 +21,8 @@ const emit = defineEmits<{
 }>()
 
 const hoveredPath = ref<string | null>(null)
-const svgContainer = ref<HTMLDivElement | null>(null)
+const mapContainer = ref<HTMLDivElement | null>(null)
+const zoom = useMapZoom(mapContainer)
 
 // Build a map from svgPathId to province for quick lookup
 const svgIdToProvince = computed(() => {
@@ -39,21 +43,52 @@ const correctSvgIds = computed(() => {
   return ids
 })
 
+// Province zone color mapping for correct provinces
+const zoneColors: Record<string, { fill: string; stroke: string }> = {
+  'Bắc': { fill: '#38BDF8', stroke: '#7DD3FC' },   // sky
+  'Trung': { fill: '#34D399', stroke: '#6EE7B7' },  // emerald
+  'Nam': { fill: '#FBBF24', stroke: '#FCD34D' },     // amber
+}
+
+function getZoneForSvgId(svgPathId: string): string {
+  const prov = svgIdToProvince.value.get(svgPathId)
+  return prov?.zone ?? 'Bắc'
+}
+
 // Determine fill color for each province path
 function getPathFill(svgPathId: string): string {
-  if (props.wrongProvinceId === svgPathId) return '#FF6B4A' // coral — wrong flash
-  if (props.hintedProvinceId === svgPathId) return 'rgba(56, 189, 248, 0.4)' // sky/40
-  if (correctSvgIds.value.has(svgPathId)) return '#38BDF8' // sky — correct
-  if (hoveredPath.value === svgPathId) return '#1E2F42' // elevated
-  return '#162232' // surface — default
+  if (props.wrongProvinceId === svgPathId) return '#FF6B4A'
+  if (props.hintedProvinceId === svgPathId) return 'rgba(56, 189, 248, 0.45)'
+  if (correctSvgIds.value.has(svgPathId)) {
+    const zone = getZoneForSvgId(svgPathId)
+    return zoneColors[zone]?.fill ?? '#38BDF8'
+  }
+  if (hoveredPath.value === svgPathId && props.selectedProvinceId) return '#1E3A52'
+  if (hoveredPath.value === svgPathId) return '#1A3040'
+  return '#14283A'
 }
 
 function getPathStroke(svgPathId: string): string {
   if (props.wrongProvinceId === svgPathId) return '#FF6B4A'
   if (props.hintedProvinceId === svgPathId) return '#38BDF8'
-  if (correctSvgIds.value.has(svgPathId)) return '#38BDF8'
-  return '#253549' // border-default
+  if (correctSvgIds.value.has(svgPathId)) {
+    const zone = getZoneForSvgId(svgPathId)
+    return zoneColors[zone]?.stroke ?? '#7DD3FC'
+  }
+  if (hoveredPath.value === svgPathId) return '#38BDF8'
+  return '#1E3448'
 }
+
+function getStrokeWidth(svgPathId: string): number {
+  if (props.wrongProvinceId === svgPathId) return 2
+  if (props.hintedProvinceId === svgPathId) return 2
+  if (correctSvgIds.value.has(svgPathId)) return 1.2
+  if (hoveredPath.value === svgPathId) return 1.5
+  return 0.8
+}
+
+// Show shortName label when zoomed in enough
+const showLabels = computed(() => zoom.scale.value >= 1.5)
 
 // Drag and drop handlers
 function onDragOver(e: DragEvent) {
@@ -70,6 +105,8 @@ function onDrop(e: DragEvent, svgPathId: string) {
 }
 
 function onPathClick(svgPathId: string) {
+  // Suppress click if user was panning
+  if (zoom.wasDragging.value) return
   emit('click-province', svgPathId)
 }
 
@@ -81,224 +118,235 @@ function onMouseLeave() {
   hoveredPath.value = null
 }
 
-// SVG path data for all 63 provinces — inline simplified shapes
-// These represent approximate geographic positions for interactive gameplay
-const provincePaths = ref<{id: string; d: string}[]>([])
-
-onMounted(() => {
-  generateMapPaths()
+// Hovered province name (for tooltip)
+const hoveredProvinceName = computed(() => {
+  if (!hoveredPath.value) return ''
+  const prov = svgIdToProvince.value.get(hoveredPath.value)
+  if (!prov) return ''
+  // If correctly placed, show name; otherwise show "?"
+  if (correctSvgIds.value.has(hoveredPath.value)) return prov.name
+  return ''
 })
-
-function generateMapPaths() {
-  // Simplified Vietnam map paths — positioned to approximate real geography
-  // The SVG viewBox is 0 0 400 700 representing the elongated shape of Vietnam
-  const pathData: {id: string; d: string}[] = [
-    // === BẮC ===
-    // Hà Giang
-    { id: 'VN-HG', d: 'M168,12 L192,8 L210,18 L215,35 L200,45 L180,42 L165,30 Z' },
-    // Cao Bằng
-    { id: 'VN-CB', d: 'M215,15 L240,10 L258,20 L260,38 L245,48 L225,45 L215,35 Z' },
-    // Lào Cai
-    { id: 'VN-LC', d: 'M130,20 L155,15 L168,28 L165,45 L148,50 L132,40 Z' },
-    // Lai Châu
-    { id: 'VN-LCh', d: 'M100,35 L130,25 L140,42 L135,60 L115,65 L98,52 Z' },
-    // Điện Biên
-    { id: 'VN-DB', d: 'M72,52 L98,45 L108,60 L102,80 L85,88 L70,75 Z' },
-    // Sơn La
-    { id: 'VN-SL', d: 'M88,80 L115,65 L145,62 L155,78 L140,98 L110,105 L88,95 Z' },
-    // Yên Bái
-    { id: 'VN-YB', d: 'M148,42 L175,38 L185,52 L178,68 L158,72 L145,60 Z' },
-    // Tuyên Quang
-    { id: 'VN-TQ', d: 'M178,38 L200,42 L208,58 L198,72 L180,70 L175,55 Z' },
-    // Lạng Sơn
-    { id: 'VN-LS', d: 'M245,42 L268,35 L280,48 L275,65 L258,72 L240,65 Z' },
-    // Bắc Kạn
-    { id: 'VN-BK', d: 'M210,42 L232,40 L240,55 L232,70 L215,72 L208,58 Z' },
-    // Phú Thọ
-    { id: 'VN-PT', d: 'M140,65 L165,60 L175,75 L168,90 L148,92 L138,80 Z' },
-    // Thái Nguyên
-    { id: 'VN-TN', d: 'M198,62 L218,58 L228,72 L222,88 L205,90 L195,78 Z' },
-    // Vĩnh Phúc
-    { id: 'VN-VP', d: 'M175,72 L198,68 L205,82 L198,95 L180,96 L172,85 Z' },
-    // Bắc Giang
-    { id: 'VN-BG', d: 'M228,65 L252,60 L262,75 L255,90 L235,92 L225,80 Z' },
-    // Quảng Ninh
-    { id: 'VN-QN', d: 'M262,55 L295,48 L310,62 L305,82 L285,92 L262,88 L258,72 Z' },
-    // Hà Nội
-    { id: 'VN-HN', d: 'M185,90 L210,86 L218,100 L212,115 L192,118 L182,105 Z' },
-    // Bắc Ninh
-    { id: 'VN-BN', d: 'M218,85 L238,82 L244,95 L238,108 L222,110 L216,98 Z' },
-    // Hải Dương
-    { id: 'VN-HD', d: 'M240,88 L262,85 L270,98 L265,112 L245,115 L238,102 Z' },
-    // Hải Phòng
-    { id: 'VN-HP', d: 'M268,92 L295,88 L305,102 L298,118 L275,120 L265,108 Z' },
-    // Hưng Yên
-    { id: 'VN-HY', d: 'M218,108 L240,105 L245,118 L238,130 L220,132 L215,120 Z' },
-    // Hoà Bình
-    { id: 'VN-HB', d: 'M145,95 L175,90 L185,105 L178,125 L155,128 L142,115 Z' },
-    // Hà Nam
-    { id: 'VN-HNm', d: 'M192,118 L215,115 L220,130 L212,142 L195,144 L188,132 Z' },
-    // Thái Bình
-    { id: 'VN-TB', d: 'M238,118 L268,115 L275,130 L268,145 L242,148 L235,135 Z' },
-    // Nam Định
-    { id: 'VN-ND', d: 'M210,140 L238,136 L245,150 L238,165 L215,168 L208,155 Z' },
-    // Ninh Bình
-    { id: 'VN-NB', d: 'M178,138 L205,135 L212,150 L205,168 L182,170 L175,155 Z' },
-
-    // === TRUNG ===
-    // Thanh Hoá
-    { id: 'VN-TH', d: 'M148,155 L195,148 L210,168 L205,195 L170,205 L140,195 L135,175 Z' },
-    // Nghệ An
-    { id: 'VN-NA', d: 'M128,195 L175,188 L195,210 L185,245 L155,255 L125,240 L118,215 Z' },
-    // Hà Tĩnh
-    { id: 'VN-HT', d: 'M148,255 L178,248 L190,268 L182,290 L160,295 L145,278 Z' },
-    // Quảng Bình
-    { id: 'VN-QB', d: 'M155,290 L180,285 L192,308 L185,330 L165,335 L152,318 Z' },
-    // Quảng Trị
-    { id: 'VN-QTr', d: 'M158,332 L182,328 L190,345 L185,362 L165,365 L155,350 Z' },
-    // Thừa Thiên Huế
-    { id: 'VN-TTH', d: 'M155,362 L185,355 L195,375 L188,395 L165,400 L152,385 Z' },
-    // Đà Nẵng
-    { id: 'VN-DN', d: 'M178,395 L198,390 L205,405 L198,418 L182,420 L175,408 Z' },
-    // Quảng Nam
-    { id: 'VN-QNm', d: 'M155,405 L185,398 L200,418 L195,440 L168,448 L148,432 Z' },
-    // Kon Tum
-    { id: 'VN-KT', d: 'M118,410 L148,405 L158,425 L152,445 L128,450 L115,435 Z' },
-    // Quảng Ngãi
-    { id: 'VN-QNg', d: 'M168,440 L198,435 L208,452 L202,468 L178,472 L165,458 Z' },
-    // Gia Lai
-    { id: 'VN-GL', d: 'M118,445 L155,438 L170,458 L165,485 L138,492 L115,478 Z' },
-    // Bình Định
-    { id: 'VN-BD', d: 'M178,468 L208,462 L218,480 L212,498 L188,502 L175,488 Z' },
-    // Phú Yên
-    { id: 'VN-PY', d: 'M180,498 L210,492 L220,510 L215,525 L192,530 L178,515 Z' },
-    // Đắk Lắk
-    { id: 'VN-DL', d: 'M115,488 L158,480 L172,502 L168,528 L138,535 L112,520 Z' },
-    // Đắk Nông
-    { id: 'VN-DNo', d: 'M108,520 L140,515 L150,535 L145,555 L122,560 L105,545 Z' },
-    // Khánh Hoà
-    { id: 'VN-KH', d: 'M192,525 L220,518 L230,538 L225,558 L200,562 L188,548 Z' },
-    // Lâm Đồng
-    { id: 'VN-LD', d: 'M135,548 L170,540 L188,558 L182,580 L155,588 L130,575 Z' },
-    // Ninh Thuận
-    { id: 'VN-NT', d: 'M200,558 L225,552 L232,568 L228,582 L208,586 L198,572 Z' },
-    // Bình Thuận
-    { id: 'VN-BTh', d: 'M175,580 L210,575 L228,590 L225,608 L195,615 L172,600 Z' },
-
-    // === NAM ===
-    // Bình Phước
-    { id: 'VN-BP', d: 'M108,558 L138,552 L148,572 L142,592 L118,598 L105,580 Z' },
-    // Tây Ninh
-    { id: 'VN-TNi', d: 'M92,590 L118,585 L128,602 L122,618 L100,622 L88,608 Z' },
-    // Bình Dương
-    { id: 'VN-BDg', d: 'M122,595 L148,590 L155,608 L148,622 L128,625 L118,612 Z' },
-    // Đồng Nai
-    { id: 'VN-DNa', d: 'M148,585 L182,578 L195,598 L190,620 L162,628 L145,612 Z' },
-    // TP. Hồ Chí Minh
-    { id: 'VN-HCM', d: 'M115,618 L148,612 L158,628 L152,645 L128,650 L112,638 Z' },
-    // Bà Rịa - Vũng Tàu
-    { id: 'VN-BRVT', d: 'M165,622 L195,615 L205,632 L198,648 L175,652 L162,638 Z' },
-    // Long An
-    { id: 'VN-LA', d: 'M82,635 L112,628 L122,645 L115,662 L90,668 L78,652 Z' },
-    // Tiền Giang
-    { id: 'VN-TG', d: 'M108,658 L138,652 L148,668 L142,682 L118,685 L105,672 Z' },
-    // Bến Tre
-    { id: 'VN-BTr', d: 'M138,668 L165,662 L172,678 L168,692 L145,695 L135,682 Z' },
-    // Đồng Tháp
-    { id: 'VN-DT', d: 'M62,655 L90,648 L100,665 L95,682 L72,688 L58,672 Z' },
-    // Vĩnh Long
-    { id: 'VN-VL', d: 'M108,680 L135,675 L142,690 L138,705 L115,708 L105,695 Z' },
-    // An Giang
-    { id: 'VN-AG', d: 'M42,672 L68,665 L78,682 L72,700 L50,705 L38,690 Z' },
-    // Trà Vinh
-    { id: 'VN-TV', d: 'M138,695 L165,690 L172,705 L168,718 L145,722 L135,708 Z' },
-    // Cần Thơ
-    { id: 'VN-CTh', d: 'M82,695 L108,690 L115,705 L110,718 L88,722 L78,708 Z' },
-    // Hậu Giang
-    { id: 'VN-HGi', d: 'M78,718 L105,712 L112,728 L108,742 L85,745 L75,732 Z' },
-    // Sóc Trăng
-    { id: 'VN-ST', d: 'M110,725 L140,718 L148,735 L142,750 L118,755 L108,740 Z' },
-    // Kiên Giang
-    { id: 'VN-KG', d: 'M30,705 L62,698 L72,718 L68,745 L42,755 L25,738 Z' },
-    // Bạc Liêu
-    { id: 'VN-BLi', d: 'M82,745 L112,738 L120,755 L115,770 L90,775 L78,760 Z' },
-    // Cà Mau
-    { id: 'VN-CM', d: 'M55,760 L88,752 L98,772 L92,795 L65,800 L48,785 Z' },
-  ]
-
-  provincePaths.value = pathData
-}
-
-// Get label position (center of path bounding box approximation)
-function getLabelPosition(pathId: string): { x: number; y: number } | null {
-  if (!svgContainer.value) return null
-  const el = svgContainer.value.querySelector(`[data-id="${pathId}"]`) as SVGPathElement | null
-  if (!el) return null
-  const bbox = el.getBBox()
-  return { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height / 2 }
-}
 </script>
 
 <template>
-  <div
-    ref="svgContainer"
-    class="relative w-full h-full flex items-center justify-center"
-  >
-    <svg
-      viewBox="0 0 340 810"
-      class="w-full h-full max-h-[70vh] md:max-h-full"
-      preserveAspectRatio="xMidYMid meet"
-      style="filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.1))"
+  <div class="relative w-full h-full select-none">
+    <!-- Map viewport (handles zoom/pan) -->
+    <div
+      ref="mapContainer"
+      class="relative w-full h-full overflow-hidden touch-none"
+      :class="{ 'cursor-grabbing': zoom.isPanning.value, 'cursor-grab': !zoom.isPanning.value }"
     >
-      <!-- Water / background -->
-      <rect x="0" y="0" width="340" height="810" fill="#0F1923" rx="0" />
+      <div
+        class="w-full h-full flex items-center justify-center transition-transform duration-100 ease-out"
+        :style="{ transform: zoom.transform.value, transformOrigin: 'center center' }"
+      >
+        <svg
+          viewBox="-10 -10 440 960"
+          class="w-full h-full max-h-[70vh] md:max-h-full"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <defs>
+            <!-- Sea gradient -->
+            <radialGradient id="sea-gradient" cx="50%" cy="40%" r="65%">
+              <stop offset="0%" stop-color="#0D2137" />
+              <stop offset="100%" stop-color="#081420" />
+            </radialGradient>
+            <!-- Glow filter for correct provinces -->
+            <filter id="glow-correct" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <!-- Glow for hinted -->
+            <filter id="glow-hint" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
 
-      <!-- Province paths -->
-      <g>
-        <path
-          v-for="p in provincePaths"
-          :key="p.id"
-          :data-id="p.id"
-          :d="p.d"
-          :fill="getPathFill(p.id)"
-          :stroke="getPathStroke(p.id)"
-          stroke-width="1"
-          class="transition-all duration-200 cursor-pointer"
-          :class="{
-            'animate-shake': wrongProvinceId === p.id,
-            'animate-pulse-hint': hintedProvinceId === p.id,
-          }"
-          @mouseenter="onMouseEnter(p.id)"
-          @mouseleave="onMouseLeave()"
-          @dragover="onDragOver"
-          @drop="(e: DragEvent) => onDrop(e, p.id)"
-          @click="onPathClick(p.id)"
-        />
-      </g>
+          <!-- Sea background -->
+          <rect x="-10" y="-10" width="440" height="960" fill="url(#sea-gradient)" />
 
-      <!-- Labels for correctly placed provinces -->
-      <g v-for="p in provincePaths" :key="'label-' + p.id">
-        <template v-if="correctSvgIds.has(p.id) && svgIdToProvince.get(p.id)">
-          <text
-            :x="(() => { const el = svgContainer?.querySelector(`[data-id='${p.id}']`) as SVGPathElement | null; if (!el) return 0; const b = el.getBBox(); return b.x + b.width / 2 })()"
-            :y="(() => { const el = svgContainer?.querySelector(`[data-id='${p.id}']`) as SVGPathElement | null; if (!el) return 0; const b = el.getBBox(); return b.y + b.height / 2 })()"
-            text-anchor="middle"
-            dominant-baseline="central"
-            fill="#F0EDE6"
-            font-size="6"
-            font-family="'Be Vietnam Pro', sans-serif"
-            font-weight="500"
-            class="pointer-events-none select-none"
-          >
-            {{ svgIdToProvince.get(p.id)?.shortName }}
-          </text>
-        </template>
-      </g>
-    </svg>
+          <!-- Grid lines for geographic feel -->
+          <g opacity="0.04" stroke="#38BDF8" stroke-width="0.3">
+            <line v-for="i in 9" :key="'h'+i" x1="-10" :y1="i * 100 - 10" x2="430" :y2="i * 100 - 10" />
+            <line v-for="i in 4" :key="'v'+i" :x1="i * 100 + 10" y1="-10" :x2="i * 100 + 10" y2="950" />
+          </g>
+
+          <!-- Vietnam national outline (coastline shadow) -->
+          <path
+            :d="vietnamOutline"
+            fill="none"
+            stroke="#1E3448"
+            stroke-width="3"
+            opacity="0.3"
+          />
+
+          <!-- Province paths -->
+          <g>
+            <path
+              v-for="p in mapPaths"
+              :key="p.id"
+              :data-id="p.id"
+              :d="p.d"
+              :fill="getPathFill(p.id)"
+              :stroke="getPathStroke(p.id)"
+              :stroke-width="getStrokeWidth(p.id)"
+              stroke-linejoin="round"
+              class="map-province"
+              :class="{
+                'animate-shake': wrongProvinceId === p.id,
+                'animate-pulse-hint': hintedProvinceId === p.id,
+                'province-correct': correctSvgIds.has(p.id),
+                'province-hovered': hoveredPath === p.id && selectedProvinceId,
+              }"
+              :filter="hintedProvinceId === p.id ? 'url(#glow-hint)' : correctSvgIds.has(p.id) ? 'url(#glow-correct)' : undefined"
+              @mouseenter="onMouseEnter(p.id)"
+              @mouseleave="onMouseLeave()"
+              @dragover="onDragOver"
+              @drop="(e: DragEvent) => onDrop(e, p.id)"
+              @click="onPathClick(p.id)"
+            />
+          </g>
+
+          <!-- Labels for correctly placed provinces -->
+          <g v-if="showLabels">
+            <template v-for="p in mapPaths" :key="'label-' + p.id">
+              <text
+                v-if="correctSvgIds.has(p.id) && svgIdToProvince.get(p.id)"
+                :x="p.cx"
+                :y="p.cy"
+                text-anchor="middle"
+                dominant-baseline="central"
+                fill="#F0EDE6"
+                :font-size="Math.max(5, 8 / zoom.scale.value)"
+                font-family="'Be Vietnam Pro', sans-serif"
+                font-weight="600"
+                class="pointer-events-none select-none"
+                opacity="0.9"
+              >
+                {{ svgIdToProvince.get(p.id)?.shortName }}
+              </text>
+            </template>
+          </g>
+
+          <!-- Dot labels for correctly placed provinces (when zoomed out) -->
+          <g v-if="!showLabels">
+            <template v-for="p in mapPaths" :key="'dot-' + p.id">
+              <circle
+                v-if="correctSvgIds.has(p.id)"
+                :cx="p.cx"
+                :cy="p.cy"
+                r="2"
+                fill="#F0EDE6"
+                opacity="0.6"
+                class="pointer-events-none"
+              />
+            </template>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Hover tooltip -->
+    <Transition name="tooltip">
+      <div
+        v-if="hoveredProvinceName"
+        class="absolute top-3 left-1/2 -translate-x-1/2 border border-accent-sky/30
+               bg-bg-surface/90 backdrop-blur-sm px-3 py-1.5 text-xs font-display
+               text-accent-sky pointer-events-none z-10 whitespace-nowrap"
+      >
+        {{ hoveredProvinceName }}
+      </div>
+    </Transition>
+
+    <!-- Zoom controls -->
+    <div class="absolute bottom-3 right-3 flex flex-col gap-1.5 z-10">
+      <button
+        class="zoom-btn"
+        title="Phóng to"
+        @click="zoom.zoomIn()"
+      >
+        <Icon icon="lucide:plus" class="size-4" />
+      </button>
+      <div
+        class="border border-border-default bg-bg-surface/90 backdrop-blur-sm
+               px-1.5 py-0.5 text-[10px] font-display text-text-dim text-center
+               min-w-[36px] tabular-nums"
+      >
+        {{ zoom.zoomPercent.value }}%
+      </div>
+      <button
+        class="zoom-btn"
+        title="Thu nhỏ"
+        @click="zoom.zoomOut()"
+      >
+        <Icon icon="lucide:minus" class="size-4" />
+      </button>
+      <button
+        class="zoom-btn mt-1"
+        title="Đặt lại zoom"
+        @click="zoom.resetZoom()"
+      >
+        <Icon icon="lucide:maximize-2" class="size-3.5" />
+      </button>
+    </div>
+
+    <!-- Region legend -->
+    <div class="absolute bottom-3 left-3 flex flex-col gap-1 z-10">
+      <div class="flex items-center gap-1.5 text-[10px] font-display text-text-dim">
+        <span class="inline-block w-2 h-2 rounded-full bg-[#38BDF8]" />
+        Bắc
+      </div>
+      <div class="flex items-center gap-1.5 text-[10px] font-display text-text-dim">
+        <span class="inline-block w-2 h-2 rounded-full bg-[#34D399]" />
+        Trung
+      </div>
+      <div class="flex items-center gap-1.5 text-[10px] font-display text-text-dim">
+        <span class="inline-block w-2 h-2 rounded-full bg-[#FBBF24]" />
+        Nam
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.map-province {
+  transition: fill 0.2s ease, stroke 0.2s ease, stroke-width 0.15s ease;
+  cursor: pointer;
+}
+
+.province-hovered {
+  filter: brightness(1.3);
+}
+
+.zoom-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-border-default);
+  background: color-mix(in srgb, var(--color-bg-surface) 90%, transparent);
+  backdrop-filter: blur(8px);
+  color: var(--color-text-secondary);
+  transition: all 0.15s ease;
+}
+.zoom-btn:hover {
+  border-color: var(--color-accent-sky);
+  color: var(--color-accent-sky);
+  background: var(--color-bg-elevated);
+}
+.zoom-btn:active {
+  transform: scale(0.92);
+}
+
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-3px); }
@@ -308,15 +356,25 @@ function getLabelPosition(pathId: string): { x: number; y: number } | null {
 }
 
 @keyframes pulse-hint {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 
 .animate-shake {
-  animation: shake 0.6s ease-in-out;
+  animation: shake 0.5s ease-in-out;
 }
 
 .animate-pulse-hint {
-  animation: pulse-hint 0.6s ease-in-out 3;
+  animation: pulse-hint 0.7s ease-in-out 3;
+}
+
+.tooltip-enter-active,
+.tooltip-leave-active {
+  transition: all 0.15s ease;
+}
+.tooltip-enter-from,
+.tooltip-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -4px);
 }
 </style>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, watch, onUnmounted, computed } from 'vue'
-import { RouterLink } from 'vue-router'
 import type { GameConfig, Province } from '../types'
 import { provinces as allProvinces } from '../data/provinces'
 import { useGameLogic } from '../composables/useGameLogic'

@@ -20,7 +20,7 @@ const showConfetti = ref(false)
 // Get the latest result from history
 const latestResult = computed<GameResult | null>(() => {
   const history = storage.getHistory()
-  return history.length > 0 ? history[0] : null
+  return history.length > 0 ? (history[0] ?? null) : null
 })
 
 const result = computed(() => latestResult.value)
