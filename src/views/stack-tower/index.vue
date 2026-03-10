@@ -6,6 +6,7 @@ import {
   useLocalStorage,
   useMediaQuery,
   useRafFn,
+  useWindowSize,
 } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 import { RouterLink } from 'vue-router'
@@ -27,13 +28,15 @@ interface ImpactBurst {
   id: number
   x: number
   y: number
+  tier: 0 | 1 | 2
+  label: string
 }
 
 const defaultStageWidth = 320
-const stageHeight = 440
+const desktopStageHeight = 440
 const blockHeight = 28
 const baseWidth = 180
-const minWidth = 72
+const minWidth = 12
 const baseCrossDuration = 2.8
 const minCrossDuration = 1.05
 const tiltCollapseThreshold = 2.65
@@ -42,11 +45,17 @@ const spawnGap = 86
 const dropDuration = 320
 
 const isReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+const isMobileViewport = useMediaQuery('(max-width: 639px)')
+const { height: windowHeight } = useWindowSize()
 const bestScore = useLocalStorage('stack-tower-best-score', 0)
+const isSoundEnabled = useLocalStorage('stack-tower-sound-enabled', true)
 const stageRef = ref<HTMLElement | null>(null)
 const { width: measuredStageWidth } = useElementSize(stageRef)
 const stageWidth = computed(() =>
   Math.max(defaultStageWidth, Math.round(measuredStageWidth.value || defaultStageWidth)),
+)
+const stageHeight = computed(() =>
+  isMobileViewport.value ? Math.round(windowHeight.value - 160) : desktopStageHeight,
 )
 
 const stack = ref<Block[]>([
@@ -72,7 +81,116 @@ const towerTilt = ref(0)
 const pendingPlacement = ref<PendingPlacement | null>(null)
 const impactBurst = ref<ImpactBurst | null>(null)
 const isImpactShaking = ref(false)
+const isFloorNumberShaking = ref(false)
 const isInfoModalOpen = ref(false)
+const winFxTier = ref<0 | 1 | 2>(0)
+const isScorePulse = ref(false)
+
+const showFloorScore = computed(() => score.value > 5)
+const streakLabel = computed(() => {
+  if (score.value > 0 && score.value % 10 === 0) {
+    return 'MEGA JACKPOT'
+  }
+  if (score.value > 0 && score.value % 5 === 0) {
+    return 'WIN STREAK'
+  }
+  return ''
+})
+const shouldShowStreak = computed(() => winFxTier.value === 2 && streakLabel.value.length > 0)
+
+// Âm thanh lấy online (Mixkit free SFX). Fallback: Web Audio API nếu URL lỗi.
+const SOUND_SUCCESS_URL = 'https://assets.mixkit.co/active_storage/sfx/600.mp3' // Achievement bell
+const SOUND_GAMEOVER_URL = 'https://assets.mixkit.co/active_storage/sfx/2010.mp3' // Game over
+
+let successAudio: HTMLAudioElement | null = null
+let gameOverAudio: HTMLAudioElement | null = null
+
+function playSuccessSound() {
+  if (!isSoundEnabled.value) {
+    return
+  }
+
+  const playFromUrl = () => {
+    if (!successAudio) {
+      successAudio = new Audio(SOUND_SUCCESS_URL)
+      successAudio.volume = 0.6
+      successAudio.addEventListener('error', () => playSuccessWebAudio())
+    }
+    successAudio!.currentTime = 0
+    successAudio!.play().catch(() => playSuccessWebAudio())
+  }
+  const playSuccessWebAudio = () => {
+    const Ctx =
+      window.AudioContext ||
+      (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+    if (!Ctx) return
+    const ctx = new Ctx()
+    const now = ctx.currentTime
+    ;[523.25, 659.25, 783.99].forEach((f, i) => {
+      const o = ctx.createOscillator()
+      const g = ctx.createGain()
+      o.type = 'square'
+      o.frequency.value = f
+      o.connect(g)
+      g.connect(ctx.destination)
+      g.gain.setValueAtTime(0, now)
+      g.gain.linearRampToValueAtTime(0.12, now + i * 0.08 + 0.04)
+      g.gain.linearRampToValueAtTime(0, now + i * 0.08 + 0.18)
+      o.start(now + i * 0.08)
+      o.stop(now + i * 0.08 + 0.18)
+    })
+  }
+  playFromUrl()
+}
+
+function playGameOverSound() {
+  if (!isSoundEnabled.value) {
+    return
+  }
+
+  const playFromUrl = () => {
+    if (!gameOverAudio) {
+      gameOverAudio = new Audio(SOUND_GAMEOVER_URL)
+      gameOverAudio.volume = 0.6
+      gameOverAudio.addEventListener('error', () => playGameOverWebAudio())
+    }
+    gameOverAudio!.currentTime = 0
+    gameOverAudio!.play().catch(() => playGameOverWebAudio())
+  }
+  const playGameOverWebAudio = () => {
+    const Ctx =
+      window.AudioContext ||
+      (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+    if (!Ctx) return
+    const ctx = new Ctx()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sawtooth'
+    osc.frequency.setValueAtTime(220, ctx.currentTime)
+    osc.frequency.linearRampToValueAtTime(110, ctx.currentTime + 0.5)
+    gain.gain.setValueAtTime(0.12, ctx.currentTime)
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.5)
+  }
+  playFromUrl()
+}
+
+function toggleSound() {
+  isSoundEnabled.value = !isSoundEnabled.value
+  if (!isSoundEnabled.value) {
+    successAudio?.pause()
+    gameOverAudio?.pause()
+  }
+}
+
+const scrollOffset = computed(() => {
+  const contentHeight = stack.value.length * blockHeight + spawnGap + blockHeight
+  const bottomPadding = 56
+  return Math.max(0, contentHeight - stageHeight.value + bottomPadding)
+})
 
 const activeBlockStyle = computed(() => ({
   width: `${activeBlock.value.width}px`,
@@ -81,11 +199,11 @@ const activeBlockStyle = computed(() => ({
   bottom: `${activeBlock.value.level * blockHeight + (isDropping.value ? 0 : spawnGap)}px`,
 }))
 
-const progressPercent = computed(() => Math.min(100, (score.value / 20) * 100))
+const progressPercent = computed(() => Math.min(100, (score.value / 50) * 100))
 const difficultyLabel = computed(() => Math.round(activeBlock.value.width))
 const horizontalSpeed = computed(() => {
   const travelDistance = Math.max(1, stageWidth.value - activeBlock.value.width)
-  const levelFactor = Math.min(score.value, 14) * 0.11
+  const levelFactor = score.value * 0.11
   const duration = Math.max(minCrossDuration, baseCrossDuration - levelFactor)
 
   return travelDistance / duration
@@ -120,7 +238,37 @@ function getBlockBottom(level: number) {
 }
 
 function getNextWidth(nextLevel: number) {
-  return Math.max(minWidth, Math.round(baseWidth - nextLevel * 7))
+  return Math.max(minWidth, Math.round(baseWidth - nextLevel * 4.2))
+}
+
+function createLevelSeed(level: number, id: number) {
+  const value = Math.sin((id + 1) * 12.9898 + (level + 1) * 78.233) * 43758.5453
+  return value - Math.floor(value)
+}
+
+function getBlockSkin(level: number, id: number, isActive = false) {
+  const seed = createLevelSeed(level, id)
+  const progress = Math.min(1, level / 40)
+  const hueBase = 42 - progress * 20 + (seed - 0.5) * 10
+  const hueAccent = hueBase - 12 - seed * 6
+  const edgeAlpha = isActive ? 0.92 : 0.66
+  const glowAlpha = isActive ? 0.5 : 0.26
+  const scanAlpha = isActive ? 0.28 : 0.18
+  const hotspotAlpha = isActive ? 0.82 : 0.58
+
+  return {
+    borderColor: `hsl(${hueBase} 88% 58% / ${edgeAlpha})`,
+    background: `linear-gradient(160deg, hsl(${
+      hueBase + 8
+    } 92% 76% / 0.42) 0%, hsl(${hueBase} 88% 56% / ${
+      0.34 + seed * 0.14
+    }) 33%, hsl(${hueAccent} 84% 50% / 0.34) 70%, hsl(12 28% 8% / 0.24) 100%), linear-gradient(to bottom, hsl(0 0% 100% / ${scanAlpha}) 0%, hsl(0 0% 100% / 0) 56%)`,
+    boxShadow: `inset 0 1px 0 hsl(0 0% 100% / 0.34), inset 0 -1px 0 hsl(0 0% 0% / 0.38), 0 0 ${
+      isActive ? 30 : 18
+    }px hsl(${hueBase} 90% 56% / ${glowAlpha})`,
+    '--casino-glint-opacity': `${0.16 + seed * 0.16}`,
+    '--casino-hotline-opacity': `${hotspotAlpha}`,
+  }
 }
 
 function createNextBlock() {
@@ -166,7 +314,10 @@ function resetGame() {
   pendingPlacement.value = null
   impactBurst.value = null
   isImpactShaking.value = false
+  isFloorNumberShaking.value = false
   isInfoModalOpen.value = false
+  winFxTier.value = 0
+  isScorePulse.value = false
 }
 
 function finalizePlacement() {
@@ -177,11 +328,16 @@ function finalizePlacement() {
 
   stack.value = [...stack.value, placement.block]
   towerTilt.value = placement.nextTilt
-  score.value = stack.value.length - 1
+  score.value += 1
   bestScore.value = Math.max(bestScore.value, score.value)
   direction.value *= -1
 
-  if (stack.value.length * blockHeight >= stageHeight - blockHeight) {
+  const isJackpot = score.value % 10 === 0
+  const isStreak = score.value % 5 === 0
+  winFxTier.value = isJackpot ? 2 : isStreak ? 1 : 0
+  isScorePulse.value = true
+
+  if (stack.value.length * blockHeight >= stageHeight.value - blockHeight) {
     stack.value = stack.value.slice(1).map((block, index) => ({
       ...block,
       level: index,
@@ -192,12 +348,16 @@ function finalizePlacement() {
     Math.abs(placement.offsetRatio) > maxCenterOffsetRatio ||
     Math.abs(placement.nextTilt) >= tiltCollapseThreshold
 
+  const burstTier: 0 | 1 | 2 = isJackpot ? 2 : isStreak ? 1 : 0
   impactBurst.value = {
     id: placement.block.id,
     x: placement.block.left + placement.block.width / 2,
-    y: stageHeight - (placement.block.level + 1) * blockHeight,
+    y: stageHeight.value - (placement.block.level + 1) * blockHeight,
+    tier: burstTier,
+    label: isJackpot ? 'JACKPOT +1' : isStreak ? 'STREAK +1' : '+1',
   }
   isImpactShaking.value = true
+  isFloorNumberShaking.value = true
   window.setTimeout(
     () => {
       isImpactShaking.value = false
@@ -206,20 +366,40 @@ function finalizePlacement() {
   )
   window.setTimeout(
     () => {
+      isFloorNumberShaking.value = false
+    },
+    isReducedMotion.value ? 150 : 450,
+  )
+  window.setTimeout(
+    () => {
+      isScorePulse.value = false
+    },
+    isReducedMotion.value ? 160 : 520,
+  )
+  window.setTimeout(
+    () => {
+      winFxTier.value = 0
+    },
+    isReducedMotion.value ? 200 : 720,
+  )
+  window.setTimeout(
+    () => {
       if (impactBurst.value?.id === placement.block.id) {
         impactBurst.value = null
       }
     },
-    isReducedMotion.value ? 140 : 520,
+    isReducedMotion.value ? 180 : 680,
   )
 
   pendingPlacement.value = null
 
   if (shouldCollapse) {
     isGameOver.value = true
+    playGameOverSound()
     return
   }
 
+  playSuccessSound()
   createNextBlock()
 }
 
@@ -334,7 +514,7 @@ watch(stageWidth, (newWidth, oldWidth) => {
 <template>
   <div class="min-h-screen bg-bg-deep text-text-primary">
     <div class="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 sm:px-6 sm:py-8">
-      <div class="animate-fade-up">
+      <div class="animate-fade-up flex items-center justify-between gap-2">
         <RouterLink
           to="/"
           class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-4 py-2 text-sm text-text-secondary transition hover:border-accent-coral hover:bg-bg-elevated hover:text-text-primary"
@@ -342,6 +522,14 @@ watch(stageWidth, (newWidth, oldWidth) => {
           <Icon icon="lucide:arrow-left" class="size-4" />
           Trang chủ
         </RouterLink>
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-4 py-2 text-sm text-text-secondary transition hover:border-accent-amber hover:bg-bg-elevated hover:text-text-primary"
+          @click="toggleSound"
+        >
+          <Icon :icon="isSoundEnabled ? 'lucide:volume-2' : 'lucide:volume-x'" class="size-4" />
+          {{ isSoundEnabled ? 'Âm thanh: Bật' : 'Âm thanh: Tắt' }}
+        </button>
       </div>
 
       <main class="mt-4 flex flex-1 flex-col sm:mt-6">
@@ -354,59 +542,127 @@ watch(stageWidth, (newWidth, oldWidth) => {
             <div
               ref="stageRef"
               class="relative mx-auto overflow-hidden border border-border-default bg-bg-deep"
-              :class="isImpactShaking ? 'animate-impact-shake' : ''"
+              :class="[
+                isImpactShaking ? 'animate-impact-shake' : '',
+                score > 0 ? 'casino-neon-grid' : '',
+              ]"
               :style="{ width: '100%', height: `${stageHeight}px` }"
             >
               <div
-                class="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-accent-coral/10 to-transparent"
+                class="pointer-events-none absolute inset-0 z-0 opacity-70"
+                :class="score > 0 ? 'casino-scanner' : ''"
               />
               <div
-                class="absolute inset-0 transition-transform duration-700 ease-in"
-                :class="towerShellClass"
-                :style="towerTransform"
+                v-if="winFxTier > 0"
+                class="pointer-events-none absolute inset-0 z-1"
+                :class="winFxTier === 2 ? 'animate-jackpot-flash' : 'animate-win-flash'"
+              />
+              <div
+                class="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-accent-coral/10 to-transparent"
+              />
+              <div
+                class="absolute inset-0 transition-transform duration-300 ease-out"
+                :style="{ transform: `translateY(${scrollOffset}px)` }"
               >
                 <div
-                  v-for="block in stack"
-                  :key="block.id"
-                  class="absolute border border-accent-amber/40 bg-accent-amber/85 shadow-[0_0_20px_rgba(255,184,48,0.18)] transition-[bottom,width,left] duration-150"
+                  class="absolute inset-0 transition-transform duration-700 ease-in"
+                  :class="towerShellClass"
+                  :style="towerTransform"
+                >
+                  <div
+                    v-for="block in stack"
+                    :key="block.id"
+                    class="casino-block absolute transition-[bottom,width,left] duration-150"
+                    :style="{
+                      width: `${block.width}px`,
+                      left: `${block.left}px`,
+                      height: `${blockHeight}px`,
+                      bottom: `${getBlockBottom(block.level)}px`,
+                      ...getBlockSkin(block.level, block.id),
+                    }"
+                  >
+                    <span class="casino-block-edge" />
+                    <span class="casino-block-glint" />
+                  </div>
+                </div>
+                <div
+                  class="casino-block casino-block-active absolute"
+                  :class="
+                    isDropping ? 'transition-[bottom] duration-300 ease-in' : 'transition-none'
+                  "
                   :style="{
-                    width: `${block.width}px`,
-                    left: `${block.left}px`,
-                    height: `${blockHeight}px`,
-                    bottom: `${getBlockBottom(block.level)}px`,
+                    ...activeBlockStyle,
+                    ...getBlockSkin(activeBlock.level, activeBlock.id, true),
                   }"
-                />
+                >
+                  <span class="casino-block-edge" />
+                  <span class="casino-block-glint casino-block-glint-fast" />
+                  <span class="casino-block-hotline" />
+                </div>
+                <div
+                  v-if="impactBurst"
+                  :key="impactBurst.id"
+                  class="pointer-events-none absolute z-10"
+                  :class="
+                    impactBurst.tier === 2
+                      ? 'impact-burst-jackpot'
+                      : impactBurst.tier === 1
+                        ? 'impact-burst-streak'
+                        : 'impact-burst-normal'
+                  "
+                  :style="{
+                    left: `${impactBurst.x}px`,
+                    top: `${impactBurst.y}px`,
+                  }"
+                >
+                  <span class="impact-shockwave impact-shockwave-lg" />
+                  <span class="impact-shockwave impact-shockwave-sm" />
+                  <span class="impact-coin-flare" />
+                  <span class="impact-floating-text">{{ impactBurst.label }}</span>
+                  <span class="spark sparkle-a" />
+                  <span class="spark sparkle-b" />
+                  <span class="spark sparkle-c" />
+                  <span class="spark sparkle-d" />
+                  <span class="spark sparkle-e" />
+                  <span class="spark sparkle-f" />
+                  <span class="spark spark-sm sparkle-g" />
+                  <span class="spark spark-sm sparkle-h" />
+                  <span class="spark spark-sm sparkle-i" />
+                  <span class="spark spark-sm sparkle-j" />
+                  <span class="spark spark-sm sparkle-k" />
+                  <span class="spark spark-sm sparkle-l" />
+                  <span class="spark spark-dot sparkle-m" />
+                  <span class="spark spark-dot sparkle-n" />
+                  <span class="spark spark-dot sparkle-o" />
+                  <span class="spark spark-dot sparkle-p" />
+                </div>
               </div>
+
               <div
-                class="absolute border border-accent-coral bg-accent-coral/90 shadow-[0_0_24px_rgba(255,107,74,0.25)]"
-                :class="isDropping ? 'transition-[bottom] duration-300 ease-in' : 'transition-none'"
-                :style="activeBlockStyle"
-              />
-              <div
-                v-if="impactBurst"
-                :key="impactBurst.id"
-                class="pointer-events-none absolute z-10"
-                :style="{
-                  left: `${impactBurst.x}px`,
-                  top: `${impactBurst.y}px`,
-                }"
+                v-if="showFloorScore"
+                class="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center"
               >
-                <span class="spark sparkle-a" />
-                <span class="spark sparkle-b" />
-                <span class="spark sparkle-c" />
-                <span class="spark sparkle-d" />
-                <span class="spark sparkle-e" />
-                <span class="spark sparkle-f" />
-                <span class="spark spark-sm sparkle-g" />
-                <span class="spark spark-sm sparkle-h" />
-                <span class="spark spark-sm sparkle-i" />
-                <span class="spark spark-sm sparkle-j" />
-                <span class="spark spark-sm sparkle-k" />
-                <span class="spark spark-sm sparkle-l" />
-                <span class="spark spark-dot sparkle-m" />
-                <span class="spark spark-dot sparkle-n" />
-                <span class="spark spark-dot sparkle-o" />
-                <span class="spark spark-dot sparkle-p" />
+                <span
+                  class="inline-flex min-w-12 items-center justify-center rounded border-2 border-accent-amber/70 bg-bg-surface px-4 py-1.5 font-display text-3xl font-black tabular-nums text-accent-amber shadow-[0_0_24px_rgba(255,184,48,0.5)]"
+                  :class="[
+                    isFloorNumberShaking ? 'animate-slot-jackpot' : '',
+                    isScorePulse ? 'animate-score-pop' : '',
+                    winFxTier === 2 ? 'score-jackpot-glow' : '',
+                  ]"
+                >
+                  {{ score }}
+                </span>
+              </div>
+
+              <div
+                v-if="shouldShowStreak"
+                class="pointer-events-none absolute inset-x-0 top-10 z-20 flex justify-center"
+              >
+                <span
+                  class="border border-accent-amber bg-bg-surface/90 px-4 py-1 font-display text-xs tracking-[0.3em] text-accent-amber shadow-[0_0_22px_rgba(255,184,48,0.45)] animate-streak-banner"
+                >
+                  {{ streakLabel }}
+                </span>
               </div>
 
               <div
@@ -509,10 +765,10 @@ watch(stageWidth, (newWidth, oldWidth) => {
             </div>
           </div>
 
-          <div class="mt-3 flex justify-end sm:hidden">
+          <div class="mt-3 flex justify-end gap-2">
             <button
               type="button"
-              class="inline-flex items-center gap-2 border border-border-default bg-bg-deep px-4 py-2 text-sm text-text-secondary transition hover:border-accent-sky hover:bg-bg-elevated hover:text-text-primary"
+              class="inline-flex items-center gap-2 border border-border-default bg-bg-deep px-4 py-2 text-sm text-text-secondary transition hover:border-accent-sky hover:bg-bg-elevated hover:text-text-primary sm:hidden"
               @click="isInfoModalOpen = true"
             >
               <Icon icon="lucide:info" class="size-4 text-accent-sky" />
@@ -653,6 +909,19 @@ watch(stageWidth, (newWidth, oldWidth) => {
   animation: sparkle-burst 420ms ease-out forwards;
 }
 
+.impact-burst-normal .spark {
+  opacity: 0.9;
+}
+
+.impact-burst-streak .spark {
+  animation-duration: 500ms;
+}
+
+.impact-burst-jackpot .spark {
+  animation-duration: 620ms;
+  filter: brightness(1.2);
+}
+
 .spark-sm {
   width: 3px;
   height: 13px;
@@ -670,6 +939,76 @@ watch(stageWidth, (newWidth, oldWidth) => {
     rgb(255 107 74 / 0) 100%
   );
   animation: sparkle-dot 520ms ease-out forwards;
+}
+
+.impact-shockwave {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 999px;
+  border: 2px solid rgb(255 184 48 / 0.72);
+  transform: translate(-50%, -50%) scale(0.2);
+  opacity: 0;
+  mix-blend-mode: screen;
+}
+
+.impact-shockwave-lg {
+  width: 22px;
+  height: 22px;
+  animation: impact-wave-lg 540ms cubic-bezier(0.2, 0.7, 0.15, 1) forwards;
+}
+
+.impact-shockwave-sm {
+  width: 12px;
+  height: 12px;
+  border-color: rgb(255 107 74 / 0.68);
+  animation: impact-wave-sm 460ms cubic-bezier(0.2, 0.7, 0.15, 1) forwards;
+}
+
+.impact-coin-flare {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 44px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    ellipse at center,
+    rgb(255 184 48 / 0.52) 0%,
+    rgb(255 107 74 / 0.24) 45%,
+    transparent 80%
+  );
+  animation: impact-coin-flare 420ms ease-out forwards;
+}
+
+.impact-floating-text {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -22px);
+  padding: 2px 8px;
+  border: 1px solid rgb(255 184 48 / 0.7);
+  background: rgb(9 13 20 / 0.9);
+  font-family: 'Anybody', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  white-space: nowrap;
+  color: rgb(255 224 156 / 1);
+  text-shadow: 0 0 10px rgb(255 184 48 / 0.44);
+  animation: impact-float-up 680ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.impact-burst-streak .impact-floating-text {
+  border-color: rgb(255 184 48 / 0.9);
+  color: rgb(255 236 182 / 1);
+}
+
+.impact-burst-jackpot .impact-floating-text {
+  border-color: rgb(255 107 74 / 0.9);
+  color: rgb(255 245 211 / 1);
+  box-shadow: 0 0 16px rgb(255 107 74 / 0.5);
+  animation-duration: 780ms;
 }
 
 .sparkle-a {
@@ -770,6 +1109,59 @@ watch(stageWidth, (newWidth, oldWidth) => {
   }
 }
 
+@keyframes impact-wave-lg {
+  0% {
+    transform: translate(-50%, -50%) scale(0.25);
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(4.4);
+    opacity: 0;
+  }
+}
+
+@keyframes impact-wave-sm {
+  0% {
+    transform: translate(-50%, -50%) scale(0.25);
+    opacity: 0.85;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(3.4);
+    opacity: 0;
+  }
+}
+
+@keyframes impact-coin-flare {
+  0% {
+    opacity: 0.65;
+    transform: translate(-50%, -50%) scaleX(0.4);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(1.9);
+  }
+}
+
+@keyframes impact-float-up {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -10px) scale(0.8);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -22px) scale(1.02);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -44px) scale(0.94);
+  }
+}
+
 @keyframes impact-shake {
   0% {
     transform: translate3d(0, 0, 0);
@@ -798,5 +1190,284 @@ watch(stageWidth, (newWidth, oldWidth) => {
 
 .animate-impact-shake {
   animation: impact-shake 220ms ease-out;
+}
+
+@keyframes slot-jackpot {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+    filter: brightness(3);
+  }
+
+  15% {
+    transform: scale(1.35);
+    opacity: 1;
+    filter: brightness(2);
+  }
+
+  25% {
+    transform: scale(0.95) rotate(-3deg);
+  }
+
+  35% {
+    transform: scale(1.08) rotate(2deg);
+  }
+
+  45% {
+    transform: scale(0.98) rotate(-1deg);
+  }
+
+  55% {
+    transform: scale(1.05) rotate(1deg);
+  }
+
+  70% {
+    transform: scale(1.02) rotate(0deg);
+  }
+
+  85% {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+.animate-slot-jackpot {
+  animation: slot-jackpot 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.casino-neon-grid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to bottom,
+      rgb(255 184 48 / 0.04) 0%,
+      rgb(255 184 48 / 0.01) 45%,
+      rgb(255 107 74 / 0.08) 100%
+    ),
+    repeating-linear-gradient(
+      to right,
+      rgb(255 184 48 / 0.03) 0px,
+      rgb(255 184 48 / 0.03) 1px,
+      transparent 1px,
+      transparent 18px
+    );
+  mix-blend-mode: screen;
+}
+
+.casino-scanner {
+  background: linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0) 0%,
+    rgb(255 184 48 / 0.22) 40%,
+    rgb(255 255 255 / 0) 72%
+  );
+  animation: casino-scan 2.1s linear infinite;
+}
+
+@keyframes casino-scan {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0.18;
+  }
+
+  30% {
+    opacity: 0.42;
+  }
+
+  100% {
+    transform: translateY(100%);
+    opacity: 0.18;
+  }
+}
+
+@keyframes win-flash {
+  0% {
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 0.35;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes jackpot-flash {
+  0% {
+    opacity: 0;
+    filter: brightness(1);
+  }
+
+  18% {
+    opacity: 0.45;
+    filter: brightness(1.35);
+  }
+
+  45% {
+    opacity: 0.26;
+  }
+
+  100% {
+    opacity: 0;
+    filter: brightness(1);
+  }
+}
+
+.animate-win-flash {
+  background: radial-gradient(
+    ellipse at center,
+    rgb(255 184 48 / 0.32) 0%,
+    rgb(255 107 74 / 0.15) 40%,
+    transparent 80%
+  );
+  animation: win-flash 420ms ease-out;
+}
+
+.animate-jackpot-flash {
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgb(255 184 48 / 0.42) 0%,
+      rgb(255 107 74 / 0.24) 42%,
+      transparent 78%
+    ),
+    linear-gradient(120deg, rgb(255 184 48 / 0.16), rgb(255 107 74 / 0.18));
+  animation: jackpot-flash 620ms ease-out;
+}
+
+@keyframes score-pop {
+  0% {
+    transform: scale(0.92);
+    filter: brightness(1.7);
+  }
+
+  45% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+.animate-score-pop {
+  animation: score-pop 420ms cubic-bezier(0.2, 1.12, 0.2, 1);
+}
+
+.score-jackpot-glow {
+  box-shadow:
+    0 0 18px rgb(255 184 48 / 0.6),
+    0 0 34px rgb(255 107 74 / 0.45);
+}
+
+@keyframes streak-banner {
+  0% {
+    transform: translateY(8px) scale(0.88);
+    opacity: 0;
+    letter-spacing: 0.45em;
+  }
+
+  30% {
+    transform: translateY(0) scale(1.06);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-6px) scale(1);
+    opacity: 0;
+    letter-spacing: 0.3em;
+  }
+}
+
+.animate-streak-banner {
+  animation: streak-banner 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.casino-block {
+  overflow: hidden;
+  --casino-glint-opacity: 0.2;
+  --casino-hotline-opacity: 0.62;
+}
+
+.casino-block-active {
+  filter: saturate(1.08);
+}
+
+.casino-block-edge {
+  position: absolute;
+  inset: 0;
+  border-top: 1px solid rgb(255 255 255 / 0.34);
+  border-bottom: 1px solid rgb(0 0 0 / 0.42);
+  opacity: 0.75;
+}
+
+.casino-block-glint {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 15%,
+    rgb(255 255 255 / 0.15) 33%,
+    rgb(255 255 255 / 0.28) 44%,
+    rgb(255 255 255 / 0.12) 56%,
+    transparent 72%
+  );
+  transform: translateX(-120%);
+  mix-blend-mode: screen;
+  opacity: var(--casino-glint-opacity);
+  animation: casino-glint 2.8s ease-in-out infinite;
+}
+
+.casino-block-glint-fast {
+  animation-duration: 1.45s;
+}
+
+.casino-block-hotline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    rgb(255 184 48 / 0.2) 0%,
+    rgb(255 184 48 / 0.72) 46%,
+    rgb(255 107 74 / 0.85) 100%
+  );
+  opacity: var(--casino-hotline-opacity);
+  box-shadow: 0 0 8px rgb(255 107 74 / 0.48);
+}
+
+@keyframes casino-glint {
+  0% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+
+  16% {
+    opacity: 1;
+  }
+
+  42% {
+    transform: translateX(120%);
+    opacity: 0.95;
+  }
+
+  100% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
 }
 </style>
