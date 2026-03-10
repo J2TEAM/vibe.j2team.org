@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description:
     'Tài hay xỉu? Khả năng tư vấn tài xỉu từ vũ trụ vượt mức bít cồ bô dựa vào thông tin của bạn.',
   author: 'Toanducz',
+  facebook: 'https://github.com/toaducz',
   category: 'spiritual',
 }
 
