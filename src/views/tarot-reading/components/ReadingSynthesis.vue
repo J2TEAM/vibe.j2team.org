@@ -35,19 +35,17 @@ const formattedParagraphs = computed(() => store.reading.map((p) => formatMarkdo
 <template>
   <div
     v-if="store.allFlipped && store.reading.length > 0"
-    class="max-w-2xl mx-auto px-4 py-8"
+    class="max-w-2xl mx-auto px-6 py-8"
     role="region"
     aria-label="Lời giải trải bài tarot"
     aria-live="polite"
   >
     <!-- Tiêu đề phần -->
-    <div class="text-center mb-6 animate-fade-up">
-      <div class="flex items-center justify-center gap-3 mb-3">
-        <div class="w-8 h-px bg-accent-coral/40" />
-        <Icon icon="lucide:book-open" class="w-5 h-5 text-accent-coral/60" />
-        <div class="w-8 h-px bg-accent-coral/40" />
-      </div>
-      <h2 class="font-display text-xl sm:text-2xl font-semibold text-text-primary">
+    <div class="text-center mb-8 animate-fade-up">
+      <h2
+        class="font-display text-2xl font-semibold text-text-primary flex items-center justify-center gap-3 mb-8"
+      >
+        <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
         Lời Giải Của Bạn
       </h2>
     </div>
@@ -57,7 +55,7 @@ const formattedParagraphs = computed(() => store.reading.map((p) => formatMarkdo
       <div
         v-for="(paragraph, index) in formattedParagraphs"
         :key="index"
-        class="border border-border-default bg-bg-surface p-4 sm:p-5 animate-fade-up"
+        class="border border-border-default bg-bg-surface p-6 animate-fade-up"
         :style="{ animationDelay: `${(index + 1) * 150}ms` }"
       >
         <!-- Nhãn vị trí cho lời giải từng lá (3 đoạn đầu) -->
