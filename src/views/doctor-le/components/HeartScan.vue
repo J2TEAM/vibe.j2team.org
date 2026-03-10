@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 
 const props = defineProps<{ selectedTime: number }>()
 const emit = defineEmits<{
@@ -11,12 +11,75 @@ const isHolding = ref(false)
 const progress = ref(0)
 let progressInterval: ReturnType<typeof setInterval> | null = null
 
+// ── Heartbeat sound engine ──────────────────────────────────────────────────
+let audioCtx: AudioContext | null = null
+let beatTimeout: ReturnType<typeof setTimeout> | null = null
+let beatStartTime = 0
+
+/** Tạo 1 nhịp "lub-dub" bằng Web Audio API */
+function playBeat(ctx: AudioContext, bpm: number) {
+  const now = ctx.currentTime
+
+  // "Lub" — tiếng thứ nhất (trầm, ngắn)
+  function thump(time: number, freq: number, duration: number, gain: number) {
+    const osc = ctx.createOscillator()
+    const gainNode = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(freq, time)
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.5, time + duration)
+    gainNode.gain.setValueAtTime(gain, time)
+    gainNode.gain.exponentialRampToValueAtTime(0.001, time + duration)
+    osc.connect(gainNode)
+    gainNode.connect(ctx.destination)
+    osc.start(time)
+    osc.stop(time + duration)
+  }
+
+  thump(now, 80, 0.12, 0.9) // lub
+  thump(now + 0.13, 60, 0.1, 0.6) // dub
+
+  // Lên lịch nhịp tiếp theo
+  const interval = 60 / bpm
+  beatTimeout = setTimeout(() => {
+    if (!audioCtx) return
+    // Tăng dần BPM theo thời gian giữ (60 → 140)
+    const elapsed = (Date.now() - beatStartTime) / 1000
+    const ratio = Math.min(1, elapsed / props.selectedTime)
+    const currentBpm = 60 + Math.round(ratio * 80)
+    playBeat(audioCtx, currentBpm)
+  }, interval * 1000)
+}
+
+function startHeartbeat() {
+  try {
+    audioCtx = new AudioContext()
+    beatStartTime = Date.now()
+    playBeat(audioCtx, 60)
+  } catch {
+    // Audio not supported
+  }
+}
+
+function stopHeartbeat() {
+  if (beatTimeout) {
+    clearTimeout(beatTimeout)
+    beatTimeout = null
+  }
+  if (audioCtx) {
+    audioCtx.close()
+    audioCtx = null
+  }
+}
+// ───────────────────────────────────────────────────────────────────────────
+
 function startHold() {
+  if (isHolding.value) return
   isHolding.value = true
   progress.value = 0
   progressInterval = setInterval(() => {
     progress.value = Math.min(100, progress.value + 100 / (props.selectedTime * 10))
   }, 100)
+  startHeartbeat()
   emit('startScan')
 }
 
@@ -27,11 +90,20 @@ function endHold() {
     clearInterval(progressInterval)
     progressInterval = null
   }
+  progress.value = 0
+  stopHeartbeat()
   emit('releaseMouse')
 }
 
 onUnmounted(() => {
   if (progressInterval) clearInterval(progressInterval)
+  stopHeartbeat()
+})
+
+// BPM tăng từ 60→140 theo tiến độ → drive tốc độ ECG animation
+const ecgDuration = computed(() => {
+  const bpm = 60 + Math.round((progress.value / 100) * 80)
+  return (60 / bpm).toFixed(2) + 's'
 })
 </script>
 
@@ -90,6 +162,7 @@ onUnmounted(() => {
           stroke="#FF6B4A"
           stroke-width="2"
           class="ecg-animate"
+          :style="{ animationDuration: ecgDuration }"
         />
       </svg>
       <!-- Progress bar -->
@@ -117,12 +190,18 @@ onUnmounted(() => {
     >
       <span v-if="!isHolding">▼ GIỮ ĐỂ ĐO NHỊP TIM ▼</span>
       <span v-else class="flex items-center justify-center gap-3">
-        <span class="w-2 h-2 rounded-full bg-bg-deep animate-ping inline-block"></span>
+        <span class="heart-icon text-xl leading-none" :style="{ animationDuration: ecgDuration }"
+          >❤️</span
+        >
         ĐANG ĐO...
         <span
-          class="w-2 h-2 rounded-full bg-bg-deep animate-ping inline-block"
-          style="animation-delay: 150ms"
-        ></span>
+          class="heart-icon text-xl leading-none"
+          :style="{
+            animationDuration: ecgDuration,
+            animationDelay: 'calc(' + ecgDuration + ' / 2)',
+          }"
+          >❤️</span
+        >
       </span>
     </button>
 
@@ -136,7 +215,7 @@ onUnmounted(() => {
 .ecg-animate {
   stroke-dasharray: 600;
   stroke-dashoffset: 600;
-  animation: ecg-draw 1.5s linear infinite;
+  animation: ecg-draw linear infinite;
 }
 
 @keyframes ecg-draw {
@@ -145,6 +224,30 @@ onUnmounted(() => {
   }
   100% {
     stroke-dashoffset: 0;
+  }
+}
+
+.heart-icon {
+  display: inline-block;
+  animation: heart-beat ease-in-out infinite;
+}
+
+@keyframes heart-beat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  15% {
+    transform: scale(1.4);
+  }
+  30% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.2);
+  }
+  60% {
+    transform: scale(1);
   }
 }
 </style>

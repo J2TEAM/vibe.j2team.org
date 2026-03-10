@@ -158,7 +158,7 @@ onUnmounted(() => {
           target="_blank"
           rel="noopener noreferrer"
           class="text-accent-coral hover:underline transition-colors"
-          >{{ meta.author }}</a
+          >TungLe</a
         >
       </span>
     </footer>
