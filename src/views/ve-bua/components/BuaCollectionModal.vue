@@ -1,25 +1,14 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
+import type { BuaDrawingPayloadV2, DrawingStats } from '../types/drawing'
+import type { BuaDrawingPayloadV1, BuaStylePayloadV1 } from '../types/payloads'
 type CollectionPreview = {
   id: string
   name: string
-  styleCode: string
-  drawingCode: string
   createdAt: string
-  stylePayload: {
-    style: {
-      paperTint: string
-      frameTint: string
-      drawableBox: {
-        x: number
-        y: number
-        width: number
-        height: number
-      }
-    }
-  } | null
-  drawingPayload: {
-    drawingDataUrl: string
-  } | null
+  stylePayload: BuaStylePayloadV1
+  drawingPayload: BuaDrawingPayloadV1 | BuaDrawingPayloadV2
+  previewSrc: string | null
+  stats: DrawingStats | null
 }
 
 const props = defineProps<{
@@ -30,16 +19,10 @@ const props = defineProps<{
 const emit = defineEmits<{
   close: []
   remove: [id: string]
-  load: [
-    item: { id: string; name: string; styleCode: string; drawingCode: string; createdAt: string },
-    mode: 'style' | 'drawing' | 'both',
-  ]
+  load: [item: CollectionPreview, mode: 'style' | 'drawing' | 'both']
 }>()
 
 function previewStyle(payload: CollectionPreview['stylePayload']): Record<string, string> {
-  if (!payload) {
-    return { backgroundColor: '#B96F0E', borderColor: '#8f3d2d' }
-  }
   return {
     backgroundColor: payload.style.paperTint,
     borderColor: payload.style.frameTint,
@@ -47,9 +30,6 @@ function previewStyle(payload: CollectionPreview['stylePayload']): Record<string
 }
 
 function previewDrawingStyle(payload: CollectionPreview['stylePayload']): Record<string, string> {
-  if (!payload) {
-    return { left: '13%', top: '10%', width: '74%', height: '78%' }
-  }
   const box = payload.style.drawableBox
   return {
     left: `${box.x * 100}%`,
@@ -93,35 +73,26 @@ function previewDrawingStyle(payload: CollectionPreview['stylePayload']): Record
           :key="item.id"
           class="border border-border-default bg-bg-surface p-2"
         >
-          <button
-            class="block w-full text-left"
-            @click="
-              emit(
-                'load',
-                {
-                  id: item.id,
-                  name: item.name,
-                  styleCode: item.styleCode,
-                  drawingCode: item.drawingCode,
-                  createdAt: item.createdAt,
-                },
-                'both',
-              )
-            "
-          >
+          <button class="block w-full text-left" @click="emit('load', item, 'both')">
             <div
               class="relative mx-auto aspect-[3/5] w-full border-4"
               :style="previewStyle(item.stylePayload)"
             >
               <img
-                v-if="item.drawingPayload && item.drawingPayload.drawingDataUrl"
+                v-if="item.previewSrc"
                 class="absolute object-contain"
                 :style="previewDrawingStyle(item.stylePayload)"
-                :src="item.drawingPayload.drawingDataUrl"
+                :src="item.previewSrc"
                 alt="Ảnh bùa đã lưu"
               />
             </div>
             <p class="mt-2 truncate text-sm text-text-primary">{{ item.name }}</p>
+            <p v-if="item.stats" class="text-[11px] text-text-dim">
+              Kích thước: {{ Math.round(item.stats.canvasWidth) }}×{{
+                Math.round(item.stats.canvasHeight)
+              }}px · Nét:
+              {{ item.stats.strokeCount }}
+            </p>
             <p class="text-[11px] text-text-dim">
               {{ new Date(item.createdAt).toLocaleString('vi-VN') }}
             </p>
@@ -129,55 +100,19 @@ function previewDrawingStyle(payload: CollectionPreview['stylePayload']): Record
           <div class="mt-2 grid grid-cols-3 gap-2">
             <button
               class="border border-border-default px-2 py-1 text-left text-[11px] text-text-secondary transition hover:border-accent-sky hover:bg-bg-elevated hover:text-text-primary"
-              @click="
-                emit(
-                  'load',
-                  {
-                    id: item.id,
-                    name: item.name,
-                    styleCode: item.styleCode,
-                    drawingCode: item.drawingCode,
-                    createdAt: item.createdAt,
-                  },
-                  'style',
-                )
-              "
+              @click="emit('load', item, 'style')"
             >
               Nạp style
             </button>
             <button
               class="border border-border-default px-2 py-1 text-left text-[11px] text-text-secondary transition hover:border-accent-amber hover:bg-bg-elevated hover:text-text-primary"
-              @click="
-                emit(
-                  'load',
-                  {
-                    id: item.id,
-                    name: item.name,
-                    styleCode: item.styleCode,
-                    drawingCode: item.drawingCode,
-                    createdAt: item.createdAt,
-                  },
-                  'drawing',
-                )
-              "
+              @click="emit('load', item, 'drawing')"
             >
               Nạp nét
             </button>
             <button
               class="border border-border-default px-2 py-1 text-left text-[11px] text-text-secondary transition hover:border-accent-coral hover:bg-bg-elevated hover:text-text-primary"
-              @click="
-                emit(
-                  'load',
-                  {
-                    id: item.id,
-                    name: item.name,
-                    styleCode: item.styleCode,
-                    drawingCode: item.drawingCode,
-                    createdAt: item.createdAt,
-                  },
-                  'both',
-                )
-              "
+              @click="emit('load', item, 'both')"
             >
               Nạp cả 2
             </button>

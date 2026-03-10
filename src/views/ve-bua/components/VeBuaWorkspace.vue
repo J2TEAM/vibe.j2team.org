@@ -1,19 +1,36 @@
 ﻿<script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useIntervalFn } from '@vueuse/core'
+import { Icon } from '@iconify/vue'
 import BuaActionMenuPanel from './BuaActionMenuPanel.vue'
 import BuaAxisPanel from './BuaAxisPanel.vue'
 import BuaBrushPanel from './BuaBrushPanel.vue'
 import BuaChantPanel from './BuaChantPanel.vue'
 import BuaCollectionModal from './BuaCollectionModal.vue'
 import BuaCreditsModal from './BuaCreditsModal.vue'
+import BuaDrawingTransformPanel from './BuaDrawingTransformPanel.vue'
 import BuaDrawablePanel from './BuaDrawablePanel.vue'
 import BuaExportModal from './BuaExportModal.vue'
 import BuaHeaderPanel from './BuaHeaderPanel.vue'
 import BuaImportModal from './BuaImportModal.vue'
 import BuaMandalaPaper from './BuaMandalaPaper.vue'
 import BuaMokPanel from './BuaMokPanel.vue'
+import BuaPaperTransformPanel from './BuaPaperTransformPanel.vue'
 import BuaPatternBg from './BuaPatternBg.vue'
+import type {
+  BuaDrawingPayloadV2,
+  DrawingStats,
+  StrokeRecord,
+  StrokeRecordEncoded,
+} from '../types/drawing'
+import {
+  deleteCollectionRecord,
+  getAllCollectionRecords,
+  putCollectionRecord,
+  type VeBuaCollectionRecord,
+} from '../utils/veBuaIdb'
+import { decodeStroke, encodeStroke } from '../utils/strokeCodec'
 
 type Point = {
   x: number
@@ -28,6 +45,12 @@ type DrawableBox = {
 }
 
 type PaperTransform = {
+  offsetX: number
+  offsetY: number
+  scale: number
+}
+
+type DrawingTransform = {
   offsetX: number
   offsetY: number
   scale: number
@@ -64,7 +87,7 @@ type BuaStylePayload = {
   }
 }
 
-type BuaDrawingPayload = {
+type BuaDrawingPayloadV1 = {
   version: 1
   createdAt: string
   name: string
@@ -87,7 +110,11 @@ type PaperApi = {
   resetAxesEven: () => void
   getSnapshot: () => PaperSnapshot
   getDrawingDataUrl: () => string
+  getDrawingStrokes: () => StrokeRecord[]
+  getDrawingStats: () => DrawingStats
+  getPreviewBlob: (maxWidth?: number) => Promise<Blob | null>
   applyDrawingDataUrl: (dataUrl: string) => Promise<void>
+  applyDrawingStrokes: (strokes: StrokeRecord[], drawableBox?: DrawableBox | null) => Promise<void>
   applySnapshot: (snapshot: PaperSnapshot) => Promise<void>
 }
 
@@ -109,23 +136,25 @@ type LegacyCollectionItem = {
 type CollectionPreview = {
   id: string
   name: string
-  styleCode: string
-  drawingCode: string
   createdAt: string
-  stylePayload: BuaStylePayload | null
-  drawingPayload: BuaDrawingPayload | null
+  stylePayload: BuaStylePayload
+  drawingPayload: BuaDrawingPayloadV1 | BuaDrawingPayloadV2
+  previewSrc: string | null
+  stats: DrawingStats | null
 }
 
 const STORAGE_KEY = 've-bua-collection-v3'
 const LEGACY_STORAGE_KEY = 've-bua-collection-v1'
+const MIGRATION_FLAG_KEY = 've-bua-collection-idb-migrated-v1'
 const PAPER_TRANSFORM_KEY = 've-bua-paper-transform-v1'
 
 const paperRef = ref<PaperApi | null>(null)
-const brushColor = ref('#c73a2b')
+const brushColor = ref('#ff2d2d')
 const brushSize = ref(7)
 const brushOpacity = ref(100)
 const brushSizeRandomness = ref(50)
 const brushOpacityRandomness = ref(50)
+const brushTool = ref<'draw' | 'erase'>('draw')
 const paperTint = ref('#B96F0E')
 const frameTint = ref('#8f3d2d')
 const axisCount = ref(6)
@@ -139,9 +168,11 @@ const freeDraw = ref(false)
 const showDrawableEditor = ref(false)
 const restoreDrawableEditorAfterBurn = ref(false)
 const showPaperTransformEditor = ref(false)
+const showDrawingTransformEditor = ref(false)
 const isBurning = ref(false)
 const drawableBox = ref<DrawableBox>({ x: 0.13, y: 0.1, width: 0.74, height: 0.78 })
 const paperTransform = ref<PaperTransform>(loadPaperTransform())
+const drawingTransform = ref<DrawingTransform>({ offsetX: 0, offsetY: 0, scale: 1 })
 
 const designName = ref('')
 const exportCodeText = ref('')
@@ -154,7 +185,6 @@ const showImportModal = ref(false)
 const showChantPanel = ref(false)
 const showMokPanel = ref(false)
 const showAxisPanel = ref(false)
-const showDrawablePanel = ref(false)
 const showTransferActions = ref(false)
 const burnProgress = ref(0)
 const chantEnabled = ref(true)
@@ -169,8 +199,44 @@ const creditsOffsetY = ref(0)
 const creditsBoosting = ref(false)
 const creditsContainerRef = ref<HTMLElement | null>(null)
 const creditsContentRef = ref<HTMLElement | null>(null)
-const collection = ref<CollectionItem[]>(loadCollection())
-const collectionPreviews = ref<CollectionPreview[]>(buildCollectionPreviews(collection.value))
+const collectionPreviews = ref<CollectionPreview[]>([])
+const collectionPreviewUrls = new Map<string, string>()
+const drawingStats = ref<DrawingStats | null>(null)
+
+const operation = ref<{
+  active: boolean
+  label: string
+  progress: number
+}>({ active: false, label: '', progress: 0 })
+let operationHideTimeout = 0
+
+function startOperation(label: string) {
+  if (operationHideTimeout) {
+    window.clearTimeout(operationHideTimeout)
+    operationHideTimeout = 0
+  }
+  operation.value = { active: true, label, progress: 6 }
+}
+
+function updateOperationProgress(progress: number, label?: string) {
+  operation.value = {
+    active: true,
+    label: label ?? operation.value.label,
+    progress: Math.min(100, Math.max(0, Math.round(progress))),
+  }
+}
+
+function finishOperation(label?: string) {
+  operation.value = {
+    active: true,
+    label: label ?? operation.value.label,
+    progress: 100,
+  }
+  operationHideTimeout = window.setTimeout(() => {
+    operation.value = { active: false, label: '', progress: 0 }
+    operationHideTimeout = 0
+  }, 550)
+}
 
 const CHANT_SAMPLES = [
   'Nam mô hộ pháp, xin cho công việc hanh thông, bug tiêu tán.',
@@ -191,12 +257,39 @@ let creditsLastFrame = 0
 let mokLoopTimeout = 0
 let mokAudioContext: AudioContext | null = null
 
+function syncDrawingStats() {
+  drawingStats.value = paperRef.value?.getDrawingStats() ?? null
+}
+
+const { pause: pauseStatsLoop, resume: resumeStatsLoop } = useIntervalFn(
+  () => {
+    if (showMenu.value) syncDrawingStats()
+  },
+  350,
+  { immediate: true },
+)
+
+watch(
+  showMenu,
+  (open) => {
+    if (open) {
+      syncDrawingStats()
+      resumeStatsLoop()
+      return
+    }
+    pauseStatsLoop()
+  },
+  { immediate: true },
+)
+
 function clearDrawing() {
   paperRef.value?.clearDrawing()
+  drawingStats.value = paperRef.value?.getDrawingStats() ?? null
 }
 
 async function undoDrawing() {
   const restored = await paperRef.value?.undoLastStroke()
+  drawingStats.value = paperRef.value?.getDrawingStats() ?? null
   if (!restored) {
     infoText.value = 'Không còn bước vẽ nào để hoàn tác.'
   }
@@ -237,9 +330,9 @@ function burnPaper() {
   showChantPanel.value = false
   showMokPanel.value = false
   showAxisPanel.value = false
-  showDrawablePanel.value = false
   showTransferActions.value = false
   showPaperTransformEditor.value = false
+  showDrawingTransformEditor.value = false
   paperRef.value?.burnAndReset()
 }
 
@@ -307,7 +400,7 @@ function resetAxesEven() {
 }
 
 function resetBrushColor() {
-  brushColor.value = '#c73a2b'
+  brushColor.value = '#ff2d2d'
 }
 
 function resetBrushSize() {
@@ -403,7 +496,7 @@ function sanitizePaperTransform(next: PaperTransform): PaperTransform {
   return {
     offsetX: Number.isFinite(next.offsetX) ? next.offsetX : 0,
     offsetY: Number.isFinite(next.offsetY) ? next.offsetY : 0,
-    scale: Math.min(2.6, Math.max(0.45, Number.isFinite(next.scale) ? next.scale : 1)),
+    scale: Math.min(3, Math.max(0.01, Number.isFinite(next.scale) ? next.scale : 1)),
   }
 }
 
@@ -433,6 +526,37 @@ function updatePaperTransform(next: PaperTransform) {
 function resetPaperTransform() {
   paperTransform.value = { offsetX: 0, offsetY: 0, scale: 1 }
   savePaperTransform()
+}
+
+function resetDrawingTransform() {
+  drawingTransform.value = { offsetX: 0, offsetY: 0, scale: 1 }
+}
+
+function togglePaperTransformTool() {
+  const next = !showPaperTransformEditor.value
+  showPaperTransformEditor.value = next
+  if (next) {
+    showDrawableEditor.value = false
+    showDrawingTransformEditor.value = false
+  }
+}
+
+function toggleDrawableTool() {
+  const next = !showDrawableEditor.value
+  showDrawableEditor.value = next
+  if (next) {
+    showPaperTransformEditor.value = false
+    showDrawingTransformEditor.value = false
+  }
+}
+
+function toggleDrawingTransformTool() {
+  const next = !showDrawingTransformEditor.value
+  showDrawingTransformEditor.value = next
+  if (next) {
+    showPaperTransformEditor.value = false
+    showDrawableEditor.value = false
+  }
 }
 
 function startCreditsBoost() {
@@ -522,14 +646,15 @@ function createStylePayload(name: string): BuaStylePayload | null {
   }
 }
 
-function createDrawingPayload(name: string): BuaDrawingPayload | null {
+function createDrawingPayloadV2(name: string): BuaDrawingPayloadV2 | null {
   const paper = paperRef.value
   if (!paper) return null
   return {
-    version: 1,
+    version: 2,
     createdAt: new Date().toISOString(),
     name,
-    drawingDataUrl: paper.getDrawingDataUrl(),
+    drawableBox: { ...drawableBox.value },
+    strokes: paper.getDrawingStrokes().map((stroke) => encodeStroke(stroke)),
   }
 }
 
@@ -556,8 +681,12 @@ function encodeStyleCode(payload: BuaStylePayload): string {
   return `BUA-S1.${encodeBase64Url(JSON.stringify(payload))}`
 }
 
-function encodeDrawingCode(payload: BuaDrawingPayload): string {
+function encodeDrawingCodeV1(payload: BuaDrawingPayloadV1): string {
   return `BUA-D1.${encodeBase64Url(JSON.stringify(payload))}`
+}
+
+function encodeDrawingCodeV2(payload: BuaDrawingPayloadV2): string {
+  return `BUA-D2.${encodeBase64Url(JSON.stringify(payload))}`
 }
 
 function isValidSnapshot(snapshot: PaperSnapshot): boolean {
@@ -638,10 +767,49 @@ function isValidStylePayload(payload: BuaStylePayload): boolean {
   })
 }
 
-function isValidDrawingPayload(payload: BuaDrawingPayload): boolean {
+function isValidDrawingPayloadV1(payload: BuaDrawingPayloadV1): boolean {
   return (
     payload.version === 1 && payload.name.length > 0 && typeof payload.drawingDataUrl === 'string'
   )
+}
+
+function isValidDrawingPayloadV2(payload: BuaDrawingPayloadV2): boolean {
+  if (payload.version !== 2) return false
+  if (!payload.name || payload.name.length < 1) return false
+  if (!isValidDrawableBox(payload.drawableBox)) return false
+  if (!Array.isArray(payload.strokes)) return false
+  return payload.strokes.every((stroke) => {
+    const maybe = stroke as Partial<StrokeRecordEncoded> & {
+      points?: Array<{ x: number; y: number }>
+    }
+    const commonOk =
+      maybe.version === 1 &&
+      typeof maybe.seed === 'number' &&
+      Array.isArray(maybe.axis?.axisAngles) &&
+      typeof maybe.axis?.center?.x === 'number' &&
+      typeof maybe.axis?.center?.y === 'number' &&
+      Array.isArray(maybe.brushTimeline) &&
+      typeof maybe.meta?.canvasWidth === 'number' &&
+      typeof maybe.meta?.canvasHeight === 'number'
+
+    if (!commonOk) return false
+
+    const pointsDeltaOk =
+      maybe.pointsDelta !== undefined &&
+      typeof maybe.pointsDelta.scale === 'number' &&
+      Array.isArray(maybe.pointsDelta.deltas) &&
+      Array.isArray(maybe.pointsDelta.start) &&
+      maybe.pointsDelta.start.length === 2
+
+    if (pointsDeltaOk) return true
+
+    const pointsOk =
+      Array.isArray(maybe.points) &&
+      maybe.points.length >= 2 &&
+      maybe.points.every((p) => typeof p.x === 'number' && typeof p.y === 'number')
+
+    return pointsOk
+  })
 }
 
 function decodeLegacyBuaCode(code: string): BuaExportPayload | null {
@@ -672,35 +840,32 @@ function decodeStyleCode(code: string): BuaStylePayload | null {
   }
 }
 
-function decodeDrawingCode(code: string): BuaDrawingPayload | null {
+function decodeDrawingCode(code: string): BuaDrawingPayloadV1 | BuaDrawingPayloadV2 | null {
   const trimmed = code.trim()
-  if (!trimmed.startsWith('BUA-D1.')) return null
-  const encoded = trimmed.slice(7)
+  const prefixV1 = 'BUA-D1.'
+  const prefixV2 = 'BUA-D2.'
+  const prefix = trimmed.startsWith(prefixV1)
+    ? prefixV1
+    : trimmed.startsWith(prefixV2)
+      ? prefixV2
+      : null
+  if (!prefix) return null
+  const encoded = trimmed.slice(prefix.length)
   if (!encoded) return null
   try {
     const raw = decodeBase64Url(encoded)
-    const payload = JSON.parse(raw) as BuaDrawingPayload
-    return isValidDrawingPayload(payload) ? payload : null
+    if (prefix === prefixV1) {
+      const payload = JSON.parse(raw) as BuaDrawingPayloadV1
+      return isValidDrawingPayloadV1(payload) ? payload : null
+    }
+    const payload = JSON.parse(raw) as BuaDrawingPayloadV2
+    return isValidDrawingPayloadV2(payload) ? payload : null
   } catch {
     return null
   }
 }
 
-function refreshCollection(next: CollectionItem[]) {
-  collection.value = next
-  saveCollection()
-  collectionPreviews.value = buildCollectionPreviews(next)
-}
-
-function saveCollection() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(collection.value))
-  } catch {
-    infoText.value = 'Không thể lưu vào bộ nhớ trình duyệt.'
-  }
-}
-
-function loadCollection(): CollectionItem[] {
+function loadCollectionFromLocalStorage(): CollectionItem[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
@@ -729,7 +894,7 @@ function loadCollection(): CollectionItem[] {
               axisAngles: legacy.snapshot.axisAngles.slice(),
             },
           }
-          const drawingPayload: BuaDrawingPayload = {
+          const drawingPayload: BuaDrawingPayloadV1 = {
             version: 1,
             createdAt: legacy.createdAt,
             name: legacy.name,
@@ -740,7 +905,7 @@ function loadCollection(): CollectionItem[] {
             name: item.name,
             createdAt: item.createdAt,
             styleCode: encodeStyleCode(stylePayload),
-            drawingCode: encodeDrawingCode(drawingPayload),
+            drawingCode: encodeDrawingCodeV1(drawingPayload),
           }
         })
         .filter((item): item is CollectionItem => item !== null)
@@ -765,7 +930,7 @@ function loadCollection(): CollectionItem[] {
             axisAngles: item.payload.snapshot.axisAngles.slice(),
           },
         }
-        const drawingPayload: BuaDrawingPayload = {
+        const drawingPayload: BuaDrawingPayloadV1 = {
           version: 1,
           createdAt: item.createdAt,
           name: item.name,
@@ -776,7 +941,7 @@ function loadCollection(): CollectionItem[] {
           name: item.name,
           createdAt: item.createdAt,
           styleCode: encodeStyleCode(stylePayload),
-          drawingCode: encodeDrawingCode(drawingPayload),
+          drawingCode: encodeDrawingCodeV1(drawingPayload),
         }
       })
       .slice(0, 60)
@@ -787,65 +952,154 @@ function loadCollection(): CollectionItem[] {
   }
 }
 
-function buildCollectionPreviews(items: CollectionItem[]): CollectionPreview[] {
-  return items.map((item) => ({
-    id: item.id,
-    name: item.name,
-    styleCode: item.styleCode,
-    drawingCode: item.drawingCode,
-    createdAt: item.createdAt,
-    stylePayload: decodeStyleCode(item.styleCode),
-    drawingPayload: decodeDrawingCode(item.drawingCode),
-  }))
+function revokeCollectionPreviewUrls() {
+  for (const url of collectionPreviewUrls.values()) {
+    URL.revokeObjectURL(url)
+  }
+  collectionPreviewUrls.clear()
 }
 
-function saveDesign() {
+function buildCollectionPreviewsFromRecords(records: VeBuaCollectionRecord[]): CollectionPreview[] {
+  revokeCollectionPreviewUrls()
+  const ordered = records.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  return ordered.map((record) => {
+    let previewSrc: string | null = null
+    if (record.previewBlob) {
+      const url = URL.createObjectURL(record.previewBlob)
+      collectionPreviewUrls.set(record.id, url)
+      previewSrc = url
+    } else if (record.drawingPayload.version === 1 && record.drawingPayload.drawingDataUrl) {
+      previewSrc = record.drawingPayload.drawingDataUrl
+    }
+    return {
+      id: record.id,
+      name: record.name,
+      createdAt: record.createdAt,
+      stylePayload: record.stylePayload,
+      drawingPayload: record.drawingPayload,
+      previewSrc,
+      stats: record.stats,
+    }
+  })
+}
+
+async function loadCollectionFromDb() {
+  const records = await getAllCollectionRecords()
+  collectionPreviews.value = buildCollectionPreviewsFromRecords(records)
+}
+
+async function enforceCollectionLimit(limit: number) {
+  const records = await getAllCollectionRecords()
+  const ordered = records.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const extra = ordered.slice(limit)
+  for (const record of extra) {
+    await deleteCollectionRecord(record.id)
+  }
+}
+
+async function migrateLocalStorageCollectionIfNeeded() {
+  if (localStorage.getItem(MIGRATION_FLAG_KEY) === '1') return
+  const existing = await getAllCollectionRecords()
+  if (existing.length > 0) {
+    localStorage.setItem(MIGRATION_FLAG_KEY, '1')
+    return
+  }
+  const items = loadCollectionFromLocalStorage()
+  if (items.length === 0) {
+    localStorage.setItem(MIGRATION_FLAG_KEY, '1')
+    return
+  }
+  for (const item of items) {
+    const stylePayload = decodeStyleCode(item.styleCode)
+    const drawingPayload = decodeDrawingCode(item.drawingCode)
+    if (!stylePayload || !drawingPayload) continue
+    const record: VeBuaCollectionRecord = {
+      id: item.id,
+      name: item.name,
+      createdAt: item.createdAt,
+      stylePayload,
+      drawingPayload,
+      previewBlob: null,
+      stats: null,
+    }
+    await putCollectionRecord(record)
+  }
+  localStorage.removeItem(STORAGE_KEY)
+  localStorage.removeItem(LEGACY_STORAGE_KEY)
+  localStorage.removeItem('ve-bua-collection-v2')
+  localStorage.setItem(MIGRATION_FLAG_KEY, '1')
+}
+
+async function saveDesign() {
+  startOperation('Đang lưu vào bộ sưu tập...')
   const trimmed = designName.value.trim()
   if (!trimmed) {
+    finishOperation()
     infoText.value = 'Hãy nhập tên thiết kế trước khi lưu.'
     return
   }
 
+  updateOperationProgress(18, 'Đang đóng gói dữ liệu...')
   const stylePayload = createStylePayload(trimmed)
-  const drawingPayload = createDrawingPayload(trimmed)
-  if (!stylePayload || !drawingPayload) {
+  const paper = paperRef.value
+  const drawingPayload = createDrawingPayloadV2(trimmed)
+  if (!stylePayload || !drawingPayload || !paper) {
+    finishOperation()
     infoText.value = 'Không lấy được dữ liệu bùa hiện tại.'
     return
   }
 
-  const item: CollectionItem = {
+  updateOperationProgress(38, 'Đang tạo preview...')
+  const stats = paper.getDrawingStats()
+  const previewBlob = await paper.getPreviewBlob(260)
+
+  const record: VeBuaCollectionRecord = {
     id: `${Date.now()}-${Math.round(Math.random() * 100000)}`,
     name: trimmed,
-    styleCode: encodeStyleCode(stylePayload),
-    drawingCode: encodeDrawingCode(drawingPayload),
     createdAt: stylePayload.createdAt,
+    stylePayload,
+    drawingPayload,
+    previewBlob,
+    stats,
   }
 
-  refreshCollection([item, ...collection.value].slice(0, 60))
+  updateOperationProgress(70, 'Đang ghi vào bộ nhớ...')
+  await putCollectionRecord(record)
+  await enforceCollectionLimit(60)
+  updateOperationProgress(88, 'Đang cập nhật danh sách...')
+  await loadCollectionFromDb()
+  finishOperation('Đã lưu xong.')
   infoText.value = `Đã lưu "${trimmed}" vào bộ sưu tập.`
 }
 
 function openExportModal(mode: 'style' | 'drawing') {
+  startOperation('Đang tạo mã...')
   const name = designName.value.trim() || 'Bùa chưa đặt tên'
   exportMode.value = mode
   if (mode === 'style') {
+    updateOperationProgress(35, 'Đang đóng gói style...')
     const payload = createStylePayload(name)
     if (!payload) {
+      finishOperation()
       infoText.value = 'Không thể tạo mã lúc này.'
       return
     }
     exportCodeText.value = encodeStyleCode(payload)
     showExportModal.value = true
+    finishOperation('Đã tạo mã style.')
     infoText.value = 'Đã tạo mã style.'
     return
   }
-  const payload = createDrawingPayload(name)
+  updateOperationProgress(45, 'Đang đóng gói nét vẽ...')
+  const payload = createDrawingPayloadV2(name)
   if (!payload) {
+    finishOperation()
     infoText.value = 'Không thể tạo mã lúc này.'
     return
   }
-  exportCodeText.value = encodeDrawingCode(payload)
+  exportCodeText.value = encodeDrawingCodeV2(payload)
   showExportModal.value = true
+  finishOperation('Đã tạo mã nét vẽ.')
   infoText.value = 'Đã tạo mã nét vẽ.'
 }
 
@@ -879,32 +1133,49 @@ async function applyStylePayload(payload: BuaStylePayload) {
   })
 }
 
-async function applyDrawingPayload(payload: BuaDrawingPayload) {
-  await paperRef.value?.applyDrawingDataUrl(payload.drawingDataUrl)
+async function applyDrawingPayload(payload: BuaDrawingPayloadV1 | BuaDrawingPayloadV2) {
+  if (payload.version === 1) {
+    await paperRef.value?.applyDrawingDataUrl(payload.drawingDataUrl)
+    return
+  }
+  const rawStrokes = payload.strokes as Array<StrokeRecordEncoded | StrokeRecord>
+  const decoded: StrokeRecord[] = rawStrokes.map((stroke) => {
+    if ('pointsDelta' in stroke) return decodeStroke(stroke)
+    return stroke
+  })
+  await paperRef.value?.applyDrawingStrokes(decoded, payload.drawableBox)
 }
 
 async function importFromCodeText(rawCode: string) {
+  startOperation('Đang import...')
+  updateOperationProgress(10, 'Đang đọc mã...')
   const stylePayload = decodeStyleCode(rawCode)
   if (stylePayload) {
+    updateOperationProgress(45, 'Đang áp dụng style...')
     await applyStylePayload(stylePayload)
     designName.value = stylePayload.name
+    finishOperation('Đã import style.')
     infoText.value = `Đã import style: ${stylePayload.name}`
     return
   }
   const drawingPayload = decodeDrawingCode(rawCode)
   if (drawingPayload) {
+    updateOperationProgress(55, 'Đang vẽ lại nét...')
     await applyDrawingPayload(drawingPayload)
     if (!designName.value.trim()) {
       designName.value = drawingPayload.name
     }
+    finishOperation('Đã import nét vẽ.')
     infoText.value = `Đã import nét vẽ: ${drawingPayload.name}`
     return
   }
   const legacyPayload = decodeLegacyBuaCode(rawCode)
   if (!legacyPayload) {
+    finishOperation()
     infoText.value = 'Mã không hợp lệ (cần BUA-S1 hoặc BUA-D1).'
     return
   }
+  updateOperationProgress(45, 'Đang áp dụng style...')
   await applyStylePayload({
     version: 1,
     createdAt: legacyPayload.createdAt,
@@ -915,6 +1186,7 @@ async function importFromCodeText(rawCode: string) {
       axisAngles: legacyPayload.snapshot.axisAngles.slice(),
     },
   })
+  updateOperationProgress(75, 'Đang vẽ lại nét...')
   await applyDrawingPayload({
     version: 1,
     createdAt: legacyPayload.createdAt,
@@ -922,6 +1194,7 @@ async function importFromCodeText(rawCode: string) {
     drawingDataUrl: legacyPayload.snapshot.drawingDataUrl,
   })
   designName.value = legacyPayload.name
+  finishOperation('Đã import mã cũ.')
   infoText.value = `Đã import mã bùa cũ: ${legacyPayload.name}`
 }
 
@@ -932,49 +1205,41 @@ async function confirmImportModal() {
   }
 }
 
-async function copyExportCode() {
-  if (!exportCodeText.value) return
-  try {
-    await navigator.clipboard.writeText(exportCodeText.value)
-    infoText.value = 'Đã copy mã bùa.'
-  } catch {
-    infoText.value = 'Không copy được tự động, hãy copy thủ công.'
-  }
-}
-
-async function loadFromCollection(item: CollectionItem, mode: 'style' | 'drawing' | 'both') {
-  const stylePayload = decodeStyleCode(item.styleCode)
-  const drawingPayload = decodeDrawingCode(item.drawingCode)
-  if ((mode === 'style' || mode === 'both') && stylePayload) {
-    await applyStylePayload(stylePayload)
-  }
-  if ((mode === 'drawing' || mode === 'both') && drawingPayload) {
-    await applyDrawingPayload(drawingPayload)
-  }
-  if (mode === 'style' && !stylePayload) {
-    infoText.value = `Style của "${item.name}" bị lỗi.`
-    return
-  }
-  if (mode === 'drawing' && !drawingPayload) {
-    infoText.value = `Nét vẽ của "${item.name}" bị lỗi.`
-    return
-  }
-  if (mode === 'both' && !stylePayload && !drawingPayload) {
-    infoText.value = `Dữ liệu của "${item.name}" bị lỗi.`
-    return
-  }
-  designName.value = item.name
-  showCollection.value = false
-  infoText.value =
+async function loadFromCollection(item: CollectionPreview, mode: 'style' | 'drawing' | 'both') {
+  startOperation(
     mode === 'both'
-      ? `Đã nạp đầy đủ: ${item.name}`
+      ? 'Đang nạp style + nét...'
       : mode === 'style'
-        ? `Đã nạp style: ${item.name}`
-        : `Đã nạp nét vẽ: ${item.name}`
+        ? 'Đang nạp style...'
+        : 'Đang nạp nét vẽ...',
+  )
+  try {
+    if (mode === 'style' || mode === 'both') {
+      updateOperationProgress(30, 'Đang áp dụng style...')
+      await applyStylePayload(item.stylePayload)
+    }
+    if (mode === 'drawing' || mode === 'both') {
+      updateOperationProgress(65, 'Đang vẽ lại nét...')
+      await applyDrawingPayload(item.drawingPayload)
+    }
+    designName.value = item.name
+    showCollection.value = false
+    finishOperation('Đã nạp xong.')
+    infoText.value =
+      mode === 'both'
+        ? `Đã nạp đầy đủ: ${item.name}`
+        : mode === 'style'
+          ? `Đã nạp style: ${item.name}`
+          : `Đã nạp nét vẽ: ${item.name}`
+  } catch {
+    finishOperation()
+    infoText.value = 'Không nạp được dữ liệu lúc này.'
+  }
 }
 
-function removeFromCollection(id: string) {
-  refreshCollection(collection.value.filter((item) => item.id !== id))
+async function removeFromCollection(id: string) {
+  await deleteCollectionRecord(id)
+  await loadCollectionFromDb()
 }
 
 function useSampleChant(text: string) {
@@ -998,6 +1263,7 @@ function handleGlobalKeydown(event: KeyboardEvent) {
 
 onMounted(() => {
   window.addEventListener('keydown', handleGlobalKeydown)
+  void migrateLocalStorageCollectionIfNeeded().then(loadCollectionFromDb)
   const frame = (timestamp: number) => {
     tickCredits(timestamp)
     creditsRaf = window.requestAnimationFrame(frame)
@@ -1041,6 +1307,11 @@ watch(
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleGlobalKeydown)
+  revokeCollectionPreviewUrls()
+  pauseStatsLoop()
+  if (operationHideTimeout) {
+    window.clearTimeout(operationHideTimeout)
+  }
   if (chantHideTimeout) {
     window.clearTimeout(chantHideTimeout)
   }
@@ -1060,6 +1331,17 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="relative h-screen w-full overflow-hidden bg-bg-deep text-text-primary">
+    <div v-if="operation.active" class="pointer-events-none absolute inset-x-0 top-0 z-[70]">
+      <div class="border-b border-border-default bg-bg-surface/75 px-4 py-2">
+        <p class="text-[11px] uppercase tracking-wider text-text-dim">// {{ operation.label }}</p>
+        <div class="mt-1 h-1 w-full border border-border-default bg-bg-elevated">
+          <div
+            class="h-full bg-accent-sky transition-[width] duration-200"
+            :style="{ width: `${operation.progress}%` }"
+          />
+        </div>
+      </div>
+    </div>
     <BuaPatternBg />
     <BuaHeaderPanel v-if="!isBurning && !isPostBurnHolding" />
 
@@ -1143,18 +1425,6 @@ onBeforeUnmount(() => {
             Trục
           </button>
           <button
-            class="h-10 border px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-sky hover:text-text-primary"
-            :class="
-              showDrawablePanel
-                ? 'border-white bg-white text-black'
-                : 'border-border-default bg-bg-elevated'
-            "
-            title="Vùng vẽ"
-            @click="showDrawablePanel = !showDrawablePanel"
-          >
-            Vùng vẽ
-          </button>
-          <button
             class="h-10 border border-border-default bg-bg-elevated px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
             title="Bùa ngẫu nhiên"
             @click="randomizeBuaColors"
@@ -1184,23 +1454,41 @@ onBeforeUnmount(() => {
             Khấn
           </button>
           <button
-            class="h-10 border px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
+            class="flex h-10 items-center justify-center gap-2 border px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
             :class="
               showPaperTransformEditor
                 ? 'border-white bg-white text-black'
                 : 'border-border-default bg-bg-elevated'
             "
-            title="Chỉnh vị trí lá bùa"
-            @click="showPaperTransformEditor = !showPaperTransformEditor"
+            title="Thu phóng"
+            @click="togglePaperTransformTool"
           >
-            Chỉnh vị trí
+            <Icon icon="lucide:zoom-in" class="size-4" />
+            Thu phóng
           </button>
           <button
-            class="h-10 border border-border-default bg-bg-elevated px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
-            title="Reset vị trí lá bùa"
-            @click="resetPaperTransform"
+            class="h-10 border px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
+            :class="
+              showDrawingTransformEditor
+                ? 'border-white bg-white text-black'
+                : 'border-border-default bg-bg-elevated'
+            "
+            title="Thu phóng nét vẽ"
+            @click="toggleDrawingTransformTool"
           >
-            Reset vị trí
+            Zoom nét
+          </button>
+          <button
+            class="h-10 border px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
+            :class="
+              showDrawableEditor
+                ? 'border-white bg-white text-black'
+                : 'border-border-default bg-bg-elevated'
+            "
+            title="Vùng vẽ"
+            @click="toggleDrawableTool"
+          >
+            Vùng vẽ
           </button>
           <button
             class="h-10 border border-border-default bg-bg-elevated px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
@@ -1259,6 +1547,27 @@ onBeforeUnmount(() => {
           @update:mok-speed="mokSpeed = $event"
         />
 
+        <BuaPaperTransformPanel
+          :open="showPaperTransformEditor && showMobileControlHub"
+          :paper-transform="paperTransform"
+          @update:paper-transform="updatePaperTransform"
+          @reset-paper-transform="resetPaperTransform"
+        />
+
+        <BuaDrawingTransformPanel
+          :open="showDrawingTransformEditor && showMobileControlHub"
+          :drawing-transform="drawingTransform"
+          @update:drawing-transform="drawingTransform = $event"
+          @reset-drawing-transform="resetDrawingTransform"
+        />
+
+        <BuaDrawablePanel
+          :open="showDrawableEditor && showMobileControlHub"
+          :show-drawable-editor="showDrawableEditor"
+          @toggle-drawable-editor="toggleDrawableTool"
+          @reset-drawable-box="resetDrawableBox"
+        />
+
         <BuaAxisPanel
           :open="showAxisPanel && showMobileControlHub"
           :axis-count="axisCount"
@@ -1269,13 +1578,6 @@ onBeforeUnmount(() => {
           @toggle-axis-editor="showAxisEditor = !showAxisEditor"
           @random-axes="randomAxes"
           @reset-axes-even="resetAxesEven"
-        />
-
-        <BuaDrawablePanel
-          :open="showDrawablePanel && showMobileControlHub"
-          :show-drawable-editor="showDrawableEditor"
-          @toggle-drawable-editor="showDrawableEditor = !showDrawableEditor"
-          @reset-drawable-box="resetDrawableBox"
         />
 
         <BuaChantPanel
@@ -1351,18 +1653,6 @@ onBeforeUnmount(() => {
           Trục
         </button>
         <button
-          class="h-10 border px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-sky hover:text-text-primary"
-          :class="
-            showDrawablePanel
-              ? 'border-white bg-white text-black'
-              : 'border-border-default bg-bg-surface'
-          "
-          title="Vùng vẽ"
-          @click="showDrawablePanel = !showDrawablePanel"
-        >
-          Vùng vẽ
-        </button>
-        <button
           class="grid h-10 w-10 place-items-center border border-border-default bg-bg-surface text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
           title="Bùa ngẫu nhiên"
           aria-label="Bùa ngẫu nhiên"
@@ -1390,13 +1680,6 @@ onBeforeUnmount(() => {
         @toggle-axis-editor="showAxisEditor = !showAxisEditor"
         @random-axes="randomAxes"
         @reset-axes-even="resetAxesEven"
-      />
-
-      <BuaDrawablePanel
-        :open="showDrawablePanel"
-        :show-drawable-editor="showDrawableEditor"
-        @toggle-drawable-editor="showDrawableEditor = !showDrawableEditor"
-        @reset-drawable-box="resetDrawableBox"
       />
     </div>
 
@@ -1433,23 +1716,31 @@ onBeforeUnmount(() => {
           Khấn
         </button>
         <button
-          class="grid h-10 w-10 place-items-center border text-text-secondary transition hover:text-text-primary"
-          :class="
-            showPaperTransformEditor
-              ? 'border-white bg-white text-black'
-              : 'border-border-default bg-bg-surface hover:border-accent-coral'
-          "
-          title="Chỉnh vị trí lá bùa"
-          @click="showPaperTransformEditor = !showPaperTransformEditor"
+          class="grid h-10 w-10 place-items-center border border-border-default bg-bg-surface text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
+          :class="showPaperTransformEditor ? 'border-white bg-white text-black' : ''"
+          title="Thu phóng"
+          aria-label="Thu phóng"
+          @click="togglePaperTransformTool"
         >
-          ⛶
+          <Icon icon="lucide:zoom-in" class="size-4" />
         </button>
         <button
-          class="h-10 border border-border-default bg-bg-surface px-3 text-xs font-display tracking-wide text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
-          title="Reset vị trí lá bùa"
-          @click="resetPaperTransform"
+          class="grid h-10 w-10 place-items-center border border-border-default bg-bg-surface text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
+          :class="showDrawingTransformEditor ? 'border-white bg-white text-black' : ''"
+          title="Thu phóng nét vẽ"
+          aria-label="Thu phóng nét vẽ"
+          @click="toggleDrawingTransformTool"
         >
-          Reset vị trí
+          <Icon icon="lucide:scan-zoom" class="size-4" />
+        </button>
+        <button
+          class="grid h-10 w-10 place-items-center border border-border-default bg-bg-surface text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
+          :class="showDrawableEditor ? 'border-white bg-white text-black' : ''"
+          title="Vùng vẽ"
+          aria-label="Vùng vẽ"
+          @click="toggleDrawableTool"
+        >
+          <Icon icon="lucide:crop" class="size-4" />
         </button>
         <button
           class="grid h-10 w-10 place-items-center border border-border-default bg-bg-surface text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
@@ -1499,6 +1790,27 @@ onBeforeUnmount(() => {
           Import style / nét
         </button>
       </div>
+
+      <BuaPaperTransformPanel
+        :open="showPaperTransformEditor"
+        :paper-transform="paperTransform"
+        @update:paper-transform="updatePaperTransform"
+        @reset-paper-transform="resetPaperTransform"
+      />
+
+      <BuaDrawingTransformPanel
+        :open="showDrawingTransformEditor"
+        :drawing-transform="drawingTransform"
+        @update:drawing-transform="drawingTransform = $event"
+        @reset-drawing-transform="resetDrawingTransform"
+      />
+
+      <BuaDrawablePanel
+        :open="showDrawableEditor"
+        :show-drawable-editor="showDrawableEditor"
+        @toggle-drawable-editor="toggleDrawableTool"
+        @reset-drawable-box="resetDrawableBox"
+      />
 
       <BuaChantPanel
         :open="showChantPanel"
@@ -1553,6 +1865,7 @@ onBeforeUnmount(() => {
             :brush-opacity="brushOpacity"
             :brush-size-randomness="brushSizeRandomness"
             :brush-opacity-randomness="brushOpacityRandomness"
+            :brush-tool="brushTool"
             :paper-tint="paperTint"
             :frame-tint="frameTint"
             :show-guides="showGuides"
@@ -1562,11 +1875,16 @@ onBeforeUnmount(() => {
             :show-drawable-editor="showDrawableEditor"
             :paper-transform="paperTransform"
             :show-paper-transform-editor="showPaperTransformEditor"
+            :drawing-transform="drawingTransform"
+            :show-drawing-transform-editor="showDrawingTransformEditor"
             @burned="handleBurned"
             @burning-change="handleBurningChange"
             @burning-progress="handleBurningProgress"
             @update:drawable-box="updateDrawableBox"
             @update:paper-transform="updatePaperTransform"
+            @update:drawing-transform="drawingTransform = $event"
+            @toggle-drawable-editor="toggleDrawableTool"
+            @reset-drawing-transform="resetDrawingTransform"
           />
         </div>
 
@@ -1577,6 +1895,7 @@ onBeforeUnmount(() => {
           :brush-opacity="brushOpacity"
           :brush-size-randomness="brushSizeRandomness"
           :brush-opacity-randomness="brushOpacityRandomness"
+          :brush-tool="brushTool"
           :free-draw="freeDraw"
           :paper-tint="paperTint"
           :frame-tint="frameTint"
@@ -1585,6 +1904,7 @@ onBeforeUnmount(() => {
           @update:brush-opacity="brushOpacity = $event"
           @update:brush-size-randomness="brushSizeRandomness = $event"
           @update:brush-opacity-randomness="brushOpacityRandomness = $event"
+          @update:brush-tool="brushTool = $event"
           @update:free-draw="freeDraw = $event"
           @update:paper-tint="paperTint = $event"
           @update:frame-tint="frameTint = $event"
@@ -1600,6 +1920,7 @@ onBeforeUnmount(() => {
           :open="showMenu && !isBurning && !isPostBurnHolding"
           :design-name="designName"
           :info-text="infoText"
+          :drawing-stats="drawingStats"
           @update:design-name="designName = $event"
           @save-design="saveDesign"
           @open-credits="openCreditsModal"
@@ -1622,8 +1943,10 @@ onBeforeUnmount(() => {
       :open="showExportModal"
       :mode="exportMode"
       :code="exportCodeText"
+      :default-file-name="
+        designName.trim() || (exportMode === 'style' ? 'bua-style' : 'bua-net-ve')
+      "
       @close="showExportModal = false"
-      @copy="copyExportCode"
     />
 
     <BuaImportModal

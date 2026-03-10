@@ -1,4 +1,5 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
+import { Icon } from '@iconify/vue'
 import { ref, watch } from 'vue'
 
 import BuaControlPanel from './BuaControlPanel.vue'
@@ -10,6 +11,7 @@ const props = defineProps<{
   brushOpacity: number
   brushSizeRandomness: number
   brushOpacityRandomness: number
+  brushTool: 'draw' | 'erase'
   freeDraw: boolean
   paperTint: string
   frameTint: string
@@ -21,6 +23,7 @@ const emit = defineEmits<{
   'update:brushOpacity': [value: number]
   'update:brushSizeRandomness': [value: number]
   'update:brushOpacityRandomness': [value: number]
+  'update:brushTool': [value: 'draw' | 'erase']
   'update:freeDraw': [value: boolean]
   'update:paperTint': [value: string]
   'update:frameTint': [value: string]
@@ -59,7 +62,38 @@ function emitBrushOpacity(value: number) {
     class="absolute inset-y-0 left-0 z-40 w-[min(300px,85vw)] overflow-auto pr-2"
   >
     <BuaControlPanel side="left" title="Bút và nền">
-      <label class="block">
+      <div class="grid grid-cols-2 gap-2">
+        <button
+          class="flex items-center justify-center gap-2 border px-3 py-2 text-sm transition hover:border-accent-coral hover:bg-bg-elevated hover:text-text-primary"
+          :class="
+            props.brushTool === 'draw'
+              ? 'border-white bg-white text-black'
+              : 'border-border-default text-text-secondary'
+          "
+          @click="emit('update:brushTool', 'draw')"
+        >
+          <Icon icon="lucide:pen-tool" class="size-4" />
+          Bút
+        </button>
+        <button
+          class="flex items-center justify-center gap-2 border px-3 py-2 text-sm transition hover:border-accent-amber hover:bg-bg-elevated hover:text-text-primary"
+          :class="
+            props.brushTool === 'erase'
+              ? 'border-white bg-white text-black'
+              : 'border-border-default text-text-secondary'
+          "
+          @click="emit('update:brushTool', 'erase')"
+        >
+          <Icon icon="lucide:eraser" class="size-4" />
+          Xóa
+        </button>
+      </div>
+
+      <p v-if="props.brushTool === 'erase'" class="text-xs text-text-secondary">
+        Bút xóa dùng chế độ cắt (không có ngẫu nhiên) để tính toán nhẹ và ổn định hơn.
+      </p>
+
+      <label v-if="props.brushTool === 'draw'" class="block">
         <span class="mb-1 block text-xs uppercase tracking-wider text-text-dim">Màu bút loang</span>
         <input
           :value="props.brushColor"
@@ -99,7 +133,7 @@ function emitBrushOpacity(value: number) {
         />
       </label>
 
-      <label class="block">
+      <label v-if="props.brushTool === 'draw'" class="block">
         <span class="mb-1 block text-xs uppercase tracking-wider text-text-dim"
           >Ngẫu nhiên nét to/nhỏ: {{ props.brushSizeRandomness }}%</span
         >
@@ -116,7 +150,7 @@ function emitBrushOpacity(value: number) {
         />
       </label>
 
-      <label class="block">
+      <label v-if="props.brushTool === 'draw'" class="block">
         <span class="mb-1 block text-xs uppercase tracking-wider text-text-dim"
           >Ngẫu nhiên nét đậm/nhạt: {{ props.brushOpacityRandomness }}%</span
         >
@@ -149,6 +183,7 @@ function emitBrushOpacity(value: number) {
       </label>
 
       <button
+        v-if="props.brushTool === 'draw'"
         class="w-full border border-border-default px-3 py-2 text-left text-sm text-text-secondary transition hover:border-accent-coral hover:bg-bg-elevated hover:text-text-primary"
         @click="emit('reset-brush-color')"
       >
@@ -170,6 +205,7 @@ function emitBrushOpacity(value: number) {
       </button>
 
       <button
+        v-if="props.brushTool === 'draw'"
         class="w-full border border-border-default px-3 py-2 text-left text-sm text-text-secondary transition hover:border-accent-coral hover:bg-bg-elevated hover:text-text-primary"
         @click="emit('reset-brush-randomness')"
       >
