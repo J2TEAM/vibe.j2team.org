@@ -1,10 +1,10 @@
 import type { PageMeta } from '@/types/page'
 
 const meta: PageMeta = {
-  name: 'Tarot Reading',
+  name: 'Xem Bói Tarot',
   description:
-    'Discover what the cards reveal — a three-card past / present / future spread with 78-card deck',
-  author: 'NguyenVanViet2004',
+    'Khám phá những gì các lá bài tiết lộ — trải bài ba lá quá khứ / hiện tại / tương lai với bộ bài 78 lá',
+  author: 'Nguyen Van Viet',
   facebook: 'https://www.facebook.com/VietNguyenVan2004',
   category: 'spiritual',
 }
