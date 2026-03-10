@@ -34,7 +34,7 @@ export const useGameStore = defineStore('theFormGame', {
             })
             return failed
         },
-        allRulesPassed(state): boolean {
+        allRulesPassed(_state): boolean {
             return this.failedRules.length === 0
         }
     },
