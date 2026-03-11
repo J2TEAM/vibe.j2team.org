@@ -40,7 +40,6 @@
       </div>
 
       <div v-if="gameState === 'GAMEOVER'" class="overlay gameover-screen">
-        <img src="/image_d2c67e.jpg" alt="Thôi đéo giải thích" class="lose-img" />
         <h2>TẠCH MÔN!</h2>
         <p>Thí sinh: {{ playerName }}</p>
         <p>Số câu sống sót: {{ score }}</p>
