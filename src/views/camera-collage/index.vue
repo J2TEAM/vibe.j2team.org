@@ -41,6 +41,7 @@ async function startCamera() {
       await videoRef.value.play();
     }
   } catch (error) {
+    console.error(error)
     errorMessage.value = "Không thể truy cập camera. Vui lòng kiểm tra quyền thiết bị.";
   } finally {
     isStarting.value = false;
@@ -96,6 +97,7 @@ async function processMerge(photoBase64: string) {
     ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
     mergedPreview.value = canvas.toDataURL("image/png", 1.0);
   } catch (err) {
+    console.error(err)
     errorMessage.value = "Lỗi xử lý hình ảnh Photobooth.";
   } finally {
     isProcessing.value = false;
