@@ -39,8 +39,9 @@ const levels: Level[] = [
 ]
 
 const selectedLevelId = ref<Level['id']>(1)
-const currentLevel = computed(
-  () => levels.find((level) => level.id === selectedLevelId.value) ?? levels[0],
+const defaultLevel = levels[0]!
+const currentLevel = computed<Level>(
+  () => levels.find((level) => level.id === selectedLevelId.value) ?? defaultLevel,
 )
 
 const grid = ref<Cell[]>([])
@@ -61,7 +62,7 @@ const boardPx = computed(() => {
 })
 const cellGap = 4
 const gridMetrics = computed(() => {
-  const size = currentLevel.value?.size
+  const size = currentLevel.value.size
   const cell = Math.max(10, Math.floor((boardPx.value - cellGap * (size - 1)) / size))
   const grid = cell * size + cellGap * (size - 1)
   return { cell, grid }
@@ -74,8 +75,8 @@ const shuffleIndices = (length: number) => {
   const indices = Array.from({ length }, (_, index) => index)
   for (let i = indices.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1))
-    const temp = indices[i]
-    indices[i] = indices[j]
+    const temp = indices[i]!
+    indices[i] = indices[j]!
     indices[j] = temp
   }
   return indices
@@ -108,18 +109,16 @@ const buildGrid = (level: Level) => {
   const nextMoving: MovingAnimal[] = []
 
   for (let i = 0; i < count; i += 1) {
-    const cellIndex = indices[i]
+    const cellIndex = indices[i]!
     const animalIndex = Math.floor(Math.random() * animals.length)
-    const emoji = animals[animalIndex]
-    if (cellIndex !== undefined && emoji !== undefined) {
-      nextGrid[cellIndex] = emoji
-      nextMoving.push({
-        id: i,
-        emoji,
-        x: cellIndex % level.size,
-        y: Math.floor(cellIndex / level.size),
-      })
-    }
+    const emoji = animals[animalIndex]!
+    nextGrid[cellIndex] = emoji
+    nextMoving.push({
+      id: i,
+      emoji,
+      x: cellIndex % level.size,
+      y: Math.floor(cellIndex / level.size),
+    })
   }
 
   grid.value = nextGrid
@@ -130,14 +129,14 @@ const moveAnimals = () => {
   const total = grid.value.length
   if (total === 0) return
 
-  if (currentLevel.value?.moving) {
+  if (currentLevel.value.moving) {
     const indices = shuffleIndices(total)
     movingAnimals.value = movingAnimals.value.map((animal, idx) => {
-      const index = indices[idx]
+      const index = indices[idx]!
       return {
         ...animal,
-        x: index % currentLevel.value?.size,
-        y: Math.floor(index / currentLevel.value?.size),
+        x: index % currentLevel.value.size,
+        y: Math.floor(index / currentLevel.value.size),
       }
     })
     return
@@ -156,10 +155,10 @@ const moveAnimals = () => {
   const moves = Math.min(6, Math.ceil(total * 0.04))
 
   for (let i = 0; i < moves; i += 1) {
-    const fromIndex = occupied[Math.floor(Math.random() * occupied.length)]
-    const toIndex = empty[Math.floor(Math.random() * empty.length)]
+    const fromIndex = occupied[Math.floor(Math.random() * occupied.length)]!
+    const toIndex = empty[Math.floor(Math.random() * empty.length)]!
 
-    const temp = grid.value[fromIndex]
+    const temp = grid.value[fromIndex]!
     grid.value[fromIndex] = null
     grid.value[toIndex] = temp
 
@@ -209,7 +208,7 @@ const { pause: pauseCountdown, resume: resumeCountdown } = useIntervalFn(
 const { start: startHideTimer, stop: stopHideTimer } = useTimeoutFn(
   () => {
     gridHidden.value = true
-    if (currentLevel.value?.moving && phase.value === 'playing') resumeMove()
+    if (currentLevel.value.moving && phase.value === 'playing') resumeMove()
   },
   3000,
   { immediate: false },
@@ -325,7 +324,7 @@ watch(
         >
           <div class="flex items-center justify-between gap-4 pb-3 text-xs text-text-secondary">
             <div class="font-display text-text-primary">
-              {{ currentLevel?.label }}
+              {{ currentLevel.label }}
             </div>
             <div v-show="phase === 'playing'" class="flex items-center gap-3">
               <span>Thời gian còn lại:</span>
@@ -341,7 +340,7 @@ watch(
               class="grid h-full w-full"
               :class="{ 'grid-hidden': gridHidden }"
               :style="{
-                gridTemplateColumns: `repeat(${currentLevel.size}, ${cellPx}px)`,
+                gridTemplateColumns: `repeat(${currentLevel?.size}, ${cellPx}px)`,
                 gridAutoRows: `${cellPx}px`,
                 gap: `${cellGap}px`,
               }"
@@ -352,12 +351,12 @@ watch(
                 class="cell flex items-center justify-center border border-border-default bg-bg-deep"
                 :style="{ fontSize: `${Math.max(10, cellPx - 6)}px` }"
               >
-                <span v-if="cell && !currentLevel.moving">{{ cell }}</span>
+                <span v-if="cell && !currentLevel?.moving">{{ cell }}</span>
                 <span v-else class="empty text-text-dim">.</span>
               </div>
             </div>
             <div
-              v-if="currentLevel.moving"
+              v-if="currentLevel?.moving"
               class="pointer-events-none absolute left-0 top-0 h-full w-full"
             >
               <div
@@ -398,7 +397,7 @@ watch(
             <div
               class="mt-4 border border-border-default bg-bg-deep px-4 py-3 text-sm text-text-secondary"
             >
-              Sai rồi. Bạn đã gục ngã ở level {{ currentLevel?.id }}. 😭😭😭
+              Sai rồi. Bạn đã gục ngã ở level {{ currentLevel.id }}. 😭😭😭
             </div>
           </div>
           <div v-else-if="phase === 'next'">
