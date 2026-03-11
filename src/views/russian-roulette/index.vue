@@ -33,10 +33,7 @@
               class="absolute top-full left-0 mt-2 flex flex-col gap-1 w-32 shadow-2xl z-50"
             >
               <button
-                @click="
-                  showRulesModal = true
-                  showMobileMenu = false
-                "
+                @click="openRules"
                 class="px-4 py-3 border border-border-default bg-bg-deep text-text-primary text-[10px] font-display font-bold tracking-widest text-left active:bg-bg-surface"
               >
                 📖 LUẬT
@@ -685,6 +682,11 @@ const {
 // State cho modal luật chơi
 const showRulesModal = ref(false)
 const showMobileMenu = ref(false)
+
+const openRules = () => {
+  showRulesModal.value = true
+  showMobileMenu.value = false
+}
 
 // Danh sách độ khó của AI
 const difficultyOptions = [
