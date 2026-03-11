@@ -6,9 +6,10 @@ import KeyboardLayout from './components/KeyboardLayout.vue'
 import ScreenTest from './components/ScreenTest.vue'
 import WebcamTest from './components/WebcamTest.vue'
 import MicTest from './components/MicTest.vue'
+import SpeakerTest from './components/SpeakerTest.vue'
 import BackToTop from '@/components/BackToTop.vue'
 
-const currentTest = ref<'keyboard' | 'screen' | 'webcam' | 'micro'>('keyboard')
+const currentTest = ref<'keyboard' | 'screen' | 'webcam' | 'micro' | 'speaker'>('keyboard')
 </script>
 
 <template>
@@ -53,6 +54,7 @@ const currentTest = ref<'keyboard' | 'screen' | 'webcam' | 'micro'>('keyboard')
             { key: 'screen', label: '🖥️ Màn hình' },
             { key: 'webcam', label: '📷 Webcam' },
             { key: 'micro', label: '🎙️ Micro' },
+            { key: 'speaker', label: '🔊 Loa' },
           ] as const"
           :key="tab.key"
           class="px-6 py-3 font-display font-semibold transition-all duration-300 border focus:outline-none"
@@ -86,6 +88,9 @@ const currentTest = ref<'keyboard' | 'screen' | 'webcam' | 'micro'>('keyboard')
       </div>
       <div v-else-if="currentTest === 'micro'">
         <MicTest />
+      </div>
+      <div v-else-if="currentTest === 'speaker'">
+        <SpeakerTest />
       </div>
     </main>
 
@@ -279,6 +284,54 @@ const currentTest = ref<'keyboard' | 'screen' | 'webcam' | 'micro'>('keyboard')
               <p>
                 Bạn cũng có thể nghe lại và so sánh chất lượng giữa các micro để chọn micro phù hợp
                 nhất
+              </p>
+            </div>
+          </div>
+        </template>
+
+        <!-- Speaker test instructions -->
+        <template v-else-if="currentTest === 'speaker'">
+          <div>
+            <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
+              <span class="text-accent-sky text-sm tracking-widest font-display">//</span>
+              Hướng dẫn sử dụng
+            </h2>
+            <div class="space-y-4 text-text-secondary text-sm leading-relaxed">
+              <p>
+                1. <strong class="text-accent-sky">Âm lượng:</strong> Chỉnh thanh trượt âm lượng
+                trước khi phát
+              </p>
+              <p>
+                2. <strong class="text-accent-sky">Chọn bài thử:</strong> Nhấn vào từng ô để phát,
+                nhấn lại để dừng
+              </p>
+              <p>
+                3. <strong class="text-accent-sky">Khảo sát:</strong> Nghe xem có tiếng rè, mất
+                tiếng, hoặc lệch kênh không
+              </p>
+              <p>
+                4. <strong class="text-accent-sky">Không nghe kênh trái/phải:</strong> Kiểm tra cài
+                đặt âm thanh Stereo trong Windows/macOS
+              </p>
+            </div>
+          </div>
+          <div>
+            <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
+              <span class="text-accent-amber text-sm tracking-widest font-display">//</span>
+              Cách đọc kết quả
+            </h2>
+            <div class="text-text-secondary text-sm leading-relaxed space-y-4">
+              <p>
+                <strong class="text-accent-coral">Tiếng rè:</strong> Thường xảy ra ở tần số thấp
+                (Bass) — có thể do màng loa bị hỏng hoặc bụi bám vào
+              </p>
+              <p>
+                <strong class="text-accent-amber">Mất kênh:</strong> Nếu không nghe được khên trái
+                hoặc phải — kiểm tra cài đặt Stereo trên hệ thống hoặc dây jack 3.5mm
+              </p>
+              <p>
+                <strong class="text-text-secondary">Bình thường:</strong> Nghe được rõ tất cả dải
+                tần số và cả hai kênh — loa đang hoạt động tốt
               </p>
             </div>
           </div>
