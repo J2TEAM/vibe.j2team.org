@@ -7,9 +7,12 @@ import ScreenTest from './components/ScreenTest.vue'
 import WebcamTest from './components/WebcamTest.vue'
 import MicTest from './components/MicTest.vue'
 import SpeakerTest from './components/SpeakerTest.vue'
+import BatteryTest from './components/BatteryTest.vue'
 import BackToTop from '@/components/BackToTop.vue'
 
-const currentTest = ref<'keyboard' | 'screen' | 'webcam' | 'micro' | 'speaker'>('keyboard')
+const currentTest = ref<'keyboard' | 'screen' | 'webcam' | 'micro' | 'speaker' | 'battery'>(
+  'keyboard',
+)
 </script>
 
 <template>
@@ -55,6 +58,7 @@ const currentTest = ref<'keyboard' | 'screen' | 'webcam' | 'micro' | 'speaker'>(
             { key: 'webcam', label: '📷 Webcam' },
             { key: 'micro', label: '🎙️ Micro' },
             { key: 'speaker', label: '🔊 Loa' },
+            { key: 'battery', label: '🔋 Pin' },
           ] as const"
           :key="tab.key"
           class="px-6 py-3 font-display font-semibold transition-all duration-300 border focus:outline-none"
@@ -91,6 +95,9 @@ const currentTest = ref<'keyboard' | 'screen' | 'webcam' | 'micro' | 'speaker'>(
       </div>
       <div v-else-if="currentTest === 'speaker'">
         <SpeakerTest />
+      </div>
+      <div v-else-if="currentTest === 'battery'">
+        <BatteryTest />
       </div>
     </main>
 
@@ -332,6 +339,39 @@ const currentTest = ref<'keyboard' | 'screen' | 'webcam' | 'micro' | 'speaker'>(
               <p>
                 <strong class="text-text-secondary">Bình thường:</strong> Nghe được rõ tất cả dải
                 tần số và cả hai kênh — loa đang hoạt động tốt
+              </p>
+            </div>
+          </div>
+        </template>
+
+        <!-- Battery test instructions -->
+        <template v-else-if="currentTest === 'battery'">
+          <div>
+            <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
+              <span class="text-accent-sky text-sm tracking-widest font-display">//</span>
+              Hướng dẫn sử dụng
+            </h2>
+            <div class="space-y-4 text-text-secondary text-sm leading-relaxed">
+              <p>
+                1. <strong class="text-accent-sky">Xem thông tin:</strong> Trang tự động đọc thông
+                tin pin từ trình duyệt (nếu được hỗ trợ)
+              </p>
+              <p>
+                2. <strong class="text-accent-sky">Kiểm tra nhiều hơn:</strong> Chạy lệnh PowerShell
+                để xem sức khỏe pin trên Windows
+              </p>
+            </div>
+          </div>
+          <div>
+            <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
+              <span class="text-accent-amber text-sm tracking-widest font-display">//</span>
+              Tại sao cần test pin?
+            </h2>
+            <div class="text-text-secondary text-sm leading-relaxed space-y-4">
+              <p>Pin laptop theo thời gian sẽ giảm dung lượng</p>
+              <p>
+                Kiểm tra định kỳ giúp bạn biết tình trạng hiện tại của pin thôi chứ lúc nó đột tử
+                thì bạn cũng phải đi thay mới à
               </p>
             </div>
           </div>
