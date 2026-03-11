@@ -2066,7 +2066,7 @@ watch(won, (w) => {
 
 <template>
   <div
-    class="h-dvh bg-bg-deep text-text-primary font-body select-none touch-none overscroll-none flex flex-col overflow-hidden relative"
+    class="fixed inset-0 bg-bg-deep text-text-primary font-body select-none touch-none overscroll-none flex flex-col overflow-hidden"
   >
     <Transition :name="transDir === 'fwd' ? 'screen-fwd' : 'screen-back'" mode="out-in">
       <div
@@ -2828,7 +2828,7 @@ watch(won, (w) => {
 
           <!-- Palette — fixed at bottom -->
           <div
-            class="border-t border-border-default/50 bg-bg-deep px-4 py-6 overflow-x-auto flex items-center"
+            class="border-t border-border-default/50 bg-bg-deep px-4 py-6 overflow-x-auto flex items-center touch-pan-x"
           >
             <div class="flex gap-2 sm:gap-3 items-center shrink-0 mx-auto">
               <div
