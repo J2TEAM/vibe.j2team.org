@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, defineAsyncComponent } from 'vue'
 import type { GameConfig } from './types'
 import StartScreen from './components/StartScreen.vue'
-import GameScreen from './components/GameScreen.vue'
-import ResultScreen from './components/ResultScreen.vue'
+
+const GameScreen = defineAsyncComponent(() => import('./components/GameScreen.vue'))
+const ResultScreen = defineAsyncComponent(() => import('./components/ResultScreen.vue'))
 
 type Screen = 'start' | 'game' | 'result'
 
@@ -42,7 +43,11 @@ function handleBackToStart() {
 
 <template>
   <Transition name="screen" mode="out-in">
-    <StartScreen v-if="currentScreen === 'start'" key="start" @start="handleStart" />
+    <StartScreen
+      v-if="currentScreen === 'start'"
+      key="start"
+      @start="handleStart"
+    />
     <GameScreen
       v-else-if="currentScreen === 'game'"
       :key="'game-' + gameKey"

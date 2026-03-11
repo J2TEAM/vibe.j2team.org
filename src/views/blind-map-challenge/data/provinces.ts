@@ -14,7 +14,7 @@ export const provinces: Province[] = [
     capital: 'Hà Nội',
     area: 3358,
     population: 8053663,
-    svgPathId: 'VN-HN',
+    svgPathId: 'hanoi',
     neighbors: [
       'vinh-phuc',
       'thai-nguyen',
@@ -35,7 +35,7 @@ export const provinces: Province[] = [
     capital: 'Hải Phòng',
     area: 1561,
     population: 2028514,
-    svgPathId: 'VN-HP',
+    svgPathId: 'haiphong',
     neighbors: ['quang-ninh', 'hai-duong', 'thai-binh'],
   },
   {
@@ -47,7 +47,7 @@ export const provinces: Province[] = [
     capital: 'Hải Dương',
     area: 1668,
     population: 1892254,
-    svgPathId: 'VN-HD',
+    svgPathId: 'haiduong',
     neighbors: ['bac-giang', 'bac-ninh', 'hung-yen', 'thai-binh', 'hai-phong', 'quang-ninh'],
   },
   {
@@ -59,7 +59,7 @@ export const provinces: Province[] = [
     capital: 'Hưng Yên',
     area: 926,
     population: 1252731,
-    svgPathId: 'VN-HY',
+    svgPathId: 'hungyen',
     neighbors: ['ha-noi', 'bac-ninh', 'hai-duong', 'thai-binh', 'ha-nam'],
   },
   {
@@ -71,7 +71,7 @@ export const provinces: Province[] = [
     capital: 'Thái Bình',
     area: 1570,
     population: 1860447,
-    svgPathId: 'VN-TB',
+    svgPathId: 'thaibinh',
     neighbors: ['ha-nam', 'hung-yen', 'hai-duong', 'hai-phong', 'nam-dinh'],
   },
   {
@@ -83,7 +83,7 @@ export const provinces: Province[] = [
     capital: 'Phủ Lý',
     area: 860,
     population: 852800,
-    svgPathId: 'VN-HNm',
+    svgPathId: 'hanam',
     neighbors: ['ha-noi', 'hung-yen', 'thai-binh', 'nam-dinh', 'ninh-binh', 'hoa-binh'],
   },
   {
@@ -95,7 +95,7 @@ export const provinces: Province[] = [
     capital: 'Nam Định',
     area: 1652,
     population: 1833500,
-    svgPathId: 'VN-ND',
+    svgPathId: 'namdinh',
     neighbors: ['ha-nam', 'thai-binh', 'ninh-binh'],
   },
   {
@@ -107,7 +107,7 @@ export const provinces: Province[] = [
     capital: 'Ninh Bình',
     area: 1378,
     population: 982930,
-    svgPathId: 'VN-NB',
+    svgPathId: 'ninhbinh',
     neighbors: ['ha-nam', 'nam-dinh', 'thanh-hoa', 'hoa-binh'],
   },
   {
@@ -119,7 +119,7 @@ export const provinces: Province[] = [
     capital: 'Vĩnh Yên',
     area: 1236,
     population: 1151300,
-    svgPathId: 'VN-VP',
+    svgPathId: 'vinhphuc',
     neighbors: ['ha-noi', 'phu-tho', 'tuyen-quang', 'thai-nguyen'],
   },
   {
@@ -131,7 +131,7 @@ export const provinces: Province[] = [
     capital: 'Bắc Ninh',
     area: 823,
     population: 1368840,
-    svgPathId: 'VN-BN',
+    svgPathId: 'bacninh',
     neighbors: ['ha-noi', 'bac-giang', 'hai-duong', 'hung-yen'],
   },
 
@@ -145,7 +145,7 @@ export const provinces: Province[] = [
     capital: 'Hạ Long',
     area: 6102,
     population: 1320324,
-    svgPathId: 'VN-QN',
+    svgPathId: 'quangninh',
     neighbors: ['lang-son', 'bac-giang', 'hai-duong', 'hai-phong'],
   },
   {
@@ -157,7 +157,7 @@ export const provinces: Province[] = [
     capital: 'Bắc Giang',
     area: 3848,
     population: 1803950,
-    svgPathId: 'VN-BG',
+    svgPathId: 'bacgiang',
     neighbors: ['lang-son', 'thai-nguyen', 'ha-noi', 'bac-ninh', 'hai-duong', 'quang-ninh'],
   },
   {
@@ -169,7 +169,7 @@ export const provinces: Province[] = [
     capital: 'Việt Trì',
     area: 3534,
     population: 1463726,
-    svgPathId: 'VN-PT',
+    svgPathId: 'phutho',
     neighbors: ['tuyen-quang', 'yen-bai', 'son-la', 'hoa-binh', 'ha-noi', 'vinh-phuc'],
   },
   {
@@ -181,7 +181,7 @@ export const provinces: Province[] = [
     capital: 'Thái Nguyên',
     area: 3526,
     population: 1286751,
-    svgPathId: 'VN-TN',
+    svgPathId: 'thainguyen',
     neighbors: ['bac-kan', 'tuyen-quang', 'vinh-phuc', 'ha-noi', 'bac-giang', 'lang-son'],
   },
   {
@@ -193,7 +193,7 @@ export const provinces: Province[] = [
     capital: 'Lạng Sơn',
     area: 8310,
     population: 781655,
-    svgPathId: 'VN-LS',
+    svgPathId: 'langson',
     neighbors: ['cao-bang', 'bac-kan', 'thai-nguyen', 'bac-giang', 'quang-ninh'],
   },
   {
@@ -205,7 +205,7 @@ export const provinces: Province[] = [
     capital: 'Cao Bằng',
     area: 6700,
     population: 530341,
-    svgPathId: 'VN-CB',
+    svgPathId: 'caobang',
     neighbors: ['ha-giang', 'tuyen-quang', 'bac-kan', 'lang-son'],
   },
   {
@@ -217,7 +217,7 @@ export const provinces: Province[] = [
     capital: 'Bắc Kạn',
     area: 4859,
     population: 313905,
-    svgPathId: 'VN-BK',
+    svgPathId: 'backan',
     neighbors: ['cao-bang', 'tuyen-quang', 'thai-nguyen', 'lang-son'],
   },
   {
@@ -229,7 +229,7 @@ export const provinces: Province[] = [
     capital: 'Tuyên Quang',
     area: 5867,
     population: 784811,
-    svgPathId: 'VN-TQ',
+    svgPathId: 'tuyenquang',
     neighbors: [
       'ha-giang',
       'cao-bang',
@@ -249,7 +249,7 @@ export const provinces: Province[] = [
     capital: 'Hà Giang',
     area: 7945,
     population: 854689,
-    svgPathId: 'VN-HG',
+    svgPathId: 'hagiang',
     neighbors: ['cao-bang', 'tuyen-quang', 'yen-bai', 'lao-cai'],
   },
 
@@ -263,7 +263,7 @@ export const provinces: Province[] = [
     capital: 'Lào Cai',
     area: 6364,
     population: 730420,
-    svgPathId: 'VN-LC',
+    svgPathId: 'laocai',
     neighbors: ['ha-giang', 'yen-bai', 'lai-chau'],
   },
   {
@@ -275,7 +275,7 @@ export const provinces: Province[] = [
     capital: 'Yên Bái',
     area: 6886,
     population: 821030,
-    svgPathId: 'VN-YB',
+    svgPathId: 'yenbai',
     neighbors: ['lao-cai', 'ha-giang', 'tuyen-quang', 'phu-tho', 'son-la', 'lai-chau'],
   },
   {
@@ -287,7 +287,7 @@ export const provinces: Province[] = [
     capital: 'Lai Châu',
     area: 9068,
     population: 460196,
-    svgPathId: 'VN-LCh',
+    svgPathId: 'laichau',
     neighbors: ['lao-cai', 'yen-bai', 'son-la', 'dien-bien'],
   },
   {
@@ -299,7 +299,7 @@ export const provinces: Province[] = [
     capital: 'Điện Biên Phủ',
     area: 9541,
     population: 598856,
-    svgPathId: 'VN-DB',
+    svgPathId: 'dienbien',
     neighbors: ['lai-chau', 'son-la'],
   },
   {
@@ -311,7 +311,7 @@ export const provinces: Province[] = [
     capital: 'Sơn La',
     area: 14174,
     population: 1228921,
-    svgPathId: 'VN-SL',
+    svgPathId: 'sonla',
     neighbors: ['lai-chau', 'dien-bien', 'yen-bai', 'phu-tho', 'hoa-binh', 'thanh-hoa'],
   },
   {
@@ -323,7 +323,7 @@ export const provinces: Province[] = [
     capital: 'Hoà Bình',
     area: 4608,
     population: 854131,
-    svgPathId: 'VN-HB',
+    svgPathId: 'hoabinh',
     neighbors: ['son-la', 'phu-tho', 'ha-noi', 'ha-nam', 'ninh-binh', 'thanh-hoa'],
   },
 
@@ -340,7 +340,7 @@ export const provinces: Province[] = [
     capital: 'Thanh Hoá',
     area: 11120,
     population: 3640128,
-    svgPathId: 'VN-TH',
+    svgPathId: 'thanhhoa',
     neighbors: ['hoa-binh', 'son-la', 'ninh-binh', 'nghe-an'],
   },
   {
@@ -352,7 +352,7 @@ export const provinces: Province[] = [
     capital: 'Vinh',
     area: 16490,
     population: 3327791,
-    svgPathId: 'VN-NA',
+    svgPathId: 'nghean',
     neighbors: ['thanh-hoa', 'ha-tinh'],
   },
   {
@@ -364,7 +364,7 @@ export const provinces: Province[] = [
     capital: 'Hà Tĩnh',
     area: 5997,
     population: 1289058,
-    svgPathId: 'VN-HT',
+    svgPathId: 'hatinh',
     neighbors: ['nghe-an', 'quang-binh'],
   },
   {
@@ -376,7 +376,7 @@ export const provinces: Province[] = [
     capital: 'Đồng Hới',
     area: 8065,
     population: 895430,
-    svgPathId: 'VN-QB',
+    svgPathId: 'quangbinh',
     neighbors: ['ha-tinh', 'quang-tri'],
   },
   {
@@ -388,7 +388,7 @@ export const provinces: Province[] = [
     capital: 'Đông Hà',
     area: 4739,
     population: 632820,
-    svgPathId: 'VN-QTr',
+    svgPathId: 'quangtri',
     neighbors: ['quang-binh', 'thua-thien-hue'],
   },
   {
@@ -400,7 +400,7 @@ export const provinces: Province[] = [
     capital: 'Huế',
     area: 5033,
     population: 1163583,
-    svgPathId: 'VN-TTH',
+    svgPathId: 'tthue',
     neighbors: ['quang-tri', 'da-nang', 'quang-nam'],
   },
 
@@ -414,7 +414,7 @@ export const provinces: Province[] = [
     capital: 'Đà Nẵng',
     area: 1285,
     population: 1134310,
-    svgPathId: 'VN-DN',
+    svgPathId: 'danang',
     neighbors: ['thua-thien-hue', 'quang-nam'],
   },
   {
@@ -426,7 +426,7 @@ export const provinces: Province[] = [
     capital: 'Tam Kỳ',
     area: 10438,
     population: 1480000,
-    svgPathId: 'VN-QNm',
+    svgPathId: 'quangnam',
     neighbors: ['da-nang', 'thua-thien-hue', 'quang-ngai', 'kon-tum'],
   },
   {
@@ -438,7 +438,7 @@ export const provinces: Province[] = [
     capital: 'Quảng Ngãi',
     area: 5153,
     population: 1231000,
-    svgPathId: 'VN-QNg',
+    svgPathId: 'quangngai',
     neighbors: ['quang-nam', 'kon-tum', 'gia-lai', 'binh-dinh'],
   },
   {
@@ -450,7 +450,7 @@ export const provinces: Province[] = [
     capital: 'Quy Nhơn',
     area: 6050,
     population: 1487000,
-    svgPathId: 'VN-BD',
+    svgPathId: 'binhdinh',
     neighbors: ['quang-ngai', 'gia-lai', 'phu-yen'],
   },
   {
@@ -462,7 +462,7 @@ export const provinces: Province[] = [
     capital: 'Tuy Hoà',
     area: 5060,
     population: 903700,
-    svgPathId: 'VN-PY',
+    svgPathId: 'phuyen',
     neighbors: ['binh-dinh', 'gia-lai', 'dak-lak', 'khanh-hoa'],
   },
   {
@@ -474,7 +474,7 @@ export const provinces: Province[] = [
     capital: 'Nha Trang',
     area: 5218,
     population: 1231107,
-    svgPathId: 'VN-KH',
+    svgPathId: 'khanhhoa',
     neighbors: ['phu-yen', 'dak-lak', 'lam-dong', 'ninh-thuan'],
   },
   {
@@ -486,7 +486,7 @@ export const provinces: Province[] = [
     capital: 'Phan Rang-Tháp Chàm',
     area: 3358,
     population: 590282,
-    svgPathId: 'VN-NT',
+    svgPathId: 'ninhthuan',
     neighbors: ['khanh-hoa', 'lam-dong', 'binh-thuan'],
   },
   {
@@ -498,7 +498,7 @@ export const provinces: Province[] = [
     capital: 'Phan Thiết',
     area: 7828,
     population: 1231000,
-    svgPathId: 'VN-BTh',
+    svgPathId: 'binhthuan',
     neighbors: ['ninh-thuan', 'lam-dong', 'dong-nai'],
   },
 
@@ -512,7 +512,7 @@ export const provinces: Province[] = [
     capital: 'Kon Tum',
     area: 9690,
     population: 540438,
-    svgPathId: 'VN-KT',
+    svgPathId: 'kontum',
     neighbors: ['quang-nam', 'quang-ngai', 'gia-lai'],
   },
   {
@@ -524,7 +524,7 @@ export const provinces: Province[] = [
     capital: 'Pleiku',
     area: 15537,
     population: 1513847,
-    svgPathId: 'VN-GL',
+    svgPathId: 'gialai',
     neighbors: ['kon-tum', 'quang-ngai', 'binh-dinh', 'phu-yen', 'dak-lak'],
   },
   {
@@ -536,7 +536,7 @@ export const provinces: Province[] = [
     capital: 'Buôn Ma Thuột',
     area: 13030,
     population: 1869322,
-    svgPathId: 'VN-DL',
+    svgPathId: 'daklak',
     neighbors: ['gia-lai', 'phu-yen', 'khanh-hoa', 'lam-dong', 'dak-nong'],
   },
   {
@@ -548,7 +548,7 @@ export const provinces: Province[] = [
     capital: 'Gia Nghĩa',
     area: 6516,
     population: 622200,
-    svgPathId: 'VN-DNo',
+    svgPathId: 'daknong',
     neighbors: ['dak-lak', 'lam-dong', 'binh-phuoc'],
   },
   {
@@ -560,7 +560,7 @@ export const provinces: Province[] = [
     capital: 'Đà Lạt',
     area: 9773,
     population: 1296906,
-    svgPathId: 'VN-LD',
+    svgPathId: 'lamdong',
     neighbors: [
       'dak-lak',
       'dak-nong',
@@ -585,7 +585,7 @@ export const provinces: Province[] = [
     capital: 'TP. Hồ Chí Minh',
     area: 2095,
     population: 9227000,
-    svgPathId: 'VN-HCM',
+    svgPathId: 'hcm',
     neighbors: ['binh-duong', 'dong-nai', 'tay-ninh', 'long-an', 'ba-ria-vung-tau'],
   },
   {
@@ -597,7 +597,7 @@ export const provinces: Province[] = [
     capital: 'Bà Rịa',
     area: 1989,
     population: 1148313,
-    svgPathId: 'VN-BRVT',
+    svgPathId: 'baria',
     neighbors: ['dong-nai', 'ho-chi-minh'],
   },
   {
@@ -609,7 +609,7 @@ export const provinces: Province[] = [
     capital: 'Thủ Dầu Một',
     area: 2695,
     population: 2426561,
-    svgPathId: 'VN-BDg',
+    svgPathId: 'binhduong',
     neighbors: ['binh-phuoc', 'tay-ninh', 'ho-chi-minh', 'dong-nai'],
   },
   {
@@ -621,7 +621,7 @@ export const provinces: Province[] = [
     capital: 'Biên Hoà',
     area: 5907,
     population: 3097107,
-    svgPathId: 'VN-DNa',
+    svgPathId: 'dongnai',
     neighbors: [
       'lam-dong',
       'binh-phuoc',
@@ -640,7 +640,7 @@ export const provinces: Province[] = [
     capital: 'Tây Ninh',
     area: 4041,
     population: 1169165,
-    svgPathId: 'VN-TNi',
+    svgPathId: 'tayninh',
     neighbors: ['binh-phuoc', 'binh-duong', 'ho-chi-minh', 'long-an'],
   },
   {
@@ -652,7 +652,7 @@ export const provinces: Province[] = [
     capital: 'Đồng Xoài',
     area: 6871,
     population: 994679,
-    svgPathId: 'VN-BP',
+    svgPathId: 'binhphuoc',
     neighbors: ['dak-nong', 'lam-dong', 'dong-nai', 'binh-duong', 'tay-ninh'],
   },
 
@@ -666,7 +666,7 @@ export const provinces: Province[] = [
     capital: 'Tân An',
     area: 4492,
     population: 1688547,
-    svgPathId: 'VN-LA',
+    svgPathId: 'longan',
     neighbors: ['tay-ninh', 'ho-chi-minh', 'tien-giang', 'dong-thap'],
   },
   {
@@ -678,7 +678,7 @@ export const provinces: Province[] = [
     capital: 'Mỹ Tho',
     area: 2510,
     population: 1764185,
-    svgPathId: 'VN-TG',
+    svgPathId: 'tiengiang',
     neighbors: ['long-an', 'dong-thap', 'vinh-long', 'ben-tre'],
   },
   {
@@ -690,7 +690,7 @@ export const provinces: Province[] = [
     capital: 'Bến Tre',
     area: 2360,
     population: 1288463,
-    svgPathId: 'VN-BTr',
+    svgPathId: 'bentre',
     neighbors: ['tien-giang', 'vinh-long', 'tra-vinh'],
   },
   {
@@ -702,7 +702,7 @@ export const provinces: Province[] = [
     capital: 'Vĩnh Long',
     area: 1479,
     population: 1022791,
-    svgPathId: 'VN-VL',
+    svgPathId: 'vinhlong',
     neighbors: ['dong-thap', 'tien-giang', 'ben-tre', 'tra-vinh', 'can-tho'],
   },
   {
@@ -714,7 +714,7 @@ export const provinces: Province[] = [
     capital: 'Cao Lãnh',
     area: 3374,
     population: 1599504,
-    svgPathId: 'VN-DT',
+    svgPathId: 'dongthap',
     neighbors: ['long-an', 'tien-giang', 'vinh-long', 'can-tho', 'an-giang'],
   },
   {
@@ -726,7 +726,7 @@ export const provinces: Province[] = [
     capital: 'Long Xuyên',
     area: 3536,
     population: 1908352,
-    svgPathId: 'VN-AG',
+    svgPathId: 'angiang',
     neighbors: ['dong-thap', 'can-tho', 'kien-giang'],
   },
   {
@@ -738,7 +738,7 @@ export const provinces: Province[] = [
     capital: 'Cần Thơ',
     area: 1439,
     population: 1235171,
-    svgPathId: 'VN-CTh',
+    svgPathId: 'cantho',
     neighbors: ['an-giang', 'dong-thap', 'vinh-long', 'hau-giang', 'kien-giang'],
   },
   {
@@ -750,7 +750,7 @@ export const provinces: Province[] = [
     capital: 'Vị Thanh',
     area: 1602,
     population: 733017,
-    svgPathId: 'VN-HGi',
+    svgPathId: 'haugiang',
     neighbors: ['can-tho', 'kien-giang', 'soc-trang', 'bac-lieu'],
   },
   {
@@ -762,7 +762,7 @@ export const provinces: Province[] = [
     capital: 'Rạch Giá',
     area: 6346,
     population: 1723067,
-    svgPathId: 'VN-KG',
+    svgPathId: 'kiengiang',
     neighbors: ['an-giang', 'can-tho', 'hau-giang', 'bac-lieu', 'ca-mau'],
   },
   {
@@ -774,7 +774,7 @@ export const provinces: Province[] = [
     capital: 'Sóc Trăng',
     area: 3311,
     population: 1199653,
-    svgPathId: 'VN-ST',
+    svgPathId: 'soctrang',
     neighbors: ['hau-giang', 'tra-vinh', 'bac-lieu'],
   },
   {
@@ -786,7 +786,7 @@ export const provinces: Province[] = [
     capital: 'Trà Vinh',
     area: 2295,
     population: 1009168,
-    svgPathId: 'VN-TV',
+    svgPathId: 'travinh',
     neighbors: ['ben-tre', 'vinh-long', 'soc-trang'],
   },
   {
@@ -798,7 +798,7 @@ export const provinces: Province[] = [
     capital: 'Bạc Liêu',
     area: 2584,
     population: 907236,
-    svgPathId: 'VN-BLi',
+    svgPathId: 'baclieu',
     neighbors: ['hau-giang', 'kien-giang', 'soc-trang', 'ca-mau'],
   },
   {
@@ -810,7 +810,7 @@ export const provinces: Province[] = [
     capital: 'Cà Mau',
     area: 5221,
     population: 1194476,
-    svgPathId: 'VN-CM',
+    svgPathId: 'camau',
     neighbors: ['kien-giang', 'bac-lieu'],
   },
 ]

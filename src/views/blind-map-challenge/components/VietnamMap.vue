@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import type { Province } from '../types'
 import { provinces } from '../data/provinces'
@@ -23,6 +23,11 @@ const emit = defineEmits<{
 const hoveredPath = ref<string | null>(null)
 const mapContainer = ref<HTMLDivElement | null>(null)
 const zoom = useMapZoom(mapContainer)
+
+const isMobile = ref(false)
+onMounted(() => {
+  isMobile.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+})
 
 // Build a map from svgPathId to province for quick lookup
 const svgIdToProvince = computed(() => {
@@ -138,13 +143,14 @@ const hoveredProvinceName = computed(() => {
       :class="{ 'cursor-grabbing': zoom.isPanning.value, 'cursor-grab': !zoom.isPanning.value }"
     >
       <div
-        class="w-full h-full flex items-center justify-center transition-transform duration-100 ease-out"
+        class="w-full h-full flex items-center justify-center transition-transform duration-100 ease-out will-change-transform"
         :style="{ transform: zoom.transform.value, transformOrigin: 'center center' }"
       >
         <svg
-          viewBox="-10 -10 440 960"
-          class="w-full h-full max-h-[70vh] md:max-h-full"
+          viewBox="-20 -20 743 920"
+          class="w-full h-full max-h-[80vh] md:max-h-full"
           preserveAspectRatio="xMidYMid meet"
+          shape-rendering="geometricPrecision"
         >
           <defs>
             <!-- Sea gradient -->
@@ -171,27 +177,7 @@ const hoveredProvinceName = computed(() => {
           </defs>
 
           <!-- Sea background -->
-          <rect x="-10" y="-10" width="440" height="960" fill="url(#sea-gradient)" />
-
-          <!-- Grid lines for geographic feel -->
-          <g opacity="0.04" stroke="#38BDF8" stroke-width="0.3">
-            <line
-              v-for="i in 9"
-              :key="'h' + i"
-              x1="-10"
-              :y1="i * 100 - 10"
-              x2="430"
-              :y2="i * 100 - 10"
-            />
-            <line
-              v-for="i in 4"
-              :key="'v' + i"
-              :x1="i * 100 + 10"
-              y1="-10"
-              :x2="i * 100 + 10"
-              y2="950"
-            />
-          </g>
+          <rect x="-20" y="-20" width="743" height="920" fill="url(#sea-gradient)" />
 
           <!-- Vietnam national outline (coastline shadow) -->
           <path :d="vietnamOutline" fill="none" stroke="#1E3448" stroke-width="3" opacity="0.3" />
@@ -201,7 +187,6 @@ const hoveredProvinceName = computed(() => {
             <path
               v-for="p in mapPaths"
               :key="p.id"
-              :data-id="p.id"
               :d="p.d"
               :fill="getPathFill(p.id)"
               :stroke="getPathStroke(p.id)"
@@ -215,11 +200,13 @@ const hoveredProvinceName = computed(() => {
                 'province-hovered': hoveredPath === p.id && selectedProvinceId,
               }"
               :filter="
-                hintedProvinceId === p.id
-                  ? 'url(#glow-hint)'
-                  : correctSvgIds.has(p.id)
-                    ? 'url(#glow-correct)'
-                    : undefined
+                isMobile
+                  ? undefined
+                  : hintedProvinceId === p.id
+                    ? 'url(#glow-hint)'
+                    : correctSvgIds.has(p.id)
+                      ? 'url(#glow-correct)'
+                      : undefined
               "
               @mouseenter="onMouseEnter(p.id)"
               @mouseleave="onMouseLeave()"
@@ -315,6 +302,10 @@ const hoveredProvinceName = computed(() => {
 </template>
 
 <style scoped>
+.will-change-transform {
+  will-change: transform;
+}
+
 .map-province {
   transition:
     fill 0.2s ease,

@@ -49,14 +49,11 @@ onUnmounted(() => {
 })
 
 // Watch for win
-watch(
-  () => game.isWon.value,
-  (won) => {
-    if (won) {
-      setTimeout(() => emit('game-over'), 800)
-    }
-  },
-)
+watch(() => game.isWon.value, (won) => {
+  if (won) {
+    setTimeout(() => emit('game-over'), 800)
+  }
+})
 
 // Handle province drop on map
 function handleDrop(provinceId: string, svgPathId: string) {
@@ -70,16 +67,14 @@ function handleMapClick(svgPathId: string) {
   }
 
   // Show popup for correctly placed provinces
-  const province = allProvinces.find((p) => p.svgPathId === svgPathId)
+  const province = allProvinces.find(p => p.svgPathId === svgPathId)
   if (province) {
     const placed = game.placedProvinces.value.get(province.id)
     if (placed && placed.status === 'correct') {
       popupProvince.value = province
       showPopup.value = true
       // Get mouse position from the last event
-      setTimeout(() => {
-        showPopup.value = false
-      }, 3000)
+      setTimeout(() => { showPopup.value = false }, 3000)
     }
   }
 }
@@ -124,9 +119,8 @@ function onMouseMove(e: MouseEvent) {
     @mousemove="onMouseMove"
   >
     <!-- Header -->
-    <header
-      class="border-b border-border-default px-4 py-2 flex items-center justify-between shrink-0"
-    >
+    <header class="border-b border-border-default px-4 py-2 flex items-center justify-between
+                   shrink-0">
       <button
         class="text-sm text-text-secondary hover:text-text-primary transition-colors"
         @click="emit('back-to-start')"
@@ -138,7 +132,8 @@ function onMouseMove(e: MouseEvent) {
       </div>
       <div class="flex items-center gap-2">
         <button
-          class="border border-border-default p-1.5 text-sm transition-colors hover:border-accent-sky hover:text-accent-sky"
+          class="border border-border-default p-1.5 text-sm transition-colors
+                 hover:border-accent-sky hover:text-accent-sky"
           :title="game.soundEnabled.value ? 'Tắt âm thanh' : 'Bật âm thanh'"
           @click="game.toggleSound()"
         >
@@ -162,10 +157,8 @@ function onMouseMove(e: MouseEvent) {
     <!-- Main content -->
     <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
       <!-- Map area -->
-      <div
-        class="flex-1 p-2 md:p-4 min-h-0"
-        :class="{ 'opacity-50': config.difficulty === 'expert' }"
-      >
+      <div class="flex-1 p-2 md:p-4 min-h-0"
+           :class="{ 'opacity-50': config.difficulty === 'expert' }">
         <VietnamMap
           :game-provinces="game.gameProvinces.value"
           :placed-provinces="game.placedProvinces.value"
@@ -179,9 +172,8 @@ function onMouseMove(e: MouseEvent) {
       </div>
 
       <!-- Province list sidebar -->
-      <div
-        class="md:w-72 lg:w-80 border-t md:border-t-0 md:border-l border-border-default p-3 md:p-4 shrink-0 overflow-hidden"
-      >
+      <div class="md:w-72 lg:w-80 border-t md:border-t-0 md:border-l border-border-default
+                  p-3 md:p-4 shrink-0 overflow-hidden">
         <ProvinceList
           :provinces="game.remainingProvinces.value"
           :selected-province-id="game.selectedProvinceId.value"
@@ -193,18 +185,22 @@ function onMouseMove(e: MouseEvent) {
     </div>
 
     <!-- Bottom actions -->
-    <div
-      class="border-t border-border-default px-4 py-3 flex items-center justify-center gap-4 shrink-0"
-    >
+    <div class="border-t border-border-default px-4 py-3 flex items-center justify-center gap-4
+                shrink-0">
       <button
-        class="border border-accent-sky bg-bg-surface px-4 py-2 text-sm font-display text-accent-sky transition-all duration-200 hover:bg-bg-elevated hover:border-accent-sky/80 disabled:opacity-30 disabled:cursor-not-allowed"
+        class="border border-accent-sky bg-bg-surface px-4 py-2 text-sm font-display
+               text-accent-sky transition-all duration-200
+               hover:bg-bg-elevated hover:border-accent-sky/80
+               disabled:opacity-30 disabled:cursor-not-allowed"
         :disabled="game.remainingProvinces.value.length === 0"
         @click="handleHint"
       >
         💡 Gợi ý <span class="text-text-dim">-5đ</span>
       </button>
       <button
-        class="border border-accent-coral bg-bg-surface px-4 py-2 text-sm font-display text-accent-coral transition-all duration-200 hover:bg-bg-elevated hover:border-accent-coral/80"
+        class="border border-accent-coral bg-bg-surface px-4 py-2 text-sm font-display
+               text-accent-coral transition-all duration-200
+               hover:bg-bg-elevated hover:border-accent-coral/80"
         @click="handleGiveUp"
       >
         🏳️ Bỏ cuộc
@@ -212,30 +208,41 @@ function onMouseMove(e: MouseEvent) {
     </div>
 
     <!-- Province info popup -->
-    <ProvinceInfoPopup :province="popupProvince" :x="popupX" :y="popupY" :visible="showPopup" />
+    <ProvinceInfoPopup
+      :province="popupProvince"
+      :x="popupX"
+      :y="popupY"
+      :visible="showPopup"
+    />
 
     <!-- Give up confirmation dialog -->
     <Teleport to="body">
       <Transition name="fade">
         <div
           v-if="showGiveUpDialog"
-          class="fixed inset-0 z-50 flex items-center justify-center bg-bg-deep/80 backdrop-blur-sm"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-bg-deep/80
+                 backdrop-blur-sm"
           @click.self="showGiveUpDialog = false"
         >
-          <div class="border border-border-default bg-bg-surface p-6 max-w-sm mx-4 animate-fade-up">
-            <h3 class="font-display text-xl font-bold text-accent-coral mb-3">🏳️ Bỏ cuộc?</h3>
+          <div class="border border-border-default bg-bg-surface p-6 max-w-sm mx-4
+                      animate-fade-up">
+            <h3 class="font-display text-xl font-bold text-accent-coral mb-3">
+              🏳️ Bỏ cuộc?
+            </h3>
             <p class="text-text-secondary text-sm mb-6">
               Bạn chắc chắn muốn bỏ cuộc? Các tỉnh chưa gắn sẽ được tính là sai.
             </p>
             <div class="flex gap-3">
               <button
-                class="flex-1 border border-border-default bg-bg-elevated py-2 text-sm font-display transition hover:border-text-dim"
+                class="flex-1 border border-border-default bg-bg-elevated py-2 text-sm
+                       font-display transition hover:border-text-dim"
                 @click="showGiveUpDialog = false"
               >
                 Tiếp tục chơi
               </button>
               <button
-                class="flex-1 bg-accent-coral text-bg-deep py-2 text-sm font-display font-bold transition hover:bg-accent-amber"
+                class="flex-1 bg-accent-coral text-bg-deep py-2 text-sm font-display
+                       font-bold transition hover:bg-accent-amber"
                 @click="confirmGiveUp"
               >
                 Bỏ cuộc
