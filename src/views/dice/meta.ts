@@ -1,9 +1,9 @@
 import type { PageMeta } from '@/types/page'
 
 const meta: PageMeta = {
-  name: '🎲 DICE',
-  description: 'Toán học KHÔNG nói dối, nhưng bạn có ĐỦ TRÌNH để thắng nó? 🧐',
-  author: 'mhqb365.com',
+  name: 'DICE',
+  description: 'Trò chơi xúc xắc minh bạch dựa trên thuật toán mã hóa',
+  author: 'mhqb365',
   facebook: 'https://mhqb365.com',
   category: 'game',
 }
