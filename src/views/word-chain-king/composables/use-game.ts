@@ -81,7 +81,7 @@ export function useGame() {
     endGame()
   }
 
-  function startGame(selectedMode: GameMode) {
+  async function startGame(selectedMode: GameMode) {
     mode.value = selectedMode
     screen.value = 'playing'
     score.value = 0
@@ -96,7 +96,7 @@ export function useGame() {
     combo.resetCombo()
     usedWords.clear()
 
-    const startWord = getRandomStartWord(usedWords)
+    const startWord = await getRandomStartWord(usedWords)
     currentWord.value = startWord
     usedWords.add(normalizeWord(startWord))
     wordHistory.value.push({ word: startWord, isBot: true, isCorrect: true })
@@ -104,7 +104,7 @@ export function useGame() {
     startTurnTimer()
   }
 
-  function submitAnswer() {
+  async function submitAnswer() {
     const userAnswer = normalizeWord(inputValue.value)
     inputValue.value = ''
 
@@ -115,7 +115,7 @@ export function useGame() {
       return
     }
 
-    if (!wordExistsInDict(userAnswer)) {
+    if (!(await wordExistsInDict(userAnswer))) {
       onWrongAnswer(userAnswer, 'Từ không có trong từ điển!')
       return
     }
@@ -128,7 +128,7 @@ export function useGame() {
     onCorrectAnswer(userAnswer)
   }
 
-  function onCorrectAnswer(word: string) {
+  async function onCorrectAnswer(word: string) {
     sfx.playCorrect()
     wordHistory.value.push({ word, isBot: false, isCorrect: true })
     usedWords.add(normalizeWord(word))
@@ -151,12 +151,12 @@ export function useGame() {
     resetTurnTimer()
 
     if (mode.value === 'normal') {
-      botTurn()
+      await botTurn()
     }
   }
 
-  function botTurn() {
-    const botAnswer = botPickWord(currentWord.value, usedWords)
+  async function botTurn() {
+    const botAnswer = await botPickWord(currentWord.value, usedWords)
     if (!botAnswer) {
       // Bot bí → user thắng 1 cúp, hỏi tiếp tục hay dừng
       stopTurnTimer()
@@ -171,9 +171,9 @@ export function useGame() {
   }
 
   // User chọn tiếp tục sau khi thắng bot
-  function continuePlaying() {
+  async function continuePlaying() {
     screen.value = 'playing'
-    const newWord = getRandomStartWord(usedWords)
+    const newWord = await getRandomStartWord(usedWords)
     currentWord.value = newWord
     usedWords.add(normalizeWord(newWord))
     wordHistory.value.push({ word: newWord, isBot: true, isCorrect: true })

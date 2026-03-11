@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { useClipboard, useIntervalFn } from '@vueuse/core'
 
@@ -123,6 +123,7 @@ function getSecondsRemaining(): number {
 // Reactive State
 // ==========================================
 
+const router = useRouter()
 const route = useRoute()
 
 // Secret key người dùng nhập vào
@@ -137,9 +138,117 @@ const isGenerating = ref(false)
 const errorMessage = ref('')
 // Trạng thái đã có kết quả
 const hasResult = ref(false)
+const isScanningQR = ref(false)
 
 // Clipboard để copy mã
 const { copy, copied } = useClipboard()
+
+/**
+ * Trích xuất secret key từ chuỗi mã QR (thường là định dạng otpauth://)
+ */
+function extractSecretFromQR(text: string): string | null {
+  try {
+    // Nếu là URL otpauth://
+    if (text.startsWith('otpauth://')) {
+      const url = new URL(text)
+      return url.searchParams.get('secret')
+    }
+    // Nếu người dùng dán thẳng secret key
+    return text.length >= 8 ? text : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Phân tích ảnh để tìm mã QR bằng thư viện jsQR tải từ CDN
+ */
+async function scanQRCode(blob: Blob) {
+  isScanningQR.value = true
+  errorMessage.value = ''
+
+  try {
+    // Tải thư viện jsQR động từ CDN (không cần cài package)
+    // @ts-expect-error - jsqr is loaded from remote CDN
+    const { default: jsQR } = await import('https://esm.sh/jsqr@1.4.0')
+
+    const img = new Image()
+    const imageUrl = URL.createObjectURL(blob)
+
+    await new Promise((resolve, reject) => {
+      img.onload = resolve
+      img.onerror = reject
+      img.src = imageUrl
+    })
+
+    // Tạo canvas để lấy dữ liệu ảnh (jsQR cần ImageData)
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })
+    if (!ctx) throw new Error('Could not create canvas context')
+
+    canvas.width = img.width
+    canvas.height = img.height
+    ctx.drawImage(img, 0, 0)
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: 'dontInvert',
+    })
+
+    URL.revokeObjectURL(imageUrl)
+
+    if (code) {
+      const secret = extractSecretFromQR(code.data)
+
+      if (secret) {
+        secretInput.value = secret
+        // Cập nhật URL
+        router.replace({
+          query: { ...route.query, secret: secret },
+        })
+        await regenerateCode()
+      } else {
+        errorMessage.value = 'Không tìm thấy Secret Key hợp lệ trong mã QR này.'
+      }
+    } else {
+      errorMessage.value = 'Không tìm thấy mã QR trong ảnh này.'
+    }
+  } catch (err) {
+    console.error('QR Scan Error:', err)
+    errorMessage.value = 'Có lỗi xảy ra khi phân tích ảnh hoặc trình duyệt chặn tải thư viện quét mã.'
+  } finally {
+    isScanningQR.value = false
+  }
+}
+
+/**
+ * Xử lý khi dán ảnh từ clipboard
+ */
+async function handlePaste(event: ClipboardEvent) {
+  const items = event.clipboardData?.items
+  if (!items) return
+
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile()
+      if (file) await scanQRCode(file)
+      break
+    }
+  }
+}
+
+/**
+ * Xử lý khi thả file vào
+ */
+async function handleDrop(event: DragEvent) {
+  const files = event.dataTransfer?.files
+  if (!files || files.length === 0) return
+
+  const file = files[0]
+  if (file && file.type.startsWith('image/')) {
+    await scanQRCode(file)
+  }
+}
 
 /**
  * Tính toán phần trăm tiến trình của thanh đếm ngược
@@ -201,6 +310,12 @@ async function regenerateCode() {
  */
 async function handleSecretChange() {
   const secret = secretInput.value.trim()
+
+  // Cập nhật URL một cách im lặng khi gõ
+  router.replace({
+    query: { ...route.query, secret: secret || undefined },
+  })
+
   if (!secret) {
     totpCode.value = ''
     hasResult.value = false
@@ -262,6 +377,18 @@ function clearSecret() {
   totpCode.value = ''
   hasResult.value = false
   errorMessage.value = ''
+  // Xóa secret khỏi URL
+  router.replace({
+    query: { ...route.query, secret: undefined },
+  })
+}
+
+/**
+ * Copy URL hiện tại kèm secret
+ */
+const { copy: copyUrl, copied: copiedUrl } = useClipboard()
+function handleCopyShareLink() {
+  copyUrl(window.location.href)
 }
 
 // Scroll to top
@@ -329,7 +456,12 @@ function scrollToTop() {
           Secret Key
         </h2>
 
-        <div class="border border-border-default bg-bg-surface p-6 relative">
+        <div
+          class="border border-border-default bg-bg-surface p-6 relative group"
+          @paste="handlePaste"
+          @dragover.prevent
+          @drop.prevent="handleDrop"
+        >
           <!-- Số trang trang trí -->
           <span
             class="absolute top-3 right-4 font-display text-6xl font-bold text-accent-amber/5 select-none pointer-events-none"
@@ -347,6 +479,12 @@ function scrollToTop() {
           <div class="flex items-stretch gap-2 mb-4">
             <div class="relative flex-1">
               <Icon
+                v-if="isScanningQR"
+                icon="lucide:loader-2"
+                class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-accent-coral animate-spin"
+              />
+              <Icon
+                v-else
                 icon="lucide:key-round"
                 class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-text-dim pointer-events-none"
               />
@@ -357,14 +495,32 @@ function scrollToTop() {
                 autocomplete="off"
                 spellcheck="false"
                 class="w-full bg-bg-elevated border border-border-default pl-10 pr-4 py-3 text-sm text-text-primary placeholder:text-text-dim font-mono focus:border-accent-coral focus:outline-none transition tracking-widest"
+                :disabled="isScanningQR"
                 @input="handleSecretChange"
               />
             </div>
+            <button
+              v-if="secretInput"
+              class="border border-border-default bg-bg-elevated px-4 text-text-dim transition hover:border-accent-coral hover:text-accent-coral flex items-center gap-2 group/copy shrink-0"
+              :title="copiedUrl ? 'Đã copy link!' : 'Copy link chia sẻ'"
+              :disabled="isScanningQR"
+              @click="handleCopyShareLink"
+            >
+              <Icon
+                :icon="copiedUrl ? 'lucide:check' : 'lucide:share-2'"
+                class="size-4"
+                :class="{ 'text-green-500': copiedUrl }"
+              />
+              <span v-if="copiedUrl" class="text-xs text-green-500 font-display"
+                >Đã copy link!</span
+              >
+            </button>
             <!-- Nút xóa -->
             <button
               v-if="secretInput"
               class="border border-border-default bg-bg-elevated px-4 text-text-dim transition hover:border-accent-coral hover:text-accent-coral"
               title="Xóa"
+              :disabled="isScanningQR"
               @click="clearSecret"
             >
               <Icon icon="lucide:x" class="size-4" />
@@ -383,14 +539,25 @@ function scrollToTop() {
           <!-- Hướng dẫn nếu chưa nhập -->
           <div
             v-if="!secretInput && !errorMessage"
-            class="border border-border-default bg-bg-elevated p-4 text-center"
+            class="border-2 border-dashed border-border-default bg-bg-elevated p-6 text-center transition-colors group-hover:border-accent-coral/50"
           >
-            <Icon icon="lucide:shield-check" class="size-8 text-text-dim mx-auto mb-2" />
-            <p class="text-text-dim text-sm">Nhập secret key để bắt đầu tạo mã 2FA</p>
-            <p class="text-text-dim text-xs mt-1">
-              Hoặc truyền qua URL:
-              <code class="text-accent-sky">/2fa-generator?secret=YOUR_SECRET</code>
-            </p>
+            <div v-if="isScanningQR" class="py-4">
+              <Icon
+                icon="lucide:loader-2"
+                class="size-8 text-accent-coral mx-auto mb-2 animate-spin"
+              />
+              <p class="text-text-primary text-sm font-display">Đang phân tích mã QR...</p>
+            </div>
+            <div v-else>
+              <Icon icon="lucide:qr-code" class="size-8 text-text-dim mx-auto mb-2" />
+              <p class="text-text-dim text-sm">
+                Nhập key, dán ảnh QR (Ctrl+V) hoặc kéo thả ảnh vào đây
+              </p>
+              <p class="text-text-dim text-xs mt-2">
+                Hoặc truyền qua URL:
+                <code class="text-accent-sky">/2fa-generator?secret=YOUR_SECRET</code>
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -581,6 +748,26 @@ function scrollToTop() {
           Về đầu trang
         </button>
       </div>
+
+      <!-- Credits Footer -->
+      <footer class="mt-12 mb-2 text-center animate-fade-up animate-delay-7">
+        <div
+          class="flex items-center justify-center gap-2 text-text-dim/60 text-[10px] font-display uppercase tracking-[0.2em]"
+        >
+          <span>Made by</span>
+          <a
+            href="https://github.com/canhhungit"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-accent-coral font-bold hover:text-accent-coral/80 transition-all group relative px-1"
+          >
+            @canhhungit
+            <span
+              class="absolute -bottom-0.5 left-0 w-0 h-px bg-accent-coral transition-all group-hover:w-full"
+            ></span>
+          </a>
+        </div>
+      </footer>
     </div>
   </div>
 </template>

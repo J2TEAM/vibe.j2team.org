@@ -1,275 +1,303 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { RouterLink } from 'vue-router'
-import { termContents } from './content'
+import { getTermContent } from './content'
 import type { SolarTerm } from './types'
 import GlobalBackground from './components/GlobalBackground.vue'
 import SolarWheel from './components/SolarWheel.vue'
 import AudioController from './components/AudioController.vue'
 import SolarCardGenerator from './components/SolarCardGenerator.vue'
+import ArticleReader from './components/ArticleReader.vue'
+import LinhKhiCalculator from './components/LinhKhiCalculator.vue'
+import PremiumDatePicker from './components/PremiumDatePicker.vue'
+import { articles } from './articles'
 
 const solarTerms = ref<SolarTerm[]>([
   {
     id: '1',
     name: 'Lập Xuân',
+    chineseName: '立春',
     translation: 'Khúc Dạo Đầu Của Hy Vọng',
     description: 'Đông phong khởi động, vạn vật hồi sinh.',
     season: 'Xuân',
     approxDate: '02-04',
-    displayDate: '04/02',
+    displayDate: '04/02/2026',
     tips: 'Nên ăn thực phẩm tươi mới, giữ ấm đôi chân.',
     proverb: 'Lập xuân hoa nở rộ, gió hiền đưa hương bay.',
   },
   {
     id: '2',
     name: 'Vũ Thủy',
+    chineseName: '雨水',
     translation: 'Dòng Chảy Của Sự Sống',
     description: 'Xuân vũ nhuận hoa, cỏ cây tươi mới.',
     season: 'Xuân',
     approxDate: '02-19',
-    displayDate: '19/02',
+    displayDate: '19/02/2026',
     tips: 'Phòng tránh ẩm thấp, bồi bổ tỳ vị.',
     proverb: 'Vũ thủy mưa về cho lúa trổ, rồng thiêng vờn mây đón xuân sang.',
   },
   {
     id: '3',
     name: 'Kinh Trập',
+    chineseName: '惊蛰',
     translation: 'Tiếng Sấm Xuân Đánh Thức Vạn Vật',
     description: 'Lôi thanh khởi động, sinh linh bừng tỉnh.',
     season: 'Xuân',
     approxDate: '03-05',
-    displayDate: '05/03',
+    displayDate: '05/03/2026',
     tips: 'Ăn lê để dưỡng phổi, tránh làm việc quá sức.',
     proverb: 'Kinh trập sấm vang ngàn dặm hỉ, đào hồng hé nụ đón lời chim.',
   },
   {
     id: '4',
     name: 'Xuân Phân',
+    chineseName: '春分',
     translation: 'Điểm Cân Bằng Của Vũ Trụ',
     description: 'Nhật nguyệt cân bằng, xuân quang rực rỡ.',
     season: 'Xuân',
     approxDate: '03-20',
-    displayDate: '20/03',
+    displayDate: '20/03/2026',
     tips: 'Giữ cân bằng sinh hoạt, vận động nhẹ nhàng.',
     proverb: 'Xuân phân nhật nguyệt cân bằng sắc, cỏ nội hoa ngàn rực rỡ tươi.',
   },
   {
     id: '5',
     name: 'Thanh Minh',
-    translation: 'Bầu Trời Trong Sáng - Lễ Tảo Mộ Tri Ân',
-    description: 'Trời quang gió nhẹ, mây tạnh lòng trong.',
+    chineseName: '清明',
+    translation: 'Sự Trong Trẻo Của Đất Trời',
+    description: 'Khí thanh cảnh minh, vạn vật giai hiển.',
     season: 'Xuân',
     approxDate: '04-04',
-    displayDate: '04/04',
-    tips: 'Đi dạo ngoài trời, hít thở không khí trong lành.',
+    displayDate: '04/04/2026',
+    tips: 'Tảo mộ tổ tiên, đạp thanh du xuân.',
     proverb: 'Thanh minh trong tiết tháng ba, lễ là tảo mộ hội là đạp thanh.',
   },
   {
     id: '6',
     name: 'Cốc Vũ',
-    translation: 'Sự Trưởng Thành Của Vạn Vật',
-    description: 'Xuân vũ rơi cuối, đồng nội thêm xanh.',
+    chineseName: '谷雨',
+    translation: 'Mưa Sinh Ngũ Cốc',
+    description: 'Vũ sinh bách cốc, xuân tận hạ sơ.',
     season: 'Xuân',
     approxDate: '04-20',
-    displayDate: '20/04',
-    tips: 'Uống trà Thanh Minh, bảo vệ thị lực.',
-    proverb: 'Cốc vũ mưa rơi đầy ngõ nhỏ, lúa chiêm xanh mướt trải tầng tầng.',
+    displayDate: '20/04/2026',
+    tips: 'Uống trà Xuân, đề phòng dị ứng phấn hoa.',
+    proverb: 'Cốc vũ mưa rơi ươm lúa mạ, trà thơm mới hái ấm lòng người.',
   },
   {
     id: '7',
     name: 'Lập Hạ',
-    translation: 'Sự Trưởng Thành & Nhiệt Huyết',
-    description: 'Dương quang bừng nở, sinh khí đầy trời.',
+    chineseName: '立夏',
+    translation: 'Khởi Nguyên Cùa Mùa Hè',
+    description: 'Vạn vật phồn mậu, thiên địa giao thái.',
     season: 'Hạ',
     approxDate: '05-05',
-    displayDate: '05/05',
-    tips: 'Tránh ăn đồ quá nóng, chú ý dưỡng tâm.',
-    proverb: 'Lập hạ nắng vàng bừng sức sống, ve sầu cất tiếng gọi mùa sang.',
+    displayDate: '05/05/2026',
+    tips: 'Dưỡng tâm an thần, ăn thức ăn thanh đạm.',
+    proverb: 'Lập hạ đầu cành cành điểm lộc, sen hồng lấp ló đón mặt trời.',
   },
   {
     id: '8',
     name: 'Tiểu Mãn',
-    translation: 'Triết Lý Của Sự Vừa Đủ',
-    description: 'Hạt thóc căng tròn, mùa màng chớm đủ.',
+    chineseName: '小满',
+    translation: 'Sự Mãn Nguyện Bé Nhỏ',
+    description: 'Vật chí thử tiểu đắc doanh mãn.',
     season: 'Hạ',
     approxDate: '05-21',
-    displayDate: '21/05',
-    tips: 'Ăn thực phẩm thanh nhiệt, tránh đồ cay nóng.',
-    proverb: 'Tiểu mãn nước về đầy ruộng thấp, lúa ngô hớn hở đợi ngày thu.',
+    displayDate: '21/05/2026',
+    tips: 'Tránh ăn đồ quá lạnh, cẩn thận chứng thấp nhiệt.',
+    proverb: 'Tiểu mãn lúa chiêm vừa ngậm sữa, hương đưa thoang thoảng khắp cánh đồng.',
   },
   {
     id: '9',
     name: 'Mang Chủng',
-    translation: 'Khúc Giao Hưởng Của Mùa Gieo Gặt',
-    description: 'Gieo mạ khắp đồng, ca dao vọng núi.',
+    chineseName: '芒种',
+    translation: 'Gieo Hạt Chờ Mùa Màng',
+    description: 'Hữu mang chi cốc khả chủng hĩ.',
     season: 'Hạ',
     approxDate: '06-05',
-    displayDate: '05/06',
-    tips: 'Uống nhiều nước, bổ sung muối khoáng.',
-    proverb: 'Mang chũng gieo chiêm cho kịp vụ, tay làm hàm nhai chẳng ngại công.',
+    displayDate: '05/06/2026',
+    tips: 'Ngủ muộn dậy sớm, ăn canh thanh nhiệt.',
+    proverb: 'Mang chủng mưa dầm qua tháng sáu, nông phu hối hả đi cấy cày.',
   },
   {
     id: '10',
     name: 'Hạ Chí',
-    translation: 'Đỉnh Cao Của Mùa Hạ',
-    description: 'Nhật quang cực thịnh, hạ khí bừng dâng.',
+    chineseName: '夏至',
+    translation: 'Ánh Sáng Rực Rỡ Nhất',
+    description: 'Nhật cực trường, dương khí cực thịnh.',
     season: 'Hạ',
     approxDate: '06-21',
-    displayDate: '21/06',
-    tips: 'Tránh ánh nắng gắt, nghỉ ngơi hợp lý.',
-    proverb: 'Tua rua thì mặc tua rua, mạ già ruộng ngấu không thua bạn điền.',
+    displayDate: '21/06/2026',
+    tips: 'Tránh ánh nắng gắt buổi trưa, ăn mướp đắng.',
+    proverb: 'Hạ chí trưa hè ran tiếng cuốc, sen hồng phe phẩy gợn hồ trong.',
   },
   {
     id: '11',
     name: 'Tiểu Thử',
-    translation: 'Khúc Dạo Đầu Của Mùa Nắng Lửa',
-    description: 'Ve sầu râm ran, gió hè phả nóng.',
+    chineseName: '小暑',
+    translation: 'Cái Nóng Bắt Đầu',
+    description: 'Kỳ khí dĩ nhiệt, thử khí dĩ cực.',
     season: 'Hạ',
     approxDate: '07-07',
-    displayDate: '07/07',
-    tips: 'Ăn dưa hấu, đậu xanh để giải nhiệt.',
-    proverb: 'Tiểu thử gió hè hầm hập nóng, bóng cây kẽ lá đón làn mây.',
+    displayDate: '07/07/2026',
+    tips: 'Cẩn thận say nắng, bù đủ nước cho cơ thể.',
+    proverb: 'Tiểu thử nắng vàng thiêu cỏ cháy, tiếng ve râm ran gọi hè về.',
   },
   {
     id: '12',
     name: 'Đại Thử',
-    translation: 'Đỉnh Điểm Mùa Nắng Lửa',
-    description: 'Hỏa khí nung trời, bóng mát hóa ngọc.',
+    chineseName: '大暑',
+    translation: 'Thử Thách Của Nhiệt Độ',
+    description: 'Viêm nhiệt chí cực, vạn vật phát uất.',
     season: 'Hạ',
     approxDate: '07-22',
-    displayDate: '22/07',
-    tips: 'Hạn chế ra ngoài lúc trưa, tránh sốc nhiệt.',
-    proverb: 'Đại thử hỏa nung trời đất đỏ, bát chè đậu biếc giải lòng ta.',
+    displayDate: '22/07/2026',
+    tips: 'Nên ăn thức ăn dễ tiêu hóa, uống chè giải nhiệt.',
+    proverb: 'Đại thử viêm thiên mồ hôi đổ, nông dâu nhọc nhằn lúc giữa trưa.',
   },
   {
     id: '13',
     name: 'Lập Thu',
-    translation: 'Khúc Giao Mùa Dịu Dàng',
-    description: 'Thu phong se lạnh, lá úa nhẹ rơi.',
+    chineseName: '立秋',
+    translation: 'Cơn Gió Mát Lành Nơi Cuối Hạ',
+    description: 'Thu phong khởi, lãnh khí manh.',
     season: 'Thu',
     approxDate: '08-07',
-    displayDate: '07/08',
-    tips: 'Bồi bổ phổi, ăn nhiều rau quả màu trắng.',
-    proverb: 'Lập thu sương sớm vừa chớm lạnh, lá phong rực đỏ nhuộm chiều tà.',
+    displayDate: '07/08/2026',
+    tips: 'Ngủ sớm dậy sớm, ăn thực phẩm bổ âm.',
+    proverb: 'Lập thu rả rích mưa xui xén, lá ngô đồng rụng biết thu sang.',
   },
   {
     id: '14',
     name: 'Xử Thử',
-    translation: 'Khi Cái Nóng "Ẩn Mình"',
-    description: 'Nhiệt hạ dần tàn, khí trời khoan khoái.',
+    chineseName: '处暑',
+    translation: 'Chia Xa Mùa Hạ Cũ',
+    description: 'Thử khí chí thử nhi chỉ.',
     season: 'Thu',
     approxDate: '08-23',
-    displayDate: '23/08',
-    tips: 'Ngủ sớm dậy sớm, giữ tinh thần thư thái.',
-    proverb: 'Xử thử nhiệt tàn vơi cái nóng, gió thu nhè nhẹ thổi lòng yên.',
+    displayDate: '23/08/2026',
+    tips: 'Phòng ngừa táo bón mùa thu, ăn nhiều trái cây.',
+    proverb: 'Xử thử mây trôi trời cao vợi, bầy nhạn tha hương gọi rủ nhau.',
   },
   {
     id: '15',
     name: 'Bạch Lộ',
-    translation: 'Nỗi Niềm Của Mùa Thu',
-    description: 'Sương trắng vương thảo, đêm thu thêm lạnh.',
+    chineseName: '白露',
+    translation: 'Giọt Sương Trắng Ngưng Tụ',
+    description: 'Khí thu bắt đầu, sương trắng ngưng đọng.',
     season: 'Thu',
     approxDate: '09-07',
-    displayDate: '07/09',
-    tips: 'Chú ý giữ ấm cổ và vùng bụng.',
-    proverb: 'Bạch lộ sương rơi nhành thảo mộc, đêm thu man mác nỗi niềm xưa.',
+    displayDate: '07/09/2026',
+    tips: 'Không để phơi bụng lạnh ban đêm, giữ ấm phổi.',
+    proverb: 'Bạch lộ thu lai hoa tàn tạ, dế mèn réo rắt khúc sầu thương.',
   },
   {
     id: '16',
     name: 'Thu Phân',
+    chineseName: '秋分',
     translation: 'Bình Thản & Quân Bình',
     description: 'Nhật nguyệt ngang hàng, tiết thu điều hòa.',
     season: 'Thu',
     approxDate: '09-23',
-    displayDate: '23/09',
+    displayDate: '23/09/2026',
     tips: 'Ăn thực phẩm bổ âm mỡ, tránh đồ khô nóng.',
     proverb: 'Thu phân trăng sáng gương soi chiếu, đất trời hòa hợp đón trùng dương.',
   },
   {
     id: '17',
     name: 'Hàn Lộ',
-    translation: 'Nét Vẽ Trầm Mặc Của Mùa Thu',
-    description: 'Sương lạnh rơi dày, phong thu khô tái.',
+    chineseName: '寒露',
+    translation: 'Sương Giá Buốt Lạnh',
+    description: 'Lộ khí hàn lãnh, sắp kết tụ thành băng.',
     season: 'Thu',
     approxDate: '10-08',
-    displayDate: '08/10',
-    tips: 'Ngâm chân nước ấm trước khi ngủ.',
-    proverb: 'Hàn lộ sương dày vương lối nhỏ, áo bào se lạnh tiễn người đi.',
+    displayDate: '08/10/2026',
+    tips: 'Giữ ấm đôi chân (hàn tòng cước hạ khởi).',
+    proverb: 'Hàn lộ heo may reo hiên vắng, cúc thu rạng rỡ đượm sắc vàng.',
   },
   {
     id: '18',
     name: 'Sương Giáng',
+    chineseName: '霜降',
     translation: 'Sương Giá Phủ Trắng',
     description: 'Giọt sương rơi nặng, trời đất sang đông.',
     season: 'Thu',
     approxDate: '10-23',
-    displayDate: '23/10',
+    displayDate: '23/10/2026',
     tips: 'Ăn hồng, lê để dưỡng họng và phổi.',
     proverb: 'Sương giáng tuyết sa mờ đỉnh núi, cúc vàng rực rỡ đón đông sang.',
   },
   {
     id: '19',
     name: 'Lập Đông',
+    chineseName: '立冬',
     translation: 'Nuôi Dưỡng Nội Lực',
     description: 'Đông phong nổi dậy, vạn vật quy tàng.',
     season: 'Đông',
     approxDate: '11-07',
-    displayDate: '07/11',
+    displayDate: '07/11/2026',
     tips: 'Ăn thực phẩm giàu năng lượng, giữ ấm cơ thể.',
     proverb: 'Lập đông gió bấc lùa khe cửa, nhà nhà nhóm lửa đợi xuân về.',
   },
   {
     id: '20',
     name: 'Tiểu Tuyết',
+    chineseName: '小雪',
     translation: 'Khúc Dạo Đầu Mùa Đông Tĩnh Lặng',
     description: 'Hoa tuyết chớm rơi, sơn xuyên nhuộm bạc.',
     season: 'Đông',
     approxDate: '11-22',
-    displayDate: '22/11',
+    displayDate: '22/11/2026',
     tips: 'Tránh trầm cảm mùa đông, tiếp xúc ánh nắng.',
     proverb: 'Tiểu tuyết trắng trời mây xám ngắt, trà thơm bên bếp ấm lòng nhau.',
   },
   {
     id: '21',
     name: 'Đại Tuyết',
+    chineseName: '大雪',
     translation: 'Tuyết Phủ Trắng Trời',
     description: 'Băng tuyết dày đặc, thiên địa ngủ yên.',
     season: 'Đông',
     approxDate: '12-07',
-    displayDate: '07/12',
+    displayDate: '07/12/2026',
     tips: 'Giữ ấm đầu và ngực, bồi bổ thận.',
     proverb: 'Đại tuyết tuyết rơi đầy ngõ vắng, mai vàng ấp ủ đợi giao thừa.',
   },
   {
     id: '22',
     name: 'Đông Chí',
+    chineseName: '冬至',
     translation: 'Khởi Đầu Của Sự Hồi Sinh',
     description: 'Dạ trường cực điểm, dương quang tái sinh.',
     season: 'Đông',
     approxDate: '12-21',
-    displayDate: '21/12',
+    displayDate: '21/12/2026',
     tips: 'Lễ hội gia đình, ăn đồ ấm nóng.',
     proverb: 'Đông chí đêm dài sương lạnh buốt, chén chè trôi nước ấm tình thân.',
   },
   {
     id: '23',
     name: 'Tiểu Hàn',
+    chineseName: '小寒',
     translation: 'Sự Kiên Cường Trước Bình Minh',
     description: 'Gió rét căm căm, bếp lửa sưởi lòng.',
     season: 'Đông',
     approxDate: '01-05',
-    displayDate: '05/01',
+    displayDate: '05/01/2026',
     tips: 'Tăng cường vận động để sinh nhiệt.',
     proverb: 'Tiểu hàn giá rét tê đôi bàn tay, bếp hồng củi lửa đượm hương nồng.',
   },
   {
     id: '24',
     name: 'Đại Hàn',
+    chineseName: '大寒',
     translation: 'Đỉnh Điểm Của Giá Lạnh',
     description: 'Hàn khí chí cực, xuân quang chực đến.',
     season: 'Đông',
     approxDate: '01-20',
-    displayDate: '20/01',
+    displayDate: '20/01/2026',
     tips: 'Dọn dẹp nhà cửa, chuẩn bị tâm thế mới.',
     proverb: 'Đại hàn nén sức chờ xuân tới, vạn vật chuyển mình đón bình minh.',
   },
@@ -277,10 +305,10 @@ const solarTerms = ref<SolarTerm[]>([
 
 const searchQuery = ref('')
 const selectedSeason = ref<string | null>(null)
-const selectedDate = ref('')
+const selectedDate = ref(new Date().toISOString().slice(0, 10))
 const showModal = ref(false)
 const activeTerm = ref<SolarTerm | null>(null)
-const activeModalTab = ref<'content' | 'share'>('content')
+const activeModalTab = ref<'content' | 'share' | 'article'>('content')
 
 const nextTermCountdown = computed(() => {
   const target = currentMonthDay.value
@@ -308,17 +336,31 @@ const nextTermCountdown = computed(() => {
   return `Còn ${diffDays} ngày nữa là đến Tiết ${next.name}`
 })
 
-const modalContent = computed(() => {
-  if (!activeTerm.value) return ''
-  return (
-    termContents[activeTerm.value.name] ||
-    `
-    <div style="background: #111; color: #fff; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif;">
-      <h1>Nội dung đang được cập nhật...</h1>
-    </div>
-  `
-  )
-})
+// Solar term content is lazy-loaded from content.ts instead of statically importing all 24 HTML files
+const modalContent = ref('')
+const loadingContent = `
+  <div style="background: #111; color: #fff; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif;">
+    <h1>Đang tải nội dung...</h1>
+  </div>
+`
+const fallbackContent = `
+  <div style="background: #111; color: #fff; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif;">
+    <h1>Nội dung đang được cập nhật...</h1>
+  </div>
+`
+
+watch(
+  () => activeTerm.value?.name,
+  async (termName) => {
+    if (!termName) {
+      modalContent.value = ''
+      return
+    }
+    modalContent.value = loadingContent
+    const content = await getTermContent(termName)
+    modalContent.value = content ?? fallbackContent
+  },
+)
 
 const currentMonthDay = computed(() => {
   if (selectedDate.value) return selectedDate.value.slice(5)
@@ -372,6 +414,17 @@ const currentSeason = computed(() => {
   return 'Xuân'
 })
 
+watch(
+  () => activeTermIndex.value,
+  (newIdx) => {
+    const term = solarTerms.value[newIdx]
+    if (term) {
+      document.title = `${term.name} - ${term.translation} | Nhân Gian Tiết Khí`
+    }
+  },
+  { immediate: true },
+)
+
 const getSeasonColor = (season: string) => {
   switch (season) {
     case 'Xuân':
@@ -386,21 +439,6 @@ const getSeasonColor = (season: string) => {
       return 'from-white/10 to-white/5 text-white border-white/10'
   }
 }
-
-const getBgDynamic = computed(() => {
-  switch (currentSeason.value) {
-    case 'Xuân':
-      return 'bg-[#0a1a10]'
-    case 'Hạ':
-      return 'bg-[#1a0a0a]'
-    case 'Thu':
-      return 'bg-[#1a120a]'
-    case 'Đông':
-      return 'bg-[#0a121a]'
-    default:
-      return 'bg-bg-deep'
-  }
-})
 
 const openDetail = (term: SolarTerm) => {
   activeTerm.value = term
@@ -425,8 +463,38 @@ const toggleZenMode = () => {
   isZenMode.value = !isZenMode.value
   if (isZenMode.value) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  } else {
+    // Force reveal all sections when exiting Zen Mode to ensure visibility
+    nextTick(() => {
+      document.querySelectorAll('.reveal-on-scroll').forEach((el) => {
+        el.classList.add('is-revealed')
+      })
+    })
   }
 }
+
+// Phase 3: Day/Night Cycle Theming
+const currentHour = ref(new Date().getHours())
+
+const timeTheme = computed(() => {
+  const h = currentHour.value
+  if (h >= 5 && h < 9) return 'theme-dawn'
+  if (h >= 9 && h < 16) return 'theme-day'
+  if (h >= 16 && h < 19) return 'theme-dusk'
+  return 'theme-night'
+})
+
+// Update hour periodically
+let timeInterval: ReturnType<typeof setInterval>
+onMounted(() => {
+  timeInterval = setInterval(() => {
+    currentHour.value = new Date().getHours()
+  }, 60000) // Check every minute
+})
+
+onUnmounted(() => {
+  if (timeInterval) clearInterval(timeInterval)
+})
 
 const observeSections = () => {
   const observer = new IntersectionObserver(
@@ -463,31 +531,23 @@ onMounted(() => {
   document.title = 'Tra cứu 24 Tiết Khí - Nhân Gian Tiết Khí'
 
   window.addEventListener('scroll', handleScroll)
-  observeSections()
-})
 
-watch(
-  () => activeTermIndex.value,
-  (newIdx) => {
-    const term = solarTerms.value[newIdx]
-    if (term) {
-      document.title = `${term.name} - ${term.translation} | Nhân Gian Tiết Khí`
-    }
-  },
-  { immediate: true },
-)
+  nextTick(() => {
+    observeSections()
+  })
+})
 </script>
 
 <template>
   <div
     :class="[
       'tiet-khi-wrapper min-h-screen text-text-primary font-body overflow-x-hidden selection:bg-accent-coral/30 transition-colors duration-1000 relative',
-      getBgDynamic,
+      timeTheme,
     ]"
   >
     <!-- Global Ambient Effects -->
     <GlobalBackground :season="currentSeason" />
-    <AudioController :termName="solarTerms[activeTermIndex]?.name || 'Lập Xuân'" />
+    <AudioController :termName="solarTerms[activeTermIndex]?.name || 'Lập Xuân (立春)'" />
 
     <!-- Top Navigation -->
     <header
@@ -528,6 +588,9 @@ watch(
         </div>
       </div>
     </header>
+
+    <!-- Phase 3: Persona Calculator -->
+    <LinhKhiCalculator :terms="solarTerms" />
 
     <main class="pt-32 pb-24 px-4 max-w-7xl mx-auto relative z-10">
       <!-- Hero -->
@@ -597,7 +660,7 @@ watch(
       <!-- Zen Mode Toggle -->
       <button
         @click="toggleZenMode"
-        class="fixed bottom-32 right-6 z-50 p-4 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-full text-accent-coral/60 hover:text-accent-coral hover:scale-110 transition-all shadow-2xl group"
+        class="fixed bottom-36 right-[236px] z-[100] p-4 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-full text-accent-coral/60 hover:text-accent-coral hover:scale-110 transition-all shadow-2xl group cursor-pointer"
         :title="isZenMode ? 'Thoát chế độ Thiền' : 'Chế độ Thiền (Zen Mode)'"
       >
         <svg
@@ -650,11 +713,9 @@ watch(
             placeholder="Tìm tiết khí..."
             class="flex-1 bg-black/20 border border-white/10 px-8 py-4 rounded-2xl focus:outline-none focus:border-accent-coral/50 transition-all font-light"
           />
-          <input
-            v-model="selectedDate"
-            type="date"
-            class="bg-black/20 border border-white/10 px-8 py-4 rounded-2xl focus:outline-none text-white cursor-pointer"
-          />
+          <div class="relative group">
+            <PremiumDatePicker v-model="selectedDate" placeholder="Chọn ngày tra cứu..." />
+          </div>
           <div
             class="flex p-1 bg-black/30 rounded-2xl border border-white/5 overflow-x-auto scrollbar-hide"
           >
@@ -715,6 +776,11 @@ watch(
             >
               {{ term.name }}
             </h3>
+            <p
+              class="text-2xl md:text-3xl text-white/50 mt-1 uppercase tracking-widest font-chinese"
+            >
+              {{ term.chineseName }}
+            </p>
             <p class="text-xs italic text-text-secondary opacity-40 mb-8">{{ term.translation }}</p>
             <p class="text-base text-white/70 leading-relaxed font-light mb-8">
               {{ term.description }}
@@ -859,6 +925,21 @@ watch(
               ></div>
             </button>
             <button
+              @click="activeModalTab = 'article'"
+              :class="[
+                'px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] transition-all relative',
+                activeModalTab === 'article'
+                  ? 'text-accent-coral'
+                  : 'text-white/40 hover:text-white',
+              ]"
+            >
+              Khai tâm (Đọc sâu)
+              <div
+                v-if="activeModalTab === 'article'"
+                class="absolute bottom-0 left-0 w-full h-0.5 bg-accent-coral"
+              ></div>
+            </button>
+            <button
               @click="activeModalTab = 'share'"
               :class="[
                 'px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] transition-all relative',
@@ -873,15 +954,37 @@ watch(
             </button>
           </div>
 
-          <div class="flex-1 overflow-y-auto">
-            <iframe
-              v-if="activeModalTab === 'content'"
-              :srcdoc="modalContent"
-              class="w-full h-full border-none"
-            ></iframe>
-            <div v-else class="p-8 flex justify-center items-center h-full bg-black/40">
-              <SolarCardGenerator v-if="activeTerm" :term="activeTerm" />
-            </div>
+          <div class="flex-1 overflow-hidden relative bg-black/40">
+            <Transition name="tab-fade" mode="out-in">
+              <div :key="activeModalTab" class="absolute inset-0 overflow-y-auto custom-scrollbar">
+                <iframe
+                  v-if="activeModalTab === 'content'"
+                  :srcdoc="modalContent"
+                  class="w-full h-full border-none"
+                ></iframe>
+                <div v-else-if="activeModalTab === 'article' && activeTerm" class="h-full">
+                  <ArticleReader
+                    v-if="
+                      articles[activeTerm.name] ||
+                      articles[activeTerm.name.replace(/\s*\([^)]*\)/, '')]
+                    "
+                    :article="
+                      (articles[activeTerm.name] ||
+                        articles[activeTerm.name.replace(/\s*\([^)]*\)/, '')])!
+                    "
+                  />
+                  <div v-else class="h-full flex items-center justify-center text-white/20 italic">
+                    Đang cập nhật nội dung...
+                  </div>
+                </div>
+                <div
+                  v-else-if="activeModalTab === 'share'"
+                  class="p-8 flex justify-center items-center h-full"
+                >
+                  <SolarCardGenerator v-if="activeTerm" :term="activeTerm" />
+                </div>
+              </div>
+            </Transition>
           </div>
         </div>
       </div>
@@ -890,6 +993,12 @@ watch(
 </template>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap');
+
+.font-chinese {
+  font-family: 'ZCOOL XiaoWei', serif;
+}
+
 .modal-enter-active,
 .modal-leave-active {
   transition: opacity 0.5s ease;
@@ -897,6 +1006,22 @@ watch(
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
+}
+
+/* Tab Transitions */
+.tab-fade-enter-active,
+.tab-fade-leave-active {
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+.tab-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.tab-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 
 .scale-up {
@@ -912,6 +1037,13 @@ watch(
     transform: scale(1) translateY(0);
     opacity: 1;
   }
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+.font-script {
+  font-family: var(--font-script);
 }
 
 .reveal-on-scroll {
@@ -952,25 +1084,56 @@ watch(
 
 <style>
 /* Lazy load fonts specifically for Tiet Khi page */
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Philosopher:ital,wght@0,400;0,700;1,400;1,700&family=Dancing+Script:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Philosopher:ital,wght@0,400;0,700;1,400;1,700&family=Dancing+Script:wght@400;700&family=ZCOOL+XiaoWei&display=swap');
 
 .tiet-khi-wrapper {
-  /* Local theme tokens */
-  --tk-bg-deep: #0f1923;
-  --tk-bg-surface: #162232;
-  --tk-bg-elevated: #1e2f42;
-  --tk-accent-coral: #ff6b4a;
-  --tk-accent-amber: #ffb830;
-  --tk-accent-sky: #38bdf8;
-  --tk-text-primary: #f0ede6;
-  --tk-text-secondary: #8b9db5;
-  --tk-text-dim: #4a6180;
-  --tk-border-default: #253549;
-  --tk-border-hover: #ff6b4a;
-
   --tk-font-display: 'Philosopher', serif;
   --tk-font-body: 'Be Vietnam Pro', sans-serif;
   --tk-font-script: 'Dancing Script', cursive;
+  --tk-font-chinese: 'ZCOOL XiaoWei', serif;
+
+  /* Theme Overrides */
+  --tk-bg-deep: #0f1923;
+  --tk-bg-surface: #162232;
+  --tk-accent-coral: #ff6b4a;
+  --tk-text-primary: #f0ede6;
+  --tk-text-secondary: #8b9db5;
+}
+
+.tiet-khi-wrapper.theme-dawn {
+  --tk-bg-deep: #2a1b32;
+  --tk-bg-surface: #3b2a4a;
+  --tk-accent-coral: #ff9e7d;
+  --tk-text-primary: #fce4ec;
+}
+
+.tiet-khi-wrapper.theme-day {
+  --tk-bg-deep: #0f1923;
+  --tk-bg-surface: #162232;
+  --tk-accent-coral: #ff6b4a;
+}
+
+.tiet-khi-wrapper.theme-dusk {
+  --tk-bg-deep: #1a1425;
+  --tk-bg-surface: #2d1f3d;
+  --tk-accent-coral: #ff5e3a;
+  --tk-text-primary: #ffe0b2;
+}
+
+.tiet-khi-wrapper.theme-night {
+  --tk-bg-deep: #020617;
+  --tk-bg-surface: #0f172a;
+  --tk-accent-coral: #e11d48;
+  --tk-text-primary: #f1f5f9;
+}
+
+.tiet-khi-wrapper {
+  --tk-bg-elevated: #1e2f42;
+  --tk-accent-amber: #ffb830;
+  --tk-accent-sky: #38bdf8;
+  --tk-text-dim: #4a6180;
+  --tk-border-default: #253549;
+  --tk-border-hover: #ff6b4a;
 
   font-family: var(--tk-font-body);
   background-color: var(--tk-bg-deep);
@@ -1009,17 +1172,17 @@ watch(
   animation: tk-fade-up 0.6s ease-out both;
 }
 
-/* Utility overrides scoped to tiet-khi page */
-.tiet-khi-wrapper .text-accent-coral {
+/* Utility overrides using local tokens */
+.text-accent-coral {
   color: var(--tk-accent-coral) !important;
 }
-.tiet-khi-wrapper .text-text-secondary {
+.text-text-secondary {
   color: var(--tk-text-secondary) !important;
 }
-.tiet-khi-wrapper .font-display {
+.font-display {
   font-family: var(--tk-font-display) !important;
 }
-.tiet-khi-wrapper .font-script {
+.font-script {
   font-family: var(--tk-font-script) !important;
 }
 </style>
