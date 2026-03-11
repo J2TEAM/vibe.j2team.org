@@ -867,11 +867,13 @@ function tick(): void {
 }
 
 function startMatrix(): void {
-  const canvasEl = matrixCanvas.value
-  if (!canvasEl) return
+  if (matrixCanvas.value === null) return
 
-  const context = canvasEl.getContext('2d')
-  if (!context) return
+  const canvasEl: HTMLCanvasElement = matrixCanvas.value
+  const maybeContext = canvasEl.getContext('2d')
+  if (maybeContext === null) return
+
+  const context: CanvasRenderingContext2D = maybeContext
 
   let drops: number[] = []
   let cols = 0
@@ -879,7 +881,7 @@ function startMatrix(): void {
 
   const chars = 'アァカサタナハマヤャラワン0123456789ABCDEF<>/*+-=%$#@{}[];:|'
 
-  function resize(): void {
+  const resize = (): void => {
     const dpr = Math.max(1, window.devicePixelRatio || 1)
 
     canvasEl.width = Math.floor(window.innerWidth * dpr)
@@ -895,7 +897,7 @@ function startMatrix(): void {
     drops = Array.from({ length: cols }, () => rand(-40, 0))
   }
 
-  function draw(): void {
+  const draw = (): void => {
     context.fillStyle = 'rgba(2, 8, 5, 0.11)'
     context.fillRect(0, 0, window.innerWidth, window.innerHeight)
     context.font = `${fontSize}px Consolas, monospace`
