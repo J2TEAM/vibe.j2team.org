@@ -76,6 +76,12 @@ function stopAllStreams() {
   }
 }
 
+// Quét lại từ đầu
+function rescan() {
+  stopAllStreams()
+  detectCameras()
+}
+
 onMounted(() => {
   detectCameras()
 })
@@ -162,10 +168,7 @@ onUnmounted(() => {
       <div class="flex justify-center">
         <button
           class="px-6 py-2 font-display text-sm uppercase tracking-widest border border-accent-coral text-accent-coral hover:bg-accent-coral hover:text-bg-deep transition-all"
-          @click="
-            stopAllStreams()
-            detectCameras()
-          "
+          @click="rescan"
         >
           Quét lại
         </button>
