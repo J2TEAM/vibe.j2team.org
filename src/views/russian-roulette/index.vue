@@ -1,10 +1,10 @@
 <template>
   <div
-    class="relative min-h-screen bg-bg-deep overflow-hidden font-body flex flex-col items-center justify-center px-4 md:px-0"
+    class="relative min-h-screen bg-bg-deep overflow-hidden font-body flex flex-col items-center justify-end px-4 md:px-0"
   >
     <!-- Header: Links & Metadata -->
     <div class="absolute top-0 left-0 right-0 p-4 md:p-6 flex justify-between items-start z-50">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <div class="flex flex-row items-center gap-3">
         <RouterLink
           to="/"
           class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-5 py-2.5 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary hover:-translate-y-1 hover:shadow-lg hover:shadow-accent-coral/5 focus:outline-none focus:ring-2 focus:ring-accent-coral"
@@ -12,13 +12,47 @@
           &larr; Trang chủ
         </RouterLink>
 
-        <!-- Nút Cài đặt -->
-        <button
-          @click="showSettingsModal = true"
-          class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-5 py-2.5 text-sm text-text-secondary transition hover:border-accent-amber hover:text-text-primary hover:-translate-y-1 hover:shadow-lg hover:shadow-accent-amber/5 focus:outline-none focus:ring-2 focus:ring-accent-amber"
-        >
-          Cài đặt
-        </button>
+        <div class="relative md:hidden flex">
+          <button
+            @click="showMobileMenu = !showMobileMenu"
+            class="p-2 border border-border-default bg-bg-surface/90 backdrop-blur-md text-text-secondary hover:text-accent-amber shadow-xl cursor-pointer flex items-center justify-center transition-colors h-[42px] w-[42px]"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              ></path>
+            </svg>
+          </button>
+
+          <transition name="fade">
+            <div
+              v-if="showMobileMenu"
+              class="absolute top-full left-0 mt-2 flex flex-col gap-1 w-32 shadow-2xl z-50"
+            >
+              <button
+                @click="
+                  showRulesModal = true
+                  showMobileMenu = false
+                "
+                class="px-4 py-3 border border-border-default bg-bg-deep text-text-primary text-[10px] font-display font-bold tracking-widest text-left active:bg-bg-surface"
+              >
+                📖 LUẬT
+              </button>
+              <button
+                @click="
+                  showSettingsModal = true
+                  showMobileMenu = false
+                "
+                class="px-4 py-3 border border-border-default bg-bg-deep text-text-primary text-[10px] font-display font-bold tracking-widest text-left active:bg-bg-surface"
+              >
+                ⚙️ CÀI ĐẶT
+              </button>
+            </div>
+          </transition>
+        </div>
       </div>
 
       <div
@@ -39,57 +73,68 @@
     <transition name="fade">
       <div
         v-if="isIntro"
-        class="absolute inset-0 bg-bg-deep/95 flex flex-col items-center justify-center z-[200] backdrop-blur-md px-4 text-center"
+        class="absolute inset-0 bg-bg-deep/95 flex flex-col items-center justify-start md:justify-center z-[200] backdrop-blur-md px-4 py-16 overflow-y-auto"
       >
-        <h1
-          class="font-display text-5xl md:text-8xl font-bold mb-4 tracking-tighter uppercase drop-shadow-[0_0_20px_rgba(255,107,74,0.3)] text-accent-coral animate-fade-up"
-        >
-          BUCKSHOT ROULETTE
-        </h1>
-        <p
-          class="text-text-secondary text-lg mb-8 tracking-widest uppercase font-display animate-fade-up animate-delay-2"
-        >
-          Một cuộc chơi đánh cược sinh mạng
-        </p>
-
-        <div
-          class="mb-10 text-text-primary text-base md:text-lg font-body max-w-lg mx-auto !leading-relaxed text-left animate-fade-up animate-delay-3 p-6 border border-border-default bg-bg-surface/80 shadow-2xl"
-        >
-          <h3
-            class="text-text-primary font-display font-bold text-2xl text-center mb-6 flex items-center justify-center gap-3"
+        <div class="flex flex-col items-center justify-center min-h-full w-full py-10">
+          <h1
+            class="font-display text-5xl md:text-8xl font-bold mb-4 tracking-tighter uppercase drop-shadow-[0_0_20px_rgba(255,107,74,0.3)] text-accent-coral animate-fade-up text-center"
           >
-            <span class="text-accent-amber font-display text-sm tracking-widest">//</span>
-            Luật Chơi
-          </h3>
-          <ul class="list-disc pl-5 space-y-3 text-text-secondary">
-            <li>
-              Súng sẽ nạp một số đạn <strong class="text-red-500 font-bold">THẬT</strong> và
-              <strong class="text-blue-500 font-bold">RỖNG</strong> ngẫu nhiên.
-            </li>
-            <li>
-              Đến lượt bạn, chọn bắn
-              <strong class="text-text-primary uppercase font-bold text-sm">Bản Thân</strong> hoặc
-              <strong class="text-text-primary uppercase font-bold text-sm">Đối Thủ</strong>.
-            </li>
-            <li>
-              Bắn <strong>BẢN THÂN</strong> bằng đạn
-              <strong class="text-blue-500 font-bold">RỖNG</strong> sẽ được giữ lượt.
-            </li>
-            <li>
-              Bắn <strong>ĐỐI THỦ</strong> bằng đạn
-              <strong class="text-blue-500 font-bold">RỖNG</strong> sẽ mất lượt.
-            </li>
-            <li>Người hết sinh mạng trước cược thua mạng sống.</li>
-          </ul>
-        </div>
-
-        <div class="flex gap-4 animate-fade-up animate-delay-4">
-          <button
-            @click="enterGame"
-            class="group relative px-12 py-5 bg-transparent border-2 border-accent-coral text-accent-coral text-xl font-display font-bold transition-all duration-300 hover:bg-accent-coral hover:text-bg-deep hover:shadow-[0_0_30px_rgba(255,107,74,0.5)] tracking-widest cursor-pointer"
+            BUCKSHOT ROULETTE
+          </h1>
+          <p
+            class="text-text-secondary text-base md:text-lg mb-8 tracking-widest uppercase font-display animate-fade-up animate-delay-2 text-center"
           >
-            <span class="relative z-10">VÀO GAME</span>
-          </button>
+            Một cuộc chơi đánh cược sinh mạng
+          </p>
+
+          <div
+            class="mb-10 text-text-primary text-sm md:text-base font-body max-w-lg mx-auto !leading-relaxed text-left animate-fade-up animate-delay-3 p-5 md:p-6 border border-border-default bg-bg-surface/80 shadow-2xl"
+          >
+            <h3
+              class="text-text-primary font-display font-bold text-xl md:text-2xl text-center mb-4 md:mb-6 flex items-center justify-center gap-3"
+            >
+              <span class="text-accent-amber font-display text-sm tracking-widest">//</span>
+              Luật Chơi
+            </h3>
+            <ul class="list-disc pl-5 space-y-2 md:space-y-3 text-text-secondary">
+              <li>
+                Súng sẽ nạp một số đạn <strong class="text-red-500 font-bold">THẬT</strong> và
+                <strong class="text-blue-500 font-bold">RỖNG</strong> ngẫu nhiên.
+              </li>
+              <li>
+                Đến lượt bạn, chọn bắn
+                <strong class="text-text-primary uppercase font-bold text-xs md:text-sm"
+                  >Bản Thân</strong
+                >
+                hoặc
+                <strong class="text-text-primary uppercase font-bold text-xs md:text-sm"
+                  >Đối Thủ</strong
+                >.
+              </li>
+              <li>
+                Bắn <strong>BẢN THÂN</strong> bằng đạn
+                <strong class="text-blue-500 font-bold">RỖNG</strong> sẽ được giữ lượt.
+              </li>
+              <li>
+                Bắn <strong>ĐỐI THỦ</strong> bằng đạn
+                <strong class="text-blue-500 font-bold">RỖNG</strong> sẽ mất lượt.
+              </li>
+              <li>
+                Sử dụng <strong class="text-accent-amber font-bold">VẬT PHẨM</strong> chiến thuật để
+                tạo lợi thế: Thuốc lá, Bia, Kính lúp, Còng tay, Cưa sắt.
+              </li>
+              <li>Người hết sinh mạng trước cược thua mạng sống.</li>
+            </ul>
+          </div>
+
+          <div class="flex gap-4 animate-fade-up animate-delay-4 shrink-0 pb-10">
+            <button
+              @click="enterGame"
+              class="group relative px-10 md:px-12 py-4 md:py-5 bg-transparent border-2 border-accent-coral text-accent-coral text-lg md:text-xl font-display font-bold transition-all duration-300 hover:bg-accent-coral hover:text-bg-deep hover:shadow-[0_0_30px_rgba(255,107,74,0.5)] tracking-widest cursor-pointer"
+            >
+              <span class="relative z-10">VÀO GAME</span>
+            </button>
+          </div>
         </div>
       </div>
     </transition>
@@ -106,11 +151,55 @@
       </div>
     </transition>
 
+    <!-- Hiệu ứng Kính Lúp (Magnifying Glass Peek) -->
+    <transition name="peek">
+      <div
+        v-if="peekedBullet !== null"
+        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[180] pointer-events-none"
+      >
+        <div
+          class="relative w-36 h-36 md:w-48 md:h-48 rounded-full border-4 flex items-center justify-center shadow-[0_0_60px_rgba(0,0,0,0.9)] backdrop-blur-md animate-peek-zoom"
+          :class="peekedBullet ? 'border-red-500 bg-red-950/80' : 'border-blue-500 bg-blue-950/80'"
+        >
+          <!-- Viên đạn bên trong kính lúp -->
+          <div class="flex flex-col items-center">
+            <div
+              class="w-8 h-20 rounded-t-sm shadow-inner relative overflow-hidden"
+              :class="peekedBullet ? 'bg-red-600' : 'bg-blue-600'"
+            >
+              <div class="absolute inset-y-0 left-0 w-1 bg-white/20"></div>
+              <div class="absolute inset-y-0 right-0 w-1 bg-black/20"></div>
+            </div>
+
+            <div
+              class="w-8 h-4 bg-yellow-600 rounded-b-sm border-t border-yellow-400 shadow-md relative"
+            >
+              <div
+                class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-yellow-700/50 bg-yellow-500/30"
+              ></div>
+            </div>
+
+            <span
+              class="font-display text-lg font-bold tracking-widest uppercase mt-3"
+              :class="peekedBullet ? 'text-red-400' : 'text-blue-400'"
+            >
+              {{ peekedBullet ? 'THẬT' : 'RỖNG' }}
+            </span>
+          </div>
+          <!-- Viền phát sáng -->
+          <div
+            class="absolute inset-0 rounded-full blur-xl opacity-30 pointer-events-none"
+            :class="peekedBullet ? 'bg-red-500' : 'bg-blue-500'"
+          ></div>
+        </div>
+      </div>
+    </transition>
+
     <!-- Game Container (Perspective FPS effect) -->
-    <div class="relative w-full max-w-5xl h-[85vh] mt-8 flex flex-col perspective-container">
+    <div class="relative w-full max-w-5xl h-screen flex flex-col perspective-container">
       <!-- LAYER 1: Background (AI Character) -->
       <div
-        class="absolute inset-x-0 top-0 h-[50%] flex flex-col items-center justify-center bg-[#0C141E] border-x border-t border-border-default shadow-[inset_0_0_200px_rgba(0,0,0,0.95)] translate-z-neg px-4 z-0"
+        class="absolute inset-x-0 top-0 h-[50%] md:h-[40%] flex flex-col items-center justify-center bg-[#0C141E] border-x border-t border-border-default shadow-[inset_0_0_200px_rgba(0,0,0,0.95)] translate-z-neg px-4 z-0"
       >
         <!-- Ambient lighting -->
         <div
@@ -120,7 +209,7 @@
         <div
           class="flex flex-row items-center justify-center gap-8 md:gap-16 translate-y-8 w-full max-w-4xl mx-auto"
         >
-          <div class="w-48 md:w-72 relative flex justify-center">
+          <div class="w-48 md:w-60 relative flex justify-center">
             <img
               src="./assets/dealer.png"
               alt="Dealer Character"
@@ -128,33 +217,63 @@
             />
           </div>
 
-          <!-- AI HP (Lightning bolts) -->
+          <!-- AI HP (Lightning bolts) - Positioned at bottom right of dealer area -->
           <div
-            class="absolute right-0 md:-right-12 top-1/2 -translate-y-1/2 flex flex-col gap-3 p-3 border border-border-default/50 bg-bg-surface/40 backdrop-blur-sm shadow-inner z-20"
+            class="absolute right-2 md:right-4 bottom-2 flex flex-col md:flex-row gap-2 items-end md:items-center z-20"
           >
-            <svg
-              v-for="i in aiHp"
-              :key="'ai-hp-' + i"
-              class="w-7 h-7 md:w-9 md:h-9 text-accent-sky drop-shadow-[0_0_15px_rgba(56,189,248,0.8)]"
-              fill="currentColor"
-              viewBox="0 0 20 20"
+            <!-- HP Container -->
+            <div
+              class="flex flex-col md:flex-row items-center backdrop-blur-sm bg-bg-surface shadow-xl px-2 py-2 md:py-0 md:h-10 md:min-w-[130px] md:justify-start w-auto"
             >
-              <path
-                d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.381z"
-              />
-            </svg>
-            <span
-              v-if="aiHp === 0"
-              class="text-accent-coral text-xl font-display tracking-widest animate-pulse font-bold self-center px-2"
-              >DECEASED</span
+              <!-- Mobile: cột dọc | Desktop: hàng ngang -->
+              <div class="flex flex-col-reverse md:flex-row items-center gap-1">
+                <svg
+                  v-for="i in aiHp"
+                  :key="'ai-hp-' + i"
+                  class="w-4 h-4 md:w-5 md:h-5 text-accent-sky drop-shadow-[0_0_12px_rgba(56,189,248,0.5)] shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.381z"
+                  />
+                </svg>
+                <span
+                  v-if="aiHp === 0"
+                  class="text-accent-coral text-[10px] font-display font-bold px-1"
+                  >DEAD</span
+                >
+              </div>
+            </div>
+
+            <!-- Handcuffed -->
+            <div
+              v-if="isAiHandcuffed"
+              class="text-center text-accent-amber text-[10px] md:text-xs font-display tracking-widest animate-pulse whitespace-nowrap"
             >
+              🔗 CÒNG
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-if="!isIntro && aiItems.length > 0"
+          class="absolute bottom-2 left-2 md:left-4 flex flex-col md:flex-row gap-1.5 z-20"
+        >
+          <div
+            v-for="(item, index) in aiItems"
+            :key="'ai-item-' + index"
+            class="w-7 h-7 md:w-9 md:h-9 flex items-center justify-center border border-border-default/40 bg-bg-surface/30 text-base md:text-lg select-none opacity-70"
+            :title="getItemName(item)"
+          >
+            {{ getItemEmoji(item) }}
           </div>
         </div>
       </div>
 
       <!-- LAYER 2: Midground (Wooden Table) -->
       <div
-        class="absolute inset-x-0 bottom-[20%] h-[35%] bg-amber-950 border-2 border-border-default shadow-[0_-20px_50px_rgba(0,0,0,0.9)] table-perspective flex flex-col items-center justify-start pt-6 z-10 w-[110%] -ml-[5%]"
+        class="absolute inset-x-0 bottom-[20%] md:bottom-[30%] h-[35%] md:h-[30%] bg-amber-950 border-2 border-border-default shadow-[0_-20px_50px_rgba(0,0,0,0.9)] table-perspective flex flex-col items-center justify-start pt-6 z-10 w-[110%] -ml-[5%]"
       >
         <div
           class="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmZiZmYiIGZpbGwtb3BhY2l0eT0iMC4wMSIvPjwvc3ZnPg==')] mix-blend-overlay"
@@ -165,120 +284,147 @@
 
         <!-- Gun Representation -->
         <div
-          class="relative w-64 h-20 shadow-[0_25px_40px_rgba(0,0,0,0.8)] transform hover:-translate-y-2 hover:scale-105 transition duration-500 z-10 flex items-center justify-center group pointer-events-none mt-6"
+          class="relative w-44 md:w-64 h-16 md:h-20 shadow-[0_25px_40px_rgba(0,0,0,0.8)] transform z-10 flex items-center justify-center mt-2 md:mt-6"
         >
           <img
             src="./assets/shotgun.png"
             alt="Shotgun"
             class="w-full h-auto object-contain drop-shadow-[0_30px_40px_rgba(0,0,0,0.9)]"
+            :class="{ 'scale-x-75 brightness-125': isSawedOff }"
           />
-          <!-- Cylinder -->
+
           <div
-            class="absolute -bottom-20 left-1/2 -translate-x-1/2 flex items-end gap-2 px-4 py-3 bg-black/40 backdrop-blur-md border border-white/10 shadow-2xl min-w-[160px] justify-center"
+            class="absolute -bottom-14 md:-bottom-20 left-1/2 -translate-x-1/2 flex items-end gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-3 bg-black/40 backdrop-blur-md border border-white/10 shadow-2xl min-w-[120px] md:min-w-[160px] justify-center"
           >
             <div
               v-for="(isLive, index) in cylinder"
               :key="'shell-' + index"
-              class="relative w-4 h-12 flex flex-col items-center transition-all duration-500 hover:-translate-y-1"
+              class="relative w-3 h-8 md:w-4 md:h-12 flex flex-col items-center"
             >
               <div
-                class="w-full h-10 rounded-t-sm shadow-inner relative overflow-hidden"
+                class="w-full h-6 md:h-10 rounded-t-sm"
                 :class="isLive ? 'bg-red-600' : 'bg-blue-600'"
-              >
-                <div class="absolute inset-y-0 left-0 w-1 bg-white/20"></div>
-                <div class="absolute inset-y-0 right-0 w-1 bg-black/20"></div>
-              </div>
-
-              <div
-                class="w-[110%] h-2.5 bg-yellow-600 rounded-sm border-t border-yellow-400 shadow-md"
               ></div>
-
-              <div
-                class="absolute inset-0 blur-md opacity-20 pointer-events-none"
-                :class="isLive ? 'bg-red-500' : 'bg-blue-500'"
-              ></div>
+              <div class="w-[110%] h-2 md:h-2.5 bg-yellow-600 rounded-sm"></div>
             </div>
           </div>
         </div>
+
         <!-- Message Box -->
         <div
-          class="mt-20 w-full max-w-lg px-8 py-5 bg-bg-deep/95 border-2 border-accent-amber text-center shadow-[0_0_30px_rgba(255,184,48,0.15)] backdrop-blur-md relative transform hover:scale-105 transition duration-300"
+          class="mt-14 md:mt-20 w-[90%] md:max-w-lg px-4 py-3 md:px-8 md:py-5 bg-bg-deep/95 border-2 border-accent-amber text-center backdrop-blur-md relative"
         >
-          <div
-            class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent-amber to-transparent"
-          ></div>
           <p
-            class="font-display text-accent-amber text-xl md:text-2xl tracking-widest font-bold uppercase drop-shadow-[0_0_10px_rgba(255,184,48,0.4)]"
+            class="font-display text-accent-amber text-sm md:text-2xl tracking-widest font-bold uppercase"
           >
             {{ turnMessage }}
           </p>
         </div>
       </div>
 
-      <!-- LAYER 3: Foreground (Player hand & Action UI) -->
+      <!-- LAYER 3: Foreground (Player UI) -->
       <div
-        class="absolute inset-x-0 -bottom-8 h-[25%] flex items-end justify-center z-30 pointer-events-auto w-full px-4"
+        v-if="!isIntro"
+        class="absolute inset-x-0 bottom-0 z-50 pointer-events-auto w-full px-0 pb-8 md:pb-10 flex justify-center"
       >
-        <!-- Action Buttons + Player HP in one row -->
-        <div class="flex flex-col sm:flex-row items-stretch gap-4 w-full max-w-3xl z-40 relative">
-          <button
-            @click="playerShootSelf"
-            :disabled="!isPlayerTurn || gameOver || cylinder.length === 0 || isActionDisabled"
-            class="group relative flex-1 py-5 md:py-2 bg-bg-surface border border-border-default text-text-primary text-lg md:text-xl font-display tracking-widest transition-all duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:bg-bg-elevated hover:-translate-y-2 hover:border-accent-coral hover:shadow-[0_15px_30px_rgba(255,107,74,0.2)] overflow-hidden rounded-none"
-          >
-            <div
-              class="absolute inset-x-0 bottom-0 h-1 bg-accent-coral translate-y-1 group-hover:translate-y-0 transition-transform duration-300 disabled:hidden"
-            ></div>
-            <div
-              class="absolute inset-0 bg-gradient-to-t from-accent-coral/10 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 disabled:hidden"
-            ></div>
-            <span class="relative z-10 font-bold">BẮN BẢN THÂN</span>
-            <span
-              class="relative z-10 block text-sm font-body text-text-dim mt-2 tracking-normal group-hover:text-text-secondary"
-              >Đạn rỗng: Bạn giữ lượt</span
-            >
-          </button>
-
-          <button
-            @click="playerShootAI"
-            :disabled="!isPlayerTurn || gameOver || cylinder.length === 0 || isActionDisabled"
-            class="group relative flex-1 py-5 md:py-6 bg-bg-surface border border-border-default text-text-primary text-lg md:text-xl font-display tracking-widest transition-all duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:bg-bg-elevated hover:-translate-y-2 hover:border-accent-coral hover:shadow-[0_15px_30px_rgba(255,107,74,0.2)] overflow-hidden rounded-none"
-          >
-            <div
-              class="absolute inset-x-0 bottom-0 h-1 bg-accent-coral translate-y-1 group-hover:translate-y-0 transition-transform duration-300 disabled:hidden"
-            ></div>
-            <div
-              class="absolute inset-0 bg-gradient-to-t from-accent-coral/10 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 disabled:hidden"
-            ></div>
-            <span class="relative z-10 font-bold">BẮN ĐỐI THỦ</span>
-            <span
-              class="relative z-10 block text-sm font-body text-text-dim mt-2 tracking-normal group-hover:text-text-secondary"
-              >Đạn rỗng: Qua lượt của Furina</span
-            >
-          </button>
-
-          <!-- Player HP (Hearts) — nằm bên phải nút bắn đối thủ -->
+        <div
+          class="w-full max-w-7xl flex flex-col md:flex-row items-stretch md:items-end justify-between gap-0 md:gap-4 animate-fade-up"
+        >
           <div
-            class="flex sm:flex-col items-center justify-center gap-2 px-4 py-3 bg-bg-surface/80 border border-border-default/60 backdrop-blur-md shadow-lg shadow-bg-deep/50 hover:border-accent-coral/50 transition-colors duration-300 group"
+            class="flex flex-row md:flex-col items-stretch md:items-start gap-2 md:gap-3 flex-1 px-4 py-3 md:p-0 md:ml-8"
           >
-            <svg
-              v-for="i in playerHp"
-              :key="'p-hp-' + i"
-              class="w-8 h-8 md:w-10 md:h-10 text-accent-coral drop-shadow-[0_0_15px_rgba(255,107,74,0.6)] group-hover:scale-110 group-hover:drop-shadow-[0_0_20px_rgba(255,107,74,1)] transition-all duration-300"
-              fill="currentColor"
-              viewBox="0 0 20 20"
+            <div
+              class="flex items-center gap-2 px-4 bg-bg-surface/90 border border-border-default md:border-b-0 backdrop-blur-md shadow-2xl h-11 md:h-14 min-w-[160px] md:min-w-[180px]"
             >
-              <path
-                fill-rule="evenodd"
-                d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            <span
-              v-if="playerHp === 0"
-              class="text-accent-coral text-lg font-display tracking-widest animate-pulse font-bold"
-              >DECEASED</span
+              <div class="flex items-center gap-1.5 w-full">
+                <svg
+                  v-for="i in playerHp"
+                  :key="'p-hp-' + i"
+                  class="w-5 h-5 md:w-6 md:h-6 text-accent-coral drop-shadow-[0_0_12px_rgba(255,107,74,0.5)]"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span
+                  v-if="playerHp === 0"
+                  class="text-accent-coral text-[10px] font-display font-bold"
+                  >DEAD</span
+                >
+                <div v-if="isPlayerHandcuffed" class="ml-1 text-accent-amber animate-pulse">🔗</div>
+              </div>
+            </div>
+
+            <div
+              class="flex md:hidden flex-1 overflow-x-auto gap-2 p-1.5 bg-bg-surface/90 border border-border-default backdrop-blur-md min-w-[200px] h-11"
             >
+              <button
+                v-for="(item, index) in playerItems"
+                :key="'p-item-mobile-' + index"
+                @click="playerUseItem(item)"
+                :disabled="!isPlayerTurn || isActionDisabled || gameOver"
+                class="w-8 h-8 flex-shrink-0 flex items-center justify-center border bg-bg-deep border-border-default hover:border-accent-amber active:bg-bg-elevated disabled:opacity-30 cursor-pointer text-sm"
+              >
+                {{ getItemEmoji(item) }}
+              </button>
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center gap-0 md:gap-4 w-full md:w-[450px] lg:w-[500px]">
+            <div
+              class="hidden md:flex flex-row flex-wrap justify-center items-center gap-2.5 p-2.5 bg-bg-surface/90 border border-border-default backdrop-blur-md shadow-xl min-h-[66px] min-w-[340px]"
+            >
+              <button
+                v-for="(item, index) in playerItems"
+                :key="'p-item-desktop-' + index"
+                @click="playerUseItem(item)"
+                :disabled="!isPlayerTurn || isActionDisabled || gameOver"
+                class="w-11 h-11 flex items-center justify-center border bg-bg-deep border-border-default hover:border-accent-amber hover:shadow-[0_0_15px_rgba(255,184,48,0.2)] transition-all disabled:opacity-20 cursor-pointer"
+                :title="getItemName(item)"
+              >
+                {{ getItemEmoji(item) }}
+              </button>
+            </div>
+
+            <div class="flex flex-row w-full gap-2 md:gap-5">
+              <button
+                @click="playerShootSelf"
+                :disabled="!isPlayerTurn || gameOver || cylinder.length === 0 || isActionDisabled"
+                class="flex-1 py-4.5 md:h-14 bg-bg-surface border-t border-r md:border md:border-b-0 border-border-default text-text-primary text-xs md:text-base font-display font-bold tracking-widest hover:border-accent-coral hover:bg-bg-elevated hover:-translate-y-1 transition-all shadow-lg disabled:opacity-30 disabled:translate-y-0 cursor-pointer uppercase flex items-center justify-center"
+              >
+                Bắn bản thân
+              </button>
+              <button
+                @click="playerShootAI"
+                :disabled="!isPlayerTurn || gameOver || cylinder.length === 0 || isActionDisabled"
+                class="flex-1 py-4.5 md:h-14 bg-bg-surface border-t md:border md:border-b-0 border-border-default text-text-primary text-xs md:text-base font-display font-bold tracking-widest hover:border-accent-coral hover:bg-bg-elevated hover:-translate-y-1 transition-all shadow-lg disabled:opacity-30 disabled:translate-y-0 cursor-pointer uppercase flex items-center justify-center"
+              >
+                Bắn đối thủ
+              </button>
+            </div>
+          </div>
+
+          <div class="hidden md:flex flex-row items-center justify-end gap-2 flex-1 md:mr-8">
+            <button
+              @click="showRulesModal = true"
+              class="w-24 h-14 flex flex-col items-center justify-center border border-border-default md:border-b-0 bg-bg-surface text-text-secondary hover:text-accent-sky hover:border-accent-sky transition-all cursor-pointer"
+            >
+              <span class="text-base mb-0.5">📖</span>
+              <span class="text-[10px] font-display font-bold tracking-widest uppercase">Luật</span>
+            </button>
+            <button
+              @click="showSettingsModal = true"
+              class="w-24 h-14 flex flex-col items-center justify-center border border-border-default md:border-b-0 bg-bg-surface text-text-secondary hover:text-accent-amber hover:border-accent-amber transition-all cursor-pointer"
+            >
+              <span class="text-base mb-0.5">⚙️</span>
+              <span class="text-[10px] font-display font-bold tracking-widest uppercase"
+                >Cài đặt</span
+              >
+            </button>
           </div>
         </div>
       </div>
@@ -320,6 +466,99 @@
         >
           Trở về trang chủ
         </RouterLink>
+      </div>
+    </transition>
+
+    <!-- Rules Modal -->
+    <transition name="fade">
+      <div
+        v-if="showRulesModal"
+        class="fixed inset-0 z-[250] flex items-center justify-center bg-bg-deep/80 px-4 backdrop-blur-sm"
+      >
+        <div
+          class="w-full max-w-md border-2 border-accent-sky bg-bg-surface p-6 shadow-[0_0_30px_rgba(56,189,248,0.15)] max-h-[80vh] overflow-y-auto"
+        >
+          <h2
+            class="mb-6 font-display text-2xl font-bold uppercase tracking-widest text-text-primary text-center flex items-center justify-center gap-3"
+          >
+            <span class="text-accent-sky font-display text-sm tracking-widest">//</span>
+            Luật Chơi
+          </h2>
+
+          <ul class="list-disc pl-5 space-y-3 text-text-secondary text-sm leading-relaxed">
+            <li>
+              Súng sẽ nạp một số đạn <strong class="text-red-500 font-bold">THẬT</strong> và
+              <strong class="text-blue-500 font-bold">RỖNG</strong> ngẫu nhiên.
+            </li>
+            <li>
+              Đến lượt bạn, chọn bắn
+              <strong class="text-text-primary uppercase font-bold">Bản Thân</strong> hoặc
+              <strong class="text-text-primary uppercase font-bold">Đối Thủ</strong>.
+            </li>
+            <li>
+              Bắn <strong>BẢN THÂN</strong> bằng đạn
+              <strong class="text-blue-500 font-bold">RỖNG</strong> sẽ được giữ lượt.
+            </li>
+            <li>
+              Bắn <strong>ĐỐI THỦ</strong> bằng đạn
+              <strong class="text-blue-500 font-bold">RỖNG</strong> sẽ mất lượt.
+            </li>
+            <li>Người hết sinh mạng trước cược thua mạng sống.</li>
+          </ul>
+
+          <h3
+            class="mt-6 mb-4 font-display text-lg font-bold uppercase tracking-widest text-accent-amber flex items-center gap-2"
+          >
+            <span class="text-accent-amber text-sm">//</span>
+            Vật Phẩm
+          </h3>
+
+          <ul class="space-y-2.5 text-text-secondary text-sm">
+            <li class="flex items-start gap-2">
+              <span class="text-lg">🚬</span>
+              <span
+                ><strong class="text-text-primary">Thuốc lá:</strong> Hồi 1 HP cho người sử dụng (có
+                thể tăng lên tới 5HP).</span
+              >
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-lg">🍺</span>
+              <span
+                ><strong class="text-text-primary">Bia:</strong> Loại bỏ viên đạn hiện tại trong
+                nòng súng ra ngoài mà không bắn.</span
+              >
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-lg">🔍</span>
+              <span
+                ><strong class="text-text-primary">Kính lúp:</strong> Cho người chơi biết viên đạn
+                tiếp theo là Thật hay Rỗng.</span
+              >
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-lg">⛓️</span>
+              <span
+                ><strong class="text-text-primary">Còng tay:</strong> Khiến đối thủ bị mất lượt tiếp
+                theo.</span
+              >
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-lg">🪚</span>
+              <span
+                ><strong class="text-text-primary">Cưa sắt:</strong> Cắt nòng súng. Nếu bắn trúng
+                đạn thật sẽ gây x2 sát thương. Nếu đạn rỗng, hiệu ứng mất tác dụng.</span
+              >
+            </li>
+          </ul>
+
+          <button
+            type="button"
+            class="mt-6 w-full border-2 border-border-default bg-transparent px-4 py-3 text-lg font-display font-bold tracking-widest transition hover:bg-border-default hover:text-bg-deep cursor-pointer"
+            @click="showRulesModal = false"
+          >
+            ĐÓNG
+          </button>
+        </div>
       </div>
     </transition>
 
@@ -406,10 +645,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import BackToTop from '@/components/BackToTop.vue'
 import { useGameLogic } from './composables/useGameLogic'
+import type { ItemType } from './composables/useGameLogic'
 
 const {
   playerHp,
@@ -432,7 +672,19 @@ const {
   enterGame,
   startNewGame,
   disposeAudio,
+  // Hệ thống vật phẩm
+  playerItems,
+  aiItems,
+  playerUseItem,
+  isSawedOff,
+  peekedBullet,
+  isPlayerHandcuffed,
+  isAiHandcuffed,
 } = useGameLogic()
+
+// State cho modal luật chơi
+const showRulesModal = ref(false)
+const showMobileMenu = ref(false)
 
 // Danh sách độ khó của AI
 const difficultyOptions = [
@@ -440,6 +692,29 @@ const difficultyOptions = [
   { value: 'normal', label: 'Thường', desc: 'AI khá thông minh' },
   { value: 'hard', label: 'Khó', desc: 'AI luôn chọn nước tối ưu' },
 ] as const
+
+// Emoji và tên vật phẩm
+function getItemEmoji(item: ItemType): string {
+  const map: Record<ItemType, string> = {
+    cigarette: '🚬',
+    beer: '🍺',
+    magnifying_glass: '🔍',
+    handcuffs: '⛓️',
+    handsaw: '🪚',
+  }
+  return map[item]
+}
+
+function getItemName(item: ItemType): string {
+  const map: Record<ItemType, string> = {
+    cigarette: 'Thuốc lá (+1 HP)',
+    beer: 'Bia (Loại bỏ viên đạn)',
+    magnifying_glass: 'Kính lúp (Xem đạn)',
+    handcuffs: 'Còng tay (Mất lượt)',
+    handsaw: 'Cưa sắt (x2 sát thương)',
+  }
+  return map[item]
+}
 
 onMounted(() => {
   initIntro()
@@ -470,6 +745,22 @@ onUnmounted(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* Transition cho hiệu ứng kính lúp */
+.peek-enter-active {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.peek-leave-active {
+  transition: all 0.5s ease-out;
+}
+.peek-enter-from {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.3);
+}
+.peek-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1.5);
 }
 
 /* Animations that might not be in Tailwind Config */
@@ -532,5 +823,22 @@ onUnmounted(() => {
 
 .animate-delay-4 {
   animation-delay: 600ms;
+}
+
+/* Hiệu ứng zoom kính lúp */
+@keyframes peek-zoom {
+  0% {
+    transform: scale(0.5) rotate(-10deg);
+  }
+  50% {
+    transform: scale(1.05) rotate(2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.animate-peek-zoom {
+  animation: peek-zoom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 </style>

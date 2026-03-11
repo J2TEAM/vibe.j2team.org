@@ -4,6 +4,14 @@ import reloadingSoundFile from '../assets/reloading.mp3'
 import defibrillatorSoundFile from '../assets/defibrillator.mp3'
 import introBgFile from '../assets/intro.mp3'
 
+// --- Âm thanh vật phẩm ---
+import smokingSoundFile from '../assets/smoking.mp3'
+import beerSoundFile from '../assets/beer.mp3'
+import glassSoundFile from '../assets/glass.mp3'
+import handcuffsSoundFile from '../assets/handcuffs.mp3'
+import sawingSoundFile from '../assets/sawing.wav'
+import superShotgun from '../assets/shotgunnnnn.mp3'
+
 // --- Kiểu dữ liệu trả về cho AudioController ---
 export interface AudioController {
   playPump: () => Promise<void>
@@ -16,6 +24,13 @@ export interface AudioController {
   toggleSfx: (enabled: boolean) => void
   warmUp: () => Promise<void>
   dispose: () => void
+  // Âm thanh vật phẩm
+  playCigarette: () => Promise<void>
+  playBeer: () => Promise<void>
+  playGlass: () => Promise<void>
+  playCuffs: () => Promise<void>
+  playSaw: () => Promise<void>
+  playSuperShotgun: () => Promise<void>
 }
 
 // --- Factory function tạo AudioController (tham khảo pikachu-game) ---
@@ -94,6 +109,13 @@ export function createAudioController(): AudioController {
     fetchAudioData(reloadingSoundFile)
     fetchAudioData(defibrillatorSoundFile)
     fetchAudioData(introBgFile)
+    // Preload âm thanh vật phẩm
+    fetchAudioData(smokingSoundFile)
+    fetchAudioData(beerSoundFile)
+    fetchAudioData(glassSoundFile)
+    fetchAudioData(handcuffsSoundFile)
+    fetchAudioData(sawingSoundFile)
+    fetchAudioData(superShotgun)
   }
 
   preloadAll()
@@ -105,6 +127,13 @@ export function createAudioController(): AudioController {
       decodeAudio(outOfAmmoSoundFile),
       decodeAudio(reloadingSoundFile),
       decodeAudio(defibrillatorSoundFile),
+      // Decode sẵn âm thanh vật phẩm
+      decodeAudio(smokingSoundFile),
+      decodeAudio(beerSoundFile),
+      decodeAudio(glassSoundFile),
+      decodeAudio(handcuffsSoundFile),
+      decodeAudio(sawingSoundFile),
+      decodeAudio(superShotgun),
     ])
   }
 
@@ -192,6 +221,31 @@ export function createAudioController(): AudioController {
     return playSfx(defibrillatorSoundFile)
   }
 
+  // --- Âm thanh vật phẩm ---
+  function playCigarette(): Promise<void> {
+    return playSfx(smokingSoundFile)
+  }
+
+  function playBeer(): Promise<void> {
+    return playSfx(beerSoundFile)
+  }
+
+  function playGlass(): Promise<void> {
+    return playSfx(glassSoundFile)
+  }
+
+  function playCuffs(): Promise<void> {
+    return playSfx(handcuffsSoundFile)
+  }
+
+  function playSaw(): Promise<void> {
+    return playSfx(sawingSoundFile)
+  }
+
+  function playSuperShotgun(): Promise<void> {
+    return playSfx(superShotgun)
+  }
+
   // --- Dọn dẹp tài nguyên khi không cần nữa ---
   function dispose(): void {
     stopBgm()
@@ -212,5 +266,12 @@ export function createAudioController(): AudioController {
     toggleSfx,
     warmUp,
     dispose,
+    // Âm thanh vật phẩm
+    playCigarette,
+    playBeer,
+    playGlass,
+    playCuffs,
+    playSaw,
+    playSuperShotgun,
   }
 }

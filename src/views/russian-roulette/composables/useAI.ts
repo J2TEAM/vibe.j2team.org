@@ -6,12 +6,15 @@
  * - Quyết định bắn bản thân (để giữ lượt nếu đạn rỗng) hay bắn đối thủ
  * - Xem xét HP của cả hai bên để đưa ra quyết định tối ưu
  * - Thêm yếu tố "tính cách" để AI không quá hoàn hảo, tạo cảm giác tự nhiên
+ * - AI biết sử dụng vật phẩm chiến thuật
  */
+
+import type { ItemType } from './useGameLogic'
 
 // Mức độ khó: điều chỉnh xác suất AI chọn nước đi tối ưu
 export type AIDifficulty = 'easy' | 'normal' | 'hard'
 
-interface AIDecisionContext {
+export interface AIDecisionContext {
   // Các viên đạn còn lại trong ổ (true = đạn thật, false = đạn rỗng)
   cylinder: boolean[]
   // Số đạn thật đã biết lúc nạp đạn
@@ -22,12 +25,26 @@ interface AIDecisionContext {
   aiHp: number
   // HP hiện tại của người chơi
   playerHp: number
+  // Vật phẩm hiện có của AI
+  aiItems: ItemType[]
+  // AI đang bị khóa nòng cưa không
+  isSawedOff: boolean
+  // Đối thủ có bị còng tay không
+  isPlayerHandcuffed: boolean
 }
 
-interface AIDecisionResult {
+export interface AIDecisionResult {
   // AI bắn ai: 'player' = bắn người chơi, 'ai' = bắn bản thân
   target: 'player' | 'ai'
   // Lý do quyết định (để hiển thị hoặc debug)
+  reason: string
+}
+
+// Kết quả quyết định sử dụng vật phẩm của AI
+export interface AIItemDecision {
+  // Vật phẩm cần dùng (null = không dùng, đi bắn)
+  item: ItemType | null
+  // Lý do
   reason: string
 }
 
@@ -43,7 +60,70 @@ function calculateLiveProbability(cylinder: boolean[]): number {
 }
 
 /**
- * Logic quyết định của AI thông minh
+ * AI quyết định có dùng vật phẩm không trước khi bắn
+ *
+ * Chiến thuật sử dụng vật phẩm:
+ * - Kính lúp (magnifying_glass): Luôn dùng nếu có (thông tin quý giá)
+ * - Thuốc lá (cigarette): Dùng khi HP <= 2
+ * - Cưa sắt (handsaw): Dùng khi xác suất đạn thật >= 60% và chưa cưa
+ * - Bia (beer): Dùng khi xác suất đạn thật cao để loại bỏ rủi ro bắn bản thân / đạn rỗng bắn đối thủ
+ * - Còng tay (handcuffs): Dùng khi xác suất cao sẽ bắn đối thủ
+ */
+export function getAIItemDecision(
+  ctx: AIDecisionContext,
+  difficulty: AIDifficulty,
+): AIItemDecision {
+  const { aiItems, cylinder, aiHp, isSawedOff } = ctx
+  if (aiItems.length === 0) return { item: null, reason: '' }
+
+  const liveProbability = calculateLiveProbability(cylinder)
+
+  // Xác suất AI "quên" dùng vật phẩm dựa trên độ khó
+  const forgetChance: Record<AIDifficulty, number> = {
+    easy: 0.6, // 60% quên dùng vật phẩm
+    normal: 0.25, // 25% quên
+    hard: 0, // Không bao giờ quên
+  }
+  if (Math.random() < forgetChance[difficulty]) {
+    return { item: null, reason: '' }
+  }
+
+  // 1. Ưu tiên dùng Kính lúp trước (biết đạn gì quý giá nhất)
+  if (aiItems.includes('magnifying_glass')) {
+    return { item: 'magnifying_glass', reason: 'Furina dùng kính lúp xem viên đạn tiếp theo...' }
+  }
+
+  // 2. Dùng Cưa sắt nếu xác suất đạn thật cao và chưa cưa
+  if (aiItems.includes('handsaw') && !isSawedOff && liveProbability >= 0.55) {
+    return { item: 'handsaw', reason: 'Furina cưa ngắn nòng súng để gây x2 sát thương!' }
+  }
+
+  // 3. Dùng Thuốc lá khi HP thấp
+  if (aiItems.includes('cigarette') && aiHp <= 2) {
+    return { item: 'cigarette', reason: 'Furina hút thuốc để hồi 1 HP.' }
+  }
+
+  // 4. Dùng Còng tay nếu xác suất cao sẽ bắn đối thủ bằng đạn thật
+  if (aiItems.includes('handcuffs') && liveProbability >= 0.5) {
+    return { item: 'handcuffs', reason: 'Furina còng tay đối thủ!' }
+  }
+
+  // 5. Dùng Bia để loại bỏ viên đạn khi xác suất không có lợi cho bắn bản thân
+  // Nếu xác suất đạn thật cao mà AI muốn bắn nhưng sợ → loại bỏ viên trước
+  if (
+    aiItems.includes('beer') &&
+    liveProbability >= 0.5 &&
+    liveProbability < 0.7 &&
+    cylinder.length > 1
+  ) {
+    return { item: 'beer', reason: 'Furina dùng bia loại bỏ viên đạn hiện tại.' }
+  }
+
+  return { item: null, reason: '' }
+}
+
+/**
+ * Logic quyết định bắn của AI thông minh
  *
  * Quy tắc ưu tiên:
  * 1. Nếu chỉ còn 1 viên đạn và biết chắc nó là gì → hành động chắc chắn
