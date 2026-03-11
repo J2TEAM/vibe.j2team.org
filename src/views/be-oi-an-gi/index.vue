@@ -675,7 +675,7 @@ function pickFood() {
             </div>
           </div>
           <div class="card-footer">
-            <a :href="result.mapLink" target="_blank" class="btn-map-link">Xem Bản Đồ</a>
+            <a :href="result.mapLink" target="_blank" rel="noopener noreferrer" class="btn-map-link">Xem Bản Đồ</a>
           </div>
         </div>
       </div>
