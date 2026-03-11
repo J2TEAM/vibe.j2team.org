@@ -43,8 +43,12 @@ pnpm dev
 
 1. Fork repo và clone về máy
 2. Tạo branch mới từ `main` (ví dụ: `git checkout -b feat/tên-trang`)
-3. Tạo thư mục mới trong `src/views/<tên-trang>/` với file `index.vue`
-4. Tạo file `meta.ts` trong cùng thư mục để khai báo tên, mô tả, tác giả và danh mục (route tự động được tạo)
+3. Tạo trang mới bằng script:
+   ```sh
+   pnpm create:page <tên-trang>
+   ```
+   Script sẽ hỏi tên hiển thị, mô tả, tác giả, Facebook URL (tuỳ chọn) và danh mục, rồi tự tạo `src/views/<tên-trang>/index.vue` + `meta.ts`.
+4. Code trang của bạn trong `index.vue`
 5. Tạo Pull Request và chờ merge!
 
 Xem trang mẫu: [`src/views/hello-world/`](src/views/hello-world/)
@@ -76,6 +80,7 @@ src/
 | `pnpm test:unit` | Chạy unit tests |
 | `pnpm lint` | Lint code |
 | `pnpm format` | Format code |
+| `pnpm create:page <slug>` | Tạo trang mới từ template |
 
 ## IDE
 

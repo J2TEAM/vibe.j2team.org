@@ -1,4 +1,5 @@
 import { ref, nextTick } from 'vue'
+import { useClipboard } from '@vueuse/core'
 import type { Board, Turn, Move, ConnectionState } from '../types'
 import { ICE_CFG } from '../constants'
 
@@ -12,6 +13,7 @@ export interface WebRTCCallbacks {
 }
 
 export function useWebRTC(callbacks: WebRTCCallbacks) {
+  const { copy: clipboardCopy } = useClipboard()
   const connState = ref<ConnectionState>('idle')
   const localStream = ref<MediaStream | null>(null)
   const remoteStream = ref<MediaStream | null>(new MediaStream())
@@ -389,7 +391,7 @@ export function useWebRTC(callbacks: WebRTCCallbacks) {
   }
 
   function safeCopy(text: string) {
-    navigator.clipboard.writeText(text).catch(() => {})
+    clipboardCopy(text)
     copied.value = true
     setTimeout(() => {
       copied.value = false

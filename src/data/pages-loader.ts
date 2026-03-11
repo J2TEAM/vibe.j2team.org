@@ -45,11 +45,8 @@ export const pages: PageInfo[] = Object.entries(metaModules)
     ...module.default,
     path: extractPath(key),
   }))
-  .filter((p) => p.path !== '')
+  .filter((p) => p.path !== '' && !p.hidden)
   .sort((a, b) => {
-    if (a.path === '/hello-world') return 1
-    if (b.path === '/hello-world') return -1
-
     const aFeatured = featuredPaths.indexOf(a.path)
     const bFeatured = featuredPaths.indexOf(b.path)
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
+import { useClipboard } from '@vueuse/core'
 import type { Message, SmartAgent } from './types'
 import { useAI } from './useAI'
 import { usePixelWorld } from './composables/usePixelWorld'
@@ -117,9 +118,11 @@ const handleSendMessage = async (text: string) => {
   }
 }
 
+const { copy } = useClipboard()
+
 const handleCanvasClick = (pos: { gx: number; gy: number }) => {
   const coord = `{ x: ${pos.gx}, y: ${pos.gy} }`
-  navigator.clipboard.writeText(coord)
+  copy(coord)
 }
 
 let rafId: number

@@ -6,6 +6,9 @@ declare module 'vue-router' {
   interface RouteMeta {
     title?: string
     description?: string
+    author?: string
+    showToolbar?: boolean
+    pagePath?: string
   }
 }
 
@@ -28,6 +31,9 @@ const pageRoutes: RouteRecordRaw[] = pages.map((page) => {
     meta: {
       title: `${page.name} - vibe.j2team.org`,
       description: page.description,
+      author: page.author,
+      showToolbar: page.showToolbar !== false,
+      pagePath: page.path,
     },
   }
 })

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
-import { useStorage } from '@vueuse/core'
+import { useClipboard, useStorage } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 import { RouterLink } from 'vue-router'
 
+const { copy: clipboardCopy } = useClipboard()
 const mode = ref<'NORMAL' | 'INSERT' | 'VISUAL' | 'VISUAL_LINE'>('NORMAL')
 const keyBuffer = ref('')
 let keyBufferTimeout: ReturnType<typeof setTimeout> | null = null
@@ -314,11 +315,7 @@ const handleKeydown = (e: KeyboardEvent) => {
         const info = getLineInfo(text, pos)
         const end = info.lineEnd < text.length ? info.lineEnd + 1 : info.lineEnd
         const lineText = text.slice(info.lineStart, end)
-        try {
-          navigator.clipboard.writeText(lineText)
-        } catch (err) {
-          console.warn('Clipboard write error', err)
-        }
+        clipboardCopy(lineText)
         keyBuffer.value = ''
         updateSelection(pos)
         return
@@ -455,11 +452,7 @@ const handleKeydown = (e: KeyboardEvent) => {
           end = Math.max(visualStart.value, pos) + 1
         }
         const selectedText = text.slice(start, end)
-        try {
-          navigator.clipboard.writeText(selectedText)
-        } catch (err) {
-          console.warn('Clipboard write error', err)
-        }
+        clipboardCopy(selectedText)
         mode.value = 'NORMAL'
       } else {
         actionHandled = false

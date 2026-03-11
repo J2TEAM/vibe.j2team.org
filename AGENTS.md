@@ -99,6 +99,8 @@ Before implementing any browser/DOM/state logic, **check if VueUse already has a
 
 Full list: https://vueuse.org/functions.html
 
+**Live reference**: See `src/views/hello-world/index.vue` for interactive demos of the composables listed above.
+
 ### @iconify/vue (MUST use for all icons)
 
 Use the `<Icon>` component for all icons instead of inline SVGs, emoji characters, or custom icon components:
@@ -116,6 +118,8 @@ import { Icon } from '@iconify/vue'
 ```
 
 **Preferred icon set: `lucide`** (e.g., `lucide:home`, `lucide:settings`, `lucide:arrow-left`). Only use other sets (`mdi`, `heroicons`, `ph`, `tabler`, `ri`, `solar`, `ion`) if Lucide doesn't have the needed icon. Browse at https://icon-sets.iconify.design/
+
+**Live reference**: See `src/views/hello-world/index.vue` for icon usage examples across multiple icon sets.
 
 ## Code Conventions
 
@@ -193,11 +197,63 @@ Apps can import from these directories but are never required to. Each app remai
 
 ## Adding a New Page
 
+Run the generator script:
+
+```sh
+# Interactive (prompts for missing fields)
+pnpm create:page <slug>
+
+# Non-interactive (all fields via flags — use this in scripts and AI agents)
+pnpm create:page <slug> --name "Display Name" --description "Page description" --author "Author" --category game [--facebook "https://..."] [--hide-toolbar]
+```
+
+Available categories: `game`, `tool`, `fun`, `learn`, `spiritual`, `connect`, `other`.
+
+This creates `src/views/<slug>/index.vue` + `meta.ts` with the correct structure. Any flag not provided will be prompted interactively.
+
+**Manual alternative** (if not using the script):
+
 1. Create a new directory under `src/views/<your-page-name>/`
 2. Add `index.vue` as the main component inside that directory
-3. Add `meta.ts` exporting a `PageMeta` object with: `name`, `description`, `author`, `category`, and optionally `facebook`
+3. Add `meta.ts` exporting a `PageMeta` object with: `name`, `description`, `author`, `category`, and optionally `facebook`, `showToolbar`
 4. Available categories: `game`, `tool`, `fun`, `learn`, `spiritual`, `connect`, `other`
 5. The route is auto-generated from the folder name — no router changes needed
+
+## Edge Toolbar
+
+An **EdgeToolbar** (`src/components/EdgeToolbar.vue`) is displayed on all sub-pages by default. It slides out from the right edge of the screen on hover and provides:
+
+- **View source code** — link to the page's source on GitHub
+- **Bookmark** — add/remove the page from favorites (persisted in localStorage)
+- **Home** — navigate back to the homepage
+- **Dismiss** — hide the toolbar for the current session (reappears on page reload)
+
+### Behavior
+
+- The trigger tab is flush to the right edge of the viewport, semi-transparent (`opacity-50`) when idle
+- On hover, it becomes fully opaque and the panel slides out with button labels
+- The toolbar is rendered in `App.vue` outside `<RouterView>`, so it's independent of sub-page content
+- Uses scoped styles and design system tokens (`bg-bg-elevated`, `text-text-secondary`, `border-border-default`, `font-display`)
+
+### Opting out
+
+Authors can disable the toolbar on their page if it interferes with their layout (e.g., a full-screen game). Add `showToolbar: false` to your `meta.ts`:
+
+```ts
+import type { PageMeta } from '@/types/page'
+
+const meta: PageMeta = {
+  name: 'My Page',
+  description: '...',
+  author: 'Author',
+  category: 'game',
+  showToolbar: false, // Disable the edge toolbar on this page
+}
+
+export default meta
+```
+
+Default is `true` — the toolbar is shown unless explicitly disabled.
 
 ## Path Aliases
 
