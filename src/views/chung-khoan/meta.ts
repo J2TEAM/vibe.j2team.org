@@ -1,11 +1,11 @@
 import type { PageMeta } from '@/types/page'
 
 const meta: PageMeta = {
-  name: 'Sàn Chứng Khoán',
-  description: 'Bạn có tự tin mình là nhà đầu tư tài ba?.',
-  category: 'game',
+  name: 'Giả Lập Con Bạc Làm Giàu',
+  description: 'Game giả lập chứng khoán và kiếm tiền khi thua',
   author: 'Ngô Đăng Duy',
   facebook: 'https://www.facebook.com/blavkkoinie',
+  category: 'game',
 }
 
 export default meta
