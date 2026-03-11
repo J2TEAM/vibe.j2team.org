@@ -4,6 +4,7 @@ import { RouterLink } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import KeyboardLayout from './components/KeyboardLayout.vue'
 import ScreenTest from './components/ScreenTest.vue'
+import WebcamTest from './components/WebcamTest.vue'
 import BackToTop from '@/components/BackToTop.vue'
 
 const currentTest = ref<'keyboard' | 'screen' | 'webcam'>('keyboard')
@@ -74,24 +75,14 @@ const currentTest = ref<'keyboard' | 'screen' | 'webcam'>('keyboard')
       <div v-else-if="currentTest === 'screen'">
         <ScreenTest />
       </div>
-      <div
-        v-else
-        class="flex flex-col items-center justify-center py-20 bg-bg-surface border border-border-default mb-20"
-      >
-        <Icon icon="lucide:construction" class="w-16 h-16 text-accent-amber mb-4" />
-        <h2 class="font-display text-2xl font-bold text-text-primary uppercase tracking-widest">
-          Under Construction
-        </h2>
-        <p class="mt-2 text-text-secondary px-4 text-center">
-          Tính năng <span class="text-accent-amber uppercase">{{ currentTest }}</span> đang được
-          phát triển. Vui lòng quay lại sau!
-        </p>
+      <div v-else-if="currentTest === 'webcam'">
+        <WebcamTest />
       </div>
     </main>
 
     <!-- Footer-like section for SEO/Info -->
     <footer
-      v-if="currentTest === 'keyboard' || currentTest === 'screen'"
+      v-if="currentTest === 'keyboard' || currentTest === 'screen' || currentTest === 'webcam'"
       class="bg-bg-surface/30 border-t border-border-default py-16"
     >
       <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -194,6 +185,46 @@ const currentTest = ref<'keyboard' | 'screen' | 'webcam'>('keyboard')
               <p>
                 Hãy quan sát kỹ màn hình khi hiển thị từng màu thuần, tìm các điểm bất thường có màu
                 khác biệt hoặc không đổi màu khi nền chuyển sang màu mới
+              </p>
+            </div>
+          </div>
+        </template>
+
+        <!-- Webcam test instructions -->
+        <template v-else-if="currentTest === 'webcam'">
+          <div>
+            <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
+              <span class="text-accent-sky text-sm tracking-widest font-display">//</span>
+              Hướng dẫn sử dụng
+            </h2>
+            <div class="space-y-4 text-text-secondary text-sm leading-relaxed">
+              <p>
+                1. <strong class="text-accent-sky">Cấp quyền:</strong> Cho phép trình duyệt truy cập
+                camera khi được yêu cầu
+              </p>
+              <p>
+                2. <strong class="text-accent-sky">Xem kết quả:</strong> Mỗi webcam sẽ hiển thị
+                trong một ô riêng với hình ảnh trực tiếp
+              </p>
+              <p>
+                3. <strong class="text-accent-sky">Quét lại:</strong> Nhấn nút "Quét lại" nếu bạn
+                vừa kết nối thêm webcam mới
+              </p>
+            </div>
+          </div>
+          <div>
+            <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
+              <span class="text-accent-amber text-sm tracking-widest font-display">//</span>
+              Tại sao cần test webcam?
+            </h2>
+            <div class="text-text-secondary text-sm leading-relaxed space-y-4">
+              <p>
+                Kiểm tra webcam giúp bạn xác nhận camera hoạt động bình thường trước khi tham gia
+                cuộc họp trực tuyến hoặc ghi hình
+              </p>
+              <p>
+                Công cụ này cũng hữu ích để kiểm tra chất lượng hình ảnh, góc quay và khả năng nhận
+                diện của từng camera
               </p>
             </div>
           </div>
