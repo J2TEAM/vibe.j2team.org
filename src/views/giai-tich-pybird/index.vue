@@ -194,7 +194,7 @@ const generateQuestion = (currentScore: number): Question => {
   else pool = hardTemplates;
 
   const selectedTemplate = pool[Math.floor(Math.random() * pool.length)];
-  return selectedTemplate();
+  return selectedTemplate!();
 };
 
 const gameCanvas = ref<HTMLCanvasElement | null>(null);
@@ -342,6 +342,8 @@ const update = (dt: number) => {
 
   for (let i = PIPES.length - 1; i >= 0; i--) {
     const pipe = PIPES[i];
+    if (!pipe) continue;
+
     pipe.x -= BASE_SPEED * multiplier; 
 
     if (
