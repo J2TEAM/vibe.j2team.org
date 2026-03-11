@@ -5,9 +5,10 @@ import { Icon } from '@iconify/vue'
 import KeyboardLayout from './components/KeyboardLayout.vue'
 import ScreenTest from './components/ScreenTest.vue'
 import WebcamTest from './components/WebcamTest.vue'
+import MicTest from './components/MicTest.vue'
 import BackToTop from '@/components/BackToTop.vue'
 
-const currentTest = ref<'keyboard' | 'screen' | 'webcam'>('keyboard')
+const currentTest = ref<'keyboard' | 'screen' | 'webcam' | 'micro'>('keyboard')
 </script>
 
 <template>
@@ -47,7 +48,7 @@ const currentTest = ref<'keyboard' | 'screen' | 'webcam'>('keyboard')
       <!-- Navigation Tabs -->
       <nav class="mt-12 flex flex-wrap gap-4 animate-fade-up animate-delay-4">
         <button
-          v-for="test in ['keyboard', 'screen', 'webcam'] as const"
+          v-for="test in ['keyboard', 'screen', 'webcam', 'micro'] as const"
           :key="test"
           class="px-6 py-3 font-display font-semibold transition-all duration-300 border focus:outline-none"
           :class="
@@ -78,13 +79,13 @@ const currentTest = ref<'keyboard' | 'screen' | 'webcam'>('keyboard')
       <div v-else-if="currentTest === 'webcam'">
         <WebcamTest />
       </div>
+      <div v-else-if="currentTest === 'micro'">
+        <MicTest />
+      </div>
     </main>
 
     <!-- Footer-like section for SEO/Info -->
-    <footer
-      v-if="currentTest === 'keyboard' || currentTest === 'screen' || currentTest === 'webcam'"
-      class="bg-bg-surface/30 border-t border-border-default py-16"
-    >
+    <footer class="bg-bg-surface/30 border-t border-border-default py-16">
       <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12">
         <!-- Keyboard instructions -->
         <template v-if="currentTest === 'keyboard'">
@@ -225,6 +226,54 @@ const currentTest = ref<'keyboard' | 'screen' | 'webcam'>('keyboard')
               <p>
                 Công cụ này cũng hữu ích để kiểm tra chất lượng hình ảnh, góc quay và khả năng nhận
                 diện của từng camera
+              </p>
+            </div>
+          </div>
+        </template>
+
+        <!-- Mic test instructions -->
+        <template v-else-if="currentTest === 'micro'">
+          <div>
+            <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
+              <span class="text-accent-sky text-sm tracking-widest font-display">//</span>
+              Hướng dẫn sử dụng
+            </h2>
+            <div class="space-y-4 text-text-secondary text-sm leading-relaxed">
+              <p>
+                1. <strong class="text-accent-sky">Cấp quyền:</strong> Cho phép trình duyệt truy cập
+                micro khi được yêu cầu
+              </p>
+              <p>
+                2. <strong class="text-accent-sky">Chọn micro:</strong> Có thể máy tính có nhiều
+                micro
+              </p>
+              <p>
+                3. <strong class="text-accent-sky">Âm thanh:</strong> Nói vào micro, thanh màu xanh
+                lá sẽ phản hồi trực tiếp
+              </p>
+              <p>
+                4. <strong class="text-accent-sky">Âm lượng:</strong> Dùng thanh trượt để tăng/giảm
+                âm lượng khi thu âm
+              </p>
+              <p>
+                5. <strong class="text-accent-sky">Thu âm:</strong> Nhấn "Thu âm" để ghi lại âm
+                thanh, sau đó nhấn "Dừng thu" và phát lại để nghe
+              </p>
+            </div>
+          </div>
+          <div>
+            <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
+              <span class="text-accent-amber text-sm tracking-widest font-display">//</span>
+              Tại sao cần test micro?
+            </h2>
+            <div class="text-text-secondary text-sm leading-relaxed space-y-4">
+              <p>
+                Kiểm tra micro giúp bạn đảm bảo chất lượng âm thanh tốt trước khi tham gia cuộc họp,
+                gọi điện hoặc thu âm
+              </p>
+              <p>
+                Bạn cũng có thể nghe lại và so sánh chất lượng giữa các micro để chọn micro phù hợp
+                nhất
               </p>
             </div>
           </div>
