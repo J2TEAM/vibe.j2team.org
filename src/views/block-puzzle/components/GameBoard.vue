@@ -17,6 +17,7 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   'place-block': [blockIndex: number, row: number, col: number]
+  'update-preview': [row: number, col: number]
 }>()
 
 // Get color for a cell based on its value
@@ -36,7 +37,13 @@ function getCellColor(cellValue: number): string {
 
 function handleDragOver(e: DragEvent) {
   e.preventDefault()
-  e.dataTransfer!.dropEffect = 'move'
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+}
+
+function handleCellDragEnter(row: number, col: number) {
+  if (props.draggingBlockIndex !== null) {
+    emit('update-preview', row, col)
+  }
 }
 
 function handleBoardDrop(e: DragEvent) {
@@ -121,6 +128,7 @@ function isPreviewCell(row: number, col: number): boolean {
             transform: isPreviewCell(row - 1, col - 1) ? 'scale(0.95)' : 'scale(1)',
           }"
           @dragover.prevent="handleDragOver"
+          @dragenter.prevent="handleCellDragEnter(row - 1, col - 1)"
         />
       </div>
     </div>

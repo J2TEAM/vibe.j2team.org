@@ -49,9 +49,6 @@ const canDropAtPreview = computed(() => {
   )
 })
 
-// Track mouse position for drag preview
-const boardElement = ref<HTMLElement | null>(null)
-
 function handleBlockDragStart(blockIndex: number) {
   draggingBlockIndex.value = blockIndex
   dragPreviewPosition.value = null
@@ -74,28 +71,8 @@ function handleRestart() {
   playClick()
 }
 
-// Desktop drag preview
-function handleBoardDragOver(e: DragEvent) {
-  if (draggingBlockIndex.value === null) return
-
-  e.preventDefault()
-  const board = boardElement.value
-  if (!board) return
-
-  const rect = board.getBoundingClientRect()
-  const x = e.clientX - rect.left
-  const y = e.clientY - rect.top
-
-  // Get grid size
-  const gridSize = rect.width / 10
-
-  // Calculate which cell we're over
-  const col = Math.floor(x / gridSize)
-  const row = Math.floor(y / gridSize)
-
-  if (row >= 0 && row < 10 && col >= 0 && col < 10) {
-    dragPreviewPosition.value = { row, col }
-  }
+function handlePreviewUpdate(row: number, col: number) {
+  dragPreviewPosition.value = { row, col }
 }
 </script>
 
@@ -117,7 +94,7 @@ function handleBoardDragOver(e: DragEvent) {
         <section class="play-area">
           <ScoreDisplay :score="score" :high-score="highScore" />
 
-          <div class="board-wrap" ref="boardElement" @dragover="handleBoardDragOver">
+          <div class="board-wrap">
             <GameBoard
               :board="board"
               :blocks="blocks"
@@ -128,6 +105,7 @@ function handleBoardDragOver(e: DragEvent) {
               :drag-preview-position="dragPreviewPosition"
               :can-preview-place="canDropAtPreview"
               @place-block="handleBoardPlaceBlock"
+              @update-preview="handlePreviewUpdate"
             />
           </div>
 
