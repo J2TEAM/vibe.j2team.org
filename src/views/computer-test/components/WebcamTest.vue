@@ -1,56 +1,51 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 
-interface CameraDevice {
+interface CameraOption {
   deviceId: string
   label: string
-  stream: MediaStream | null
-  error: string | null
 }
 
-const cameras = ref<CameraDevice[]>([])
+const cameraList = ref<CameraOption[]>([])
+const selectedDeviceId = ref('')
 const isLoading = ref(true)
 const globalError = ref('')
 
-// Lấy danh sách webcam và mở từng cái
+// Trạng thái camera đang chọn
+const stream = ref<MediaStream | null>(null)
+const videoRef = ref<HTMLVideoElement | null>(null)
+const camError = ref('')
+
+// Quét danh sách camera
 async function detectCameras() {
   isLoading.value = true
   globalError.value = ''
 
   try {
-    // Yêu cầu quyền truy cập camera trước để lấy label
+    // Yêu cầu quyền trước để lấy label
     const initialStream = await navigator.mediaDevices.getUserMedia({ video: true })
-    // Dừng stream tạm này
     initialStream.getTracks().forEach((t) => t.stop())
 
-    // Lấy danh sách thiết bị video
     const devices = await navigator.mediaDevices.enumerateDevices()
     const videoDevices = devices.filter((d) => d.kind === 'videoinput')
 
     if (videoDevices.length === 0) {
-      globalError.value = 'Không tìm thấy webcam nào trên thiết bị này'
+      globalError.value = 'Không tìm thấy camera nào trên thiết bị này'
       isLoading.value = false
       return
     }
 
-    // Tạo danh sách camera ban đầu
-    cameras.value = videoDevices.map((d, i) => ({
+    cameraList.value = videoDevices.map((d, i) => ({
       deviceId: d.deviceId,
       label: d.label || `Camera ${i + 1}`,
-      stream: null,
-      error: null,
     }))
 
-    // Mở từng camera
-    for (const cam of cameras.value) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: { exact: cam.deviceId } },
-        })
-        cam.stream = stream
-      } catch {
-        cam.error = 'Không thể mở camera này'
-      }
+    // Mặc định chọn camera đầu tiên
+    if (
+      !selectedDeviceId.value ||
+      !cameraList.value.find((c) => c.deviceId === selectedDeviceId.value)
+    ) {
+      selectedDeviceId.value = cameraList.value[0]!.deviceId
     }
   } catch {
     globalError.value = 'Không thể truy cập camera. Vui lòng cấp quyền camera trong trình duyệt'
@@ -59,35 +54,66 @@ async function detectCameras() {
   isLoading.value = false
 }
 
-// Gán stream vào video element khi render
-function setVideoRef(el: HTMLVideoElement | null, cam: CameraDevice) {
-  if (el && cam.stream) {
-    el.srcObject = cam.stream
-  }
-}
+// Mở camera được chọn
+async function openCamera(deviceId: string) {
+  stopCurrentStream()
+  camError.value = ''
 
-// Dừng tất cả stream khi unmount
-function stopAllStreams() {
-  for (const cam of cameras.value) {
-    if (cam.stream) {
-      cam.stream.getTracks().forEach((t) => t.stop())
-      cam.stream = null
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({
+      video: { deviceId: { exact: deviceId } },
+    })
+    stream.value = s
+
+    // Gán stream vào video element
+    if (videoRef.value) {
+      videoRef.value.srcObject = s
     }
+  } catch {
+    stream.value = null
+    camError.value = 'Không thể mở camera này'
   }
 }
 
-// Quét lại từ đầu
+// Gán stream khi video ref sẵn sàng
+function onVideoMounted(el: HTMLVideoElement | null) {
+  videoRef.value = el
+  if (el && stream.value) {
+    el.srcObject = stream.value
+  }
+}
+
+// Dừng stream hiện tại
+function stopCurrentStream() {
+  if (stream.value) {
+    stream.value.getTracks().forEach((t) => t.stop())
+    stream.value = null
+  }
+  if (videoRef.value) {
+    videoRef.value.srcObject = null
+  }
+}
+
+// Quét lại
 function rescan() {
-  stopAllStreams()
+  stopCurrentStream()
   detectCameras()
 }
 
-onMounted(() => {
-  detectCameras()
+// Khi đổi camera → mở camera mới
+watch(selectedDeviceId, (newId) => {
+  if (newId) openCamera(newId)
+})
+
+onMounted(async () => {
+  await detectCameras()
+  if (selectedDeviceId.value) {
+    openCamera(selectedDeviceId.value)
+  }
 })
 
 onUnmounted(() => {
-  stopAllStreams()
+  stopCurrentStream()
 })
 </script>
 
@@ -97,7 +123,11 @@ onUnmounted(() => {
     <div class="bg-bg-surface border border-border-default p-6 shadow-sm">
       <h2 class="font-display text-xl font-bold text-text-primary mb-2">Kiểm tra Webcam</h2>
       <p class="text-sm text-text-secondary leading-relaxed">
-        Quét và hiển thị tất cả webcam đang kết nối với máy tính
+        Chọn camera và xem nó còn nhìn thấy bạn không?
+      </p>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Nhớ kiểm tra xem bạn có tắt camera bằng phím bấm vật lý, hay có dán băng dính che camera
+        không, đã gạt mở thanh trượt che camera chưa?
       </p>
     </div>
 
@@ -109,12 +139,12 @@ onUnmounted(() => {
       <div
         class="w-8 h-8 border-2 border-accent-coral border-t-transparent rounded-full animate-spin mb-4"
       />
-      <p class="text-sm text-text-secondary font-display">Đang quét webcam</p>
+      <p class="text-sm text-text-secondary font-display">Đang quét camera</p>
     </div>
 
     <!-- Lỗi chung -->
     <div
-      v-else-if="globalError"
+      v-else-if="globalError && cameraList.length === 0"
       class="flex flex-col items-center justify-center py-20 bg-bg-surface border border-border-default"
     >
       <p class="text-accent-coral font-display text-lg mb-2">⚠️</p>
@@ -127,40 +157,52 @@ onUnmounted(() => {
       </button>
     </div>
 
-    <!-- Danh sách camera -->
+    <!-- Nội dung chính -->
     <template v-else>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div
-          v-for="cam in cameras"
-          :key="cam.deviceId"
-          class="bg-bg-surface border border-border-default shadow-sm overflow-hidden"
+      <!-- Chọn camera -->
+      <div class="bg-bg-surface border border-border-default p-6 shadow-sm">
+        <p class="text-[10px] text-text-dim uppercase tracking-widest font-display mb-3">
+          Chọn camera
+        </p>
+        <select
+          v-model="selectedDeviceId"
+          class="w-full bg-bg-deep border border-border-default text-text-primary text-sm font-display px-4 py-3 focus:outline-none focus:border-accent-coral transition-colors cursor-pointer"
         >
-          <!-- Header -->
-          <div class="flex items-center justify-between p-4 border-b border-border-default">
-            <div class="flex items-center gap-2">
-              <div
-                class="w-2 h-2 rounded-full"
-                :class="cam.stream ? 'bg-green-500 animate-pulse' : 'bg-red-500'"
-              />
-              <span class="text-sm font-display text-text-primary truncate">{{ cam.label }}</span>
-            </div>
-            <span class="text-[10px] text-text-dim font-display uppercase tracking-widest">
-              {{ cam.stream ? 'Đang hoạt động' : 'Lỗi' }}
+          <option v-for="cam in cameraList" :key="cam.deviceId" :value="cam.deviceId">
+            {{ cam.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Camera đang hoạt động -->
+      <div class="bg-bg-surface border border-border-default shadow-sm overflow-hidden">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-4 border-b border-border-default">
+          <div class="flex items-center gap-2">
+            <div
+              class="w-2 h-2 rounded-full"
+              :class="stream ? 'bg-green-500 animate-pulse' : 'bg-red-500'"
+            />
+            <span class="text-sm font-display text-text-primary truncate">
+              {{ cameraList.find((c) => c.deviceId === selectedDeviceId)?.label || 'Camera' }}
             </span>
           </div>
+          <span class="text-[10px] text-text-dim font-display uppercase tracking-widest">
+            {{ stream ? 'Đang hoạt động' : 'Lỗi' }}
+          </span>
+        </div>
 
-          <!-- Video hoặc lỗi -->
-          <div class="aspect-video bg-bg-deep flex items-center justify-center">
-            <video
-              v-if="cam.stream"
-              :ref="(el) => setVideoRef(el as HTMLVideoElement, cam)"
-              autoplay
-              playsinline
-              muted
-              class="w-full h-full object-cover"
-            />
-            <p v-else class="text-sm text-text-dim">{{ cam.error || 'Không thể mở camera' }}</p>
-          </div>
+        <!-- Video feed -->
+        <div class="aspect-video bg-bg-deep flex items-center justify-center">
+          <video
+            v-if="stream"
+            :ref="(el) => onVideoMounted(el as HTMLVideoElement)"
+            autoplay
+            playsinline
+            muted
+            class="w-full h-full object-cover"
+          />
+          <p v-else class="text-sm text-text-dim">{{ camError || 'Không thể mở camera' }}</p>
         </div>
       </div>
 

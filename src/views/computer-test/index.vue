@@ -204,12 +204,12 @@ const currentTest = ref<'keyboard' | 'screen' | 'webcam' | 'micro'>('keyboard')
                 camera khi được yêu cầu
               </p>
               <p>
-                2. <strong class="text-accent-sky">Xem kết quả:</strong> Mỗi webcam sẽ hiển thị
-                trong một ô riêng với hình ảnh trực tiếp
+                2. <strong class="text-accent-sky">Chọn camera:</strong> Chọn camera muốn kiểm tra,
+                hình ảnh trực tiếp sẽ hiện ngay bên dưới
               </p>
               <p>
                 3. <strong class="text-accent-sky">Quét lại:</strong> Nhấn nút "Quét lại" nếu bạn
-                vừa kết nối thêm webcam mới
+                vừa kết nối thêm camera mới
               </p>
             </div>
           </div>
