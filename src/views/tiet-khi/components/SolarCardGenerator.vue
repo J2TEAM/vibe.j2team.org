@@ -1,11 +1,22 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { toPng } from 'html-to-image'
+import { ref, watch } from 'vue'
 import type { SolarTerm } from '../types'
+import { getArticle } from '../articles'
+import type { Article } from '../articles'
 
 const props = defineProps<{
   term: SolarTerm
 }>()
+
+// Lazy-load article data cho theme colors
+const articleData = ref<Article | null>(null)
+
+const loadArticle = async () => {
+  articleData.value = await getArticle(props.term.name)
+}
+
+// Tải article khi component mount hoặc term thay đổi
+watch(() => props.term.name, loadArticle, { immediate: true })
 
 const cardRef = ref<HTMLElement | null>(null)
 const isGenerating = ref(false)
@@ -18,6 +29,8 @@ const exportCard = async () => {
     // Chờ một chút để font chữ và mọi thứ render ổn định
     await new Promise((resolve) => setTimeout(resolve, 500))
 
+    // Dynamic import to avoid bundling html-to-image into the main chunk
+    const { toPng } = await import('html-to-image')
     const dataUrl = await toPng(cardRef.value, {
       quality: 1.0,
       pixelRatio: 3, // Higher quality for wallpapers
@@ -34,21 +47,6 @@ const exportCard = async () => {
     console.error('Lỗi khi tạo ảnh:', err)
   } finally {
     isGenerating.value = false
-  }
-}
-
-const getSeasonStyles = (season: string) => {
-  switch (season) {
-    case 'Xuân':
-      return 'from-emerald-950 via-green-950 to-black'
-    case 'Hạ':
-      return 'from-red-950 via-orange-950 to-black'
-    case 'Thu':
-      return 'from-amber-950 via-orange-950 to-black'
-    case 'Đông':
-      return 'from-blue-950 via-slate-950 to-black'
-    default:
-      return 'from-gray-900 to-black'
   }
 }
 </script>
@@ -88,12 +86,15 @@ const getSeasonStyles = (season: string) => {
       <div
         ref="cardRef"
         :class="[
-          'relative overflow-hidden flex flex-col items-center text-center text-white bg-gradient-to-b rounded-[3rem] transition-all duration-500',
-          getSeasonStyles(term.season),
+          'relative overflow-hidden flex flex-col items-center text-center transition-all duration-500',
           cardMode === 'card'
-            ? 'w-[400px] h-[600px] p-14 justify-between'
-            : 'w-[360px] h-[640px] p-16 justify-center gap-16',
+            ? 'w-[400px] h-[600px] p-14 justify-between rounded-[3rem]'
+            : 'w-[360px] h-[640px] p-16 justify-center gap-16 rounded-[2rem]',
         ]"
+        :style="{
+          backgroundColor: articleData?.theme?.bg || '#111',
+          color: articleData?.theme?.text || '#fff',
+        }"
       >
         <!-- Background Elements -->
         <div
@@ -128,15 +129,17 @@ const getSeasonStyles = (season: string) => {
           >
             {{ term.name }}
           </h1>
+          <p class="font-chinese text-4xl text-accent-coral/50 my-2">{{ term.chineseName }}</p>
           <p class="font-script text-2xl text-accent-coral/90 mt-2">{{ term.translation }}</p>
         </div>
 
         <div class="z-10 px-6 max-w-sm">
           <p
             :class="[
-              'font-script leading-relaxed italic text-white/90 transition-all',
+              'font-script leading-relaxed italic transition-all opacity-90',
               cardMode === 'card' ? 'text-2xl' : 'text-3xl',
             ]"
+            :style="{ color: articleData?.theme?.text || 'inherit' }"
           >
             "{{ term.proverb || term.description }}"
           </p>
@@ -150,29 +153,44 @@ const getSeasonStyles = (season: string) => {
 
         <div v-if="cardMode === 'card'" class="z-10 flex flex-col items-center gap-6">
           <div class="flex flex-col items-center">
-            <div class="text-[9px] font-mono tracking-[0.4em] opacity-30 mb-1 uppercase">
+            <div
+              class="text-[9px] font-mono tracking-[0.4em] mb-1 uppercase opacity-50"
+              :style="{ color: articleData?.theme?.text || 'inherit' }"
+            >
               Bắt đầu từ
             </div>
-            <div class="text-xl font-display font-bold tracking-widest text-white/60">
+            <div
+              class="text-xl font-display font-bold tracking-widest opacity-80"
+              :style="{ color: articleData?.theme?.text || 'inherit' }"
+            >
               {{ term.displayDate }}
             </div>
           </div>
 
-          <div class="w-full max-w-[200px] h-[1px] bg-white/10"></div>
+          <div
+            class="w-full max-w-[200px] h-[1px]"
+            :style="{ backgroundColor: (articleData?.theme?.text || '#fff') + '40' }"
+          ></div>
 
           <div class="flex flex-col items-center gap-3">
             <span
               class="text-[8px] uppercase tracking-widest font-black px-4 py-1.5 rounded-full bg-accent-coral text-white"
               >Dưỡng Sinh</span
             >
-            <p class="text-[11px] leading-relaxed text-white/50 max-w-[240px]">{{ term.tips }}</p>
+            <p
+              class="text-[11px] leading-relaxed max-w-[240px] opacity-70"
+              :style="{ color: articleData?.theme?.text || 'inherit' }"
+            >
+              {{ term.tips }}
+            </p>
           </div>
         </div>
 
         <!-- Logo/Branding (Card only at bottom) -->
         <div
           v-if="cardMode === 'card'"
-          class="z-10 pt-4 flex flex-col items-center gap-1 opacity-20"
+          class="z-10 pt-4 flex flex-col items-center gap-1 opacity-40"
+          :style="{ color: articleData?.theme?.text || 'inherit' }"
         >
           <div class="text-[8px] font-mono tracking-[0.5em] uppercase">CỘNG ĐỒNG TỊCH PHONG</div>
         </div>
@@ -226,6 +244,12 @@ const getSeasonStyles = (season: string) => {
 </template>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap');
+
+.font-chinese {
+  font-family: 'ZCOOL XiaoWei', serif;
+}
+
 .font-script {
   font-family: var(--font-script);
 }
