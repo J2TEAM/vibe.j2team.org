@@ -1,3 +1,4 @@
+import type { Direction } from '../../types'
 import east from './rotations/east.png'
 import north from './rotations/north.png'
 import northEast from './rotations/north-east.png'
@@ -6,16 +7,6 @@ import south from './rotations/south.png'
 import southEast from './rotations/south-east.png'
 import southWest from './rotations/south-west.png'
 import west from './rotations/west.png'
-
-export type Direction =
-  | 'south'
-  | 'south-east'
-  | 'east'
-  | 'north-east'
-  | 'north'
-  | 'north-west'
-  | 'west'
-  | 'south-west'
 
 export const ROTATION_SPRITES: Record<Direction, string> = {
   south,

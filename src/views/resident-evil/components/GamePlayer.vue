@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Direction } from '../assets/main_char/rotations'
+import type { Direction } from '../types'
 import { ROTATION_SPRITES } from '../assets/main_char/rotations'
 
 type Keys = { w: boolean; a: boolean; s: boolean; d: boolean }
