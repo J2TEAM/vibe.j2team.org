@@ -1,0 +1,153 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
+import { Icon } from '@iconify/vue'
+import KeyboardLayout from './components/KeyboardLayout.vue'
+import BackToTop from '@/components/BackToTop.vue'
+
+const currentTest = ref<'keyboard' | 'screen' | 'webcam'>('keyboard')
+</script>
+
+<template>
+  <div class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col pt-20">
+    <!-- Header -->
+    <header class="relative max-w-5xl mx-auto px-6 w-full mb-12">
+      <!-- Issue badge -->
+      <div
+        class="absolute top-0 right-6 bg-accent-coral text-bg-deep font-display font-bold text-xs tracking-widest px-3 py-1.5 rotate-3 animate-fade-up animate-delay-2 z-10"
+      >
+        VOL.01 / 2026
+      </div>
+
+      <!-- Back to home -->
+      <RouterLink
+        to="/"
+        class="inline-flex items-center gap-2 text-text-secondary hover:text-accent-coral transition-colors mb-8 animate-fade-up"
+      >
+        <Icon icon="lucide:arrow-left" class="w-4 h-4" />
+        <span class="font-display text-sm tracking-widest uppercase">Trang chủ</span>
+      </RouterLink>
+
+      <h1
+        class="font-display text-6xl md:text-8xl font-bold tracking-tight text-text-primary animate-fade-up"
+      >
+        Computer<span class="text-accent-coral">.</span>Test
+      </h1>
+
+      <div
+        class="mt-8 border-l-4 border-accent-amber pl-5 max-w-2xl animate-fade-up animate-delay-3"
+      >
+        <p class="text-lg text-text-secondary leading-relaxed">
+          Công cụ kiểm tra phần cứng máy tính trực tuyến
+        </p>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="mt-12 flex flex-wrap gap-4 animate-fade-up animate-delay-4">
+        <button
+          v-for="test in ['keyboard', 'screen', 'webcam'] as const"
+          :key="test"
+          class="px-6 py-3 font-display font-semibold transition-all duration-300 border focus:outline-none"
+          :class="
+            currentTest === test
+              ? 'bg-accent-coral border-accent-coral text-bg-deep'
+              : 'border-border-default bg-bg-surface/50 text-text-secondary hover:border-accent-coral hover:text-accent-coral'
+          "
+          @click="currentTest = test"
+        >
+          {{ test.toUpperCase() }}
+        </button>
+      </nav>
+
+      <!-- Dot divider -->
+      <div class="mt-12 flex flex-wrap gap-1.5 animate-fade-up animate-delay-5">
+        <span v-for="n in 40" :key="n" class="w-1 h-1 rounded-full bg-border-default" />
+      </div>
+    </header>
+
+    <!-- Content Area -->
+    <main class="flex-1 w-full max-w-6xl mx-auto px-6">
+      <div v-if="currentTest === 'keyboard'">
+        <KeyboardLayout />
+      </div>
+      <div
+        v-else
+        class="flex flex-col items-center justify-center py-20 bg-bg-surface border border-border-default mb-20"
+      >
+        <Icon icon="lucide:construction" class="w-16 h-16 text-accent-amber mb-4" />
+        <h2 class="font-display text-2xl font-bold text-text-primary uppercase tracking-widest">
+          Under Construction
+        </h2>
+        <p class="mt-2 text-text-secondary px-4 text-center">
+          Tính năng <span class="text-accent-amber uppercase">{{ currentTest }}</span> đang được
+          phát triển. Vui lòng quay lại sau!
+        </p>
+      </div>
+    </main>
+
+    <!-- Footer-like section for SEO/Info -->
+    <footer
+      v-if="currentTest === 'keyboard'"
+      class="bg-bg-surface/30 border-t border-border-default py-16"
+    >
+      <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div>
+          <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
+            <span class="text-accent-sky text-sm tracking-widest font-display">//</span>
+            Hướng dẫn sử dụng
+          </h2>
+          <div class="space-y-4 text-text-secondary text-sm leading-relaxed">
+            <p>
+              1. <strong class="text-accent-sky">Nhấn phím:</strong> Phím trên màn hình sẽ đổi màu
+              khi bạn nhấn phím vật lý tương ứng
+            </p>
+            <p>
+              2. <strong class="text-accent-sky">Màu sắc:</strong> Màu cam biểu thị phím đang nhấn,
+              màu vàng biểu thị phím đã được nhấn
+            </p>
+            <p>
+              3. <strong class="text-accent-sky">Bố cục:</strong> Chuyển đổi giữa các bố cục bàn
+              phím khác nhau
+            </p>
+            <p>
+              4. <strong class="text-accent-sky">Âm thanh:</strong> Bật âm thanh để nghe tiếng gõ
+              phím
+            </p>
+            <p>5. <strong class="text-accent-sky">Đặt lại:</strong> Xóa toàn bộ phím đã nhấn</p>
+          </div>
+        </div>
+        <div>
+          <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
+            <span class="text-accent-amber text-sm tracking-widest font-display">//</span>
+            Tại sao cần test bàn phím?
+          </h2>
+          <p class="text-text-secondary text-sm leading-relaxed">
+            Kiểm tra bàn phím giúp bạn phát hiện các phím bị liệt, bị kẹt hoặc hiện tượng ghosting
+            (không nhận tổ hợp phím)
+            <br />
+            Công cụ này hữu ích khi bạn muốn kiểm tra xem laptop hoặc bàn phím rời có hoạt động hoàn
+            hảo không
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <BackToTop />
+  </div>
+</template>
+
+<style scoped>
+/* Custom scrollbar for keyboard container if needed */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: var(--color-bg-deep);
+}
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+}
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-dim);
+}
+</style>
