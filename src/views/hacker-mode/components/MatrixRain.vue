@@ -5,8 +5,9 @@ import { useRafFn } from '@vueuse/core'
 const props = withDefaults(
   defineProps<{
     opacity?: number
+    rageMode?: boolean
   }>(),
-  { opacity: 0.15 },
+  { opacity: 0.15, rageMode: false },
 )
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -41,6 +42,8 @@ const { pause, resume } = useRafFn(() => {
   ctx.fillStyle = '#00ff41'
   ctx.font = `${FONT_SIZE}px monospace`
 
+  const speedMultiplier = props.rageMode ? 3 : 1
+
   for (let i = 0; i < drops.length; i++) {
     const char = CHARS[Math.floor(Math.random() * CHARS.length)]
     if (char !== undefined) {
@@ -50,7 +53,7 @@ const { pause, resume } = useRafFn(() => {
     if ((drops[i] ?? 0) * FONT_SIZE > canvas.height && Math.random() > 0.975) {
       drops[i] = 0
     }
-    drops[i] = (drops[i] ?? 0) + 1
+    drops[i] = (drops[i] ?? 0) + speedMultiplier
   }
 })
 

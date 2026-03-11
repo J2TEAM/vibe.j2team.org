@@ -1,7 +1,7 @@
 <script setup lang="ts">
 defineProps<{
   title: string
-  type?: 'info' | 'warning' | 'danger' | 'success'
+  type?: 'info' | 'warning' | 'danger' | 'success' | 'cctv' | 'decrypt' | 'recovery'
 }>()
 
 const emit = defineEmits<{
@@ -13,6 +13,9 @@ const colors = {
   warning: '#ffb830',
   danger: '#ff3333',
   success: '#00ff41',
+  cctv: '#00ff41',
+  decrypt: '#00d4ff',
+  recovery: '#ff3333',
 }
 </script>
 
