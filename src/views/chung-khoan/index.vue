@@ -294,6 +294,26 @@ onUnmounted(() => {
       <div
         class="bg-[#161a1e] p-10 rounded-3xl border border-gray-800 shadow-2xl w-full max-w-md text-center border-t-yellow-500/50"
       >
+        <router-link
+          to="/"
+          class="flex items-center justify-center w-10 h-10 mb-2 bg-white/10 hover:bg-white/20 rounded-full transition-all duration-300 backdrop-blur-md border border-white/20 text-white"
+          title="Về trang chủ"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+        </router-link>
         <h1 class="text-3xl font-black text-white mb-2 italic tracking-tighter uppercase">
           GIẢ LẬP<span class="text-yellow-500 ml-2 font-black">LÀM GIÀU</span>
         </h1>
