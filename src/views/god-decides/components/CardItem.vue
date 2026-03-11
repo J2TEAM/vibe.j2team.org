@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
   height: 100%;
   border-radius: 15px;
   overflow: hidden;
-  background: linear-gradient(135deg, #2c0e37, #1a0521);
+  background: linear-gradient(135deg, #061228, #121f39);
 }
 
 .pattern {
@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function () {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #4a1a5e, #2c0e37);
+  background: radial-gradient(circle at 30% 30%, #2d4f85, #182a49);
   border: 2px solid #c9a959;
   box-shadow: 0 0 20px rgba(201, 169, 89, 0.3);
   display: flex;

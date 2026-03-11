@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
       style="
         left: 20%;
         top: 30%;
-        background: radial-gradient(circle at 30% 30%, #e8c3b9, #c67b5c);
+        background: radial-gradient(circle at 30% 30%, #152841, #0b1e34);
         animation-duration: 45s;
       "
     ></div>
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
       style="
         right: 25%;
         top: 60%;
-        background: radial-gradient(circle at 30% 30%, #7b8cde, #5d6cb3);
+        background: radial-gradient(circle at 30% 30%, #1f4f8f, #1f5e94);
         animation-duration: 75s;
       "
     ></div>
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
       style="
         left: 65%;
         top: 15%;
-        background: radial-gradient(circle at 30% 30%, #f5dd90, #f7a440);
+        background: radial-gradient(circle at 30% 30%, #88bcd8, #4f8ac4);
         animation-duration: 60s;
       "
     ></div>
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function () {
   height: 100vh;
   width: 100%;
   overflow: hidden;
-  background: linear-gradient(125deg, #0f0c29, #302b63, #24243e);
+  background: linear-gradient(125deg, #000000, #050f1b, #010e20);
 }
 
 .stars {

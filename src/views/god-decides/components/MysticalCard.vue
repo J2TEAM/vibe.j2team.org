@@ -338,7 +338,7 @@ function getCardStyle(index: number) {
 }
 
 .mystical-button {
-  background: linear-gradient(135deg, #4a2b7e 0%, #7b4ed0 100%);
+  background: linear-gradient(135deg, #071729 0%, #1a2a44 100%);
   border: 2px solid #ffd700;
   color: #ffffff;
   padding: 0.8rem 2rem;
@@ -349,7 +349,7 @@ function getCardStyle(index: number) {
   position: relative;
   overflow: hidden;
   z-index: 1;
-  box-shadow: 0 0 15px rgba(123, 78, 208, 0.5);
+  box-shadow: 0 0 15px rgba(12, 33, 58, 0.5);
 }
 
 .mystical-button::before {
@@ -366,7 +366,7 @@ function getCardStyle(index: number) {
 
 .mystical-button:hover {
   transform: translateY(-3px);
-  box-shadow: 0 7px 20px rgba(123, 78, 208, 0.7);
+  box-shadow: 0 7px 20px rgba(44, 98, 166, 0.7);
 }
 
 .mystical-button:hover::before {
@@ -567,7 +567,7 @@ function getCardStyle(index: number) {
 
 /* Astrology-styled card back */
 .card-back-face {
-  background: linear-gradient(135deg, #0f0524 0%, #1a0b2e 50%, #2a1a4a 100%);
+  background: linear-gradient(135deg, #0a1a2f 0%, #133355 50%, #1d4e75 100%);
   border: 3px solid #ffd700;
   position: absolute;
   z-index: 1;
@@ -586,8 +586,8 @@ function getCardStyle(index: number) {
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
   background: radial-gradient(
     circle at center,
-    rgba(123, 78, 208, 0.2) 0%,
-    rgba(15, 5, 36, 0.8) 70%
+    rgba(88, 125, 154, 0.2) 0%,
+    rgba(12, 24, 56, 0.8) 70%
   );
   z-index: 1;
 }
