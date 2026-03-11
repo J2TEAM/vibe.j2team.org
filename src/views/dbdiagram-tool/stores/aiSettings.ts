@@ -1,26 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 
-export type AIProvider = 'gemini' | 'openai' | 'claude' | 'openrouter-gemini'
-
-export const MODELS = {
-  GEMINI_FLASH_1_5: 'google/gemini-flash-1.5-8b-exp:free',
-  GEMINI_PRO_1_5: 'google/gemini-pro-1.5-exp:free',
-  LLAMA_3_1_8B: 'meta-llama/llama-3.1-8b-instruct:free',
-  LLAMA_3_3_70B: 'meta-llama/llama-3.3-70b-instruct:free',
-  MISTRAL_7B: 'mistralai/mistral-7b-instruct:free',
-  GLM_4_9B: 'z-ai/glm-4-9b-chat:free',
-  GEMINI_FLASH_2_0: 'google/gemini-2.0-flash-001',
-  CLAUDE_3_5_SONNET: 'anthropic/claude-3.5-sonnet',
-} as const
-
-export const DEFAULT_MODEL = MODELS.LLAMA_3_1_8B
+export type AIProvider = 'gemini' | 'openai' | 'claude'
 
 export const useAiSettingsStore = defineStore('db-diagram-ai-settings', () => {
   const apiKeys = ref<Record<string, string>>({})
 
   // Load initially
-  const providers: AIProvider[] = ['gemini', 'openai', 'claude', 'openrouter-gemini']
+  const providers: AIProvider[] = ['gemini', 'openai', 'claude']
   providers.forEach((p) => {
     const saved = localStorage.getItem(`db_diagram_key_${p}`)
     if (saved) apiKeys.value[p] = saved
@@ -53,6 +40,5 @@ export const useAiSettingsStore = defineStore('db-diagram-ai-settings', () => {
     apiKeys,
     getApiKey,
     setApiKey,
-    DEFAULT_MODEL,
   }
 })
