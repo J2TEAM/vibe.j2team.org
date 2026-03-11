@@ -7,6 +7,7 @@ const meta: PageMeta = {
   author: 'J2TEAM',
   facebook: 'https://www.facebook.com/groups/j2team.community',
   category: 'learn',
+  hidden: true,
 }
 
 export default meta

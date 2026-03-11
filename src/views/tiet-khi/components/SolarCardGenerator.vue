@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { toPng } from 'html-to-image'
 import type { SolarTerm } from '../types'
 import { articles } from '../articles'
 
@@ -23,6 +22,8 @@ const exportCard = async () => {
     // Chờ một chút để font chữ và mọi thứ render ổn định
     await new Promise((resolve) => setTimeout(resolve, 500))
 
+    // Dynamic import to avoid bundling html-to-image into the main chunk
+    const { toPng } = await import('html-to-image')
     const dataUrl = await toPng(cardRef.value, {
       quality: 1.0,
       pixelRatio: 3, // Higher quality for wallpapers
