@@ -1,34 +1,78 @@
-# Computer Test - Keyboard Module
+# Computer Test
 
-Module này cung cấp công cụ kiểm tra bàn phím trực tuyến tương tự `keytest.vn`, nhưng được tích hợp vào hệ thống thiết kế của `vibe.j2team.org`.
+Công cụ kiểm tra phần cứng máy tính trực tuyến, tích hợp vào hệ thống thiết kế của `vibe.j2team.org`.
 
-## Chức năng chính
-- **Kiểm tra phím (Key Event):** Nhận diện `keydown` và `keyup` để thay đổi trạng thái màu sắc trên bàn phím ảo.
-- **Hỗ trợ nhiều Layout:** 
-  - **100%:** Full-size keyboard với Numpad.
-  - **80% (TKL):** Lược bỏ Numpad.
-  - **60%:** Lược bỏ Numpad, hàng phím Function (F1-F12) và cụm phím điều hướng.
-- **Thống kê (Stats):** 
-  - Số lượng phím đang được giữ (Active Keys).
-  - Tổng số lần nhấn phím (Total Presses).
-  - Phím được nhấn nhiều nhất.
-  - Mã phím (Key Code) cuối cùng và khoảng thời gian giữa các lần nhấn.
-- **Tính năng mở rộng:** Cấu hình hệ điều hành (Windows/Mac), loại máy (Desktop/Laptop), âm thanh và ô nhập liệu để test gõ văn bản thực tế.
+Route: `/computer-test`
+
+---
+
+## Các module kiểm tra
+
+### ⌨️ Bàn phím (Keyboard)
+Kiểm tra từng phím có hoạt động không
+- Nhận diện sự kiện `keydown` / `keyup`, đổi màu phím trên bàn phím ảo khi nhấn
+- Hỗ trợ 3 layout: **100%** (Full + Numpad), **80% TKL** (không Numpad), **60%** (compact)
+- Thống kê phím đang giữ, tổng lần nhấn, phím nhấn nhiều nhất, key code, thời gian giữa 2 nhấn
+- Cấu hình Windows/Mac, Desktop/Laptop, bật/tắt âm thanh gõ phím
+
+### 🖥️ Màn hình (Screen)
+Kiểm tra dead pixel và stuck pixel
+- Hiển thị toàn màn hình với từng màu thuần (đen, trắng, đỏ, xanh lá, xanh dương...)
+- Điều hướng bằng phím `←` `→` hoặc click chuột để đổi màu
+- Nhấn `ESC` để thoát chế độ kiểm tra
+
+### 📷 Webcam
+Kiểm tra camera có hoạt động không
+- Tự động yêu cầu quyền truy cập camera
+- Hiển thị danh sách camera, xem hình ảnh trực tiếp (live preview)
+- Hỗ trợ nhiều camera, có nút "Quét lại" khi kết nối camera mới
+
+### 🎙️ Micro (Microphone)
+Kiểm tra micro có thu âm được không
+- Quét danh sách micro, ưu tiên chọn micro mặc định (Default)
+- Hiển thị thanh âm lượng realtime (Web Audio API)
+- Điều chỉnh gain (âm lượng thu), thu âm và phát lại để nghe kết quả
+
+### 🔊 Loa (Speaker)
+Kiểm tra loa/tai nghe
+- Phát các âm thanh thử nghiệm: kênh trái, kênh phải, stereo, bass, mid, treble
+- Điều chỉnh âm lượng trước khi phát
+- Giúp phát hiện mất kênh, tiếng rè, hoặc vấn đề dải tần
+
+### 🔋 Pin (Battery)
+Xem trạng thái pin hiện tại (laptop)
+- Đọc thông tin qua Battery Status API: mức pin (%), đang sạc hay xả, thời gian còn lại
+- Phát hiện trường hợp không có pin (PC, laptop tháo pin, pin hỏng, hoặc trình duyệt chặn API)
+- Cảnh báo khi pin yếu (≤ 20%)
+- Kèm lệnh PowerShell (`irm j2c.cc/batterycheck | iex`) để kiểm tra sức khỏe pin chi tiết trên Windows
+
+---
 
 ## Cấu trúc thư mục
-- `components/`:
-  - `KeyboardKey.vue`: Component hiển thị từng phím đơn lẻ.
-  - `KeyboardLayout.vue`: Component chính quản lý toàn bộ sơ đồ bàn phím và logic hiển thị.
-- `composables/`:
-  - `useKeyboardState.ts`: Quản lý logic sự kiện bàn phím, trạng thái các phím và thống kê.
-- `constants/`:
-  - `keyboard.ts`: Khai báo dữ liệu cấu trúc cho các hàng phím.
-- `index.vue`: Trang chủ của Computer Test, tích hợp module Keyboard.
-- `meta.ts`: Khai báo metadata cho hệ thống router của dự án.
 
-## Cách chạy
-Truy cập route `/computer-test` trên trình duyệt.
+```
+computer-test/
+├── index.vue                    # Trang chính, điều hướng giữa các tab
+├── meta.ts                      # Metadata cho router (title, description...)
+├── components/
+│   ├── KeyboardKey.vue          # Component hiển thị từng phím đơn
+│   ├── KeyboardLayout.vue       # Layout bàn phím + logic hiển thị
+│   ├── ScreenTest.vue           # Kiểm tra màn hình (dead pixel)
+│   ├── WebcamTest.vue           # Kiểm tra webcam
+│   ├── MicTest.vue              # Kiểm tra micro + thu âm
+│   ├── SpeakerTest.vue          # Kiểm tra loa
+│   └── BatteryTest.vue          # Kiểm tra pin
+├── composables/
+│   └── useKeyboardState.ts      # Logic sự kiện bàn phím, thống kê
+└── constants/
+    └── keyboard.ts              # Dữ liệu cấu trúc hàng phím
+```
+
+---
 
 ## Lưu ý
-- Các phím hệ thống (như F1, F3, Alt, Tab) có thể bị trình duyệt chặn một số hành động mặc định.
-- Giao diện sử dụng phong cách **Retro-Futuristic Editorial** với các góc nhọn và màu nhấn đặc trưng (Coral, Amber, Sky).
+
+- **Webcam / Micro:** Trình duyệt yêu cầu cấp quyền, và chỉ hoạt động trên HTTPS hoặc `localhost`
+- **Battery API:** Chrome desktop đã tắt Battery API vì lý do riêng tư — kết quả có thể không hiển thị đầy đủ. Dùng Firefox hoặc trình duyệt mobile để có kết quả tốt hơn
+- **Phím hệ thống:** Một số phím như `F1`, `Alt`, `Tab` có thể bị trình duyệt chặn hành động mặc định
+- **Giao diện:** Áp dụng phong cách **Retro-Futuristic Editorial** theo `DESIGN_SYSTEM.md` với màu nhấn Coral, Amber, Sky.
