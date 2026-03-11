@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, defineAsyncComponent } from 'vue'
 import type { GameConfig } from './types'
 import StartScreen from './components/StartScreen.vue'
-import GameScreen from './components/GameScreen.vue'
-import ResultScreen from './components/ResultScreen.vue'
+
+const GameScreen = defineAsyncComponent(() => import('./components/GameScreen.vue'))
+const ResultScreen = defineAsyncComponent(() => import('./components/ResultScreen.vue'))
 
 type Screen = 'start' | 'game' | 'result'
 
