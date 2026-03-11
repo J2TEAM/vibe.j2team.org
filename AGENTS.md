@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-vibe.j2team.org — A collaborative vibe coding project by J2TEAM Community with 55+ sub-pages. The homepage acts as a launcher linking to sub-pages, where each community member creates their own page.
+vibe.j2team.org — A collaborative vibe coding project by J2TEAM Community with 90+ sub-apps. The homepage acts as a launcher linking to sub-apps, where each community member creates their own page.
 
 ## Tech Stack
 
@@ -13,6 +13,8 @@ vibe.j2team.org — A collaborative vibe coding project by J2TEAM Community with
 - Vue Router 5
 - Pinia 3
 - @unhead/vue (document head/meta management)
+- @vueuse/core 14 — 200+ Vue composables (useMouse, useClipboard, useDark, useStorage, useIntersectionObserver, useLocalStorage, useMediaQuery, useWindowSize, etc.)
+- @iconify/vue — 200,000+ icons from 150+ icon sets via `<Icon icon="icon-set:icon-name" />` component
 
 ## Setup & Build
 
@@ -37,7 +39,7 @@ src/
   types/page.ts              # PageMeta & PageInfo interfaces
   data/
     pages-loader.ts          # Auto-discovers views/*/meta.ts via import.meta.glob()
-    categories.ts            # Category definitions (game, tool, fun, learn, spiritual, connect)
+    categories.ts            # Category definitions (game, tool, fun, learn, spiritual, connect, other)
     homepage.ts              # Homepage content data (tech stack, rules, products)
     constants.ts             # Shared constants
   components/
@@ -77,6 +79,48 @@ Key rules:
 
 Read `docs/DESIGN_SYSTEM.md` before making any visual changes.
 
+## Leveraging Installed Libraries
+
+### @vueuse/core (MUST use before writing custom code)
+
+Before implementing any browser/DOM/state logic, **check if VueUse already has a composable for it**. Common composables to use instead of custom code:
+
+- **Storage**: `useLocalStorage()`, `useSessionStorage()` — not `localStorage.getItem/setItem`
+- **DOM events**: `useEventListener()` — not manual `addEventListener/removeEventListener`
+- **Clipboard**: `useClipboard()` — not `navigator.clipboard` directly
+- **Dark mode**: `useDark()`, `useColorMode()` — not manual class toggling
+- **Timers**: `useInterval()`, `useTimeout()`, `useIntervalFn()` — not raw `setInterval/setTimeout`
+- **Mouse/Touch**: `useMouse()`, `usePointer()`, `useSwipe()` — not manual event handlers
+- **Viewport**: `useWindowSize()`, `useElementSize()`, `useIntersectionObserver()` — not manual resize/scroll listeners
+- **Media**: `useMediaQuery()` — not `window.matchMedia` directly
+- **Network**: `useFetch()`, `useOnline()` — not raw `fetch` with manual reactive state
+- **Animation**: `useTransition()`, `useRafFn()` — not manual `requestAnimationFrame`
+- **Reactivity**: `watchDebounced()`, `watchThrottled()`, `refDebounced()` — not custom debounce/throttle implementations
+
+Full list: https://vueuse.org/functions.html
+
+**Live reference**: See `src/views/hello-world/index.vue` for interactive demos of the composables listed above.
+
+### @iconify/vue (MUST use for all icons)
+
+Use the `<Icon>` component for all icons instead of inline SVGs, emoji characters, or custom icon components:
+
+```vue
+<script setup lang="ts">
+import { Icon } from '@iconify/vue'
+</script>
+
+<template>
+  <Icon icon="mdi:home" />
+  <Icon icon="heroicons:arrow-left" class="size-5" />
+  <Icon icon="lucide:settings" :width="24" />
+</template>
+```
+
+**Preferred icon set: `lucide`** (e.g., `lucide:home`, `lucide:settings`, `lucide:arrow-left`). Only use other sets (`mdi`, `heroicons`, `ph`, `tabler`, `ri`, `solar`, `ion`) if Lucide doesn't have the needed icon. Browse at https://icon-sets.iconify.design/
+
+**Live reference**: See `src/views/hello-world/index.vue` for icon usage examples across multiple icon sets.
+
 ## Code Conventions
 
 - Use `<script setup lang="ts">` for all Vue components
@@ -103,12 +147,19 @@ Before implementing any new feature or sub-page, agents MUST:
 4. **No duplicate sub-apps** — check existing directories in `src/views/` before creating a new page
 5. **Each sub-page is self-contained** — only work within your page's directory, do not modify shared files (`App.vue`, `main.css`, `router/index.ts`). Routes are auto-generated from the `meta.ts` file in each page directory
 6. **Responsive** — pages must display well on mobile
-7. **No new dependencies** in `package.json` unless truly needed and approved. However, the following libraries are **pre-approved** and can be used freely without additional approval:
-   - `@vueuse/core` — Collection of 200+ Vue composables (useMouse, useClipboard, useDark, useStorage, etc.)
-   - `@iconify/vue` — 200,000+ icons from 150+ icon sets in one component
+7. **No new dependencies** in `package.json` unless truly needed and approved. The following libraries are **already installed** — use them freely (see "Leveraging Installed Libraries" section above):
+   - `@vueuse/core` — Vue composables
+   - `@iconify/vue` — Icon component
+
+   The following are **pre-approved** and can be added without additional approval:
    - `vue-konva` — 2D canvas library for drawing, games, and interactive graphics
    - `shiki` — Syntax highlighter
 8. **Author attribution required** — every page must have an `author` field in its `meta.ts` file
+9. **No landing pages or promotional content** — Pages must provide direct, self-contained value to users (e.g., a game, tool, interactive experience, or educational content). The following are **not accepted**:
+   - Landing pages or showcase pages for external products, services, or brands
+   - Pages whose primary purpose is to redirect users to external websites or services
+   - Advertising, marketing, or affiliate content
+   - Portfolio/brochure pages that only display static information about an external entity
 
 ## Recommended Internal Structure
 
@@ -146,11 +197,63 @@ Apps can import from these directories but are never required to. Each app remai
 
 ## Adding a New Page
 
+Run the generator script:
+
+```sh
+# Interactive (prompts for missing fields)
+pnpm create:page <slug>
+
+# Non-interactive (all fields via flags — use this in scripts and AI agents)
+pnpm create:page <slug> --name "Display Name" --description "Page description" --author "Author" --category game [--facebook "https://..."] [--hide-toolbar]
+```
+
+Available categories: `game`, `tool`, `fun`, `learn`, `spiritual`, `connect`, `other`.
+
+This creates `src/views/<slug>/index.vue` + `meta.ts` with the correct structure. Any flag not provided will be prompted interactively.
+
+**Manual alternative** (if not using the script):
+
 1. Create a new directory under `src/views/<your-page-name>/`
 2. Add `index.vue` as the main component inside that directory
-3. Add `meta.ts` exporting a `PageMeta` object with: `name`, `description`, `author`, and optionally `facebook` and `category`
-4. Available categories: `game`, `tool`, `fun`, `learn`, `spiritual`, `connect`
+3. Add `meta.ts` exporting a `PageMeta` object with: `name`, `description`, `author`, `category`, and optionally `facebook`, `showToolbar`
+4. Available categories: `game`, `tool`, `fun`, `learn`, `spiritual`, `connect`, `other`
 5. The route is auto-generated from the folder name — no router changes needed
+
+## Edge Toolbar
+
+An **EdgeToolbar** (`src/components/EdgeToolbar.vue`) is displayed on all sub-pages by default. It slides out from the right edge of the screen on hover and provides:
+
+- **View source code** — link to the page's source on GitHub
+- **Bookmark** — add/remove the page from favorites (persisted in localStorage)
+- **Home** — navigate back to the homepage
+- **Dismiss** — hide the toolbar for the current session (reappears on page reload)
+
+### Behavior
+
+- The trigger tab is flush to the right edge of the viewport, semi-transparent (`opacity-50`) when idle
+- On hover, it becomes fully opaque and the panel slides out with button labels
+- The toolbar is rendered in `App.vue` outside `<RouterView>`, so it's independent of sub-page content
+- Uses scoped styles and design system tokens (`bg-bg-elevated`, `text-text-secondary`, `border-border-default`, `font-display`)
+
+### Opting out
+
+Authors can disable the toolbar on their page if it interferes with their layout (e.g., a full-screen game). Add `showToolbar: false` to your `meta.ts`:
+
+```ts
+import type { PageMeta } from '@/types/page'
+
+const meta: PageMeta = {
+  name: 'My Page',
+  description: '...',
+  author: 'Author',
+  category: 'game',
+  showToolbar: false, // Disable the edge toolbar on this page
+}
+
+export default meta
+```
+
+Default is `true` — the toolbar is shown unless explicitly disabled.
 
 ## Path Aliases
 
@@ -178,4 +281,5 @@ Apps can import from these directories but are never required to. Each app remai
 - Oxlint (Rust-based linter, runs before ESLint) — config in `.oxlintrc.json`
 - Oxfmt for formatting — config in `.oxfmtrc.json` (no semicolons, single quotes)
 - Prettier config exists for compatibility (eslint-config-prettier)
-- Pre-commit: `simple-git-hooks` + `lint-staged` runs linters on staged files
+- Commitlint with `@commitlint/config-conventional` — commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/) format (e.g., `feat:`, `fix:`, `chore:`)
+- Pre-commit: `simple-git-hooks` + `lint-staged` runs linters on staged files and auto-optimizes images (`.png`, `.jpg`, `.jpeg`, `.webp`) via `sharp`

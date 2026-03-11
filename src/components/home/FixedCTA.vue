@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
+import { useIntersectionObserver } from '@vueuse/core'
+import { Icon } from '@iconify/vue'
 
 const props = defineProps<{
   observeTarget: HTMLElement | undefined
@@ -10,49 +12,21 @@ const pastHero = ref(false)
 const footerVisible = ref(false)
 const visible = computed(() => pastHero.value && !footerVisible.value)
 
-let heroObserver: IntersectionObserver | null = null
-let footerObserver: IntersectionObserver | null = null
-
-watch(
+useIntersectionObserver(
   () => props.observeTarget,
-  (target) => {
-    heroObserver?.disconnect()
-    if (!target || typeof IntersectionObserver === 'undefined') return
-
-    heroObserver = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0]
-        if (entry) pastHero.value = !entry.isIntersecting
-      },
-      { threshold: 0 },
-    )
-    heroObserver.observe(target)
+  ([entry]) => {
+    if (entry) pastHero.value = !entry.isIntersecting
   },
-  { immediate: true },
+  { threshold: 0 },
 )
 
-watch(
+useIntersectionObserver(
   () => props.hideTarget,
-  (target) => {
-    footerObserver?.disconnect()
-    if (!target || typeof IntersectionObserver === 'undefined') return
-
-    footerObserver = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0]
-        if (entry) footerVisible.value = entry.isIntersecting
-      },
-      { threshold: 0 },
-    )
-    footerObserver.observe(target)
+  ([entry]) => {
+    if (entry) footerVisible.value = entry.isIntersecting
   },
-  { immediate: true },
+  { threshold: 0 },
 )
-
-onUnmounted(() => {
-  heroObserver?.disconnect()
-  footerObserver?.disconnect()
-})
 </script>
 
 <template>
@@ -62,6 +36,7 @@ onUnmounted(() => {
       href="#cach-tham-gia"
       class="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 border border-accent-coral bg-accent-coral/10 px-6 py-2.5 font-display font-semibold text-accent-coral tracking-wide backdrop-blur-sm transition-all duration-300 hover:bg-accent-coral hover:text-bg-deep"
     >
+      <Icon icon="lucide:rocket" class="inline w-4 h-4 -mt-0.5" />
       Tham gia ngay
     </a>
   </Transition>

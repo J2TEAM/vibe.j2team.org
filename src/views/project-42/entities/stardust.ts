@@ -5,44 +5,44 @@
  * for cinematic flickering and atmospheric pulsing.
  */
 export function createStardust(THREE: any, particlesCount: number) {
-  const originalPositions = new Float32Array(particlesCount * 3);
-  const currentPositions = new Float32Array(particlesCount * 3);
-  const colors = new Float32Array(particlesCount * 3);
-  const sizes = new Float32Array(particlesCount);
-  const brightness = new Float32Array(particlesCount);
+  const originalPositions = new Float32Array(particlesCount * 3)
+  const currentPositions = new Float32Array(particlesCount * 3)
+  const colors = new Float32Array(particlesCount * 3)
+  const sizes = new Float32Array(particlesCount)
+  const brightness = new Float32Array(particlesCount)
 
   // Initialize particles in a spherical distribution
   for (let i = 0; i < particlesCount; i++) {
-    const radius = Math.random() * 40;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(Math.random() * 2 - 1);
+    const radius = Math.random() * 40
+    const theta = Math.random() * Math.PI * 2
+    const phi = Math.acos(Math.random() * 2 - 1)
 
-    const x = radius * Math.sin(phi) * Math.cos(theta);
-    const y = radius * Math.sin(phi) * Math.sin(theta);
-    const z = radius * Math.cos(phi);
+    const x = radius * Math.sin(phi) * Math.cos(theta)
+    const y = radius * Math.sin(phi) * Math.sin(theta)
+    const z = radius * Math.cos(phi)
 
-    originalPositions[i * 3] = x;
-    originalPositions[i * 3 + 1] = y;
-    originalPositions[i * 3 + 2] = z;
+    originalPositions[i * 3] = x
+    originalPositions[i * 3 + 1] = y
+    originalPositions[i * 3 + 2] = z
 
-    currentPositions[i * 3] = x;
-    currentPositions[i * 3 + 1] = y;
-    currentPositions[i * 3 + 2] = z;
+    currentPositions[i * 3] = x
+    currentPositions[i * 3 + 1] = y
+    currentPositions[i * 3 + 2] = z
 
     // Default: Cinematic White spectrum
-    colors[i * 3] = 1.0;
-    colors[i * 3 + 1] = 1.0;
-    colors[i * 3 + 2] = 1.0;
+    colors[i * 3] = 1.0
+    colors[i * 3 + 1] = 1.0
+    colors[i * 3 + 2] = 1.0
 
-    sizes[i] = 0.5 + Math.pow(Math.random(), 3.0) * 7.0;
-    brightness[i] = 0.5 + Math.random() * 0.5;
+    sizes[i] = 0.5 + Math.pow(Math.random(), 3.0) * 7.0
+    brightness[i] = 0.5 + Math.random() * 0.5
   }
 
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.BufferAttribute(currentPositions, 3));
-  geometry.setAttribute("aColor", new THREE.BufferAttribute(colors, 3));
-  geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
-  geometry.setAttribute("aBrightness", new THREE.BufferAttribute(brightness, 1));
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.BufferAttribute(currentPositions, 3))
+  geometry.setAttribute('aColor', new THREE.BufferAttribute(colors, 3))
+  geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1))
+  geometry.setAttribute('aBrightness', new THREE.BufferAttribute(brightness, 1))
 
   const material = new THREE.ShaderMaterial({
     uniforms: {
@@ -88,10 +88,10 @@ export function createStardust(THREE: any, particlesCount: number) {
     blending: THREE.AdditiveBlending,
     depthTest: false,
     depthWrite: false,
-  });
+  })
 
-  const points = new THREE.Points(geometry, material);
-  points.renderOrder = 10;
+  const points = new THREE.Points(geometry, material)
+  points.renderOrder = 10
 
-  return { points, originalPositions };
+  return { points, originalPositions }
 }

@@ -1,8 +1,10 @@
 import { ref } from 'vue'
+import { useClipboard } from '@vueuse/core'
 
 import type { CopyStatus, OutputTone } from '../types'
 
 export function useClipboardStatus() {
+  const { copy } = useClipboard()
   const copyStatus = ref<CopyStatus | null>(null)
   let copyTimer = 0
 
@@ -21,7 +23,7 @@ export function useClipboardStatus() {
     }
 
     try {
-      await navigator.clipboard.writeText(value)
+      await copy(value)
       setCopyStatus(key, 'success', 'Đã copy vào clipboard.')
     } catch {
       setCopyStatus(key, 'error', 'Trình duyệt không cho phép copy tự động.')

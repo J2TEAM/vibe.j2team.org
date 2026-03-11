@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, defineAsyncComponent } from 'vue'
 import { useWasmEngine } from './composables/useWasmEngine'
 import { useGameState } from './composables/useGameState'
 
@@ -7,12 +7,21 @@ import GameMenu from './components/GameMenu.vue'
 import ScoreBoard from './components/ScoreBoard.vue'
 import GameBoard from './components/GameBoard.vue'
 import GameOverModal from './components/GameOverModal.vue'
-import MusicVideo from './components/MusicVideo.vue'
-import MusicVideoHoaChanh from './components/MusicVideoHoaChanh.vue'
+
+const MusicVideo = defineAsyncComponent(() => import('./components/MusicVideo.vue'))
+const MusicVideoHoaChanh = defineAsyncComponent(() => import('./components/MusicVideoHoaChanh.vue'))
 
 const { engine, loading, error } = useWasmEngine()
-const { state, startGame, selectTile, requestHint, requestShuffle, tick, backToMenu, clearMatchAnimation } =
-  useGameState(engine)
+const {
+  state,
+  startGame,
+  selectTile,
+  requestHint,
+  requestShuffle,
+  tick,
+  backToMenu,
+  clearMatchAnimation,
+} = useGameState(engine)
 
 const mode = ref<'launcher' | 'game' | 'mv-intro' | 'mv-hoa-chanh'>('launcher')
 const TILE_SIZE = 48
@@ -71,19 +80,25 @@ const showGameOver = computed(() => state.value.status === 'won' || state.value.
 <template>
   <div class="min-h-screen bg-bg-deep text-text-primary selection:bg-accent-coral/30">
     <!-- Header/Nav -->
-    <header class="border-b border-border-default bg-bg-surface/80 px-6 py-4 backdrop-blur-md sticky top-0 z-40">
+    <header
+      class="border-b border-border-default bg-bg-surface/80 px-6 py-4 backdrop-blur-md sticky top-0 z-40"
+    >
       <div class="mx-auto flex max-w-7xl items-center justify-between">
         <RouterLink
           to="/"
           class="group flex items-center gap-2 font-display text-sm font-bold tracking-widest text-text-primary transition hover:text-accent-coral"
         >
-          <span class="opacity-50 transition group-hover:-translate-x-1 group-hover:opacity-100">←</span>
+          <span class="opacity-50 transition group-hover:-translate-x-1 group-hover:opacity-100"
+            >←</span
+          >
           VỀ TRANG CHỦ
         </RouterLink>
 
         <!-- Trạng thái load engine -->
         <div v-if="loading" class="flex flex-col items-center">
-          <div class="loading-spinner mb-2 h-6 w-6 rounded-full border-2 border-accent-coral/30 border-t-accent-coral animate-spin" />
+          <div
+            class="loading-spinner mb-2 h-6 w-6 rounded-full border-2 border-accent-coral/30 border-t-accent-coral animate-spin"
+          />
           <span class="text-sm text-text-secondary">Đang tải WebAssembly Core...</span>
         </div>
         <div v-else-if="error" class="text-accent-coral font-medium flex items-center gap-2">
@@ -103,10 +118,7 @@ const showGameOver = computed(() => state.value.status === 'won' || state.value.
         />
       </template>
       <template v-else-if="mode === 'mv-hoa-chanh'">
-        <MusicVideoHoaChanh
-          :engine="engine!"
-          @back="handleBackToLauncher"
-        />
+        <MusicVideoHoaChanh :engine="engine!" @back="handleBackToLauncher" />
       </template>
 
       <!-- Content -->
@@ -138,29 +150,43 @@ const showGameOver = computed(() => state.value.status === 'won' || state.value.
                   @click="handleBackToLauncher"
                 >
                   <span class="text-xl leading-none transition group-hover:scale-110">🏠</span>
-                  <span class="font-display text-[10px] sm:text-xs font-bold tracking-wider text-text-secondary group-hover:text-text-primary uppercase">Thoát</span>
+                  <span
+                    class="font-display text-[10px] sm:text-xs font-bold tracking-wider text-text-secondary group-hover:text-text-primary uppercase"
+                    >Thoát</span
+                  >
                 </button>
 
                 <button
                   class="group flex flex-col items-center justify-center gap-1.5 border border-border-default bg-bg-elevated py-2 transition hover:border-accent-amber"
                   @click="requestHint"
                 >
-                  <span class="text-accent-amber text-xl leading-none transition group-hover:scale-110">💡</span>
-                  <span class="font-display text-[10px] sm:text-xs font-bold tracking-wider">GỢI Ý (-20đ)</span>
+                  <span
+                    class="text-accent-amber text-xl leading-none transition group-hover:scale-110"
+                    >💡</span
+                  >
+                  <span class="font-display text-[10px] sm:text-xs font-bold tracking-wider"
+                    >GỢI Ý (-20đ)</span
+                  >
                 </button>
 
                 <button
                   class="group flex flex-col items-center justify-center gap-1.5 border border-border-default bg-bg-elevated py-2 transition hover:border-blue-400"
                   @click="requestShuffle"
                 >
-                  <span class="text-blue-400 text-xl leading-none transition group-hover:rotate-180">🔀</span>
-                  <span class="font-display text-[10px] sm:text-xs font-bold tracking-wider">XÁO BÀI (-50đ)</span>
+                  <span class="text-blue-400 text-xl leading-none transition group-hover:rotate-180"
+                    >🔀</span
+                  >
+                  <span class="font-display text-[10px] sm:text-xs font-bold tracking-wider"
+                    >XÁO BÀI (-50đ)</span
+                  >
                 </button>
               </div>
             </div>
 
             <!-- Game Board -->
-            <div class="flex justify-center border border-border-default bg-bg-surface p-6 shadow-2xl">
+            <div
+              class="flex justify-center border border-border-default bg-bg-surface p-6 shadow-2xl"
+            >
               <GameBoard
                 :key="`board-${state.boardVersion}`"
                 :engine="engine!"
@@ -199,7 +225,13 @@ const showGameOver = computed(() => state.value.status === 'won' || state.value.
   animation: fadeIn 0.4s ease-out;
 }
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

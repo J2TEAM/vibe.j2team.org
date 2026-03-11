@@ -13,6 +13,9 @@ export default defineConfig({
       output: {
         manualChunks: {
           'vue-vendor': ['vue', 'vue-router', 'pinia'],
+          'vueuse-vendor': ['@vueuse/core'],
+          'iconify-vendor': ['@iconify/vue'],
+          'unhead-vendor': ['@unhead/vue'],
         },
       },
     },

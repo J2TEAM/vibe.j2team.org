@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import { Icon } from '@iconify/vue'
 import { REPO_URL } from '@/data/constants'
 </script>
 
@@ -45,12 +46,14 @@ import { REPO_URL } from '@/data/constants'
         href="#cach-tham-gia"
         class="inline-block border border-accent-coral bg-accent-coral/10 px-6 py-3 font-display font-semibold text-accent-coral tracking-wide transition-all duration-300 hover:bg-accent-coral hover:text-bg-deep"
       >
+        <Icon icon="lucide:rocket" class="inline w-4 h-4 -mt-0.5" />
         Tham gia ngay
       </a>
       <RouterLink
         to="/leaderboard"
-        class="inline-block border border-accent-sky bg-accent-sky/10 px-6 py-3 font-display font-semibold text-accent-sky tracking-wide transition-all duration-300 hover:bg-accent-sky hover:text-bg-deep"
+        class="inline-flex items-center gap-2 border border-accent-sky bg-accent-sky/10 px-6 py-3 font-display font-semibold text-accent-sky tracking-wide transition-all duration-300 hover:bg-accent-sky hover:text-bg-deep"
       >
+        <Icon icon="lucide:trophy" class="w-4 h-4" />
         Top đóng góp
       </RouterLink>
       <a

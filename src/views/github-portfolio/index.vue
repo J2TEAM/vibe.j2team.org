@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useClipboard } from '@vueuse/core'
+import { useHead } from '@unhead/vue'
 
 // ── Types ──────────────────────────────────────────────
 interface GitHubUser {
@@ -139,6 +141,34 @@ const shareUrl = computed(() => {
 const copied = ref(false)
 const downloadingCard = ref(false)
 
+// ── Head Management ──────────────────────────────────
+useHead({
+  title: computed(() =>
+    user.value
+      ? `${user.value.name || user.value.login} - GitHub Portfolio`
+      : 'GitHub Portfolio - vibe.j2team.org',
+  ),
+  meta: computed(() => {
+    if (!user.value) return []
+    const u = user.value
+    const title = `${u.name || u.login} - GitHub Portfolio`
+    const description =
+      u.bio ||
+      `Xem portfolio GitHub của ${u.name || u.login}: ${u.public_repos} repos, ${fmt(totalStars.value)} stars, ${u.followers} followers`
+    return [
+      { property: 'og:title', content: title },
+      { property: 'og:description', content: description },
+      { property: 'og:image', content: u.avatar_url },
+      { property: 'og:url', content: shareUrl.value },
+      { property: 'og:type', content: 'profile' },
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:title', content: title },
+      { name: 'twitter:description', content: description },
+      { name: 'twitter:image', content: u.avatar_url },
+    ]
+  }),
+})
+
 // ── Developer Score ────────────────────────────────────
 const originalRepos = computed(() => repos.value.filter((r) => !r.fork))
 const devScore = computed(() => {
@@ -200,72 +230,6 @@ const devInsights = computed(() => {
   return insights.slice(0, 4)
 })
 
-function updateMetaTags() {
-  if (!user.value) return
-  const u = user.value
-  const title = `${u.name || u.login} - GitHub Portfolio`
-  const description =
-    u.bio ||
-    `Xem portfolio GitHub của ${u.name || u.login}: ${u.public_repos} repos, ${fmt(totalStars.value)} stars, ${u.followers} followers`
-  const url = shareUrl.value
-  const image = u.avatar_url
-
-  // Update or create meta tags
-  const updateMeta = (property: string, content: string) => {
-    let meta = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement
-    if (!meta) {
-      meta = document.createElement('meta')
-      meta.setAttribute('property', property)
-      document.head.appendChild(meta)
-    }
-    meta.content = content
-  }
-
-  const updateMetaName = (name: string, content: string) => {
-    let meta = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement
-    if (!meta) {
-      meta = document.createElement('meta')
-      meta.setAttribute('name', name)
-      document.head.appendChild(meta)
-    }
-    meta.content = content
-  }
-
-  // Open Graph tags
-  updateMeta('og:title', title)
-  updateMeta('og:description', description)
-  updateMeta('og:image', image)
-  updateMeta('og:url', url)
-  updateMeta('og:type', 'profile')
-
-  // Twitter Card tags
-  updateMetaName('twitter:card', 'summary_large_image')
-  updateMetaName('twitter:title', title)
-  updateMetaName('twitter:description', description)
-  updateMetaName('twitter:image', image)
-
-  // Update page title
-  document.title = title
-}
-
-function clearMetaTags() {
-  // Remove Open Graph and Twitter meta tags
-  const tags = ['og:title', 'og:description', 'og:image', 'og:url', 'og:type']
-  tags.forEach((tag) => {
-    const meta = document.querySelector(`meta[property="${tag}"]`)
-    if (meta) meta.remove()
-  })
-
-  const nameTags = ['twitter:card', 'twitter:title', 'twitter:description', 'twitter:image']
-  nameTags.forEach((tag) => {
-    const meta = document.querySelector(`meta[name="${tag}"]`)
-    if (meta) meta.remove()
-  })
-
-  // Reset page title
-  document.title = 'GitHub Portfolio - vibe.j2team.org'
-}
-
 function getHeaders(): HeadersInit {
   const h: HeadersInit = { Accept: 'application/vnd.github.v3+json' }
   if (token.value.trim()) h.Authorization = `Bearer ${token.value.trim()}`
@@ -315,8 +279,6 @@ async function fetchPortfolio(name: string) {
     repos.value = rr.ok ? ((await rr.json()) as GitHubRepo[]) : []
     router.replace({ query: { user: user.value.login } })
     state.value = 'portfolio'
-    // Update meta tags for social sharing
-    updateMetaTags()
   } catch {
     errorInfo.value = {
       title: 'Lỗi kết nối',
@@ -339,19 +301,11 @@ function resetToInput() {
   user.value = null
   repos.value = []
   router.replace({ query: {} })
-  clearMetaTags()
 }
+const { copy: clipboardCopy } = useClipboard()
+
 async function copyShareLink() {
-  try {
-    await navigator.clipboard.writeText(shareUrl.value)
-  } catch {
-    const el = document.createElement('textarea')
-    el.value = shareUrl.value
-    document.body.appendChild(el)
-    el.select()
-    document.execCommand('copy')
-    document.body.removeChild(el)
-  }
+  await clipboardCopy(shareUrl.value)
   copied.value = true
   setTimeout(() => {
     copied.value = false

@@ -1,49 +1,32 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, type Directive } from 'vue'
+import { ref, computed, type Directive } from 'vue'
+import { useEventListener, useIntersectionObserver, refDebounced } from '@vueuse/core'
 import { RouterLink, useRouter } from 'vue-router'
+import { Icon } from '@iconify/vue'
 import { pages } from '@/data/pages-loader'
 import { padIndex } from '@/data/homepage'
-import { categories } from '@/data/categories'
+import { categories, type CategoryId } from '@/data/categories'
 import FavoriteButton from '@/components/FavoriteButton.vue'
 
-let observer: IntersectionObserver | null = null
+const vAnimate: Directive<HTMLElement & { __stopObserve?: () => void }, string | undefined> = {
+  mounted(el, binding) {
+    if (binding.value) el.style.animationDelay = binding.value
+    el.style.opacity = '0'
 
-function getObserver(): IntersectionObserver {
-  if (!observer) {
-    observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            ;(entry.target as HTMLElement).classList.add('animate-fade-up')
-            observer!.unobserve(entry.target)
-          }
+    const { stop } = useIntersectionObserver(
+      el,
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          el.classList.add('animate-fade-up')
+          stop()
         }
       },
       { threshold: 0.1 },
     )
-  }
-  return observer
-}
-
-onUnmounted(() => {
-  observer?.disconnect()
-  observer = null
-})
-
-const vAnimate: Directive<HTMLElement, string | undefined> = {
-  mounted(el, binding) {
-    if (typeof IntersectionObserver === 'undefined') {
-      el.classList.add('animate-fade-up')
-      return
-    }
-    if (binding.value) {
-      el.style.animationDelay = binding.value
-    }
-    el.style.opacity = '0'
-    getObserver().observe(el)
+    el.__stopObserve = stop
   },
   unmounted(el) {
-    observer?.unobserve(el)
+    el.__stopObserve?.()
   },
 }
 
@@ -60,7 +43,8 @@ function normalize(str: string): string {
 }
 
 const searchQuery = ref('')
-const activeCategory = ref<string | null>(null)
+const debouncedQuery = refDebounced(searchQuery, 300)
+const activeCategory = ref<CategoryId | null>(null)
 
 const searchablePages = pages.map((p) => ({
   ...p,
@@ -70,7 +54,7 @@ const searchablePages = pages.map((p) => ({
 }))
 
 const filteredPages = computed(() => {
-  const query = normalize(searchQuery.value.trim())
+  const query = normalize(debouncedQuery.value.trim())
   const category = activeCategory.value
 
   return searchablePages.filter((page) => {
@@ -92,7 +76,7 @@ const isFiltering = computed(() => {
   return searchQuery.value.trim() !== '' || activeCategory.value !== null
 })
 
-function toggleCategory(id: string) {
+function toggleCategory(id: CategoryId) {
   activeCategory.value = activeCategory.value === id ? null : id
 }
 
@@ -102,7 +86,7 @@ function clearFilters() {
 }
 
 const categoryCounts = computed(() => {
-  const counts: Record<string, number> = {}
+  const counts: Partial<Record<CategoryId, number>> = {}
   for (const page of pages) {
     if (page.category) {
       counts[page.category] = (counts[page.category] || 0) + 1
@@ -132,8 +116,7 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
-onMounted(() => document.addEventListener('keydown', handleKeydown))
-onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
+useEventListener(document, 'keydown', handleKeydown)
 </script>
 
 <template>
@@ -156,20 +139,11 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
       <!-- Search input + Random button -->
       <div class="flex flex-col sm:flex-row gap-3">
         <div class="relative flex-1">
-          <svg
+          <Icon
+            icon="lucide:search"
             aria-hidden="true"
             class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-dim pointer-events-none"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
+          />
           <input
             ref="searchInputRef"
             v-model="searchQuery"
@@ -185,34 +159,17 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
         </div>
         <button
           :disabled="filteredPages.length === 0"
-          class="flex items-center justify-center gap-2 px-4 py-3 text-sm font-display tracking-wide border border-accent-coral text-accent-coral bg-accent-coral/10 transition-colors duration-200 hover:bg-accent-coral hover:text-bg-deep disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+          class="flex items-center justify-center gap-2 px-4 py-3 text-sm font-display tracking-wide border border-accent-coral text-accent-coral bg-accent-coral/10 transition-colors duration-200 hover:bg-accent-coral hover:text-bg-deep disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer whitespace-nowrap"
           @click="goToRandom"
         >
-          <svg
-            aria-hidden="true"
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"
-            />
-          </svg>
+          <Icon icon="lucide:shuffle" aria-hidden="true" class="w-4 h-4" />
           Ngẫu nhiên
         </button>
         <RouterLink
           to="/bookmarks"
           class="flex items-center justify-center gap-2 px-4 py-3 text-sm font-display tracking-wide border border-accent-coral text-accent-coral bg-accent-coral/10 transition-colors duration-200 hover:bg-accent-coral hover:text-bg-deep whitespace-nowrap"
         >
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path
-              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-            />
-          </svg>
+          <Icon icon="lucide:heart" class="w-4 h-4 icon-filled" />
           Yêu thích
         </RouterLink>
       </div>
@@ -228,12 +185,13 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
           "
           @click="activeCategory = null"
         >
-          Tất cả
+          Tất cả ({{ pages.length }})
         </button>
         <button
           v-for="cat in categories"
+          v-show="categoryCounts[cat.id]"
           :key="cat.id"
-          class="px-3 py-1.5 text-xs font-display tracking-wide border transition-colors duration-200"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-display tracking-wide border transition-colors duration-200"
           :class="
             activeCategory === cat.id
               ? 'bg-accent-coral text-bg-deep border-accent-coral'
@@ -241,6 +199,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
           "
           @click="toggleCategory(cat.id)"
         >
+          <Icon :icon="cat.icon" aria-hidden="true" class="w-3.5 h-3.5" />
           {{ cat.label }} ({{ categoryCounts[cat.id] || 0 }})
         </button>
       </div>
@@ -313,3 +272,9 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
     </div>
   </main>
 </template>
+
+<style scoped>
+.icon-filled :deep(path) {
+  fill: currentColor;
+}
+</style>

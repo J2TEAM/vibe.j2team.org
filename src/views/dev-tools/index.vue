@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useClipboard } from '@vueuse/core'
 
 interface OsintLink {
   label: string
@@ -403,9 +404,7 @@ function base64UrlToBase64(segment: string): string {
   return output
 }
 
-function copyToClipboard(text: string): void {
-  void navigator.clipboard.writeText(text).catch(() => {})
-}
+const { copy: copyToClipboard } = useClipboard()
 </script>
 
 <template>
