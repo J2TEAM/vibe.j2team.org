@@ -186,6 +186,12 @@ function getBetAmount(animalId: string): number {
           <span class="text-accent-amber font-semibold">n</span> mặt, bạn nhận lại tiền cược + thắng
           <span class="text-accent-amber font-semibold">n × tiền cược</span>
         </p>
+        <div
+          class="mt-4 inline-flex items-center gap-2 bg-accent-amber/10 border border-accent-amber/30 px-4 py-2 text-sm text-accent-amber rounded-sm"
+        >
+          <Icon icon="lucide:info" class="flex-shrink-0" />
+          <span>Trò chơi giải trí, sử dụng xu ảo — không liên quan tiền thật</span>
+        </div>
       </div>
 
       <!-- Số dư -->
@@ -196,7 +202,7 @@ function getBetAmount(animalId: string): number {
           <div>
             <div class="text-text-dim text-sm font-display tracking-wide uppercase mb-1">Số dư</div>
             <div class="font-display text-3xl font-bold text-accent-amber">
-              {{ balance.toLocaleString() }} đ
+              {{ balance.toLocaleString() }} xu
             </div>
           </div>
 
@@ -205,7 +211,7 @@ function getBetAmount(animalId: string): number {
               Tổng cược
             </div>
             <div class="font-display text-2xl font-semibold text-accent-coral">
-              {{ totalBet.toLocaleString() }} đ
+              {{ totalBet.toLocaleString() }} xu
             </div>
           </div>
 
@@ -246,7 +252,7 @@ function getBetAmount(animalId: string): number {
             "
           >
             {{ lastPayout >= totalBet ? '🎉 Thắng' : '💸 Thua' }}
-            {{ (lastPayout - totalBet).toLocaleString() }} đ
+            {{ (lastPayout - totalBet).toLocaleString() }} xu
           </div>
         </div>
 
@@ -278,7 +284,7 @@ function getBetAmount(animalId: string): number {
                 : 'border-border-default bg-bg-elevated hover:border-accent-coral hover:text-accent-coral'
             "
           >
-            {{ amount.toLocaleString() }} đ
+            {{ amount.toLocaleString() }} xu
           </button>
         </div>
       </div>
@@ -308,7 +314,7 @@ function getBetAmount(animalId: string): number {
               class="mt-3 pt-3 border-t border-border-default"
             >
               <div class="text-accent-coral font-display font-bold text-lg mb-2">
-                {{ getBetAmount(animal.id).toLocaleString() }} đ
+                {{ getBetAmount(animal.id).toLocaleString() }} xu
               </div>
               <button
                 @click.stop="removeBet(animal.id)"
@@ -379,14 +385,14 @@ function getBetAmount(animalId: string): number {
                 class="font-display font-bold"
                 :class="item.payout >= 0 ? 'text-accent-amber' : 'text-accent-coral'"
               >
-                {{ item.payout >= 0 ? '+' : '' }}{{ item.payout.toLocaleString() }} đ
+                {{ item.payout >= 0 ? '+' : '' }}{{ item.payout.toLocaleString() }} xu
               </div>
             </div>
 
             <div class="mt-2 text-text-secondary text-sm">
               Đã cược:
               <span v-for="(bet, i) in item.bets" :key="i" class="mr-2">
-                {{ getAnimalEmoji(bet.animalId) }} {{ bet.amount.toLocaleString() }}đ
+                {{ getAnimalEmoji(bet.animalId) }} {{ bet.amount.toLocaleString() }} xu
               </span>
             </div>
           </div>
