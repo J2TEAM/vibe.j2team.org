@@ -126,19 +126,19 @@ async function generateCard() {
   canvas.width = w
   canvas.height = h
 
-  // Background gradient
+  // Background gradient: use warm navy tones (Design System)
   const grad = ctx.createLinearGradient(0, 0, w, h)
-  grad.addColorStop(0, '#1a1a2e')
-  grad.addColorStop(0.5, '#16213e')
-  grad.addColorStop(1, '#0f3460')
+  grad.addColorStop(0, '#0F1923') // bg-bg-deep
+  grad.addColorStop(0.5, '#162232') // bg-bg-surface
+  grad.addColorStop(1, '#1E2F42') // bg-bg-elevated
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, w, h)
 
-  // Border
-  ctx.strokeStyle = '#e94560'
+  // Border: use Coral and Amber accents
+  ctx.strokeStyle = '#FF6B4A' // accent-coral
   ctx.lineWidth = 3
   ctx.strokeRect(8, 8, w - 16, h - 16)
-  ctx.strokeStyle = 'rgba(233, 69, 96, 0.3)'
+  ctx.strokeStyle = '#FFB8304D' // accent-amber with opacity
   ctx.lineWidth = 1
   ctx.strokeRect(16, 16, w - 32, h - 32)
 
@@ -195,7 +195,7 @@ async function generateCard() {
   ctx.fillStyle = 'rgba(240, 237, 230, 0.6)'
   ctx.fillText('Tư cách:', startX, y)
   ctx.font = 'bold 16px "Anybody", sans-serif'
-  ctx.fillStyle = fanType.value === 'mu' ? '#e94560' : '#38bdf8'
+  ctx.fillStyle = fanType.value === 'mu' ? '#FF6B4A' : '#38BDF8'
   ctx.fillText(
     fanType.value === 'mu'
       ? '🔴 Fan MU tị nạn'
@@ -230,7 +230,7 @@ async function generateCard() {
     h - 35,
   )
   ctx.font = 'bold 11px "Anybody", sans-serif'
-  ctx.fillStyle = 'rgba(233, 69, 96, 0.7)'
+  ctx.fillStyle = '#FF6B4AB3' // accent-coral with opacity
   ctx.textAlign = 'right'
   ctx.fillText('ĐÃ DUYỆT ✓', w - 40, h - 15)
 
@@ -419,6 +419,7 @@ onUnmounted(() => {
         <div class="cave-body">
           <div class="cave-title-wrap animate-fade-up animate-delay-1">
             <h1 class="cave-title">
+              <span class="text-accent-coral font-display text-sm tracking-widest mr-2">//</span>
               🔥 Trạm Dừng Chân Dưới Đáy Xã Hội
             </h1>
             <p class="cave-subtitle">
@@ -622,6 +623,7 @@ onUnmounted(() => {
 
         <div class="in-cave-body">
           <h1 class="in-cave-title animate-fade-up">
+            <span class="text-accent-coral font-display text-sm tracking-widest mr-2">//</span>
             🏚️ Hệ Sinh Thái Sinh Tồn Trong Hang
           </h1>
           <p class="in-cave-subtitle animate-fade-up animate-delay-1">
@@ -774,7 +776,7 @@ onUnmounted(() => {
   background: #050505 !important;
 }
 .cave-dim {
-  background: #1a1a2e !important;
+  background: var(--color-bg-deep) !important;
 }
 
 /* ─── Shake ────────────────────────────────────────────── */
@@ -914,9 +916,9 @@ onUnmounted(() => {
   color: var(--color-text-dim);
 }
 .gate-btn-red:hover {
-  border-color: #e94560;
-  background: rgba(233, 69, 96, 0.08);
-  box-shadow: 0 6px 24px rgba(233, 69, 96, 0.15);
+  border-color: var(--color-accent-coral);
+  background: rgba(255, 107, 74, 0.08);
+  box-shadow: 0 6px 24px rgba(255, 107, 74, 0.15);
 }
 .gate-btn-blue:hover {
   border-color: var(--color-accent-sky);
@@ -1062,7 +1064,7 @@ onUnmounted(() => {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.85rem 1.5rem;
-  background: #e94560;
+  background: var(--color-accent-coral);
   color: #fff;
   font-family: var(--font-display);
   font-size: 0.9rem;
@@ -1072,9 +1074,9 @@ onUnmounted(() => {
   transition: all 0.25s ease;
 }
 .generate-btn:hover {
-  background: #d63851;
+  background: #e55a3d;
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(233, 69, 96, 0.3);
+  box-shadow: 0 4px 16px rgba(255, 107, 74, 0.3);
 }
 
 .hidden-canvas {
@@ -1166,10 +1168,10 @@ onUnmounted(() => {
 @keyframes pulse-glow {
   0%,
   100% {
-    box-shadow: 0 0 15px rgba(233, 69, 96, 0.3);
+    box-shadow: 0 0 15px rgba(255, 107, 74, 0.3);
   }
   50% {
-    box-shadow: 0 0 30px rgba(233, 69, 96, 0.6);
+    box-shadow: 0 0 30px rgba(255, 107, 74, 0.6);
   }
 }
 
@@ -1256,7 +1258,7 @@ onUnmounted(() => {
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.2em;
-  color: rgba(233, 69, 96, 0.6);
+  color: rgba(255, 107, 74, 0.6);
   margin-bottom: 0.25rem;
 }
 
@@ -1264,8 +1266,8 @@ onUnmounted(() => {
   font-family: var(--font-display);
   font-size: 5rem;
   font-weight: 800;
-  color: #e94560;
-  text-shadow: 0 0 40px rgba(233, 69, 96, 0.5);
+  color: var(--color-accent-coral);
+  text-shadow: 0 0 40px rgba(255, 107, 74, 0.5);
   line-height: 1;
 }
 
@@ -1284,7 +1286,7 @@ onUnmounted(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #e94560;
+  background: var(--color-accent-coral);
   animation: dot-pulse 1s ease-in-out infinite alternate;
 }
 
