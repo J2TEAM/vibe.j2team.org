@@ -323,7 +323,7 @@ function genFunny(): Question {
       w: ['30 phút', '7.5 phút', '20 phút', '10 phút'],
     },
   ]
-  const f = funnies[rng(0, funnies.length - 1)]
+  const f = funnies[rng(0, funnies.length - 1)]!
   return createCustomQ(f.q, f.a, f.w)
 }
 
