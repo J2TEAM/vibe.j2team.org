@@ -64,7 +64,7 @@ function handleRestart() {
   border: 2px solid #ff6b4a;
   padding: 32px 24px;
   text-align: center;
-  max-width: 320px;
+  width: min(92vw, 360px);
   animation: slideUp 0.3s ease;
 }
 
@@ -149,5 +149,20 @@ function handleRestart() {
 .home-link:hover {
   color: #0ea5e9;
   text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 22px 14px;
+  }
+
+  .modal-title {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  .score-value {
+    font-size: 40px;
+  }
 }
 </style>

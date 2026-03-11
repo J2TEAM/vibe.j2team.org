@@ -30,7 +30,6 @@ defineProps<Props>()
   padding: 16px;
   background: #162232;
   border: 1px solid #253549;
-  border-radius: 4px;
 }
 
 .score-item {
@@ -48,7 +47,7 @@ defineProps<Props>()
 
 .score-value {
   font-family: 'Anybody', sans-serif;
-  font-size: 32px;
+  font-size: clamp(1.6rem, 3.2vw, 2rem);
   font-weight: 700;
   color: #ff6b4a;
 }
@@ -57,5 +56,20 @@ defineProps<Props>()
   width: 1px;
   height: 48px;
   background: #253549;
+}
+
+@media (max-width: 480px) {
+  .score-display {
+    gap: 14px;
+    padding: 12px 10px;
+  }
+
+  .score-label {
+    font-size: 11px;
+  }
+
+  .score-divider {
+    height: 40px;
+  }
 }
 </style>

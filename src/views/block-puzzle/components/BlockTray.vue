@@ -102,21 +102,19 @@ function getBlockCells(blockIndex: number) {
 }
 
 .blocks-container {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-  justify-content: center;
 }
 
 .block-item {
   cursor: grab;
-  padding: 8px;
+  padding: 10px;
   background: #1e2f42;
   border: 2px solid #253549;
-  border-radius: 4px;
   transition: all 0.2s ease;
   user-select: none;
-  flex: 1;
-  max-width: 80px;
+  min-height: 88px;
 }
 
 .block-item:active {
@@ -140,5 +138,20 @@ function getBlockCells(blockIndex: number) {
   width: 100%;
   height: 100%;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+@media (max-width: 480px) {
+  .block-tray {
+    padding: 12px 10px;
+  }
+
+  .blocks-container {
+    gap: 8px;
+  }
+
+  .block-item {
+    min-height: 74px;
+    padding: 8px;
+  }
 }
 </style>

@@ -101,55 +101,64 @@ function handleBoardDragOver(e: DragEvent) {
 
 <template>
   <div class="page-container">
-    <!-- Header -->
     <div class="header-section animate-fade-up">
+      <div class="header-title-wrap">
+        <p class="eyebrow">// Puzzle</p>
+        <h1 class="page-title">Block Puzzle</h1>
+      </div>
       <RouterLink to="/" class="home-button">
         <span class="text-accent-sky">←</span>
         Back
       </RouterLink>
-      <h1 class="page-title">Block Puzzle</h1>
-      <div class="header-spacer" />
     </div>
 
-    <!-- Main Game Area -->
     <div class="game-container animate-fade-up animate-delay-1">
-      <!-- Score Display -->
-      <ScoreDisplay :score="score" :high-score="highScore" />
+      <div class="game-layout">
+        <section class="play-area">
+          <ScoreDisplay :score="score" :high-score="highScore" />
 
-      <!-- Game Board -->
-      <div ref="boardElement" @dragover="handleBoardDragOver">
-        <GameBoard
-          :board="board"
-          :blocks="blocks"
-          :clearing-rows="clearingRows"
-          :clearing-cols="clearingCols"
-          :last-placed-block-id="lastPlacedBlockId"
-          :dragging-block-index="draggingBlockIndex"
-          :drag-preview-position="dragPreviewPosition"
-          :can-preview-place="canDropAtPreview"
-          @place-block="handleBoardPlaceBlock"
-        />
-      </div>
+          <div class="board-wrap" ref="boardElement" @dragover="handleBoardDragOver">
+            <GameBoard
+              :board="board"
+              :blocks="blocks"
+              :clearing-rows="clearingRows"
+              :clearing-cols="clearingCols"
+              :last-placed-block-id="lastPlacedBlockId"
+              :dragging-block-index="draggingBlockIndex"
+              :drag-preview-position="dragPreviewPosition"
+              :can-preview-place="canDropAtPreview"
+              @place-block="handleBoardPlaceBlock"
+            />
+          </div>
 
-      <p v-if="draggingBlockIndex !== null" class="drag-hint">
-        <span class="hint-valid">Green</span> means valid drop.
-        <span class="hint-invalid">Red</span> means invalid drop.
-      </p>
+          <p v-if="draggingBlockIndex !== null" class="drag-hint">
+            <span class="hint-valid">Green</span> means valid drop.
+            <span class="hint-invalid">Red</span> means invalid drop.
+          </p>
+        </section>
 
-      <!-- Block Tray -->
-      <BlockTray
-        :blocks="blocks"
-        :can-place-block="canPlace"
-        @drag-start="handleBlockDragStart"
-        @drag-end="handleBlockDragEnd"
-      />
+        <aside class="side-area">
+          <BlockTray
+            :blocks="blocks"
+            :can-place-block="canPlace"
+            @drag-start="handleBlockDragStart"
+            @drag-end="handleBlockDragEnd"
+          />
 
-      <!-- Controls -->
-      <div class="controls">
-        <button class="restart-button" @click="handleRestart">
-          <span>↻</span>
-          New Game
-        </button>
+          <div class="controls">
+            <button class="restart-button" @click="handleRestart">
+              <span>↻</span>
+              New Game
+            </button>
+          </div>
+
+          <div class="quick-tip">
+            <p class="quick-tip-title">// Pro Tip</p>
+            <p class="quick-tip-text">
+              Keep space near the center to avoid getting locked out by long blocks.
+            </p>
+          </div>
+        </aside>
       </div>
     </div>
 
@@ -184,17 +193,32 @@ function handleBoardDragOver(e: DragEvent) {
   min-height: 100vh;
   background: #0f1923;
   color: #f0ede6;
-  padding: 24px 16px;
+  padding: 20px 14px 40px;
 }
 
 .header-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 32px;
-  max-width: 500px;
+  margin-bottom: 20px;
+  max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
+}
+
+.header-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: 'Anybody', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffb830;
 }
 
 .home-button {
@@ -206,7 +230,6 @@ function handleBoardDragOver(e: DragEvent) {
   border: 1px solid #253549;
   color: #38bdf8;
   text-decoration: none;
-  border-radius: 4px;
   font-size: 13px;
   font-weight: 600;
   transition: all 0.2s ease;
@@ -220,41 +243,66 @@ function handleBoardDragOver(e: DragEvent) {
 
 .page-title {
   font-family: 'Anybody', sans-serif;
-  font-size: 28px;
+  font-size: clamp(1.5rem, 3.6vw, 2.2rem);
   font-weight: 700;
   color: #ff6b4a;
   text-transform: uppercase;
   margin: 0;
-  letter-spacing: 1px;
-}
-
-.header-spacer {
-  width: 80px;
+  letter-spacing: 0.04em;
 }
 
 .game-container {
-  max-width: 450px;
-  margin: 0 auto 48px;
+  max-width: 1100px;
+  margin: 0 auto 36px;
+}
+
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+.play-area {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
+  background: linear-gradient(180deg, rgba(22, 34, 50, 0.85), rgba(15, 25, 35, 0.95));
+  border: 1px solid #253549;
+  padding: 14px;
+}
+
+.board-wrap {
+  padding: 10px;
+  border: 1px solid #253549;
+  background: #0f1923;
+}
+
+.side-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .drag-hint {
-  margin: -4px 0 0;
+  margin: 0;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   color: #8b9db5;
+  min-height: 18px;
 }
 
 .hint-valid {
   color: #34d399;
   font-weight: 600;
+  margin-right: 4px;
 }
 
 .hint-invalid {
   color: #f87171;
   font-weight: 600;
+  margin-left: 10px;
+  margin-right: 4px;
 }
 
 .controls {
@@ -269,10 +317,9 @@ function handleBoardDragOver(e: DragEvent) {
   color: white;
   border: none;
   font-family: 'Anybody', sans-serif;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -290,13 +337,34 @@ function handleBoardDragOver(e: DragEvent) {
   transform: translateY(0);
 }
 
+.quick-tip {
+  border: 1px solid #253549;
+  background: #162232;
+  padding: 12px;
+}
+
+.quick-tip-title {
+  margin: 0 0 6px;
+  font-family: 'Anybody', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffb830;
+}
+
+.quick-tip-text {
+  margin: 0;
+  color: #8b9db5;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .instructions-section {
-  max-width: 600px;
-  margin: 48px auto 0;
+  max-width: 1100px;
+  margin: 0 auto;
   padding: 32px 24px;
   background: #162232;
   border: 1px solid #253549;
-  border-radius: 4px;
 }
 
 .section-heading {
@@ -367,19 +435,46 @@ function handleBoardDragOver(e: DragEvent) {
 /* Mobile responsiveness */
 @media (max-width: 480px) {
   .page-container {
-    padding: 16px 12px;
+    padding: 16px 10px 26px;
+  }
+
+  .header-section {
+    margin-bottom: 14px;
+  }
+
+  .home-button {
+    font-size: 12px;
+    padding: 7px 10px;
   }
 
   .page-title {
     font-size: 24px;
   }
 
+  .game-layout {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .play-area,
+  .board-wrap,
+  .quick-tip,
   .instructions-section {
-    padding: 24px 16px;
+    padding: 10px;
   }
 
   .instruction-list {
     font-size: 13px;
+  }
+
+  .drag-hint {
+    font-size: 11px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 960px) {
+  .game-layout {
+    grid-template-columns: 1fr;
   }
 }
 </style>
