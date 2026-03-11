@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import { Icon } from '@iconify/vue'
 import { pages } from '@/data/pages-loader'
 import { useFavorites } from '@/composables/useFavorites'
 import FavoriteButton from '@/components/FavoriteButton.vue'
@@ -74,35 +75,11 @@ const bookmarkedPages = computed(() => {
 
       <!-- Empty state -->
       <div v-else class="mt-12 flex flex-col items-center justify-center py-16 text-center">
-        <svg
-          class="w-16 h-16 text-text-dim mb-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="1.5"
-            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-          />
-        </svg>
+        <Icon icon="lucide:heart" class="w-16 h-16 text-text-dim mb-6" />
         <p class="text-text-secondary text-lg font-display">Chưa có ứng dụng yêu thích</p>
         <p class="mt-2 text-text-dim text-sm">
           Nhấn vào biểu tượng
-          <svg
-            class="inline w-4 h-4 text-text-dim -mt-0.5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-            />
-          </svg>
+          <Icon icon="lucide:heart" class="inline w-4 h-4 text-text-dim -mt-0.5" />
           trên mỗi ứng dụng ở trang chủ để thêm vào đây.
         </p>
         <RouterLink

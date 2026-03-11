@@ -8,10 +8,12 @@ const props = defineProps<{
   score: number
   hearts: number
   maxHearts: number
+  cups: number
   wordsCount: number
   currentWord: string
   wordHistory: WordHistoryItem[]
   inputValue: string
+  inputWarning: string
   turnProgress: number
   turnTimeRemaining: number
   isUrgent: boolean
@@ -91,6 +93,7 @@ onMounted(() => {
       <div class="score-display">
         <span class="score-emoji">🪙</span>
         <span class="score-value">{{ score.toLocaleString() }}</span>
+        <span v-if="mode === 'normal' && cups > 0" class="cups-badge">🏆 {{ cups }}</span>
       </div>
       <div class="hearts-display">
         <span v-for="i in maxHearts" :key="i" class="heart" :class="{ 'heart-lost': i > hearts }">
@@ -157,6 +160,9 @@ onMounted(() => {
       <button class="submit-btn" @click="onSubmit">✓</button>
     </div>
 
+    <!-- Input warning -->
+    <div v-if="inputWarning" class="input-warning">⚠️ {{ inputWarning }}</div>
+
     <!-- Word count -->
     <div class="word-count">📝 {{ wordsCount }} từ đã nối</div>
   </div>
@@ -204,6 +210,15 @@ onMounted(() => {
   font-size: 1.25rem;
   font-weight: 700;
   color: #f0ede6;
+}
+
+.cups-badge {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #ffb830;
+  background: rgba(255, 184, 48, 0.15);
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
 .hearts-display {
@@ -460,6 +475,17 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 4px;
+  position: relative;
+  z-index: 2;
+}
+
+.input-warning {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #ffb830;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  animation: feedback-pop 0.2s ease-out;
   position: relative;
   z-index: 2;
 }

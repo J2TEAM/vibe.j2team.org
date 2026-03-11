@@ -25,6 +25,7 @@ const {
   score,
   hearts,
   wordsCount,
+  cups,
   currentWord,
   wordHistory,
   inputValue,
@@ -32,12 +33,16 @@ const {
   shakePower,
   feedbackMessage,
   feedbackType,
+  lossReason,
+  inputWarning,
   turnProgress,
   turnTimeRemaining,
   isUrgent,
   combo,
   startGame,
   submitAnswer,
+  continuePlaying,
+  stopAfterWin,
   goToWelcome,
   sfx,
   leaderboard,
@@ -102,10 +107,12 @@ const shakeClass = computed(() => {
         :score="score"
         :hearts="hearts"
         :max-hearts="MAX_HEARTS"
+        :cups="cups"
         :words-count="wordsCount"
         :current-word="currentWord"
         :word-history="wordHistory"
         :input-value="inputValue"
+        :input-warning="inputWarning"
         :turn-progress="turnProgress"
         :turn-time-remaining="turnTimeRemaining"
         :is-urgent="isUrgent"
@@ -117,6 +124,24 @@ const shakeClass = computed(() => {
         @submit="submitAnswer"
         @update:input-value="inputValue = $event"
       />
+
+      <!-- Bot defeated screen -->
+      <div v-else-if="screen === 'bot-defeated'" key="bot-defeated" class="bot-defeated-screen">
+        <div class="bot-defeated-content animate-fade-up">
+          <div class="bot-defeated-icon">🏆</div>
+          <h2 class="bot-defeated-title">BOT BÍ RỒI!</h2>
+          <p class="bot-defeated-sub">Bạn đã thắng bot! +1 Cúp</p>
+          <div class="bot-defeated-stats">
+            <span>🏆 {{ cups }} cúp</span>
+            <span>🪙 {{ score.toLocaleString() }} điểm</span>
+          </div>
+          <div class="bot-defeated-actions">
+            <button class="action-btn action-continue" @click="continuePlaying">▶ Chơi tiếp</button>
+            <button class="action-btn action-stop" @click="stopAfterWin">⏹ Dừng lại</button>
+          </div>
+        </div>
+      </div>
+
       <GameOverScreen
         v-else
         key="gameover"
@@ -124,6 +149,8 @@ const shakeClass = computed(() => {
         :score="score"
         :max-combo="combo.maxCombo.value"
         :words-count="wordsCount"
+        :cups="cups"
+        :loss-reason="lossReason"
         @play-again="onPlayAgain"
         @back-to-welcome="goToWelcome"
         @show-leaderboard="toggleLeaderboard"
@@ -209,6 +236,111 @@ const shakeClass = computed(() => {
     rgba(0, 0, 0, 0.3) 2px,
     rgba(0, 0, 0, 0.3) 4px
   );
+}
+
+/* Bot defeated screen */
+.bot-defeated-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 80px 16px 32px;
+  position: relative;
+  z-index: 2;
+}
+
+.bot-defeated-content {
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+}
+
+.bot-defeated-icon {
+  font-size: 4rem;
+  margin-bottom: 12px;
+  animation: pulse-icon 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-icon {
+  from {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+.bot-defeated-title {
+  font-family: 'Anybody', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #ffb830;
+  text-shadow: 0 0 30px rgba(255, 184, 48, 0.4);
+  margin-bottom: 8px;
+}
+
+.bot-defeated-sub {
+  color: #8b9db5;
+  font-size: 1rem;
+  margin-bottom: 24px;
+}
+
+.bot-defeated-stats {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 32px;
+  font-family: 'Anybody', sans-serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #f0ede6;
+}
+
+.bot-defeated-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 46px;
+  border: 2px solid #253549;
+  background: #162232;
+  color: #f0ede6;
+  font-family: 'Anybody', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.action-continue {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.action-continue:hover {
+  background: rgba(34, 197, 94, 0.2);
+  transform: translateY(-2px);
+}
+
+.action-stop {
+  border-color: #ffb830;
+  color: #ffb830;
+}
+
+.action-stop:hover {
+  background: rgba(255, 184, 48, 0.1);
+  transform: translateY(-2px);
 }
 
 /* Screen shake */

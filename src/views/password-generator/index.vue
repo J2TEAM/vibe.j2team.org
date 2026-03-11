@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useClipboard } from '@vueuse/core'
 
 const password = ref('')
 const length = ref(12)
@@ -37,8 +38,10 @@ function generate() {
   password.value = result
 }
 
+const { copy: clipboardCopy } = useClipboard()
+
 function copy() {
-  navigator.clipboard.writeText(password.value)
+  clipboardCopy(password.value)
   alert('Đã copy mật khẩu!')
 }
 

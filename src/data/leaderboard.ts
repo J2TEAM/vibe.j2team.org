@@ -1,3 +1,4 @@
+import type { CategoryId } from '@/data/categories'
 import type { PageInfo } from '@/types/page'
 import { pages } from '@/data/pages-loader'
 
@@ -5,7 +6,7 @@ export interface AuthorStats {
   author: string
   facebook: string | undefined
   apps: PageInfo[]
-  categories: string[]
+  categories: CategoryId[]
   rank: number
 }
 

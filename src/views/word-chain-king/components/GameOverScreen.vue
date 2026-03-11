@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import type { GameMode } from '../types'
+import type { GameMode, LossReason } from '../types'
 
 defineProps<{
   mode: GameMode
   score: number
   maxCombo: number
   wordsCount: number
+  cups: number
+  lossReason: LossReason
 }>()
 
 const emit = defineEmits<{
@@ -13,6 +15,32 @@ const emit = defineEmits<{
   backToWelcome: []
   showLeaderboard: []
 }>()
+
+function getLossText(reason: LossReason): string {
+  switch (reason) {
+    case 'hearts':
+      return 'Hết mạng!'
+    case 'timeout':
+      return 'Hết giờ!'
+    case 'quit':
+      return 'Dừng lại!'
+    default:
+      return 'Kết thúc!'
+  }
+}
+
+function getLossIcon(reason: LossReason): string {
+  switch (reason) {
+    case 'hearts':
+      return '💔'
+    case 'timeout':
+      return '⏰'
+    case 'quit':
+      return '🏁'
+    default:
+      return '💀'
+  }
+}
 </script>
 
 <template>
@@ -20,17 +48,22 @@ const emit = defineEmits<{
     <div class="gameover-content animate-fade-up">
       <!-- Game Over Title -->
       <div class="gameover-header">
-        <div class="gameover-icon">💀</div>
-        <h1 class="gameover-title">HẾT GIỜ!</h1>
+        <div class="gameover-icon">{{ getLossIcon(lossReason) }}</div>
+        <h1 class="gameover-title">{{ getLossText(lossReason) }}</h1>
         <p class="gameover-mode">Chế độ: {{ mode === 'normal' ? 'Đối kháng' : 'Tự kỷ lục' }}</p>
       </div>
 
       <!-- Stats -->
-      <div class="stats-grid">
+      <div class="stats-grid" :class="{ 'stats-with-cups': mode === 'normal' }">
         <div class="stat-card stat-score">
           <span class="stat-emoji">🪙</span>
           <span class="stat-value">{{ score.toLocaleString() }}</span>
           <span class="stat-label">Điểm số</span>
+        </div>
+        <div v-if="mode === 'normal'" class="stat-card stat-cups">
+          <span class="stat-emoji">🏆</span>
+          <span class="stat-value">{{ cups }}</span>
+          <span class="stat-label">Cúp</span>
         </div>
         <div class="stat-card stat-combo">
           <span class="stat-emoji">⚡</span>
@@ -117,6 +150,10 @@ const emit = defineEmits<{
   margin-bottom: 32px;
 }
 
+.stats-with-cups {
+  grid-template-columns: repeat(4, 1fr);
+}
+
 .stat-card {
   border: 2px solid #253549;
   background: #162232;
@@ -126,6 +163,15 @@ const emit = defineEmits<{
   flex-direction: column;
   align-items: center;
   gap: 6px;
+}
+
+.stat-cups {
+  border-color: rgba(255, 184, 48, 0.4);
+  background: rgba(255, 184, 48, 0.05);
+}
+
+.stat-cups .stat-value {
+  color: #ffb830;
 }
 
 .stat-emoji {
@@ -202,6 +248,9 @@ const emit = defineEmits<{
   }
   .stat-value {
     font-size: 1.25rem;
+  }
+  .stats-with-cups {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>

@@ -1,19 +1,28 @@
+export type CategoryId = 'game' | 'tool' | 'fun' | 'learn' | 'spiritual' | 'connect' | 'other'
+
 export interface Category {
-  id: string
-  label: string
+  readonly id: CategoryId
+  readonly label: string
+  readonly icon: string
 }
 
-export const categories: Category[] = [
-  { id: 'game', label: 'Game' },
-  { id: 'tool', label: 'Công cụ' },
-  { id: 'fun', label: 'Giải trí' },
-  { id: 'learn', label: 'Học tập & Năng suất' },
-  { id: 'spiritual', label: 'Tâm linh' },
-  { id: 'connect', label: 'Kết nối' },
+export const categories: readonly Category[] = [
+  { id: 'game', label: 'Game', icon: 'lucide:gamepad-2' },
+  { id: 'tool', label: 'Công cụ', icon: 'lucide:wrench' },
+  { id: 'fun', label: 'Giải trí', icon: 'lucide:party-popper' },
+  { id: 'learn', label: 'Học tập & Năng suất', icon: 'lucide:graduation-cap' },
+  { id: 'spiritual', label: 'Tâm linh', icon: 'lucide:sparkles' },
+  { id: 'connect', label: 'Kết nối', icon: 'lucide:users' },
+  { id: 'other', label: 'Khác', icon: 'lucide:layout-grid' },
 ]
 
 const categoryLabelMap = Object.fromEntries(categories.map((c) => [c.id, c.label]))
+const categoryIconMap = Object.fromEntries(categories.map((c) => [c.id, c.icon]))
 
-export function getCategoryLabel(id: string): string {
+export function getCategoryLabel(id: CategoryId): string {
   return categoryLabelMap[id] ?? id
+}
+
+export function getCategoryIcon(id: CategoryId): string {
+  return categoryIconMap[id] ?? 'lucide:layout-grid'
 }

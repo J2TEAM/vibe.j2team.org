@@ -1,6 +1,8 @@
 export type GameMode = 'normal' | 'solo'
 
-export type GameScreen = 'welcome' | 'playing' | 'gameover'
+export type GameScreen = 'welcome' | 'playing' | 'bot-defeated' | 'gameover'
+
+export type LossReason = 'hearts' | 'timeout' | 'quit' | ''
 
 export type ComboLevel = 0 | 1 | 2 | 3 | 4
 
@@ -16,6 +18,7 @@ export interface LeaderboardEntry {
   score: number
   maxCombo: number
   wordsCount: number
+  cups: number
   date: string
 }
 

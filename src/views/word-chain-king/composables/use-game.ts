@@ -1,5 +1,5 @@
 import { ref, computed, onUnmounted } from 'vue'
-import type { GameMode, GameScreen, WordHistoryItem } from '../types'
+import type { GameMode, GameScreen, LossReason, WordHistoryItem } from '../types'
 import { useWordChain } from './use-word-chain'
 import { useCombo } from './use-combo'
 import { useLeaderboard } from './use-leaderboard'
@@ -15,6 +15,7 @@ export function useGame() {
   const score = ref(0)
   const hearts = ref(MAX_HEARTS)
   const wordsCount = ref(0)
+  const cups = ref(0)
   const currentWord = ref('')
   const wordHistory = ref<WordHistoryItem[]>([])
   const inputValue = ref('')
@@ -22,6 +23,7 @@ export function useGame() {
   const shakePower = ref(0)
   const feedbackMessage = ref('')
   const feedbackType = ref<'success' | 'error' | ''>('')
+  const lossReason = ref<LossReason>('')
   const usedWords = new Set<string>()
 
   const turnTimeRemaining = ref(TURN_TIME)
@@ -36,6 +38,14 @@ export function useGame() {
   const combo = useCombo()
   const leaderboard = useLeaderboard()
   const sfx = useSfx()
+
+  // Cảnh báo realtime khi gõ từ đã dùng
+  const inputWarning = computed(() => {
+    const val = normalizeWord(inputValue.value)
+    if (!val || val.length < 2) return ''
+    if (usedWords.has(val)) return 'Từ này đã được dùng rồi!'
+    return ''
+  })
 
   function startTurnTimer() {
     stopTurnTimer()
@@ -66,24 +76,27 @@ export function useGame() {
 
   function onTimeUp() {
     stopTurnTimer()
+    lossReason.value = 'timeout'
     hearts.value = 0
     endGame()
   }
 
-  function startGame(selectedMode: GameMode) {
+  async function startGame(selectedMode: GameMode) {
     mode.value = selectedMode
     screen.value = 'playing'
     score.value = 0
     hearts.value = MAX_HEARTS
     wordsCount.value = 0
+    cups.value = 0
     wordHistory.value = []
     inputValue.value = ''
     feedbackMessage.value = ''
     feedbackType.value = ''
+    lossReason.value = ''
     combo.resetCombo()
     usedWords.clear()
 
-    const startWord = getRandomStartWord(usedWords)
+    const startWord = await getRandomStartWord(usedWords)
     currentWord.value = startWord
     usedWords.add(normalizeWord(startWord))
     wordHistory.value.push({ word: startWord, isBot: true, isCorrect: true })
@@ -91,7 +104,7 @@ export function useGame() {
     startTurnTimer()
   }
 
-  function submitAnswer() {
+  async function submitAnswer() {
     const userAnswer = normalizeWord(inputValue.value)
     inputValue.value = ''
 
@@ -102,7 +115,7 @@ export function useGame() {
       return
     }
 
-    if (!wordExistsInDict(userAnswer)) {
+    if (!(await wordExistsInDict(userAnswer))) {
       onWrongAnswer(userAnswer, 'Từ không có trong từ điển!')
       return
     }
@@ -115,7 +128,7 @@ export function useGame() {
     onCorrectAnswer(userAnswer)
   }
 
-  function onCorrectAnswer(word: string) {
+  async function onCorrectAnswer(word: string) {
     sfx.playCorrect()
     wordHistory.value.push({ word, isBot: false, isCorrect: true })
     usedWords.add(normalizeWord(word))
@@ -138,26 +151,42 @@ export function useGame() {
     resetTurnTimer()
 
     if (mode.value === 'normal') {
-      botTurn()
+      await botTurn()
     }
   }
 
-  function botTurn() {
-    const botAnswer = botPickWord(currentWord.value, usedWords)
+  async function botTurn() {
+    const botAnswer = await botPickWord(currentWord.value, usedWords)
     if (!botAnswer) {
-      const newWord = getRandomStartWord(usedWords)
-      currentWord.value = newWord
-      usedWords.add(normalizeWord(newWord))
-      wordHistory.value.push({ word: newWord, isBot: true, isCorrect: true })
-      feedbackMessage.value = 'Bot bí rồi! Từ mới nè~'
-      feedbackType.value = 'success'
-      clearFeedbackLater()
+      // Bot bí → user thắng 1 cúp, hỏi tiếp tục hay dừng
+      stopTurnTimer()
+      cups.value++
+      screen.value = 'bot-defeated'
       return
     }
 
     usedWords.add(normalizeWord(botAnswer))
     wordHistory.value.push({ word: botAnswer, isBot: true, isCorrect: true })
     currentWord.value = botAnswer
+  }
+
+  // User chọn tiếp tục sau khi thắng bot
+  async function continuePlaying() {
+    screen.value = 'playing'
+    const newWord = await getRandomStartWord(usedWords)
+    currentWord.value = newWord
+    usedWords.add(normalizeWord(newWord))
+    wordHistory.value.push({ word: newWord, isBot: true, isCorrect: true })
+    feedbackMessage.value = '🏆 +1 Cúp! Bot bắt đầu từ mới~'
+    feedbackType.value = 'success'
+    clearFeedbackLater()
+    startTurnTimer()
+  }
+
+  // User chọn dừng lại sau khi thắng bot
+  function stopAfterWin() {
+    lossReason.value = 'quit'
+    endGame()
   }
 
   function onWrongAnswer(word: string, message: string) {
@@ -168,8 +197,8 @@ export function useGame() {
     feedbackType.value = 'error'
     clearFeedbackLater()
 
-    // Sai chỉ mất tim, KHÔNG mất combo, KHÔNG reset timer
     if (hearts.value <= 0) {
+      lossReason.value = 'hearts'
       endGame()
     }
   }
@@ -200,6 +229,7 @@ export function useGame() {
       score: score.value,
       maxCombo: combo.maxCombo.value,
       wordsCount: wordsCount.value,
+      cups: cups.value,
       date: new Date().toLocaleDateString('vi-VN'),
     })
   }
@@ -222,6 +252,7 @@ export function useGame() {
     score,
     hearts,
     wordsCount,
+    cups,
     currentWord,
     wordHistory,
     inputValue,
@@ -229,6 +260,8 @@ export function useGame() {
     shakePower,
     feedbackMessage,
     feedbackType,
+    lossReason,
+    inputWarning,
     turnTimeRemaining,
     turnProgress,
     isUrgent,
@@ -237,6 +270,8 @@ export function useGame() {
 
     startGame,
     submitAnswer,
+    continuePlaying,
+    stopAfterWin,
     goToWelcome,
     endGame,
 
