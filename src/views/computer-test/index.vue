@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import KeyboardLayout from './components/KeyboardLayout.vue'
+import ScreenTest from './components/ScreenTest.vue'
 import BackToTop from '@/components/BackToTop.vue'
 
 const currentTest = ref<'keyboard' | 'screen' | 'webcam'>('keyboard')
@@ -70,6 +71,9 @@ const currentTest = ref<'keyboard' | 'screen' | 'webcam'>('keyboard')
       <div v-if="currentTest === 'keyboard'">
         <KeyboardLayout />
       </div>
+      <div v-else-if="currentTest === 'screen'">
+        <ScreenTest />
+      </div>
       <div
         v-else
         class="flex flex-col items-center justify-center py-20 bg-bg-surface border border-border-default mb-20"
@@ -87,48 +91,113 @@ const currentTest = ref<'keyboard' | 'screen' | 'webcam'>('keyboard')
 
     <!-- Footer-like section for SEO/Info -->
     <footer
-      v-if="currentTest === 'keyboard'"
+      v-if="currentTest === 'keyboard' || currentTest === 'screen'"
       class="bg-bg-surface/30 border-t border-border-default py-16"
     >
       <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12">
-        <div>
-          <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
-            <span class="text-accent-sky text-sm tracking-widest font-display">//</span>
-            Hướng dẫn sử dụng
-          </h2>
-          <div class="space-y-4 text-text-secondary text-sm leading-relaxed">
-            <p>
-              1. <strong class="text-accent-sky">Nhấn phím:</strong> Phím trên màn hình sẽ đổi màu
-              khi bạn nhấn phím vật lý tương ứng
-            </p>
-            <p>
-              2. <strong class="text-accent-sky">Màu sắc:</strong> Màu cam biểu thị phím đang nhấn,
-              màu vàng biểu thị phím đã được nhấn
-            </p>
-            <p>
-              3. <strong class="text-accent-sky">Bố cục:</strong> Chuyển đổi giữa các bố cục bàn
-              phím khác nhau
-            </p>
-            <p>
-              4. <strong class="text-accent-sky">Âm thanh:</strong> Bật âm thanh để nghe tiếng gõ
-              phím
-            </p>
-            <p>5. <strong class="text-accent-sky">Đặt lại:</strong> Xóa toàn bộ phím đã nhấn</p>
+        <!-- Keyboard instructions -->
+        <template v-if="currentTest === 'keyboard'">
+          <div>
+            <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
+              <span class="text-accent-sky text-sm tracking-widest font-display">//</span>
+              Hướng dẫn sử dụng
+            </h2>
+            <div class="space-y-4 text-text-secondary text-sm leading-relaxed">
+              <p>
+                1. <strong class="text-accent-sky">Nhấn phím:</strong> Phím trên màn hình sẽ đổi màu
+                khi bạn nhấn phím vật lý tương ứng
+              </p>
+              <p>
+                2. <strong class="text-accent-sky">Màu sắc:</strong> Màu cam biểu thị phím đang
+                nhấn, màu vàng biểu thị phím đã được nhấn
+              </p>
+              <p>
+                3. <strong class="text-accent-sky">Bố cục:</strong> Chuyển đổi giữa các bố cục bàn
+                phím khác nhau
+              </p>
+              <p>
+                4. <strong class="text-accent-sky">Âm thanh:</strong> Bật âm thanh để nghe tiếng gõ
+                phím
+              </p>
+              <p>5. <strong class="text-accent-sky">Đặt lại:</strong> Xóa toàn bộ phím đã nhấn</p>
+            </div>
           </div>
-        </div>
-        <div>
-          <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
-            <span class="text-accent-amber text-sm tracking-widest font-display">//</span>
-            Tại sao cần test bàn phím?
-          </h2>
-          <p class="text-text-secondary text-sm leading-relaxed">
-            Kiểm tra bàn phím giúp bạn phát hiện các phím bị liệt, bị kẹt hoặc hiện tượng ghosting
-            (không nhận tổ hợp phím)
-            <br />
-            Công cụ này hữu ích khi bạn muốn kiểm tra xem laptop hoặc bàn phím rời có hoạt động hoàn
-            hảo không
-          </p>
-        </div>
+          <div>
+            <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
+              <span class="text-accent-amber text-sm tracking-widest font-display">//</span>
+              Tại sao cần test bàn phím?
+            </h2>
+            <div class="text-text-secondary text-sm leading-relaxed space-y-4">
+              <p>
+                Kiểm tra bàn phím giúp bạn phát hiện các phím bị liệt, bị kẹt hoặc hiện tượng
+                ghosting (không nhận tổ hợp phím)
+              </p>
+              <p>
+                Công cụ này hữu ích khi bạn muốn kiểm tra xem bàn phím laptop hoặc bàn phím rời có
+                hoạt động hoàn hảo không
+              </p>
+            </div>
+          </div>
+        </template>
+
+        <!-- Screen test instructions -->
+        <template v-else-if="currentTest === 'screen'">
+          <div>
+            <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
+              <span class="text-accent-sky text-sm tracking-widest font-display">//</span>
+              Hướng dẫn sử dụng
+            </h2>
+            <div class="space-y-4 text-text-secondary text-sm leading-relaxed">
+              <p>
+                1. <strong class="text-accent-sky">Chọn màu:</strong> Nhấp vào ô màu muốn bắt đầu
+                kiểm tra
+              </p>
+              <p>
+                2. <strong class="text-accent-sky">Bắt đầu:</strong> Nhấn nút "Bắt đầu kiểm tra"
+              </p>
+              <p>
+                3. <strong class="text-accent-sky">Điều hướng:</strong> Nhấn phím
+                <kbd
+                  class="px-1.5 py-0.5 bg-bg-deep border border-border-default text-text-dim text-xs font-display"
+                  >←</kbd
+                >
+                <kbd
+                  class="px-1.5 py-0.5 bg-bg-deep border border-border-default text-text-dim text-xs font-display"
+                  >→</kbd
+                >
+                hoặc click chuột để đổi màu
+              </p>
+              <p>
+                4. <strong class="text-accent-sky">Thoát:</strong> Nhấn
+                <kbd
+                  class="px-1.5 py-0.5 bg-bg-deep border border-border-default text-text-dim text-xs font-display"
+                  >ESC</kbd
+                >
+                để thoát khỏi chế độ kiểm tra
+              </p>
+            </div>
+          </div>
+          <div>
+            <h2 class="font-display text-2xl font-semibold flex items-center gap-3 mb-6">
+              <span class="text-accent-amber text-sm tracking-widest font-display">//</span>
+              Dead pixel và Stuck pixel
+            </h2>
+            <div class="text-text-secondary text-sm leading-relaxed space-y-4">
+              <p>
+                <strong class="text-accent-coral">Điểm chết (Dead pixel)</strong> là điểm ảnh hoàn
+                toàn không hoạt động, thường hiển thị dưới dạng chấm đen trên mọi nền màu
+              </p>
+              <p>
+                <strong class="text-accent-amber">Điểm kẹt (Stuck pixel)</strong> là điểm ảnh bị kẹt
+                ở một màu cố định (đỏ, xanh, hoặc trắng) do sub-pixel luôn trong trạng thái bật
+              </p>
+              <p>
+                Hãy quan sát kỹ màn hình khi hiển thị từng màu thuần, tìm các điểm bất thường có màu
+                khác biệt hoặc không đổi màu khi nền chuyển sang màu mới
+              </p>
+            </div>
+          </div>
+        </template>
       </div>
     </footer>
 
