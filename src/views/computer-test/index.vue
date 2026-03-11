@@ -48,17 +48,22 @@ const currentTest = ref<'keyboard' | 'screen' | 'webcam' | 'micro'>('keyboard')
       <!-- Navigation Tabs -->
       <nav class="mt-12 flex flex-wrap gap-4 animate-fade-up animate-delay-4">
         <button
-          v-for="test in ['keyboard', 'screen', 'webcam', 'micro'] as const"
-          :key="test"
+          v-for="tab in [
+            { key: 'keyboard', label: '⌨️ Bàn phím' },
+            { key: 'screen', label: '🖥️ Màn hình' },
+            { key: 'webcam', label: '📷 Webcam' },
+            { key: 'micro', label: '🎙️ Micro' },
+          ] as const"
+          :key="tab.key"
           class="px-6 py-3 font-display font-semibold transition-all duration-300 border focus:outline-none"
           :class="
-            currentTest === test
+            currentTest === tab.key
               ? 'bg-accent-coral border-accent-coral text-bg-deep'
               : 'border-border-default bg-bg-surface/50 text-text-secondary hover:border-accent-coral hover:text-accent-coral'
           "
-          @click="currentTest = test"
+          @click="currentTest = tab.key"
         >
-          {{ test.toUpperCase() }}
+          {{ tab.label }}
         </button>
       </nav>
 
