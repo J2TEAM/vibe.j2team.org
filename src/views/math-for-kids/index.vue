@@ -46,6 +46,7 @@ const levels = [
   'Đại Học',
   'Thạc Sĩ',
   'Giáo Sư',
+  'Vi Thần',
   'Ngẫu Nhiên',
 ]
 
@@ -66,6 +67,7 @@ function levelToAge(level: string): number {
     'Đại Học': 22,
     'Thạc Sĩ': 26,
     'Giáo Sư': 35,
+    'Vi Thần': 99,
     'Ngẫu Nhiên': 18,
   }
   return map[level] ?? 18
@@ -82,6 +84,7 @@ function levelIcon(level: string): string {
     'Đại Học': '🎓',
     'Thạc Sĩ': '🔬',
     'Giáo Sư': '🧠',
+    'Vi Thần': '👁️‍🗨️',
     'Ngẫu Nhiên': '🎲',
   }
   return icons[level] ?? '📝'
@@ -93,6 +96,13 @@ function pickRandom<T>(arr: T[]): T {
 }
 
 function generateRoast(userAge: number, level: string): string {
+  if (level === 'Vi Thần') {
+    return pickRandom([
+      `Chọn Vi Thần à? Xin lỗi vì đã đánh giá thấp bạn. Hoặc bạn là một vị thần giáng thế, hoặc bạn sắp phải đi mổ não sau 20 câu này.`,
+      `Chà, Vi Thần! ${userAge} tuổi mà dám click vào đây thì độ liều lĩnh của bạn phải sánh ngang với việc nhảy dù không cần dù. Chúc bạn bảo toàn được nơ-ron thần kinh.`,
+    ])
+  }
+
   const levelAge = levelToAge(level)
   const diff = userAge - levelAge
 
@@ -150,20 +160,61 @@ function rng(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
+function makeHardExpression(val: number): string {
+  const type = rng(1, 7)
+  const v = Math.abs(val)
+  let expr = ''
+
+  switch (type) {
+    case 1:
+      expr = `√(${v * v})`
+      break
+    case 2:
+      expr = `∫₀¹ ${v} dx`
+      break
+    case 3:
+      expr = `lim(x→0) (${v} * sin(x)) / x`
+      break
+    case 4:
+      expr = `d/dx (${v}x) tại x=2026`
+      break
+    case 5:
+      expr = v <= 10 ? `log₂(${Math.pow(2, v)})` : `∛(${v * v * v})`
+      break
+    case 6:
+      expr = `det[[${v}, 0], [0, 1]]`
+      break
+    case 7:
+      expr = `∑(i=1..${v}) 1`
+      break
+  }
+  return val < 0 ? `-(${expr})` : expr
+}
+
 function generateCloseNumbers(correct: number): { options: string[]; correctIndex: number } {
   const opts = new Set<number>([correct])
-  let attempts = 0
 
+  const addOpt = (val: number) => {
+    if (correct >= 0 && val < 0) val = correct + (correct - val)
+    opts.add(val)
+  }
+
+  const tensOffset = (Math.random() > 0.5 ? 10 : -10) * (Math.random() > 0.5 ? 1 : 2)
+  addOpt(correct + tensOffset)
+
+  addOpt(correct + (Math.random() > 0.5 ? 1 : -1))
+  addOpt(correct + (Math.random() > 0.5 ? 2 : -2))
+
+  let attempts = 0
   while (opts.size < 4 && attempts < 100) {
-    const offset = rng(1, 10) * (Math.random() > 0.5 ? 1 : -1)
-    const candidate = correct + offset
-    if (candidate >= 0 || correct < 0) opts.add(candidate)
+    const randomOffset = rng(3, 9) * (Math.random() > 0.5 ? 1 : -1)
+    addOpt(correct + randomOffset)
     attempts++
   }
 
   let fill = 1
   while (opts.size < 4) {
-    opts.add(correct + fill * 10)
+    addOpt(correct + fill * 10)
     fill++
   }
 
@@ -182,7 +233,7 @@ function createCustomQ(text: string, correctAns: string, wrongAns: string[]): Qu
   return { text, options: finalOpts, correctIndex: finalOpts.indexOf(correctAns) }
 }
 
-// Lớp 1-3: Cộng trừ cơ bản
+// Lớp 1-3
 function genTier1(): Question {
   const isWordProblem = Math.random() > 0.5
   if (isWordProblem) {
@@ -201,7 +252,7 @@ function genTier1(): Question {
   }
 }
 
-// Lớp 4-6: Nhân chia
+// Lớp 4-6
 function genTier2(): Question {
   const isWordProblem = Math.random() > 0.5
   if (isWordProblem) {
@@ -220,7 +271,7 @@ function genTier2(): Question {
   }
 }
 
-// Lớp 7-9: Biểu thức nhiều bước
+// Lớp 7-9
 function genTier3(): Question {
   const isWordProblem = Math.random() > 0.5
   if (isWordProblem) {
@@ -241,7 +292,7 @@ function genTier3(): Question {
   }
 }
 
-// Lớp 10-12: Phương trình bậc 1
+// Lớp 10-12
 function genTier4(): Question {
   const isWordProblem = Math.random() > 0.5
   if (isWordProblem) {
@@ -261,16 +312,15 @@ function genTier4(): Question {
   }
 }
 
-// Đại Học+: Đạo hàm, Tích phân, PT Bậc 2
+// Đại Học+
 function genTier5(): Question {
   const isWordProblem = Math.random() > 0.5
   if (isWordProblem) {
-    const n = rng(3, 5)
-    const t = rng(2, 4)
-    // Gia tốc s''(t) của t^n
+    const n = rng(3, 5),
+      t = rng(2, 4)
     const ans = n * (n - 1) * Math.pow(t, n - 2)
     return createCustomQ(
-      `Vị trí 1 chiếc lá rơi thỏa mãn s(t) = t^${n}. Hỏi gia tốc của chiếc lá tại thời điểm t = ${t} là bao nhiêu?`,
+      `Vị trí 1 chiếc lá rơi thỏa mãn s(t) = t^${n}. Hỏi gia tốc của chiếc lá tại t = ${t} là bao nhiêu?`,
       String(ans),
       [String(ans + 2), String(ans * 2), String(ans - 4), String(ans + 10)],
     )
@@ -286,7 +336,7 @@ function genTier5(): Question {
     } else {
       const x1 = rng(1, 5),
         x2 = rng(2, 6)
-      return createCustomQ(`Nghiệm: x² − ${x1 + x2}x + ${x1 * x2} = 0`, `x=${x1}, x=${x2}`, [
+      return createCustomQ(`Nghiệm của: x² - ${x1 + x2}x + ${x1 * x2} = 0`, `x=${x1}, x=${x2}`, [
         `x=${x1}, x=-${x2}`,
         `x=-${x1}, x=${x2}`,
         `Vô nghiệm`,
@@ -298,27 +348,27 @@ function genTier5(): Question {
 function genFunny(): Question {
   const funnies = [
     {
-      q: 'Quãng đường từ nhà ở Việt Trì đến trường là 5km. Lan đi học muộn nên đạp xe vắt chân lên cổ mất đúng 18 giây. Tính theo công thức vật lý (v=s/t), vận tốc xe đạp của Lan là bao nhiêu?',
+      q: 'Từ Việt Trì đến trường là 5km. Lan đi học muộn nên đạp xe vắt chân lên cổ mất đúng 18 giây. Tính theo công thức vật lý ($v=s/t$), vận tốc xe đạp của Lan là bao nhiêu?',
       a: '1000 km/h',
       w: ['360 km/h', '277 km/h', '500 km/h', '2000 km/h'],
     },
     {
-      q: 'Bạn đang code child theme "tuancute-chill-theme" có 100 dòng. Cứ gõ 10 dòng sẽ sinh ra 3 bug. Để sửa 1 bug phải gõ bù 5 dòng. Hỏi sau khi gõ 10 dòng và fix hết 3 bug đó, file có bao nhiêu dòng?',
+      q: 'Code child theme "tuancute" có 100 dòng. Cứ gõ 10 dòng đẻ ra 3 bug. Để sửa 1 bug gõ bù 5 dòng. Sau khi gõ 10 dòng và fix hết 3 bug đó, file có bao nhiêu dòng?',
       a: '125 dòng',
       w: ['115 dòng', '130 dòng', '110 dòng', '140 dòng'],
     },
     {
-      q: 'Năm nay Lan 10 tuổi, mẹ 100 tuổi. Nếu mỗi năm cả 2 người cùng tăng 1 tuổi, tính bằng phương trình toán học thì đúng bao nhiêu năm nữa tuổi mẹ sẽ gấp đôi tuổi Lan?',
+      q: 'Lan 10 tuổi, mẹ 100 tuổi. Nếu mỗi năm cả 2 tăng 1 tuổi, tính bằng phương trình đại số thì đúng bao nhiêu năm nữa tuổi mẹ sẽ gấp đôi tuổi Lan?',
       a: '80 năm',
       w: ['90 năm', '45 năm', '50 năm', '100 năm'],
     },
     {
-      q: 'Bạn dùng FFmpeg render một video. Ban đầu app báo còn 10 phút. Cứ 1 phút thực tế trôi qua, do máy lag nên thời gian dự kiến hiển thị cộng thêm 2 phút. Hỏi sau đúng 5 phút đồng hồ, app hiển thị còn bao nhiêu phút?',
+      q: 'Render video FFmpeg báo còn 10 phút. Cứ 1 phút thực tế trôi qua, máy lag nên cộng thêm 2 phút. Sau đúng 5 phút đồng hồ, app hiển thị còn bao nhiêu phút?',
       a: '15 phút',
       w: ['20 phút', '5 phút', '0 phút', '10 phút'],
     },
     {
-      q: 'Nam ăn 3 bát cơm mất 15 phút. Hôm sau chạy deadline, Nam nhai với tốc độ x2 (thời gian ăn 1 bát giảm một nửa). Tính chính xác thì Nam ăn 6 bát cơm mất bao nhiêu phút?',
+      q: 'Nam ăn 3 bát cơm mất 15 phút. Hôm sau nhai tốc độ x2 (thời gian ăn 1 bát giảm một nửa). Tính chính xác thì Nam ăn 6 bát cơm mất bao nhiêu phút?',
       a: '15 phút',
       w: ['30 phút', '7.5 phút', '20 phút', '10 phút'],
     },
@@ -329,22 +379,86 @@ function genFunny(): Question {
 
 function generateQuestions(level: string): Question[] {
   const actualLevel =
-    level === 'Ngẫu Nhiên' ? levels[Math.floor(Math.random() * (levels.length - 1))]! : level
+    level === 'Ngẫu Nhiên' ? levels[Math.floor(Math.random() * (levels.length - 2))]! : level
+
+  const qs: Question[] = []
+  const usedTexts = new Set<string>()
+
+  if (actualLevel === 'Vi Thần') {
+    while (qs.length < 20) {
+      const type = rng(1, 9)
+      let baseText = ''
+      let correctNum = 0
+
+      switch (type) {
+        case 1: // Hóa học
+          const m = rng(2, 5) * 18
+          baseText = `Hòa tan ${m}g nước (H2O, M=18). Hỏi số mol nước là bao nhiêu?`
+          correctNum = m / 18
+          break
+        case 2: // Sinh học
+          baseText = `Ruồi giấm có 2n = 8. Một tế bào ở kì sau nguyên phân có bao nhiêu NST đơn?`
+          correctNum = 16
+          break
+        case 3: // Lịch sử
+          baseText = `(Năm giải phóng miền Nam - Năm Cách mạng tháng Tám) chia cho 3 bằng mấy?`
+          correctNum = (1975 - 1945) / 3
+          break
+        case 4: // Triết học
+          baseText = `Số quy luật cơ bản của phép biện chứng duy vật (Mác-Lênin) nhân với số nguyên tố chẵn duy nhất?`
+          correctNum = 3 * 2
+          break
+        case 5: // Lập trình
+          baseText = `Trong JS: parseInt("11", 2) + [1, 2, 3].length bằng bao nhiêu?`
+          correctNum = 3 + 3
+          break
+        case 6: // Tích phân
+          const aInt = rng(2, 5)
+          baseText = `Giá trị của ∫₀¹ ${aInt}x dx nhân với 2 bằng bao nhiêu?`
+          correctNum = aInt
+          break
+        case 7: // Ma trận
+          const a = rng(1, 5),
+            b = rng(1, 5),
+            c = rng(1, 3),
+            d = rng(1, 5)
+          baseText = `Định thức của ma trận vuông [[${a}, ${b}], [${c}, ${d}]] bằng bao nhiêu?`
+          correctNum = a * d - b * c
+          break
+        case 8: // Đạo hàm
+          const nDeriv = rng(2, 4)
+          baseText = `Đạo hàm f'(1) của hàm số f(x) = x^${nDeriv} + 5x là?`
+          correctNum = nDeriv + 5
+          break
+        case 9: // Cơ bản
+          const aBasic = rng(10, 30),
+            bBasic = rng(10, 30)
+          baseText = `${aBasic} + ${bBasic} = ?`
+          correctNum = aBasic + bBasic
+          break
+      }
+
+      const { options: numericOpts, correctIndex } = generateCloseNumbers(correctNum)
+      const obfuscatedOpts = numericOpts.map((valStr) => makeHardExpression(Number(valStr)))
+
+      const q: Question = { text: baseText, options: obfuscatedOpts, correctIndex }
+      if (!usedTexts.has(q.text)) {
+        usedTexts.add(q.text)
+        qs.push(q)
+      }
+    }
+    return qs
+  }
 
   const idx = levels.indexOf(actualLevel)
-
   let baseTier = 1
   if (idx >= 12) baseTier = 5
   else if (idx >= 9) baseTier = 4
   else if (idx >= 6) baseTier = 3
   else if (idx >= 3) baseTier = 2
 
-  const qs: Question[] = []
-  const usedTexts = new Set<string>()
-
   function getQuestionForTier(tier: number): Question {
     if (Math.random() < 0.15) return genFunny()
-
     switch (Math.min(tier, 5)) {
       case 1:
         return genTier1()
@@ -368,7 +482,6 @@ function generateQuestions(level: string): Question[] {
     if (qNum === 10) targetTier = baseTier + 2
 
     let q = getQuestionForTier(targetTier)
-
     if (qNum === 10 && baseTier >= 3 && q.options.length < 3) {
       q = genTier5()
     }
@@ -386,14 +499,21 @@ function generateQuestions(level: string): Question[] {
 const questions = ref<Question[]>([])
 
 const currentQuestion = computed(() => questions.value[currentQ.value] ?? null)
-const isDarkMode = computed(() => currentQ.value >= 5 && screen.value === 'game')
-const isBossMode = computed(() => currentQ.value === 9 && screen.value === 'game')
+const isDarkMode = computed(
+  () => currentQ.value >= questions.value.length / 2 && screen.value === 'game',
+)
+const isBossMode = computed(
+  () => currentQ.value === questions.value.length - 1 && screen.value === 'game',
+)
+const totalQuestions = computed(() => questions.value.length)
+
 const timeLimit = computed(() => {
+  if (selectedLevel.value === 'Vi Thần') return 0 // Vô hạn thời gian cho Vi Thần
   if (currentQ.value >= 9) return 5
   if (currentQ.value >= 5) return 10
   return 0
 })
-const progressPercent = computed(() => (currentQ.value / 10) * 100)
+const progressPercent = computed(() => (currentQ.value / Math.max(totalQuestions.value, 1)) * 100)
 
 // ─── Screen Transitions ─────────────────────────────────────
 function goToIntro() {
@@ -469,7 +589,7 @@ function selectAnswer(idx: number) {
     score.value++
     stopTimer()
     setTimeout(() => {
-      if (currentQ.value >= 9) {
+      if (currentQ.value >= totalQuestions.value - 1) {
         screen.value = 'win'
         return
       }
@@ -489,10 +609,11 @@ function triggerGameOver() {
   const userAge = age.value ?? 0
   const q = currentQ.value + 1
   const lvl = selectedLevel.value
+  const tq = totalQuestions.value
 
   gameOverMsg.value = pickRandom([
     `Nhục nhã! Đã ${userAge} tuổi đầu rồi mà không qua nổi câu ${q} của cái game ${lvl}. Đề nghị xé bằng tốt nghiệp!`,
-    `${userAge} tuổi, ${q}/10 câu. Thành tích này mà đem khoe thì cả họ mất mặt luôn á. Về hỏi lại thầy cô có dạy bạn không?`,
+    `${userAge} tuổi, ${q - 1}/${tq} câu. Thành tích này mà đem khoe thì cả họ mất mặt luôn á. Về hỏi lại thầy cô có dạy bạn không?`,
     `Game Over! ${userAge} tuổi mà trượt ở câu ${q}. Tổ tiên cũng đang lắc đầu ngán ngẩm.`,
     `Thua rồi! Bạn nên chuyển sang ngành không cần tính toán. À khoan, thở thôi cũng cần tính oxy. RIP.`,
   ])
@@ -551,7 +672,7 @@ function optionClass(idx: number): string {
             Giải Toán<br /><span class="text-accent-coral">Vui</span>
           </h1>
           <p class="text-text-secondary mt-4 text-sm sm:text-base max-w-sm mx-auto">
-            Kiểm tra trình độ toán học từ Lớp 1 đến Giáo Sư. Bạn sẽ vượt qua được bao nhiêu câu?
+            Kiểm tra trình độ toán học từ Lớp 1 đến Vi Thần. Bạn sẽ vượt qua được bao nhiêu câu?
           </p>
         </div>
 
@@ -609,7 +730,7 @@ function optionClass(idx: number): string {
             Chọn cấp độ
           </h2>
           <p class="text-text-secondary text-sm mt-3">
-            Hãy chọn trình độ phù hợp với bạn. Mỗi cấp có 10 câu hỏi.
+            Mỗi cấp có 10 câu hỏi. (Riêng chế độ Vi Thần có 20 câu hỏi thập cẩm).
           </p>
         </div>
 
@@ -618,15 +739,27 @@ function optionClass(idx: number): string {
             v-for="lvl in levels"
             :key="lvl"
             class="border border-border-default bg-bg-surface p-4 font-display text-sm font-semibold text-text-primary transition-all duration-300 text-left hover:-translate-y-1 hover:border-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5 flex items-center gap-3"
-            :class="
+            :class="[
               lvl === 'Ngẫu Nhiên'
                 ? 'sm:col-span-2 lg:col-span-3 justify-center border-accent-amber/30 hover:border-accent-amber hover:shadow-accent-amber/5'
-                : ''
-            "
+                : '',
+              lvl === 'Vi Thần'
+                ? 'border-purple-500/50 text-purple-300 hover:border-purple-400 hover:shadow-purple-500/10'
+                : '',
+            ]"
             @click="selectLevel(lvl)"
           >
             <span class="text-lg">{{ levelIcon(lvl) }}</span>
-            <span :class="lvl === 'Ngẫu Nhiên' ? 'text-accent-amber' : ''">{{ lvl }}</span>
+            <span
+              :class="
+                lvl === 'Ngẫu Nhiên'
+                  ? 'text-accent-amber'
+                  : lvl === 'Vi Thần'
+                    ? 'text-purple-400 font-bold tracking-widest'
+                    : ''
+              "
+              >{{ lvl }}</span
+            >
           </button>
         </div>
 
@@ -693,7 +826,7 @@ function optionClass(idx: number): string {
               class="font-display text-xs tracking-widest"
               :class="isDarkMode ? 'text-red-400' : 'text-accent-amber'"
             >
-              // Câu {{ currentQ + 1 }} / 10
+              // Câu {{ currentQ + 1 }} / {{ totalQuestions }}
             </span>
 
             <div class="flex items-center gap-3">
@@ -716,6 +849,12 @@ function optionClass(idx: number): string {
               >
                 {{ timer }}s
               </span>
+              <span
+                v-else-if="selectedLevel === 'Vi Thần'"
+                class="text-xs font-display text-purple-400 animate-pulse"
+              >
+                ∞ Thời gian
+              </span>
             </div>
           </div>
 
@@ -733,9 +872,11 @@ function optionClass(idx: number): string {
           :class="[
             isBossMode
               ? 'border-2 border-red-500 bg-red-950/60'
-              : isDarkMode
-                ? 'border border-red-900/50 bg-gray-900/80'
-                : 'border border-border-default bg-bg-surface',
+              : selectedLevel === 'Vi Thần'
+                ? 'border border-purple-500/50 bg-purple-900/10 shadow-[0_0_30px_rgba(168,85,247,0.1)]'
+                : isDarkMode
+                  ? 'border border-red-900/50 bg-gray-900/80'
+                  : 'border border-border-default bg-bg-surface',
           ]"
         >
           <div class="flex items-start justify-between gap-4">
@@ -745,6 +886,12 @@ function optionClass(idx: number): string {
                 class="text-[10px] font-display tracking-widest text-red-400 mb-3 uppercase"
               >
                 Câu hỏi cuối cùng
+              </p>
+              <p
+                v-else-if="selectedLevel === 'Vi Thần'"
+                class="text-[10px] font-display tracking-widest text-purple-400 mb-3"
+              >
+                Cảnh báo: Tính toán cẩn thận đáp án
               </p>
               <p
                 v-else-if="isDarkMode"
@@ -763,7 +910,13 @@ function optionClass(idx: number): string {
 
             <span
               class="font-display text-5xl font-bold select-none pointer-events-none shrink-0"
-              :class="isDarkMode ? 'text-red-500/5' : 'text-accent-amber/5'"
+              :class="
+                selectedLevel === 'Vi Thần'
+                  ? 'text-purple-500/10'
+                  : isDarkMode
+                    ? 'text-red-500/5'
+                    : 'text-accent-amber/5'
+              "
             >
               {{ String(currentQ + 1).padStart(2, '0') }}
             </span>
@@ -789,7 +942,7 @@ function optionClass(idx: number): string {
             class="font-display text-xs tracking-widest"
             :class="isDarkMode ? 'text-red-400/40' : 'text-text-dim'"
           >
-            Điểm: {{ score }}
+            Điểm: {{ score }} / {{ totalQuestions }}
           </span>
         </div>
       </div>
@@ -816,7 +969,7 @@ function optionClass(idx: number): string {
             <span class="w-1 h-1 rounded-full bg-red-400/30" />
             <span>{{ selectedLevel }}</span>
             <span class="w-1 h-1 rounded-full bg-red-400/30" />
-            <span>{{ score }}/10</span>
+            <span>{{ score }}/{{ totalQuestions }}</span>
           </div>
         </div>
 
@@ -858,9 +1011,16 @@ function optionClass(idx: number): string {
         </h2>
 
         <div class="border border-accent-amber bg-bg-surface p-6 sm:p-8 mt-6 mb-8">
-          <p class="text-text-primary leading-relaxed text-sm sm:text-base">
-            {{ age }} tuổi, vượt qua 10/10 câu {{ selectedLevel }} — kể cả câu trùm cuối quái thai.
-            Hoặc bạn là thiên tài, hoặc bạn xài ChatGPT. Dù sao cũng xin chúc mừng.
+          <p
+            v-if="selectedLevel === 'Vi Thần'"
+            class="text-purple-400 leading-relaxed text-sm sm:text-base font-bold"
+          >
+            Tôn ngộ không cũng phải gọi bạn bằng sư phụ. Vượt qua 20/20 câu Vi Thần. Kính nể!!
+          </p>
+          <p v-else class="text-text-primary leading-relaxed text-sm sm:text-base">
+            {{ age }} tuổi, vượt qua {{ totalQuestions }}/{{ totalQuestions }} câu
+            {{ selectedLevel }} — kể cả câu trùm cuối quái thai. Hoặc bạn là thiên tài, hoặc bạn xài
+            ChatGPT. Dù sao cũng xin chúc mừng.
           </p>
 
           <div
@@ -870,7 +1030,7 @@ function optionClass(idx: number): string {
             <span class="w-1 h-1 rounded-full bg-accent-amber/30" />
             <span>{{ selectedLevel }}</span>
             <span class="w-1 h-1 rounded-full bg-accent-amber/30" />
-            <span>10/10</span>
+            <span>{{ score }}/{{ totalQuestions }}</span>
           </div>
         </div>
 
