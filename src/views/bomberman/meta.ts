@@ -4,9 +4,9 @@ const meta: PageMeta = {
   name: 'Mini Bomberman',
   description:
     'Trò chơi Đặt Bom cổ điển phiên bản Emoji. Tiêu diệt Bot để chiến thắng!',
-  author: 'J2TEAM',
-  facebook: 'https://www.facebook.com/groups/j2team.community',
-  category: 'learn',
+  author: 'ThuanLYT',
+  facebook: 'https://www.facebook.com/thuanlyt.official/',
+  category: 'game',
 }
 
 export default meta
