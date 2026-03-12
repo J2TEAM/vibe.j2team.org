@@ -1,54 +1,43 @@
-import { LapXuanArticle } from './LapXuan'
-import { VuThuyArticle } from './VuThuy'
-import { KinhTrapArticle } from './KinhTrap'
-import { XuanPhanArticle } from './XuanPhan'
-import { ThanhMinhArticle } from './ThanhMinh'
-import { CocVuArticle } from './CocVu'
-import { LapHaArticle } from './LapHa'
-import { TieuManArticle } from './TieuMan'
-import { MangChungArticle } from './MangChung'
-import { HaChiArticle } from './HaChi'
-import { TieuThuArticle } from './TieuThu'
-import { DaiThuArticle } from './DaiThu'
-import { LapThuArticle } from './LapThu'
-import { XuThuArticle } from './XuThu'
-import { BachLoArticle } from './BachLo'
-import { ThuPhanArticle } from './ThuPhan'
-import { HanLoArticle } from './HanLo'
-import { SuongGiangArticle } from './SuongGiang'
-import { LapDongArticle } from './LapDong'
-import { TieuTuyetArticle } from './TieuTuyet'
-import { DaiTuyetArticle } from './DaiTuyet'
-import { DongChiArticle } from './DongChi'
-import { TieuHanArticle } from './TieuHan'
-import { DaiHanArticle } from './DaiHan'
+// Lazy-load bài luận (articles) theo tiết khí.
+// Sử dụng import.meta.glob để Vite tách mỗi article thành chunk riêng,
+// chỉ tải khi người dùng mở tab "Khai tâm (Đọc sâu)".
 import type { Article } from './types'
+import { termFileMap } from '../data/termFileMap'
 
-export const articles: Record<string, Article> = {
-  'Lập Xuân': LapXuanArticle,
-  'Vũ Thủy': VuThuyArticle,
-  'Kinh Trập': KinhTrapArticle,
-  'Xuân Phân': XuanPhanArticle,
-  'Thanh Minh': ThanhMinhArticle,
-  'Cốc Vũ': CocVuArticle,
-  'Lập Hạ': LapHaArticle,
-  'Tiểu Mãn': TieuManArticle,
-  'Mang Chủng': MangChungArticle,
-  'Hạ Chí': HaChiArticle,
-  'Tiểu Thử': TieuThuArticle,
-  'Đại Thử': DaiThuArticle,
-  'Lập Thu': LapThuArticle,
-  'Xử Thử': XuThuArticle,
-  'Bạch Lộ': BachLoArticle,
-  'Thu Phân': ThuPhanArticle,
-  'Hàn Lộ': HanLoArticle,
-  'Sương Giáng': SuongGiangArticle,
-  'Lập Đông': LapDongArticle,
-  'Tiểu Tuyết': TieuTuyetArticle,
-  'Đại Tuyết': DaiTuyetArticle,
-  'Đông Chí': DongChiArticle,
-  'Tiểu Hàn': TieuHanArticle,
-  'Đại Hàn': DaiHanArticle,
+// Dùng negative pattern thay cho exclude (tương thích Vite 5+)
+const articleModules = import.meta.glob<{ [key: string]: Article }>([
+  './*.ts',
+  '!./index.ts',
+  '!./types.ts',
+])
+
+// Cache để không tải lại lần thứ 2
+const cache = new Map<string, Article>()
+
+/**
+ * Tải lazy một bài luận theo tên tiết khí.
+ * Trả về null nếu không tìm thấy.
+ */
+export async function getArticle(termName: string): Promise<Article | null> {
+  if (cache.has(termName)) return cache.get(termName)!
+
+  const fileName = termFileMap[termName]
+  if (!fileName) return null
+
+  const modulePath = `./${fileName}.ts`
+  const loader = articleModules[modulePath]
+  if (!loader) return null
+
+  try {
+    const mod = await loader()
+    const exportKey = `${fileName}Article`
+    const article = mod[exportKey]
+    if (article) cache.set(termName, article)
+    return article ?? null
+  } catch (err) {
+    console.error(`Lỗi tải bài luận ${termName}:`, err)
+    return null
+  }
 }
 
 export type { Article, ArticleSection } from './types'

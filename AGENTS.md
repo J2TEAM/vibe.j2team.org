@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-vibe.j2team.org — A collaborative vibe coding project by J2TEAM Community with 90+ sub-apps. The homepage acts as a launcher linking to sub-apps, where each community member creates their own page.
+vibe.j2team.org — A collaborative vibe coding project by J2TEAM Community with 125+ sub-apps. The homepage acts as a launcher linking to sub-apps, where each community member creates their own page.
 
 ## Tech Stack
 
@@ -15,6 +15,7 @@ vibe.j2team.org — A collaborative vibe coding project by J2TEAM Community with
 - @unhead/vue (document head/meta management)
 - @vueuse/core 14 — 200+ Vue composables (useMouse, useClipboard, useDark, useStorage, useIntersectionObserver, useLocalStorage, useMediaQuery, useWindowSize, etc.)
 - @iconify/vue — 200,000+ icons from 150+ icon sets via `<Icon icon="icon-set:icon-name" />` component
+- html-to-image — capture DOM nodes as PNG/JPEG/SVG
 
 ## Setup & Build
 
@@ -38,17 +39,23 @@ src/
   router/index.ts            # Vue Router — auto-generates routes from pages-loader
   types/page.ts              # PageMeta & PageInfo interfaces
   data/
-    pages-loader.ts          # Auto-discovers views/*/meta.ts via import.meta.glob()
-    categories.ts            # Category definitions (game, tool, fun, learn, spiritual, connect, other)
+    pages-loader.ts          # Fetches pre-generated pages.json (built by Vite plugin)
+    categories.ts            # Category definitions (game, tool, creative, fun, learn, health, finance, spiritual, connect, other)
     homepage.ts              # Homepage content data (tech stack, rules, products)
     constants.ts             # Shared constants
   components/
     home/                    # Homepage section components (HeroSection, PagesGrid, etc.)
     BackToTop.vue
+    EdgeToolbar.vue          # Slide-out toolbar on sub-pages (source link, bookmark, home)
+    ErrorBoundary.vue        # Error boundary wrapper
+    FavoriteButton.vue       # Bookmark/favorite toggle button
   stores/                    # Pinia stores (currently unused — pages manage state locally)
   views/
     HomePage.vue             # Landing page / launcher
     ContentPolicy.vue        # Content policy page
+    LeaderboardPage.vue      # Author leaderboard (/leaderboard)
+    BookmarksPage.vue        # User's bookmarked pages (/bookmarks)
+    AuthorPage.vue           # Author profile page (/author/:slug)
     NotFound.vue             # 404 page
     <app-name>/
       index.vue              # Each sub-page is a directory with index.vue
@@ -57,11 +64,12 @@ src/
 
 ## Auto-Routing System
 
-Routes are auto-generated via `src/data/pages-loader.ts`:
-- `import.meta.glob('@/views/*/meta.ts')` discovers all pages
+Routes are auto-generated from a pre-built `public/data/pages.json` file:
+- A Vite plugin (`scripts/generate-pages-json.mjs`) scans all `src/views/*/meta.ts` files and writes `public/data/pages.json` at build start and whenever a `meta.ts` file changes during dev
+- `src/data/pages-loader.ts` fetches this JSON at runtime (bypasses Rollup bundling)
 - Path is derived from folder name (e.g., `src/views/my-app/` → `/my-app`)
-- Featured pages are pinned to the top of the homepage (hand-picked list in pages-loader.ts)
-- `hello-world` is always sorted last (template reference)
+- Featured pages are hand-picked in `scripts/generate-pages-json.mjs` and pinned to top of homepage
+- Pages with `hidden: true` in their `meta.ts` are excluded from the listing but their routes still work
 
 ## Design System
 
@@ -94,6 +102,7 @@ Before implementing any browser/DOM/state logic, **check if VueUse already has a
 - **Viewport**: `useWindowSize()`, `useElementSize()`, `useIntersectionObserver()` — not manual resize/scroll listeners
 - **Media**: `useMediaQuery()` — not `window.matchMedia` directly
 - **Network**: `useFetch()`, `useOnline()` — not raw `fetch` with manual reactive state
+- **Remote scripts**: `useScriptTag()` — not manual `document.createElement('script')`. Auto-cleans up on unmount
 - **Animation**: `useTransition()`, `useRafFn()` — not manual `requestAnimationFrame`
 - **Reactivity**: `watchDebounced()`, `watchThrottled()`, `refDebounced()` — not custom debounce/throttle implementations
 
@@ -150,12 +159,15 @@ Before implementing any new feature or sub-page, agents MUST:
 7. **No new dependencies** in `package.json` unless truly needed and approved. The following libraries are **already installed** — use them freely (see "Leveraging Installed Libraries" section above):
    - `@vueuse/core` — Vue composables
    - `@iconify/vue` — Icon component
+   - `html-to-image` — DOM-to-image capture (PNG/JPEG/SVG)
 
    The following are **pre-approved** and can be added without additional approval:
    - `vue-konva` — 2D canvas library for drawing, games, and interactive graphics
    - `shiki` — Syntax highlighter
-8. **Author attribution required** — every page must have an `author` field in its `meta.ts` file
-9. **No landing pages or promotional content** — Pages must provide direct, self-contained value to users (e.g., a game, tool, interactive experience, or educational content). The following are **not accepted**:
+8. **Folder names must be kebab-case** — sub-page directories under `src/views/` must use lowercase kebab-case (e.g., `my-app`, `dev-rpg`). PascalCase or mixed-case folder names are not allowed
+9. **Author attribution required** — every page must have an `author` field in its `meta.ts` file
+10. **External libraries & APIs are welcome** — Sub-apps can load third-party JS libraries at runtime via `useScriptTag()` from `@vueuse/core` (e.g., YouTube IFrame API, Tone.js, Matter.js, p5.js). Authors can also call free/public external APIs (e.g., weather, dictionary, trivia, exchange rates) to power their features — just don't hard-code API keys in source code (see rule 8 in PR Checklist)
+11. **No landing pages or promotional content** — Pages must provide direct, self-contained value to users (e.g., a game, tool, interactive experience, or educational content). The following are **not accepted**:
    - Landing pages or showcase pages for external products, services, or brands
    - Pages whose primary purpose is to redirect users to external websites or services
    - Advertising, marketing, or affiliate content
@@ -183,6 +195,45 @@ Simple apps (just a single page) only need `index.vue` + `meta.ts`.
 - `src/views/<app-name>/assets/` — images, sounds, CSS that Vite will hash and optimize. **Use this for most cases.**
 - `public/<app-name>/` — large media files (videos, large image sets) served as-is without Vite processing. Accessible at `/<app-name>/filename.ext`.
 
+### Bundle Size — Avoid bloating JS chunks
+
+Vite/Rollup bundles **everything that is `import`ed** into JS chunks. The following patterns bloat the bundle and **must be avoided**:
+
+**DO NOT — Export large data as a TypeScript/JS module:**
+```ts
+// Whether static or dynamic import — Rollup still creates a JS chunk
+export const wordList = { ... } // 500 kB
+const mod = await import('./data') // still a JS chunk
+```
+
+**DO — Replace with JSON in `public/data/` + lazy fetch:**
+```ts
+// Bypasses Rollup entirely, browser caches it independently
+const response = await fetch('/data/my-app-data.json')
+const data = await response.json()
+```
+
+**DO NOT — Import a compiled engine (.js Emscripten/WASM) via `?url`:**
+```ts
+import engineUrl from './engine.js?url' // Vite still copies it to dist/assets/, triggers warning
+```
+
+**DO — Place in `public/<app-name>/` and use a hardcoded URL:**
+```ts
+const engineUrl = '/my-app/engine.js' // Rollup never touches it
+```
+
+**Size thresholds:**
+
+| Data type | Threshold | Recommendation |
+|-----------|-----------|----------------|
+| Dictionary / word list | > 50 kB | `public/data/*.json` + fetch |
+| Geo / SVG path data | > 50 kB | `public/data/*.json` + fetch |
+| Compiled engine (Emscripten, asm.js) | any size | `public/<app>/` + hardcoded URL |
+| Config / small data | < 20 kB | Direct import is fine |
+
+After building, run `pnpm build` and verify there are no `(!) Some chunks are larger than 500 kB` warnings.
+
 ### Shared Utilities (opt-in)
 
 Reusable code used by 3+ apps can live in the shared layer:
@@ -204,10 +255,10 @@ Run the generator script:
 pnpm create:page <slug>
 
 # Non-interactive (all fields via flags — use this in scripts and AI agents)
-pnpm create:page <slug> --name "Display Name" --description "Page description" --author "Author" --category game [--facebook "https://..."] [--hide-toolbar]
+pnpm create:page <slug> --name "Display Name" --description "Page description" --author "Author" --category game [--facebook "https://..."] [--hide-toolbar] [--hidden]
 ```
 
-Available categories: `game`, `tool`, `fun`, `learn`, `spiritual`, `connect`, `other`.
+Available categories: `game`, `tool`, `creative`, `fun`, `learn`, `health`, `finance`, `spiritual`, `connect`, `other`.
 
 This creates `src/views/<slug>/index.vue` + `meta.ts` with the correct structure. Any flag not provided will be prompted interactively.
 
@@ -215,8 +266,8 @@ This creates `src/views/<slug>/index.vue` + `meta.ts` with the correct structure
 
 1. Create a new directory under `src/views/<your-page-name>/`
 2. Add `index.vue` as the main component inside that directory
-3. Add `meta.ts` exporting a `PageMeta` object with: `name`, `description`, `author`, `category`, and optionally `facebook`, `showToolbar`
-4. Available categories: `game`, `tool`, `fun`, `learn`, `spiritual`, `connect`, `other`
+3. Add `meta.ts` exporting a `PageMeta` object with: `name`, `description`, `author`, `category`, and optionally `facebook`, `showToolbar`, `hidden`
+4. Available categories: `game`, `tool`, `creative`, `fun`, `learn`, `health`, `finance`, `spiritual`, `connect`, `other`
 5. The route is auto-generated from the folder name — no router changes needed
 
 ## Edge Toolbar
@@ -274,6 +325,7 @@ Default is `true` — the toolbar is shown unless explicitly disabled.
 6. **UTF-8 encoding** — Ensure all Vietnamese text is properly encoded in UTF-8 (no garbled characters)
 7. **Follow `meta.ts` structure** — Copy the pattern from `src/views/hello-world/meta.ts` exactly. Import `PageMeta` type, export default with required fields
 8. **No exposed API endpoints/secrets** — Since this is open source, never hard-code API keys, endpoints, or secrets in the source code
+9. **No large data files in `src/`** — If your app needs a large data file (> 50 kB), place it in `public/data/` as JSON and fetch it lazily. Do NOT export it as a TypeScript/JS module. See "Bundle Size — Avoid bloating JS chunks" section above
 
 ## Linting & Formatting
 

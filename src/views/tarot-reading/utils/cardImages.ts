@@ -1,26 +1,6 @@
-// ──────────────────────────────────────────────
-// Card image resolver — maps card IDs to their image URLs.
-//
-// Uses Vite's import.meta.glob to eagerly import all card PNGs.
-// This ensures images are properly bundled and cache-busted.
-// ──────────────────────────────────────────────
-
 import type { TarotCard } from '../types'
 
-// Eagerly import all card images — Vite resolves these at build time
-const imageModules = import.meta.glob<string>('../assets/images/**/*.png', {
-  eager: true,
-  import: 'default',
-})
-
-// Build a flat map: filename → resolved asset URL
-const imageByFilename = new Map<string, string>()
-for (const [path, url] of Object.entries(imageModules)) {
-  const filename = path.split('/').pop()
-  if (filename) {
-    imageByFilename.set(filename, url)
-  }
-}
+const BASE = '/tarot-cards'
 
 // ── Major Arcana filename lookup (id → filename without extension) ──
 
@@ -77,30 +57,24 @@ const SUIT_FILE_SUFFIXES: Record<string, string> = {
 }
 
 /**
- * Get the resolved image URL for a tarot card.
+ * Get the public URL for a tarot card image.
  * Returns empty string if no matching image is found.
  */
 export function getCardImageUrl(card: TarotCard): string {
-  let filename: string
-
   if (card.arcana === 'major') {
-    // Major Arcana: "00-TheFool.png"
     const base = MAJOR_ARCANA_FILENAMES[card.id]
     if (!base) return ''
-    filename = `${base}.png`
-  } else {
-    // Minor Arcana: "Ace_of_wand.png"
-    if (!card.suit || !card.number) return ''
-    const rank = RANK_NAMES[card.number]
-    const suitSuffix = SUIT_FILE_SUFFIXES[card.suit]
-    if (!rank || !suitSuffix) return ''
-    filename = `${rank}_of_${suitSuffix}.png`
+    return `${BASE}/majorArcana/${base}.png`
   }
 
-  return imageByFilename.get(filename) ?? ''
+  if (!card.suit || !card.number) return ''
+  const rank = RANK_NAMES[card.number]
+  const suitSuffix = SUIT_FILE_SUFFIXES[card.suit]
+  if (!rank || !suitSuffix) return ''
+  return `${BASE}/${card.suit}/${rank}_of_${suitSuffix}.png`
 }
 
-/** Get the resolved URL for the card back image */
+/** Get the public URL for the card back image */
 export function getCardBackUrl(): string {
-  return imageByFilename.get('CardBacks.png') ?? ''
+  return `${BASE}/CardBacks.png`
 }

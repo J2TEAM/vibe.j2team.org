@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { Icon } from '@iconify/vue'
+import { useTimeoutFn } from '@vueuse/core'
 import { useFavorites } from '@/composables/useFavorites'
 
 const props = defineProps<{
@@ -11,16 +11,15 @@ const props = defineProps<{
 
 const { toggleFavorite, isFavorite } = useFavorites()
 
-const isAnimating = ref(false)
+const { isPending: isAnimating, start: startAnimation } = useTimeoutFn(() => {}, 500, {
+  immediate: false,
+})
 
 function handleClick() {
   const willBeFavorite = !isFavorite(props.path)
   toggleFavorite(props.path)
   if (willBeFavorite) {
-    isAnimating.value = true
-    setTimeout(() => {
-      isAnimating.value = false
-    }, 500)
+    startAnimation()
   }
 }
 </script>

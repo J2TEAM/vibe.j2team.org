@@ -4,7 +4,7 @@ const meta: PageMeta = {
   name: 'Client Translator',
   description: 'Trình dịch ngôn ngữ Khách hàng sang Tiếng Coder',
   author: 'VigStudio',
-  category: 'game',
+  category: 'fun',
 }
 
 export default meta

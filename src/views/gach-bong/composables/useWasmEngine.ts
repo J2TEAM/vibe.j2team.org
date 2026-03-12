@@ -1,15 +1,12 @@
 import { ref, onMounted } from 'vue'
 import type { GachBongModule } from './types'
 
-// Load asm.js engine từ render-engine (bundled locally, không cần .wasm)
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import gachBongJsUrl from '../render-engine/gach_bong.js?url'
+// Load asm.js engine từ public/ (không bundle qua Rollup, tránh 2.4MB chunk)
+const gachBongJsUrl = '/gach-bong/gach_bong.js'
 
 declare global {
   interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    GachBongEngine: (moduleArg?: any) => Promise<GachBongModule>
+    GachBongEngine: (moduleArg?: Record<string, unknown>) => Promise<GachBongModule>
   }
 }
 

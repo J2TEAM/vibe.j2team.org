@@ -3,8 +3,12 @@ import { computed, ref, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import type { Province } from '../types'
 import { provinces } from '../data/provinces'
-import { mapPaths, vietnamOutline } from '../data/map-paths'
 import { useMapZoom } from '../composables/useMapZoom'
+
+// [Optimization] MapPathData type được inline thay vì import từ map-paths.ts.
+// File map-paths.ts (412 kB) đã được convert sang public/data/blind-map-paths.json
+// và load async qua fetch() để tránh bundle 442 kB vào GameScreen chunk.
+type MapPathData = { id: string; d: string; cx: number; cy: number }
 
 const props = defineProps<{
   gameProvinces: Province[]
@@ -25,8 +29,24 @@ const mapContainer = ref<HTMLDivElement | null>(null)
 const zoom = useMapZoom(mapContainer)
 
 const isMobile = ref(false)
-onMounted(() => {
-  isMobile.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
+// [Optimization] Thay vì import { mapPaths, vietnamOutline } from '../data/map-paths' (412 kB),
+// dữ liệu được fetch lazy từ public/data/blind-map-paths.json khi component mount.
+// Điều này giúp GameScreen chunk giảm từ ~442 kB xuống ~25 kB.
+// JSON được tạo bằng: node scripts/generate-map-data.mjs (cần chạy lại sau khi cập nhật map-paths.ts).
+const mapPaths = ref<MapPathData[]>([])
+const vietnamOutline = ref('')
+const mapDataLoading = ref(true)
+
+onMounted(async () => {
+  isMobile.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent,
+  )
+  const response = await fetch('/data/blind-map-paths.json')
+  const mapData = (await response.json()) as { mapPaths: MapPathData[]; vietnamOutline: string }
+  mapPaths.value = mapData.mapPaths
+  vietnamOutline.value = mapData.vietnamOutline
+  mapDataLoading.value = false
 })
 
 // Build a map from svgPathId to province for quick lookup
@@ -136,8 +156,14 @@ const hoveredProvinceName = computed(() => {
 
 <template>
   <div class="relative w-full h-full select-none">
+    <!-- Map loading skeleton -->
+    <div v-if="mapDataLoading" class="absolute inset-0 flex items-center justify-center bg-bg-base">
+      <Icon icon="lucide:loader-circle" class="size-8 text-accent-sky animate-spin" />
+    </div>
+
     <!-- Map viewport (handles zoom/pan) -->
     <div
+      v-if="!mapDataLoading"
       ref="mapContainer"
       class="relative w-full h-full overflow-hidden touch-none"
       :class="{ 'cursor-grabbing': zoom.isPanning.value, 'cursor-grab': !zoom.isPanning.value }"
