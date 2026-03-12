@@ -406,9 +406,11 @@ const spinWheel = () => {
   const targetDeg = 360 - idx * 45
   const currentSpins = Math.floor(wheelRotation.value / 360) * 360
   wheelRotation.value = currentSpins + 360 * 6 + targetDeg + (Math.random() * 20 - 10)
+
   setTimeout(() => {
     isSpinning.value = false
-    applyGachaReward(GACHA_OPTIONS[idx].id, null)
+    // Thêm Optional Chaining (?.) và giá trị fallback để TypeScript yên tâm 100%
+    applyGachaReward(GACHA_OPTIONS[idx]?.id || 'trash', null)
   }, 4000)
 }
 </script>
