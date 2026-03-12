@@ -14,7 +14,7 @@ defineProps<{
 <template>
   <section v-if="history.length > 0" class="mb-8">
     <!-- Thống kê tổng quan -->
-    <h2 class="font-display text-lg font-semibold text-text-primary mb-4 flex items-center gap-3">
+    <h2 class="font-display text-2xl font-semibold text-text-primary mb-4 flex items-center gap-3">
       <span class="text-accent-sky font-display text-sm tracking-widest">//</span>
       Thống kê
     </h2>
@@ -65,7 +65,7 @@ defineProps<{
     </div>
 
     <!-- Lịch sử các ván -->
-    <h2 class="font-display text-lg font-semibold text-text-primary mb-4 flex items-center gap-3">
+    <h2 class="font-display text-2xl font-semibold text-text-primary mb-4 flex items-center gap-3">
       <span class="text-accent-amber font-display text-sm tracking-widest">//</span>
       Lịch sử
     </h2>

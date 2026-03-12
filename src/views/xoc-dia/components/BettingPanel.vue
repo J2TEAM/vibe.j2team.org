@@ -26,7 +26,9 @@ const emit = defineEmits<{
   <section class="mb-8 animate-fade-up animate-delay-4">
     <!-- Chọn Chẵn / Lẻ -->
     <div class="mb-6">
-      <h2 class="font-display text-lg font-semibold text-text-primary mb-4 flex items-center gap-3">
+      <h2
+        class="font-display text-2xl font-semibold text-text-primary mb-4 flex items-center gap-3"
+      >
         <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
         Đặt cược
       </h2>
@@ -114,7 +116,9 @@ const emit = defineEmits<{
 
     <!-- Chọn số tiền cược -->
     <div class="mb-6">
-      <h2 class="font-display text-lg font-semibold text-text-primary mb-4 flex items-center gap-3">
+      <h2
+        class="font-display text-2xl font-semibold text-text-primary mb-4 flex items-center gap-3"
+      >
         <span class="text-accent-amber font-display text-sm tracking-widest">//</span>
         Số tiền cược
       </h2>
