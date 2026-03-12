@@ -1,34 +1,47 @@
-# 🎲 DICE (Provably Fair)
+# 🎲 Dice Game
 
-Trò chơi xúc xắc minh bạch dựa trên thuật toán mã hóa
+Dự án Dice Game (Quay số) được xây dựng với mục tiêu mang lại trải nghiệm giải trí công bằng, minh bạch và giao diện hiện đại
 
-## 🚀 Tính năng chính
+## ✨ Tính năng nổi bật
 
-- **Cơ chế Provably Fair**: Sử dụng HMAC-SHA512 để đảm bảo kết quả hoàn toàn ngẫu nhiên và không thể can thiệp. Người dùng có thể kiểm tra lại mọi ván đấu
-- **Slider trượt**: Điều chỉnh ngưỡng dự đoán (Prediction) từ 2 đến 98
-- **Hiệu ứng Big Win**: Hiệu ứng bùng cháy toàn màn hình khi thắng ở các ván có tỉ lệ thấp (<= 10%)
-- **Responsive**: Giao diện tối ưu hoàn hảo cho cả thiết bị di động và máy tính
-- **Lịch sử ván đấu**: Theo dõi kết quả gần đây và xem chi tiết lịch sử đầy đủ
-- **Point ảo**: Chơi bằng POINT miễn phí (1000 POINT khởi đầu), không có giá trị tiền tệ thật
+1. **Hệ thống Provably Fair (Công bằng tuyệt đối):**
+   - Sử dụng thuật toán HMAC-SHA256 để đảm bảo kết quả hoàn toàn ngẫu nhiên và không thể can thiệp
+   - Người chơi có thể tự kiểm tra (Verify) tính minh bạch của mỗi ván đấu thông qua Client Seed, Server Seed và Nonce
 
-## 🛠 Công nghệ sử dụng
+2. **Chế độ chơi đa dạng:**
+   - **Manual (Thủ công):** Tự mình điều chỉnh ngân sách và dự đoán
+   - **Auto (Tự động):** Thiết lập chiến thuật thông minh (tăng/giảm % khi thắng hoặc thua, dừng khi đạt mục tiêu hoặc cắt lỗ)
 
-- **Framework**: Vue.js 3 (Composition API)
-- **Styling**: Tailwind CSS
-- **Animation**: CSS Keyframes & Tailwind Animations
-- **Crypto**: Web Crypto API (SubtleCrypto)
+3. **Giao diện Wheel:**
+   - Vòng quay trực quan hiển thị vùng Thắng (Xanh) và vùng Thua (Đỏ)
+   - "Mũi giáo" (The Spear) chỉ định kết quả sắc lẹm, thay đổi màu sắc theo trạng thái thắng thua
+
+4. **Trải nghiệm người dùng đỉnh cao:**
+   - **Integrated Slider:** Phóng đại thanh trượt giúp thao tác dự đoán cực kỳ mượt mà
+   - **Intelligence Board:** Thống kê trực tiếp số trận thắng, thua và tỷ lệ thắng trong phiên làm việc
+   - **Responsive:** Tối ưu hóa hiển thị hoàn hảo trên các thiết bị di động
+   - **History & Logs:** Lưu trữ lịch sử chi tiết, hỗ trợ tra cứu nhanh chóng
+
+5. **Hướng dẫn & Cảnh báo:**
+   - Tích hợp bộ hướng dẫn chơi bằng tiếng Việt trực quan
+   - Modal cảnh báo trách nhiệm khi truy cập lần đầu nhằm đảm bảo mục tiêu giải trí lành mạnh
 
 ## 📁 Cấu trúc thư mục
 
-- `components/`: Chứa các component như `FairnessModal` và `HistoryList`
-- `composables/`: Logic game chính tách biệt (`useDiceGame.ts`)
-- `utils/`: Các hàm mã hóa (`crypto.ts`)
-- `types.ts`: Định nghĩa kiểu dữ liệu TypeScript
+```text
+dice/
+├── components/          # Các thành phần UI (Modal, History, v.v.)
+│   ├── FairnessModal.vue  # Modal kiểm tra công bằng
+│   └── HistoryList.vue    # Bảng lịch sử ván đấu
+├── composables/        # Logic xử lý chính (Reused logic)
+│   └── useDiceGame.ts  # State management cho toàn bộ logic game
+├── utils/              # Các hàm bổ trợ
+│   └── crypto.ts       # Xử lý thuật toán mã hóa SHA-256
+├── types.ts            # Định nghĩa kiểu dữ liệu TypeScript
+├── meta.ts             # Metadata của trang (Author, Category)
+└── index.vue           # Trang chính (Main Layout & UI)
+```
 
-## 📖 Cách triển khai trong dự án
+## ⚠️ Lưu ý quan trọng
 
-Trang Dice được thiết kế như một module độc lập trong thư mục `src/views/dice`. Để sử dụng, chỉ cần cấu hình route trỏ đến `index.vue`
-
----
-
-_Vibe code bởi mhqb365.com_
+Đây là trò chơi mô phỏng, **không phải nền tảng cờ bạc**. Số dư trong game không có giá trị tiền tệ, không thể quy đổi hay rút tiền. Mục đích duy nhất của dự án là trình diễn công nghệ và giải trí

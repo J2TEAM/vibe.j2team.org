@@ -34,12 +34,35 @@ export function useDiceGame() {
     nonce.value = 0
   }
 
+  // -- Balance State with Persistence --
+  const savedBalance = localStorage.getItem('dice_balance')
+  const balance = ref(savedBalance ? parseFloat(savedBalance) : 1000)
+
+  function setBalance(newVal: number) {
+    balance.value = Math.round(newVal * 100) / 100
+    localStorage.setItem('dice_balance', balance.value.toString())
+  }
+
+  // -- Auto Bet State --
+  const isAutoMode = ref(false)
+  const isAutoRunning = ref(false)
+  const autoSettings = ref({
+    onWin: 'reset' as 'reset' | 'increase',
+    onWinValue: 0,
+    onLose: 'reset' as 'reset' | 'increase',
+    onLoseValue: 0,
+    stopOnProfit: 0,
+    stopOnLoss: 0,
+    totalRolls: 0, // 0 means infinite
+  })
+  const autoRollCount = ref(0)
+  const startBalance = ref(balance.value)
+
   // -- Game State (Trạng thái trò chơi) --
   const prediction = ref(50) // Ngưỡng dự đoán
   const mode = ref<'under' | 'over'>('under') // Chế độ Roll Under hay Over
   const luckyNumber = ref<number | null>(null) // Kết quả số may mắn
   const isRolling = ref(false) // Trạng thái đang quay xúc xắc
-  const balance = ref(1000) // Số dư hiện tại (POINT ảo)
   const playAmount = ref(10) // Số tiền cược mỗi ván
   const lastResult = ref<'win' | 'lose' | null>(null) // Kết quả thắng/thua ván cuối
   const isBigWin = ref(false) // Trạng thái thắng lớn (tỉ lệ thấp)
@@ -86,9 +109,12 @@ export function useDiceGame() {
 
   // Hàm thực hiện Roll xúc xắc
   async function roll() {
-    if (isRolling.value || isGameOver.value) return
+    if (isRolling.value || (isGameOver.value && !isAutoRunning.value)) return
     clamp()
-    if (playAmount.value <= 0 || playAmount.value > balance.value) return
+    if (playAmount.value <= 0 || playAmount.value > balance.value) {
+      if (isAutoRunning.value) stopAuto()
+      return
+    }
 
     isRolling.value = true
     luckyNumber.value = null
@@ -99,8 +125,8 @@ export function useDiceGame() {
     const result = await deriveRoll(activeServerSeed.value, activeClientSeed.value, thisNonce)
     nonce.value++
 
-    // Giả lập thời gian chờ quay xúc xắc (0.5s)
-    await new Promise((r) => setTimeout(r, 500))
+    // Giả lập thời gian chờ quay xúc xắc (chạy nhanh hơn trong mode auto)
+    await new Promise((r) => setTimeout(r, isAutoRunning.value ? 200 : 500))
 
     luckyNumber.value = result
     const won = mode.value === 'under' ? result < prediction.value : result > prediction.value
@@ -123,7 +149,7 @@ export function useDiceGame() {
     ].slice(0, 100)
 
     // Cập nhật số dư
-    balance.value = Math.round((balance.value + delta) * 100) / 100
+    setBalance(balance.value + delta)
     lastResult.value = won ? 'win' : 'lose'
 
     // Kích hoạt hiệu ứng thắng lớn nếu tỉ lệ thắng <= 10%
@@ -134,17 +160,71 @@ export function useDiceGame() {
       }, 3000)
     }
 
+    // Logic cho Auto Bet
+    if (isAutoRunning.value) {
+      autoRollCount.value++
+
+      // Stop conditions
+      const currentProfit = balance.value - startBalance.value
+      if (autoSettings.value.stopOnProfit > 0 && currentProfit >= autoSettings.value.stopOnProfit) {
+        stopAuto()
+      } else if (
+        autoSettings.value.stopOnLoss > 0 &&
+        currentProfit <= -autoSettings.value.stopOnLoss
+      ) {
+        stopAuto()
+      } else if (
+        autoSettings.value.totalRolls > 0 &&
+        autoRollCount.value >= autoSettings.value.totalRolls
+      ) {
+        stopAuto()
+      } else {
+        // Adjust bet amount
+        if (won) {
+          if (autoSettings.value.onWin === 'increase') {
+            playAmount.value = playAmount.value * (1 + autoSettings.value.onWinValue / 100)
+          } else {
+            // reset or default
+            // keep playAmount as is if configured to reset to base (we don't save base yet, so let's assume current is base or reset manually)
+          }
+        } else {
+          if (autoSettings.value.onLose === 'increase') {
+            playAmount.value = playAmount.value * (1 + autoSettings.value.onLoseValue / 100)
+          }
+        }
+        clamp()
+
+        // Next roll
+        setTimeout(() => {
+          if (isAutoRunning.value) roll()
+        }, 100)
+      }
+    }
+
     clamp()
     isRolling.value = false
   }
 
+  function startAuto() {
+    if (isRolling.value || isAutoRunning.value) return
+    isAutoRunning.value = true
+    autoRollCount.value = 0
+    startBalance.value = balance.value
+    roll()
+  }
+
+  function stopAuto() {
+    isAutoRunning.value = false
+  }
+
   // Khởi tạo lại trò chơi về trạng thái ban đầu
   function resetGame() {
-    balance.value = 1000
+    setBalance(1000)
     playAmount.value = 10
     luckyNumber.value = null
     lastResult.value = null
     history.value = []
+    stopAuto()
   }
 
   return {
@@ -178,5 +258,11 @@ export function useDiceGame() {
     clamp,
     houseEdge,
     isBigWin,
+    isAutoMode,
+    isAutoRunning,
+    autoSettings,
+    autoRollCount,
+    startAuto,
+    stopAuto,
   }
 }
