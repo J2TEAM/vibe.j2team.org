@@ -45,6 +45,13 @@ export default defineConfigWithVueTs(
     },
   },
 
+  {
+    files: ['src/views/tiet-khi/articles/animations/*.ts'],
+    rules: {
+      '@typescript-eslint/ban-ts-comment': 'off',
+    },
+  },
+
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
 
   skipFormatting,

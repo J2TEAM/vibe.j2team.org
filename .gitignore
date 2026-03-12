@@ -38,8 +38,19 @@ __screenshots__/
 # Do Nothing: file tiếng chim lớn (dùng birds.mp3 nhẹ hoặc tiếng tổng hợp)
 public/sounds/*.flac
 
+# Generated at build time by scripts/generate-pages-json.mjs
+public/data/pages.json
+
 # Vite
 *.timestamp-*-*.mjs
 
 # We use pnpm — ignore package-lock.json to prevent accidental npm installs from being committed
 package-lock.json
+
+# AI tooling
+.agent/
+.agents/
+.claude/
+skills-lock.json
+
+.env

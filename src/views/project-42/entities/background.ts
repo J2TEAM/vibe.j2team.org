@@ -14,7 +14,7 @@ export const createBackground = (THREE: any) => {
       vUv = uv;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
-  `;
+  `
 
   const fragmentShader = `
     uniform float uTime;
@@ -66,9 +66,9 @@ export const createBackground = (THREE: any) => {
       
       gl_FragColor = vec4(finalColor, uOpacity);
     }
-  `;
+  `
 
-  const geometry = new THREE.PlaneGeometry(160, 100);
+  const geometry = new THREE.PlaneGeometry(160, 100)
   const material = new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
@@ -80,9 +80,9 @@ export const createBackground = (THREE: any) => {
     fragmentShader,
     transparent: true,
     depthWrite: false,
-  });
+  })
 
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.z = -15;
-  return mesh;
-};
+  const mesh = new THREE.Mesh(geometry, material)
+  mesh.position.z = -15
+  return mesh
+}

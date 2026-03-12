@@ -130,6 +130,14 @@ export function useAudio() {
     }
   }
 
+  function pauseMusic() {
+    if (musicEl) musicEl.pause()
+  }
+
+  function resumeMusic() {
+    if (musicEl) void musicEl.play()
+  }
+
   function toggleMute() {
     isMuted.value = !isMuted.value
     if (musicEl) musicEl.muted = isMuted.value
@@ -154,6 +162,8 @@ export function useAudio() {
     playFail,
     startMusic,
     stopMusic,
+    pauseMusic,
+    resumeMusic,
     toggleMute,
     getMusicElement,
     destroy,

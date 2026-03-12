@@ -4,6 +4,7 @@ import { RouterLink } from 'vue-router'
 
 type Choice = 'rock' | 'paper' | 'scissors'
 type Result = 'win' | 'lose' | 'draw' | null
+type Difficulty = 'hard' | 'normal'
 
 const choices: { id: Choice; label: string }[] = [
   { id: 'rock', label: 'Búa' },
@@ -17,6 +18,7 @@ const result = ref<Result>(null)
 const playerScore = ref(0)
 const computerScore = ref(0)
 const isRevealing = ref(false)
+const difficulty = ref<Difficulty>('hard')
 
 const winningMove: Record<Choice, Choice> = {
   rock: 'paper',
@@ -25,11 +27,14 @@ const winningMove: Record<Choice, Choice> = {
 }
 
 function getComputerChoice(playerPick: Choice): Choice {
-  // 80% máy chọn nước thắng, 20% chọn ngẫu nhiên
-  if (Math.random() < 0.8) {
+  const options: Choice[] = ['rock', 'paper', 'scissors']
+
+  if (difficulty.value === 'hard') {
+    // 100% máy chọn nước thắng
     return winningMove[playerPick]
   }
-  const options: Choice[] = ['rock', 'paper', 'scissors']
+
+  // Normal: random 100%
   return options[Math.floor(Math.random() * 3)] as Choice
 }
 
@@ -92,7 +97,16 @@ const resultColorClass = computed(() => {
       >
         Kéo Búa Bao
       </h1>
-      <p class="mt-3 text-text-secondary text-base sm:text-lg">Đấu với máy tính — AI sẽ thắng!</p>
+      <p class="mt-3 text-text-secondary text-base sm:text-lg">
+        Đấu với máy tính —
+        <select
+          v-model="difficulty"
+          class="bg-transparent border-none text-text-secondary outline-none cursor-pointer appearance-none p-0 m-0"
+        >
+          <option value="hard" class="bg-bg-deep text-text-primary">AI sẽ thắng!</option>
+          <option value="normal" class="bg-bg-deep text-text-primary">Ai sẽ thắng?</option>
+        </select>
+      </p>
     </div>
 
     <!-- Scoreboard -->

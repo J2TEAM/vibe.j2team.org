@@ -34,7 +34,7 @@ import { RouterLink } from 'vue-router'
           </li>
           <li class="flex gap-3">
             <span class="text-accent-amber shrink-0">+</span>
-            Trang cá nhân giới thiệu bản thân hoặc dự án
+            Trang cá nhân giới thiệu bản thân (không quảng cáo dịch vụ bên ngoài)
           </li>
           <li class="flex gap-3">
             <span class="text-accent-amber shrink-0">+</span>
@@ -69,6 +69,14 @@ import { RouterLink } from 'vue-router'
           <li class="flex gap-3">
             <span class="text-accent-coral shrink-0">&times;</span>
             Thu thập dữ liệu cá nhân của người dùng mà không có sự đồng ý
+          </li>
+          <li class="flex gap-3">
+            <span class="text-accent-coral shrink-0">&times;</span>
+            Landing page, trang giới thiệu cho sản phẩm, dịch vụ, hoặc thương hiệu bên ngoài
+          </li>
+          <li class="flex gap-3">
+            <span class="text-accent-coral shrink-0">&times;</span>
+            Trang có mục đích chính là dẫn người dùng tới website hoặc dịch vụ khác
           </li>
           <li class="flex gap-3">
             <span class="text-accent-coral shrink-0">&times;</span>
