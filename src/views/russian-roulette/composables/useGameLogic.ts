@@ -10,9 +10,6 @@ export type ItemType = 'cigarette' | 'beer' | 'magnifying_glass' | 'handcuffs' |
 const MAX_ITEMS = 6
 const MAX_HP = 5
 
-// Danh sách tất cả vật phẩm có thể xuất hiện
-const ALL_ITEMS: ItemType[] = ['cigarette', 'beer', 'magnifying_glass', 'handcuffs', 'handsaw']
-
 export function useGameLogic() {
   const audio = createAudioController()
 
@@ -68,16 +65,31 @@ export function useGameLogic() {
   }
 
   /**
-   * Cấp ngẫu nhiên 2-4 vật phẩm cho một bên (nếu còn ô trống)
+   * Cấp ngẫu nhiên 1-3 vật phẩm cho một bên (nếu còn ô trống)
+   * Số lượng giảm dần nếu đang có nhiều vật phẩm
    */
   function generateItems(currentItems: ItemType[]): ItemType[] {
     const slotsAvailable = MAX_ITEMS - currentItems.length
     if (slotsAvailable <= 0) return currentItems
 
-    const count = Math.min(Math.floor(Math.random() * 3) + 2, slotsAvailable) // 2-4 items
+    const maxPotential = Math.max(1, 3 - Math.floor(currentItems.length / 2))
+    const count = Math.min(Math.floor(Math.random() * maxPotential) + 1, slotsAvailable)
     const newItems = [...currentItems]
     for (let i = 0; i < count; i++) {
-      const randomItem = ALL_ITEMS[Math.floor(Math.random() * ALL_ITEMS.length)]!
+      // Xác suất: Beer 30%, Glass 30%, Saw 10%, Còng tay 20%, Thuốc lá 10%
+      const r = Math.random() * 100
+      let randomItem: ItemType
+      if (r < 30) {
+        randomItem = 'beer'
+      } else if (r < 60) {
+        randomItem = 'magnifying_glass'
+      } else if (r < 70) {
+        randomItem = 'handsaw'
+      } else if (r < 90) {
+        randomItem = 'handcuffs'
+      } else {
+        randomItem = 'cigarette'
+      }
       newItems.push(randomItem)
     }
     return newItems

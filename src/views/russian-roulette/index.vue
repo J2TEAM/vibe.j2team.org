@@ -34,18 +34,15 @@
             >
               <button
                 @click="openRules"
-                class="px-4 py-3 border border-border-default bg-bg-deep text-text-primary text-[10px] font-display font-bold tracking-widest text-left active:bg-bg-surface"
+                class="px-4 py-3 border border-border-default bg-bg-deep text-text-primary text-[10px] font-display font-bold tracking-widest text-left active:bg-bg-surface flex items-center gap-2"
               >
-                📖 LUẬT
+                <Icon icon="mdi:book-open-variant" class="w-4 h-4 text-accent-sky" /> LUẬT
               </button>
               <button
-                @click="
-                  showSettingsModal = true
-                  showMobileMenu = false
-                "
-                class="px-4 py-3 border border-border-default bg-bg-deep text-text-primary text-[10px] font-display font-bold tracking-widest text-left active:bg-bg-surface"
+                @click="openSettings"
+                class="px-4 py-3 border border-border-default bg-bg-deep text-text-primary text-[10px] font-display font-bold tracking-widest text-left active:bg-bg-surface flex items-center gap-2"
               >
-                ⚙️ CÀI ĐẶT
+                <Icon icon="mdi:cog" class="w-4 h-4 text-accent-amber" /> CÀI ĐẶT
               </button>
             </div>
           </transition>
@@ -59,85 +56,16 @@
       </div>
     </div>
 
-    <!-- Footer: Author -->
-    <div
-      class="absolute bottom-6 left-6 z-50 text-xs text-text-dim font-display tracking-widest select-none cursor-default opacity-80"
-    >
-      <span class="text-accent-coral mr-2">//</span> TÁC GIẢ: hoangphi117
-    </div>
-
-    <!-- Intro Overlay (Z-index 200) -->
-    <transition name="fade">
-      <div
-        v-if="isIntro"
-        class="absolute inset-0 bg-bg-deep/95 flex flex-col items-center justify-start md:justify-center z-[200] backdrop-blur-md px-4 py-16 overflow-y-auto"
-      >
-        <div class="flex flex-col items-center justify-center min-h-full w-full py-10">
-          <h1
-            class="font-display text-5xl md:text-8xl font-bold mb-4 tracking-tighter uppercase drop-shadow-[0_0_20px_rgba(255,107,74,0.3)] text-accent-coral animate-fade-up text-center"
-          >
-            BUCKSHOT ROULETTE
-          </h1>
-          <p
-            class="text-text-secondary text-base md:text-lg mb-8 tracking-widest uppercase font-display animate-fade-up animate-delay-2 text-center"
-          >
-            Một cuộc chơi đánh cược sinh mạng
-          </p>
-
-          <div
-            class="mb-10 text-text-primary text-sm md:text-base font-body max-w-lg mx-auto !leading-relaxed text-left animate-fade-up animate-delay-3 p-5 md:p-6 border border-border-default bg-bg-surface/80 shadow-2xl"
-          >
-            <h3
-              class="text-text-primary font-display font-bold text-xl md:text-2xl text-center mb-4 md:mb-6 flex items-center justify-center gap-3"
-            >
-              <span class="text-accent-amber font-display text-sm tracking-widest">//</span>
-              Luật Chơi
-            </h3>
-            <ul class="list-disc pl-5 space-y-2 md:space-y-3 text-text-secondary">
-              <li>
-                Súng sẽ nạp một số đạn <strong class="text-red-500 font-bold">THẬT</strong> và
-                <strong class="text-blue-500 font-bold">RỖNG</strong> ngẫu nhiên.
-              </li>
-              <li>
-                Đến lượt bạn, chọn bắn
-                <strong class="text-text-primary uppercase font-bold text-xs md:text-sm"
-                  >Bản Thân</strong
-                >
-                hoặc
-                <strong class="text-text-primary uppercase font-bold text-xs md:text-sm"
-                  >Đối Thủ</strong
-                >.
-              </li>
-              <li>
-                Bắn <strong>BẢN THÂN</strong> bằng đạn
-                <strong class="text-blue-500 font-bold">RỖNG</strong> sẽ được giữ lượt.
-              </li>
-              <li>
-                Bắn <strong>ĐỐI THỦ</strong> bằng đạn
-                <strong class="text-blue-500 font-bold">RỖNG</strong> sẽ mất lượt.
-              </li>
-              <li>
-                Sử dụng <strong class="text-accent-amber font-bold">VẬT PHẨM</strong> chiến thuật để
-                tạo lợi thế: Thuốc lá, Bia, Kính lúp, Còng tay, Cưa sắt.
-              </li>
-              <li>Người hết sinh mạng trước cược thua mạng sống.</li>
-            </ul>
-          </div>
-
-          <div class="flex gap-4 animate-fade-up animate-delay-4 shrink-0 pb-10">
-            <button
-              @click="enterGame"
-              class="group relative px-10 md:px-12 py-4 md:py-5 bg-transparent border-2 border-accent-coral text-accent-coral text-lg md:text-xl font-display font-bold transition-all duration-300 hover:bg-accent-coral hover:text-bg-deep hover:shadow-[0_0_30px_rgba(255,107,74,0.5)] tracking-widest cursor-pointer"
-            >
-              <span class="relative z-10">VÀO GAME</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </transition>
+    <!-- Intro Overlay -->
+    <IntroScreen
+      v-model="aiDifficulty"
+      :isIntro="isIntro"
+      :difficultyOptions="difficultyOptions"
+      @enterGame="enterGame"
+    />
 
     <!-- Blackout Overlay (Z-index 100) / Wake-up sequence -->
-    <transition name="fade">
+    <transition name="blackout">
       <div
         v-if="isBlackout"
         class="absolute inset-0 z-[100] flex items-center justify-center pointer-events-none animate-unconscious"
@@ -246,9 +174,9 @@
             <!-- Handcuffed -->
             <div
               v-if="isAiHandcuffed"
-              class="text-center text-accent-amber text-[10px] md:text-xs font-display tracking-widest animate-pulse whitespace-nowrap"
+              class="text-center text-accent-amber text-[10px] md:text-xs font-display tracking-widest animate-pulse whitespace-nowrap flex items-center gap-1"
             >
-              🔗 CÒNG
+              <Icon icon="game-icons:handcuffs" class="w-3 h-3 md:w-4 md:h-4" /> CÒNG
             </div>
           </div>
         </div>
@@ -263,7 +191,7 @@
             class="w-7 h-7 md:w-9 md:h-9 flex items-center justify-center border border-border-default/40 bg-bg-surface/30 text-base md:text-lg select-none opacity-70"
             :title="getItemName(item)"
           >
-            {{ getItemEmoji(item) }}
+            <Icon :icon="getItemIcon(item)" />
           </div>
         </div>
       </div>
@@ -279,9 +207,8 @@
           class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-40"
         ></div>
 
-        <!-- Gun Representation -->
         <div
-          class="relative w-44 md:w-64 h-16 md:h-20 shadow-[0_25px_40px_rgba(0,0,0,0.8)] transform z-10 flex items-center justify-center mt-2 md:mt-6"
+          class="relative w-60 md:w-64 h-24 md:h-20 shadow-[0_25px_40px_rgba(0,0,0,0.8)] transform z-10 flex items-center justify-center mt-2 md:mt-6"
         >
           <img
             src="./assets/shotgun.png"
@@ -291,28 +218,27 @@
           />
 
           <div
-            class="absolute -bottom-14 md:-bottom-20 left-1/2 -translate-x-1/2 flex items-end gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-3 bg-black/40 backdrop-blur-md border border-white/10 shadow-2xl min-w-[120px] md:min-w-[160px] justify-center"
+            class="absolute -bottom-16 md:-bottom-20 left-1/2 -translate-x-1/2 flex items-end gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-3 bg-black/40 backdrop-blur-md border border-white/10 shadow-2xl min-w-[150px] md:min-w-[160px] justify-center"
           >
             <div
               v-for="(isLive, index) in cylinder"
               :key="'shell-' + index"
-              class="relative w-3 h-8 md:w-4 md:h-12 flex flex-col items-center"
+              class="relative w-4 h-10 md:w-4 md:h-12 flex flex-col items-center"
             >
               <div
-                class="w-full h-6 md:h-10 rounded-t-sm"
+                class="w-full h-7 md:h-10 rounded-t-sm"
                 :class="isLive ? 'bg-red-600' : 'bg-blue-600'"
               ></div>
-              <div class="w-[110%] h-2 md:h-2.5 bg-yellow-600 rounded-sm"></div>
+              <div class="w-[110%] h-2.5 md:h-2.5 bg-yellow-600 rounded-sm"></div>
             </div>
           </div>
         </div>
 
-        <!-- Message Box -->
         <div
-          class="mt-14 md:mt-20 w-[90%] md:max-w-lg px-4 py-3 md:px-8 md:py-5 bg-bg-deep/95 border-2 border-accent-amber text-center backdrop-blur-md relative"
+          class="mt-24 md:mt-20 w-[90%] md:max-w-lg px-4 py-3 md:px-8 md:py-5 bg-bg-deep/95 border-2 border-accent-amber text-center backdrop-blur-md relative"
         >
           <p
-            class="font-display text-accent-amber text-sm md:text-2xl tracking-widest font-bold uppercase"
+            class="font-display text-accent-amber text-md md:text-2xl tracking-widest font-bold uppercase"
           >
             {{ turnMessage }}
           </p>
@@ -322,22 +248,22 @@
       <!-- LAYER 3: Foreground (Player UI) -->
       <div
         v-if="!isIntro"
-        class="absolute inset-x-0 bottom-0 z-50 pointer-events-auto w-full px-0 pb-8 md:pb-10 flex justify-center"
+        class="absolute inset-x-0 bottom-[2%] md:bottom-0 z-50 pointer-events-auto w-full px-0 pb-6 md:pb-10 flex justify-center"
       >
         <div
-          class="w-full max-w-7xl flex flex-col md:flex-row items-stretch md:items-end justify-between gap-0 md:gap-4 animate-fade-up"
+          class="w-full max-w-7xl flex flex-col md:flex-row items-stretch md:items-end justify-between gap-2 md:gap-4 animate-fade-up px-4 md:px-0"
         >
           <div
-            class="flex flex-row md:flex-col items-stretch md:items-start gap-2 md:gap-3 flex-1 px-4 py-3 md:p-0 md:ml-8"
+            class="grid grid-cols-2 md:flex md:flex-col items-stretch md:items-start gap-2 md:gap-3 w-full md:w-auto md:flex-1 md:p-0 md:ml-8"
           >
             <div
-              class="flex items-center gap-2 px-4 bg-bg-surface/90 border border-border-default md:border-b-0 backdrop-blur-md shadow-2xl h-11 md:h-14 min-w-[160px] md:min-w-[180px]"
+              class="flex items-center justify-center md:justify-start gap-1.5 px-2 md:px-4 bg-bg-surface/90 border border-border-default md:border-b-0 backdrop-blur-md shadow-2xl h-12 md:h-14 w-full"
             >
-              <div class="flex items-center gap-1.5 w-full">
+              <div class="flex items-center justify-center gap-1 w-full">
                 <svg
                   v-for="i in playerHp"
                   :key="'p-hp-' + i"
-                  class="w-5 h-5 md:w-6 md:h-6 text-accent-coral drop-shadow-[0_0_12px_rgba(255,107,74,0.5)]"
+                  class="w-4 h-4 md:w-6 md:h-6 text-accent-coral drop-shadow-[0_0_12px_rgba(255,107,74,0.5)]"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -352,26 +278,30 @@
                   class="text-accent-coral text-[10px] font-display font-bold"
                   >DEAD</span
                 >
-                <div v-if="isPlayerHandcuffed" class="ml-1 text-accent-amber animate-pulse">🔗</div>
+                <Icon
+                  v-if="isPlayerHandcuffed"
+                  icon="game-icons:handcuffs"
+                  class="ml-1 text-accent-amber animate-pulse w-4 h-4 md:w-5 md:h-5"
+                />
               </div>
             </div>
 
             <div
-              class="flex md:hidden flex-1 overflow-x-auto gap-2 p-1.5 bg-bg-surface/90 border border-border-default backdrop-blur-md min-w-[200px] h-11"
+              class="flex md:hidden overflow-x-auto gap-1 p-1 bg-bg-surface/90 border border-border-default backdrop-blur-md h-12 w-full items-center justify-start"
             >
               <button
                 v-for="(item, index) in playerItems"
                 :key="'p-item-mobile-' + index"
                 @click="playerUseItem(item)"
                 :disabled="!isPlayerTurn || isActionDisabled || gameOver"
-                class="w-8 h-8 flex-shrink-0 flex items-center justify-center border bg-bg-deep border-border-default hover:border-accent-amber active:bg-bg-elevated disabled:opacity-30 cursor-pointer text-sm"
+                class="w-9 h-9 flex-shrink-0 flex items-center justify-center border bg-bg-deep border-border-default hover:border-accent-amber active:bg-bg-elevated disabled:opacity-30 cursor-pointer text-sm"
               >
-                {{ getItemEmoji(item) }}
+                <Icon :icon="getItemIcon(item)" class="w-full h-full p-2" />
               </button>
             </div>
           </div>
 
-          <div class="flex flex-col items-center gap-0 md:gap-4 w-full md:w-[450px] lg:w-[500px]">
+          <div class="flex flex-col items-center gap-2 md:gap-4 w-full md:w-[450px] lg:w-[500px]">
             <div
               class="hidden md:flex flex-row flex-wrap justify-center items-center gap-2.5 p-2.5 bg-bg-surface/90 border border-border-default backdrop-blur-md shadow-xl min-h-[66px] min-w-[340px]"
             >
@@ -383,22 +313,22 @@
                 class="w-11 h-11 flex items-center justify-center border bg-bg-deep border-border-default hover:border-accent-amber hover:shadow-[0_0_15px_rgba(255,184,48,0.2)] transition-all disabled:opacity-20 cursor-pointer"
                 :title="getItemName(item)"
               >
-                {{ getItemEmoji(item) }}
+                <Icon :icon="getItemIcon(item)" class="w-full h-full p-2" />
               </button>
             </div>
 
-            <div class="flex flex-row w-full gap-2 md:gap-5">
+            <div class="grid grid-cols-2 md:flex md:flex-row w-full gap-2 md:gap-5">
               <button
                 @click="playerShootSelf"
                 :disabled="!isPlayerTurn || gameOver || cylinder.length === 0 || isActionDisabled"
-                class="flex-1 py-4.5 md:h-14 bg-bg-surface border-t border-r md:border md:border-b-0 border-border-default text-text-primary text-xs md:text-base font-display font-bold tracking-widest hover:border-accent-coral hover:bg-bg-elevated hover:-translate-y-1 transition-all shadow-lg disabled:opacity-30 disabled:translate-y-0 cursor-pointer uppercase flex items-center justify-center"
+                class="w-full py-3.5 md:h-14 bg-bg-surface md:border border-border-default text-text-primary text-xs md:text-base font-display font-bold tracking-widest hover:border-accent-coral hover:bg-bg-elevated hover:-translate-y-1 transition-all shadow-lg disabled:opacity-30 disabled:translate-y-0 cursor-pointer uppercase flex items-center justify-center text-center leading-tight"
               >
                 Bắn bản thân
               </button>
               <button
                 @click="playerShootAI"
                 :disabled="!isPlayerTurn || gameOver || cylinder.length === 0 || isActionDisabled"
-                class="flex-1 py-4.5 md:h-14 bg-bg-surface border-t md:border md:border-b-0 border-border-default text-text-primary text-xs md:text-base font-display font-bold tracking-widest hover:border-accent-coral hover:bg-bg-elevated hover:-translate-y-1 transition-all shadow-lg disabled:opacity-30 disabled:translate-y-0 cursor-pointer uppercase flex items-center justify-center"
+                class="w-full py-3.5 md:h-14 bg-bg-surface md:border border-border-default text-text-primary text-xs md:text-base font-display font-bold tracking-widest hover:border-accent-coral hover:bg-bg-elevated hover:-translate-y-1 transition-all shadow-lg disabled:opacity-30 disabled:translate-y-0 cursor-pointer uppercase flex items-center justify-center text-center leading-tight"
               >
                 Bắn đối thủ
               </button>
@@ -408,16 +338,16 @@
           <div class="hidden md:flex flex-row items-center justify-end gap-2 flex-1 md:mr-8">
             <button
               @click="showRulesModal = true"
-              class="w-24 h-14 flex flex-col items-center justify-center border border-border-default md:border-b-0 bg-bg-surface text-text-secondary hover:text-accent-sky hover:border-accent-sky transition-all cursor-pointer"
+              class="w-24 h-14 flex flex-col items-center justify-center border border-border-default bg-bg-surface text-text-secondary hover:text-accent-sky hover:border-accent-sky transition-all cursor-pointer"
             >
-              <span class="text-base mb-0.5">📖</span>
+              <Icon icon="mdi:book-open-variant" class="text-xl mb-0.5" />
               <span class="text-[10px] font-display font-bold tracking-widest uppercase">Luật</span>
             </button>
             <button
               @click="showSettingsModal = true"
-              class="w-24 h-14 flex flex-col items-center justify-center border border-border-default md:border-b-0 bg-bg-surface text-text-secondary hover:text-accent-amber hover:border-accent-amber transition-all cursor-pointer"
+              class="w-24 h-14 flex flex-col items-center justify-center border border-border-default bg-bg-surface text-text-secondary hover:text-accent-amber hover:border-accent-amber transition-all cursor-pointer"
             >
-              <span class="text-base mb-0.5">⚙️</span>
+              <Icon icon="mdi:cog" class="text-xl mb-0.5" />
               <span class="text-[10px] font-display font-bold tracking-widest uppercase"
                 >Cài đặt</span
               >
@@ -427,216 +357,18 @@
       </div>
     </div>
 
-    <!-- Game Over Overlay -->
-    <transition name="fade">
-      <div
-        v-if="gameOver"
-        class="absolute inset-0 bg-bg-deep/95 flex flex-col items-center justify-center z-[150] backdrop-blur-md px-4 text-center"
-      >
-        <!-- Decoration -->
-        <h2
-          class="font-display text-5xl md:text-8xl font-bold mb-6 tracking-tighter uppercase drop-shadow-[0_0_20px_rgba(255,107,74,0.3)] animate-fade-up"
-          :class="winner === 'Player' ? 'text-accent-sky' : 'text-accent-coral'"
-        >
-          {{ winner === 'Player' ? 'BẠN CHIẾN THẮNG' : 'BẠN ĐÃ THUA' }}
-        </h2>
-        <div
-          class="mb-12 text-text-primary text-xl md:text-2xl font-body max-w-lg mx-auto !leading-relaxed animate-fade-up animate-delay-2 p-6 border border-border-default bg-bg-surface/50 shadow-xl"
-        >
-          {{
-            winner === 'Player'
-              ? 'Furina gục ngã.\nMạng sống của bạn được bảo toàn.'
-              : 'Một kết cục được dự báo trước.\nHãy nghỉ ngơi và thử lại sau.'
-          }}
-        </div>
+    <GameOverScreen :gameOver="gameOver" :winner="winner" @startNewGame="startNewGame" />
 
-        <button
-          @click="startNewGame"
-          class="group relative px-12 py-5 bg-transparent border-2 border-accent-amber text-accent-amber text-xl font-display font-bold transition-all duration-300 hover:bg-accent-amber hover:text-bg-deep hover:shadow-[0_0_30px_rgba(255,184,48,0.5)] tracking-widest animate-fade-up animate-delay-3 overflow-hidden rounded-none cursor-pointer"
-        >
-          <span class="relative z-10">CHƠI LẠI</span>
-        </button>
+    <RulesModal v-model="showRulesModal" />
 
-        <RouterLink
-          to="/"
-          class="mt-8 text-text-dim hover:text-text-primary transition-colors underline decoration-border-default hover:decoration-accent-coral underline-offset-4 animate-fade-up animate-delay-4"
-        >
-          Trở về trang chủ
-        </RouterLink>
-      </div>
-    </transition>
-
-    <!-- Rules Modal -->
-    <transition name="fade">
-      <div
-        v-if="showRulesModal"
-        class="fixed inset-0 z-[250] flex items-center justify-center bg-bg-deep/80 px-4 backdrop-blur-sm"
-      >
-        <div
-          class="w-full max-w-md border-2 border-accent-sky bg-bg-surface p-6 shadow-[0_0_30px_rgba(56,189,248,0.15)] max-h-[80vh] overflow-y-auto"
-        >
-          <h2
-            class="mb-6 font-display text-2xl font-bold uppercase tracking-widest text-text-primary text-center flex items-center justify-center gap-3"
-          >
-            <span class="text-accent-sky font-display text-sm tracking-widest">//</span>
-            Luật Chơi
-          </h2>
-
-          <ul class="list-disc pl-5 space-y-3 text-text-secondary text-sm leading-relaxed">
-            <li>
-              Súng sẽ nạp một số đạn <strong class="text-red-500 font-bold">THẬT</strong> và
-              <strong class="text-blue-500 font-bold">RỖNG</strong> ngẫu nhiên.
-            </li>
-            <li>
-              Đến lượt bạn, chọn bắn
-              <strong class="text-text-primary uppercase font-bold">Bản Thân</strong> hoặc
-              <strong class="text-text-primary uppercase font-bold">Đối Thủ</strong>.
-            </li>
-            <li>
-              Bắn <strong>BẢN THÂN</strong> bằng đạn
-              <strong class="text-blue-500 font-bold">RỖNG</strong> sẽ được giữ lượt.
-            </li>
-            <li>
-              Bắn <strong>ĐỐI THỦ</strong> bằng đạn
-              <strong class="text-blue-500 font-bold">RỖNG</strong> sẽ mất lượt.
-            </li>
-            <li>Người hết sinh mạng trước cược thua mạng sống.</li>
-          </ul>
-
-          <h3
-            class="mt-6 mb-4 font-display text-lg font-bold uppercase tracking-widest text-accent-amber flex items-center gap-2"
-          >
-            <span class="text-accent-amber text-sm">//</span>
-            Vật Phẩm
-          </h3>
-
-          <ul class="space-y-2.5 text-text-secondary text-sm">
-            <li class="flex items-start gap-2">
-              <span class="text-lg">🚬</span>
-              <span
-                ><strong class="text-text-primary">Thuốc lá:</strong> Hồi 1 HP cho người sử dụng (có
-                thể tăng lên tới 5HP).</span
-              >
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-lg">🍺</span>
-              <span
-                ><strong class="text-text-primary">Bia:</strong> Loại bỏ viên đạn hiện tại trong
-                nòng súng ra ngoài mà không bắn.</span
-              >
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-lg">🔍</span>
-              <span
-                ><strong class="text-text-primary">Kính lúp:</strong> Cho người chơi biết viên đạn
-                tiếp theo là Thật hay Rỗng.</span
-              >
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-lg">⛓️</span>
-              <span
-                ><strong class="text-text-primary">Còng tay:</strong> Khiến đối thủ bị mất lượt tiếp
-                theo.</span
-              >
-            </li>
-            <li class="flex items-start gap-2">
-              <span class="text-lg">🪚</span>
-              <span
-                ><strong class="text-text-primary">Cưa sắt:</strong> Cắt nòng súng. Nếu bắn trúng
-                đạn thật sẽ gây x2 sát thương. Nếu đạn rỗng, hiệu ứng mất tác dụng.</span
-              >
-            </li>
-          </ul>
-
-          <button
-            type="button"
-            class="mt-6 w-full border-2 border-border-default bg-transparent px-4 py-3 text-lg font-display font-bold tracking-widest transition hover:bg-border-default hover:text-bg-deep cursor-pointer"
-            @click="showRulesModal = false"
-          >
-            ĐÓNG
-          </button>
-        </div>
-      </div>
-    </transition>
-
-    <!-- Settings Modal -->
-    <transition name="fade">
-      <div
-        v-if="showSettingsModal"
-        class="fixed inset-0 z-[250] flex items-center justify-center bg-bg-deep/80 px-4 backdrop-blur-sm"
-      >
-        <div
-          class="w-full max-w-sm border-2 border-accent-amber bg-bg-surface p-6 shadow-[0_0_30px_rgba(255,184,48,0.2)]"
-        >
-          <h2
-            class="mb-6 font-display text-2xl font-bold uppercase tracking-widest text-text-primary text-center flex items-center justify-center gap-3"
-          >
-            <span class="text-accent-amber font-display text-sm tracking-widest">//</span>
-            Cài Đặt
-          </h2>
-
-          <!-- Phần Âm Thanh -->
-          <p class="text-xs font-display tracking-widest text-text-dim mb-3 uppercase">
-            <span class="text-accent-coral mr-1">//</span> Âm Thanh
-          </p>
-
-          <button
-            type="button"
-            class="mb-4 w-full border border-border-default bg-bg-deep px-4 py-3 text-sm font-display tracking-widest transition hover:border-accent-sky hover:text-accent-sky"
-            @click="isSoundOn = !isSoundOn"
-          >
-            {{ isSoundOn ? 'Tắt hiệu ứng (SFX)' : 'Bật hiệu ứng (SFX)' }}
-          </button>
-
-          <div class="mb-6 border border-border-default bg-bg-deep p-4">
-            <p class="text-xs font-display tracking-widest text-text-dim mb-2 uppercase">
-              ÂM LƯỢNG HIỆU ỨNG: {{ sfxVolume }}%
-            </p>
-            <input
-              v-model.number="sfxVolume"
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-              class="w-full accent-accent-coral cursor-pointer"
-            />
-          </div>
-
-          <!-- Phần Độ Khó AI -->
-          <p class="text-xs font-display tracking-widest text-text-dim mb-3 uppercase">
-            <span class="text-accent-coral mr-1">//</span> Độ Khó AI
-          </p>
-
-          <div class="mb-6 flex gap-2">
-            <button
-              v-for="opt in difficultyOptions"
-              :key="opt.value"
-              type="button"
-              class="flex-1 border px-3 py-3 text-center font-display text-sm tracking-wider transition-all duration-300 cursor-pointer"
-              :class="
-                aiDifficulty === opt.value
-                  ? 'border-accent-amber bg-accent-amber/15 text-accent-amber shadow-[0_0_15px_rgba(255,184,48,0.15)]'
-                  : 'border-border-default bg-bg-deep text-text-secondary hover:border-text-dim hover:text-text-primary'
-              "
-              @click="aiDifficulty = opt.value"
-            >
-              <span class="block font-bold uppercase">{{ opt.label }}</span>
-              <span class="block text-[10px] mt-1 text-text-dim tracking-normal">{{
-                opt.desc
-              }}</span>
-            </button>
-          </div>
-
-          <button
-            type="button"
-            class="w-full border-2 border-border-default bg-transparent px-4 py-3 text-lg font-display font-bold tracking-widest transition hover:bg-border-default hover:text-bg-deep cursor-pointer"
-            @click="showSettingsModal = false"
-          >
-            ĐÓNG
-          </button>
-        </div>
-      </div>
-    </transition>
+    <SettingsModal
+      v-model="showSettingsModal"
+      v-model:isSoundOn="isSoundOn"
+      v-model:sfxVolume="sfxVolume"
+      :aiDifficulty="aiDifficulty"
+      :difficultyOptions="difficultyOptions"
+      @changeDifficulty="changeDifficulty"
+    />
   </div>
   <BackToTop />
 </template>
@@ -645,8 +377,16 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import BackToTop from '@/components/BackToTop.vue'
+import { Icon } from '@iconify/vue'
 import { useGameLogic } from './composables/useGameLogic'
 import type { ItemType } from './composables/useGameLogic'
+import type { AIDifficulty } from './composables/useAI'
+
+// Import components
+import IntroScreen from './components/IntroScreen.vue'
+import GameOverScreen from './components/GameOverScreen.vue'
+import RulesModal from './components/RulesModal.vue'
+import SettingsModal from './components/SettingsModal.vue'
 
 const {
   playerHp,
@@ -688,6 +428,19 @@ const openRules = () => {
   showMobileMenu.value = false
 }
 
+const openSettings = () => {
+  showSettingsModal.value = true
+  showMobileMenu.value = false
+}
+
+const changeDifficulty = (lvl: AIDifficulty) => {
+  aiDifficulty.value = lvl
+  if (!isIntro.value) {
+    startNewGame()
+    showSettingsModal.value = false
+  }
+}
+
 // Danh sách độ khó của AI
 const difficultyOptions = [
   { value: 'easy', label: 'Dễ', desc: 'AI đôi khi chơi ngẫu nhiên' },
@@ -695,14 +448,14 @@ const difficultyOptions = [
   { value: 'hard', label: 'Khó', desc: 'AI luôn chọn nước tối ưu' },
 ] as const
 
-// Emoji và tên vật phẩm
-function getItemEmoji(item: ItemType): string {
+// Icon và tên vật phẩm
+function getItemIcon(item: ItemType): string {
   const map: Record<ItemType, string> = {
-    cigarette: '🚬',
-    beer: '🍺',
-    magnifying_glass: '🔍',
-    handcuffs: '⛓️',
-    handsaw: '🪚',
+    cigarette: 'game-icons:cigarette',
+    beer: 'hugeicons:soda-can',
+    magnifying_glass: 'noto:magnifying-glass-tilted-left',
+    handcuffs: 'game-icons:handcuffs',
+    handsaw: 'twemoji:carpentry-saw',
   }
   return map[item]
 }
@@ -746,6 +499,20 @@ onUnmounted(() => {
 }
 .fade-enter-from,
 .fade-leave-to {
+  opacity: 0;
+}
+
+/* Blackout: Sập nguồn ngay lập tức (instant), Tỉnh dậy từ từ (fade) */
+.blackout-enter-active {
+  transition: none !important;
+}
+.blackout-leave-active {
+  transition: opacity 2s ease-out;
+}
+.blackout-enter-from {
+  opacity: 1;
+}
+.blackout-leave-to {
   opacity: 0;
 }
 
