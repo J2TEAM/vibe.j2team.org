@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useLocale } from './composables/useLocale'
 import { useQuiz } from './composables/useQuiz'
+import { ui } from './data/ui'
+
+const { locale, toggle: toggleLocale } = useLocale()
+const t = computed(() => ui[locale.value])
 
 const {
   phase,
@@ -20,15 +25,14 @@ const {
 const activeTab = ref<'mbti' | 'devil'>('mbti')
 
 const traitPairs = [
-  { a: 'E', b: 'I', labelA: 'Extravert', labelB: 'Introvert' },
-  { a: 'S', b: 'N', labelA: 'Sensing', labelB: 'iNtuition' },
-  { a: 'T', b: 'F', labelA: 'Thinking', labelB: 'Feeling' },
-  { a: 'J', b: 'P', labelA: 'Judging', labelB: 'Perceiving' },
+  { a: 'E', b: 'I' },
+  { a: 'S', b: 'N' },
+  { a: 'T', b: 'F' },
+  { a: 'J', b: 'P' },
 ] as const
 
 function onAnswer(label: string) {
   handleAnswer(label)
-  // reset tab to mbti when a new quiz starts
 }
 
 function onReset() {
@@ -40,13 +44,19 @@ function onReset() {
 <template>
   <div class="min-h-screen bg-bg-deep text-text-primary font-body">
     <!-- Header -->
-    <header class="px-4 py-3 border-b border-border-default">
+    <header class="px-4 py-3 border-b border-border-default flex items-center justify-between">
       <RouterLink
         to="/"
         class="text-xs text-text-secondary hover:text-accent-coral transition-colors"
       >
-        ← Về trang chủ
+        {{ t.backHome }}
       </RouterLink>
+      <button
+        class="text-xs border border-border-default px-3 py-1 text-text-dim hover:border-accent-coral hover:text-text-primary transition-all cursor-pointer font-mono"
+        @click="toggleLocale"
+      >
+        {{ locale === 'vi' ? 'EN' : 'VI' }}
+      </button>
     </header>
 
     <!-- INTRO -->
@@ -57,18 +67,15 @@ function onReset() {
           <h1 class="font-display text-4xl md:text-5xl mb-3">
             <span class="text-accent-coral">//</span> IT MBTI Test
           </h1>
-          <p class="text-text-secondary text-lg">Bạn là kiểu dev nào?</p>
+          <p class="text-text-secondary text-lg">{{ t.tagline }}</p>
         </div>
 
         <div class="bg-bg-surface border border-border-default p-6 mb-8">
-          <p class="text-text-secondary text-sm leading-relaxed mb-4">
-            20 câu hỏi. Mỗi tình huống đều quen thuộc một cách đau đớn. Không có câu trả lời đúng
-            hay sai — chỉ có câu trả lời phản ánh con người thật của bạn trong môi trường IT.
-          </p>
+          <p class="text-text-secondary text-sm leading-relaxed mb-4">{{ t.introCopy }}</p>
           <div class="flex gap-4 text-xs text-text-dim">
-            <span>⏱ ~5 phút</span>
-            <span>📊 20 câu hỏi</span>
-            <span>🎯 16+ kết quả</span>
+            <span>{{ t.introStats.time }}</span>
+            <span>{{ t.introStats.questions }}</span>
+            <span>{{ t.introStats.results }}</span>
           </div>
         </div>
 
@@ -76,7 +83,7 @@ function onReset() {
           class="w-full bg-accent-coral text-white font-display text-lg py-4 hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer"
           @click="phase = 'question'"
         >
-          Bắt đầu →
+          {{ t.startBtn }}
         </button>
       </div>
     </Transition>
@@ -87,7 +94,7 @@ function onReset() {
         <!-- Progress -->
         <div class="mb-6">
           <div class="flex justify-between text-xs text-text-dim mb-2">
-            <span>Câu {{ progress.current }} / {{ progress.total }}</span>
+            <span>{{ t.questionLabel(progress.current, progress.total) }}</span>
             <span>{{ progress.pct }}%</span>
           </div>
           <div class="h-1 bg-bg-elevated w-full">
@@ -143,8 +150,8 @@ function onReset() {
         class="max-w-xl mx-auto px-4 py-32 text-center"
       >
         <div class="text-5xl mb-6 animate-pulse">⚙️</div>
-        <p class="font-display text-2xl text-accent-coral mb-2">Đang phân tích...</p>
-        <p class="text-text-dim text-sm">Hệ thống đang xử lý tính cách của bạn</p>
+        <p class="font-display text-2xl text-accent-coral mb-2">{{ t.calculating }}</p>
+        <p class="text-text-dim text-sm">{{ t.calculatingDesc }}</p>
       </div>
     </Transition>
 
@@ -166,7 +173,7 @@ function onReset() {
             "
             @click="activeTab = 'mbti'"
           >
-            🧠 Kết quả MBTI
+            {{ t.tabMbti }}
           </button>
           <button
             class="px-5 py-3 text-sm font-display transition-colors cursor-pointer"
@@ -177,7 +184,7 @@ function onReset() {
             "
             @click="activeTab = 'devil'"
           >
-            👿 Con Quỷ Bên Trong
+            {{ t.tabDevil }}
           </button>
         </div>
 
@@ -196,7 +203,7 @@ function onReset() {
           <!-- Trait bars -->
           <div class="bg-bg-surface border border-border-default p-5 mb-6">
             <h3 class="text-xs text-text-dim uppercase tracking-widest mb-4">
-              Phân tích chiều hướng
+              {{ t.traitAnalysis }}
             </h3>
             <div class="flex flex-col gap-3">
               <div v-for="pair in traitPairs" :key="pair.a" class="flex items-center gap-3 text-xs">
@@ -218,7 +225,7 @@ function onReset() {
           <!-- Overview -->
           <div class="bg-bg-surface border border-border-default p-5 mb-4">
             <h3 class="font-display text-sm text-accent-coral mb-3">
-              <span class="text-accent-coral">//</span> Overview
+              <span class="text-accent-coral">{{ t.overview }}</span>
             </h3>
             <p class="text-text-secondary text-sm leading-relaxed whitespace-pre-line">
               {{ mbtiResult.overview }}
@@ -229,7 +236,7 @@ function onReset() {
           <div class="grid md:grid-cols-2 gap-4 mb-4">
             <div class="bg-bg-surface border border-border-default p-5">
               <h3 class="font-display text-sm text-accent-coral mb-3">
-                <span class="text-accent-coral">//</span> Điểm mạnh
+                <span class="text-accent-coral">{{ t.strengths }}</span>
               </h3>
               <ul class="flex flex-col gap-2">
                 <li
@@ -244,7 +251,7 @@ function onReset() {
             </div>
             <div class="bg-bg-surface border border-border-default p-5">
               <h3 class="font-display text-sm text-accent-amber mb-3">
-                <span class="text-accent-amber">//</span> Điểm yếu
+                <span class="text-accent-amber">{{ t.weaknesses }}</span>
               </h3>
               <ul class="flex flex-col gap-2">
                 <li
@@ -263,14 +270,14 @@ function onReset() {
           <div class="grid md:grid-cols-2 gap-4 mb-4">
             <div class="bg-bg-surface border border-border-default p-5">
               <h3 class="font-display text-sm text-accent-sky mb-1">
-                <span class="text-accent-sky">//</span> Thiên chức trong team
+                <span class="text-accent-sky">{{ t.roleLabel }}</span>
               </h3>
               <p class="text-accent-sky font-display mb-2">{{ mbtiResult.roleTitle }}</p>
               <p class="text-text-secondary text-sm">{{ mbtiResult.role }}</p>
             </div>
             <div class="bg-bg-surface border border-border-default p-5">
               <h3 class="font-display text-sm text-accent-coral mb-1">
-                <span class="text-accent-coral">//</span> Quý nhân
+                <span class="text-accent-coral">{{ t.ally }}</span>
               </h3>
               <p class="text-accent-coral font-display mb-2">{{ mbtiResult.ally }}</p>
               <p class="text-text-secondary text-sm whitespace-pre-line">
@@ -282,7 +289,7 @@ function onReset() {
           <!-- Nemesis dialogue -->
           <div class="bg-bg-surface border border-border-default p-5 mb-4">
             <h3 class="font-display text-sm text-text-dim mb-3">
-              <span class="text-accent-coral">//</span> Thiên địch: {{ mbtiResult.nemesis }}
+              <span class="text-accent-coral">{{ t.nemesis(mbtiResult.nemesis) }}</span>
             </h3>
             <div class="flex flex-col gap-2">
               <div v-for="(line, i) in mbtiResult.nemesisLines" :key="i" class="flex gap-2 text-sm">
@@ -297,7 +304,7 @@ function onReset() {
           <!-- Soulmate -->
           <div class="bg-bg-surface border border-border-default p-5 mb-4">
             <h3 class="font-display text-sm text-accent-amber mb-1">
-              <span class="text-accent-amber">//</span> Cốt: {{ mbtiResult.soulmate }}
+              <span class="text-accent-amber">{{ t.soulmate(mbtiResult.soulmate) }}</span>
             </h3>
             <p class="text-text-secondary text-sm whitespace-pre-line">
               {{ mbtiResult.soulmateDesc }}
@@ -307,7 +314,7 @@ function onReset() {
           <!-- Prophecy -->
           <div class="bg-bg-surface border border-border-default p-5 mb-4">
             <h3 class="font-display text-sm text-text-dim mb-2">
-              <span class="text-accent-coral">//</span> Lời sấm truyền công sở
+              <span class="text-accent-coral">{{ t.prophecy }}</span>
             </h3>
             <p class="text-text-secondary text-sm italic whitespace-pre-line">
               {{ mbtiResult.prophecy }}
@@ -316,7 +323,7 @@ function onReset() {
 
           <!-- Warning -->
           <div class="border border-accent-amber/30 bg-accent-amber/5 p-5 mb-6">
-            <h3 class="font-display text-sm text-accent-amber mb-2">⚠ Cảnh báo thiên cơ</h3>
+            <h3 class="font-display text-sm text-accent-amber mb-2">{{ t.warning }}</h3>
             <p class="text-text-secondary text-sm whitespace-pre-line">{{ mbtiResult.warning }}</p>
           </div>
         </div>
@@ -333,7 +340,7 @@ function onReset() {
             <p class="text-text-dim text-sm uppercase tracking-widest">
               {{ devilResult.subtitle }}
             </p>
-            <p class="text-text-dim text-xs mt-2">Bạn đã chọn con đường tối {{ devilCount }} lần</p>
+            <p class="text-text-dim text-xs mt-2">{{ t.devilHeader(devilCount) }}</p>
           </div>
 
           <!-- Overview -->
@@ -349,7 +356,7 @@ function onReset() {
           <!-- Traits -->
           <div class="border border-red-900/40 bg-bg-surface p-5 mb-4">
             <h3 class="font-display text-sm text-red-400 mb-3">
-              <span class="text-red-500">//</span> Tính cách đặc trưng
+              <span class="text-red-500">{{ t.devilTraits }}</span>
             </h3>
             <ul class="flex flex-col gap-2">
               <li
@@ -366,7 +373,7 @@ function onReset() {
           <!-- Signs -->
           <div class="border border-red-900/40 bg-bg-surface p-5 mb-4">
             <h3 class="font-display text-sm text-red-400 mb-3">
-              <span class="text-red-500">//</span> Dấu hiệu nhận biết
+              <span class="text-red-500">{{ t.devilSigns }}</span>
             </h3>
             <ul class="flex flex-col gap-2">
               <li
@@ -401,7 +408,7 @@ function onReset() {
           <!-- Prophecy -->
           <div class="border border-red-900/40 bg-bg-surface p-5 mb-4">
             <h3 class="font-display text-sm text-text-dim mb-2">
-              <span class="text-red-500">//</span> Lời sấm truyền hắc ám
+              <span class="text-red-500">{{ t.devilProphecy }}</span>
             </h3>
             <p class="text-text-secondary text-sm italic whitespace-pre-line">
               {{ devilResult.prophecy }}
@@ -410,7 +417,7 @@ function onReset() {
 
           <!-- Warning -->
           <div class="border border-red-900/50 bg-red-950/20 p-5 mb-6">
-            <h3 class="font-display text-sm text-red-400 mb-2">☠ Cảnh báo</h3>
+            <h3 class="font-display text-sm text-red-400 mb-2">{{ t.devilWarning }}</h3>
             <p class="text-text-secondary text-sm whitespace-pre-line">{{ devilResult.warning }}</p>
           </div>
         </div>
@@ -420,7 +427,7 @@ function onReset() {
           class="w-full border border-border-default text-text-secondary py-3 hover:border-accent-coral hover:text-text-primary transition-all cursor-pointer text-sm"
           @click="onReset"
         >
-          Làm lại từ đầu
+          {{ t.retry }}
         </button>
       </div>
     </Transition>

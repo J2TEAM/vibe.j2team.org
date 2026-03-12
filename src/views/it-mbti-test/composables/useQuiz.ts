@@ -1,24 +1,30 @@
 import { computed, ref } from 'vue'
-import { questions } from '../data/questions'
-import { devilResult, results } from '../data/results'
+import { questions as questionsVi } from '../data/questions'
+import { questionsEn } from '../data/questions.en'
+import { devilResult as devilResultVi, results as resultsVi } from '../data/results'
+import { devilResultEn, resultsEn } from '../data/results.en'
 import type { MbtiResult, QuizPhase, QuizQuestion, ScoreMap } from '../types'
+import { useLocale } from './useLocale'
 
 const DEVIL_THRESHOLD = 3
 
 export function useQuiz() {
+  const { locale } = useLocale()
+
   const phase = ref<QuizPhase>('intro')
   const currentIndex = ref(0)
   const answers = ref<string[]>([])
   const devilCount = ref(0)
 
+  const questions = computed(() => (locale.value === 'vi' ? questionsVi : questionsEn))
   const currentQuestion = computed<QuizQuestion>(
-    () => questions[currentIndex.value] as QuizQuestion,
+    () => questions.value[currentIndex.value] as QuizQuestion,
   )
 
   const progress = computed(() => ({
     current: currentIndex.value + 1,
-    total: questions.length,
-    pct: Math.round((currentIndex.value / questions.length) * 100),
+    total: questions.value.length,
+    pct: Math.round((currentIndex.value / questions.value.length) * 100),
   }))
 
   function handleAnswer(label: string) {
@@ -27,7 +33,7 @@ export function useQuiz() {
 
     answers.value = [...answers.value.slice(0, currentIndex.value), label]
 
-    if (currentIndex.value < questions.length - 1) {
+    if (currentIndex.value < questions.value.length - 1) {
       currentIndex.value++
     } else {
       phase.value = 'calculating'
@@ -41,7 +47,7 @@ export function useQuiz() {
     const s: ScoreMap = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 }
 
     answers.value.forEach((answer, idx) => {
-      const q = questions[idx]
+      const q = questions.value[idx]
       if (!q || !answer) return
 
       const opt = q.options.find((o) => o.label === answer)
@@ -63,9 +69,12 @@ export function useQuiz() {
     )
   })
 
+  const activeResults = computed(() => (locale.value === 'vi' ? resultsVi : resultsEn))
   const mbtiResult = computed<MbtiResult>(
-    () => (results[mbtiType.value] ?? results['INTJ']) as MbtiResult,
+    () => (activeResults.value[mbtiType.value] ?? activeResults.value['INTJ']) as MbtiResult,
   )
+
+  const devilResult = computed(() => (locale.value === 'vi' ? devilResultVi : devilResultEn))
 
   const traitPcts = computed(() => {
     const s = scores.value
