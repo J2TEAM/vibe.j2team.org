@@ -14,7 +14,7 @@ export interface Plot {
   watered: boolean
   isUnlocked: boolean
   unlockCost: number
-  hasBug: boolean // TÍNH NĂNG MỚI: Bị sâu ăn
+  hasBug: boolean // Trạng thái bị sâu ăn
 }
 
 export interface Toast {
@@ -27,7 +27,8 @@ export interface Quest {
   id: string
   title: string
   description: string
-  type: 'harvest' | 'water' | 'earn'
+  // TÍNH NĂNG MỚI: Thêm 'bug' vào type để làm nhiệm vụ diệt sâu
+  type: 'harvest' | 'water' | 'earn' | 'bug'
   targetId?: string
   target: number
   progress: number

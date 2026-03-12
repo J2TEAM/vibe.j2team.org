@@ -1,14 +1,11 @@
 import { ref, computed } from 'vue'
-import { useStorage, createSharedComposable, useIntervalFn } from '@vueuse/core'
+import { useStorage, useIntervalFn } from '@vueuse/core'
 import type { Seed, Plot, Toast, Quest } from '../types'
 
-const AVAILABLE_SEEDS: Seed[] = [
-  // Nhóm cơ bản (Tiền ít, lớn nhanh)
+export const AVAILABLE_SEEDS: Seed[] = [
   { id: 'tomato', name: 'Cà chua', cost: 10, reward: 25, growTime: 10, icon: 'twemoji:tomato' },
   { id: 'carrot', name: 'Cà rốt', cost: 25, reward: 60, growTime: 25, icon: 'twemoji:carrot' },
   { id: 'potato', name: 'Khoai tây', cost: 40, reward: 100, growTime: 40, icon: 'twemoji:potato' },
-
-  // Nhóm trung cấp (Bắt đầu cần đầu tư thời gian)
   { id: 'corn', name: 'Bắp', cost: 80, reward: 220, growTime: 60, icon: 'twemoji:ear-of-corn' },
   {
     id: 'broccoli',
@@ -26,8 +23,6 @@ const AVAILABLE_SEEDS: Seed[] = [
     growTime: 120,
     icon: 'twemoji:eggplant',
   },
-
-  // Nhóm cao cấp (Thời gian dài, lợi nhuận khủng)
   {
     id: 'watermelon',
     name: 'Dưa hấu',
@@ -52,8 +47,6 @@ const AVAILABLE_SEEDS: Seed[] = [
     growTime: 1200,
     icon: 'twemoji:pineapple',
   },
-
-  // Nhóm "Nhà giàu" (Chỉ dành cho đại gia cày cuốc)
   {
     id: 'grapes',
     name: 'Nho tím',
@@ -77,15 +70,9 @@ const AVAILABLE_SEEDS: Seed[] = [
     reward: 85000,
     growTime: 7200,
     icon: 'twemoji:dragon-face',
-  }, // Dùng tạm icon mặt rồng cho ngầu
+  },
 ]
 
-const UPGRADE_PRICES = {
-  fertilizer: [100, 300, 800, 2000, 5000],
-  scythe: [150, 400, 1000, 2500, 6000],
-}
-
-// --- CẤU HÌNH GACHA 8 Ô ---
 export const GACHA_OPTIONS = [
   { id: 'jackpot', label: '15.000 Xu', icon: 'twemoji:money-bag', color: '#fde047' },
   {
@@ -102,6 +89,11 @@ export const GACHA_OPTIONS = [
   { id: 'trash', label: '1 Xu', icon: 'twemoji:skull', color: '#e5e7eb' },
 ]
 
+const UPGRADE_PRICES = {
+  fertilizer: [100, 300, 800, 2000, 5000],
+  scythe: [150, 400, 1000, 2500, 6000],
+}
+
 const getNextEvenHour = () => {
   const now = new Date()
   const currentHour = now.getHours()
@@ -111,169 +103,252 @@ const getNextEvenHour = () => {
   return next.getTime()
 }
 
-function _useFarm() {
-  const coins = useStorage('farmer-coins', 100)
-  const level = useStorage('farmer-level', 1)
-  const xp = useStorage('farmer-xp', 0)
+// === KHAI BÁO BIẾN GLOBAL ===
+const coins = useStorage('farmer-coins', 100)
+const level = useStorage('farmer-level', 1)
+const xp = useStorage('farmer-xp', 0)
+const upgrades = useStorage('farmer-upgrades', { fertilizer: 0, scythe: 0 })
+const nextQuestReset = useStorage('farmer-quest-reset', getNextEvenHour())
+const questResetCountdown = ref('')
+const isShaking = ref(false)
+const selectedSeed = ref<Seed | null>(null)
+const toasts = ref<Toast[]>([])
+let toastId = 0
+const coinTargetRef = ref<HTMLElement | null>(null)
+const flyingCoins = ref<
+  { id: number; startX: number; startY: number; endX: number; endY: number; amount: number }[]
+>([])
+let flyId = 0
+const now = ref(Date.now())
+
+const plots = useStorage<Plot[]>('farmer-plots-v6', [
+  {
+    id: 1,
+    seedId: null,
+    plantedAt: null,
+    watered: false,
+    isUnlocked: true,
+    unlockCost: 0,
+    hasBug: false,
+  },
+  {
+    id: 2,
+    seedId: null,
+    plantedAt: null,
+    watered: false,
+    isUnlocked: true,
+    unlockCost: 0,
+    hasBug: false,
+  },
+  {
+    id: 3,
+    seedId: null,
+    plantedAt: null,
+    watered: false,
+    isUnlocked: false,
+    unlockCost: 50,
+    hasBug: false,
+  },
+  {
+    id: 4,
+    seedId: null,
+    plantedAt: null,
+    watered: false,
+    isUnlocked: false,
+    unlockCost: 150,
+    hasBug: false,
+  },
+  {
+    id: 5,
+    seedId: null,
+    plantedAt: null,
+    watered: false,
+    isUnlocked: false,
+    unlockCost: 400,
+    hasBug: false,
+  },
+  {
+    id: 6,
+    seedId: null,
+    plantedAt: null,
+    watered: false,
+    isUnlocked: false,
+    unlockCost: 800,
+    hasBug: false,
+  },
+  {
+    id: 7,
+    seedId: null,
+    plantedAt: null,
+    watered: false,
+    isUnlocked: false,
+    unlockCost: 1500,
+    hasBug: false,
+  },
+  {
+    id: 8,
+    seedId: null,
+    plantedAt: null,
+    watered: false,
+    isUnlocked: false,
+    unlockCost: 3000,
+    hasBug: false,
+  },
+  {
+    id: 9,
+    seedId: null,
+    plantedAt: null,
+    watered: false,
+    isUnlocked: false,
+    unlockCost: 6000,
+    hasBug: false,
+  },
+])
+
+// TÍNH NĂNG MỚI: 8 Nhiệm vụ (Đổi sang v3 để reset lại)
+const quests = useStorage<Quest[]>('farmer-quests-v3', [
+  {
+    id: 'q1',
+    title: 'Khởi nghiệp',
+    description: 'Thu hoạch 5 Cà chua',
+    type: 'harvest',
+    targetId: 'tomato',
+    target: 5,
+    progress: 0,
+    reward: 100,
+    isClaimed: false,
+  },
+  {
+    id: 'q2',
+    title: 'Người trữ nước',
+    description: 'Tưới cây 10 lần',
+    type: 'water',
+    target: 10,
+    progress: 0,
+    reward: 150,
+    isClaimed: false,
+  },
+  {
+    id: 'q3',
+    title: 'Nông dân cà rốt',
+    description: 'Thu hoạch 10 Cà rốt',
+    type: 'harvest',
+    targetId: 'carrot',
+    target: 10,
+    progress: 0,
+    reward: 300,
+    isClaimed: false,
+  },
+  {
+    id: 'q4',
+    title: 'Dũng sĩ diệt sâu',
+    description: 'Đập 5 con sâu',
+    type: 'bug',
+    target: 5,
+    progress: 0,
+    reward: 400,
+    isClaimed: false,
+  },
+  {
+    id: 'q5',
+    title: 'Vua Bắp',
+    description: 'Thu hoạch 10 Bắp',
+    type: 'harvest',
+    targetId: 'corn',
+    target: 10,
+    progress: 0,
+    reward: 600,
+    isClaimed: false,
+  },
+  {
+    id: 'q6',
+    title: 'Đại gia tiền lẻ',
+    description: 'Kiếm 2000 Xu',
+    type: 'earn',
+    target: 2000,
+    progress: 0,
+    reward: 500,
+    isClaimed: false,
+  },
+  {
+    id: 'q7',
+    title: 'Giải khát mùa hè',
+    description: 'Thu hoạch 5 Dưa hấu',
+    type: 'harvest',
+    targetId: 'watermelon',
+    target: 5,
+    progress: 0,
+    reward: 1500,
+    isClaimed: false,
+  },
+  {
+    id: 'q8',
+    title: 'Trùm tư bản',
+    description: 'Kiếm 15.000 Xu',
+    type: 'earn',
+    target: 15000,
+    progress: 0,
+    reward: 3000,
+    isClaimed: false,
+  },
+])
+
+let isGameLoopInitialized = false
+
+// === HÀM CHÍNH XUẤT KHẨU ===
+export function useFarm() {
   const xpToNextLevel = computed(() => level.value * 150)
-  const upgrades = useStorage('farmer-upgrades', { fertilizer: 0, scythe: 0 })
+  const isNight = computed(() => {
+    const h = new Date().getHours()
+    return h >= 18 || h < 6
+  })
 
-  const plots = useStorage<Plot[]>('farmer-plots-v6', [
-    {
-      id: 1,
-      seedId: null,
-      plantedAt: null,
-      watered: false,
-      isUnlocked: true,
-      unlockCost: 0,
-      hasBug: false,
-    },
-    {
-      id: 2,
-      seedId: null,
-      plantedAt: null,
-      watered: false,
-      isUnlocked: true,
-      unlockCost: 0,
-      hasBug: false,
-    },
-    {
-      id: 3,
-      seedId: null,
-      plantedAt: null,
-      watered: false,
-      isUnlocked: false,
-      unlockCost: 50,
-      hasBug: false,
-    },
-    {
-      id: 4,
-      seedId: null,
-      plantedAt: null,
-      watered: false,
-      isUnlocked: false,
-      unlockCost: 150,
-      hasBug: false,
-    },
-    {
-      id: 5,
-      seedId: null,
-      plantedAt: null,
-      watered: false,
-      isUnlocked: false,
-      unlockCost: 400,
-      hasBug: false,
-    },
-    {
-      id: 6,
-      seedId: null,
-      plantedAt: null,
-      watered: false,
-      isUnlocked: false,
-      unlockCost: 800,
-      hasBug: false,
-    },
-    {
-      id: 7,
-      seedId: null,
-      plantedAt: null,
-      watered: false,
-      isUnlocked: false,
-      unlockCost: 1500,
-      hasBug: false,
-    },
-    {
-      id: 8,
-      seedId: null,
-      plantedAt: null,
-      watered: false,
-      isUnlocked: false,
-      unlockCost: 3000,
-      hasBug: false,
-    },
-    {
-      id: 9,
-      seedId: null,
-      plantedAt: null,
-      watered: false,
-      isUnlocked: false,
-      unlockCost: 6000,
-      hasBug: false,
-    },
-  ])
-
-  if (typeof window !== 'undefined') {
-    let keyBuffer = ''
-    window.addEventListener('keydown', (e) => {
-      keyBuffer += e.key.toLowerCase()
-      if (keyBuffer.length > 20) keyBuffer = keyBuffer.slice(-20)
-      if (keyBuffer.includes('j2team')) {
-        coins.value += 99999
-        showToast('🚀 XIN CHÀO PHÁP SƯ CODE DẠO! HACK THÀNH CÔNG 99.999 XU!', 'success')
-        keyBuffer = ''
+  if (!isGameLoopInitialized) {
+    isGameLoopInitialized = true
+    useIntervalFn(() => {
+      const current = Date.now()
+      now.value = current
+      if (current >= nextQuestReset.value) {
+        quests.value.forEach((q) => {
+          q.progress = 0
+          q.isClaimed = false
+        })
+        nextQuestReset.value = getNextEvenHour()
       }
-    })
-  }
+      plots.value.forEach((p) => {
+        if (p.seedId && p.plantedAt) {
+          const seed = getActualSeedInfo(p.seedId)
+          if (seed) {
+            const elapsed = (current - p.plantedAt) / 1000
+            if (!p.hasBug && elapsed > 2 && elapsed < seed.growTime && Math.random() < 0.08) {
+              p.hasBug = true
+            }
+            if (p.hasBug) p.plantedAt += 1000
+          }
+        }
+      })
+      const diff = nextQuestReset.value - current
+      if (diff > 0) {
+        const h = Math.floor(diff / 3600000)
+        const m = Math.floor((diff % 3600000) / 60000)
+        const s = Math.floor((diff % 60000) / 1000)
+        questResetCountdown.value = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+      }
+    }, 1000)
 
-  const quests = useStorage<Quest[]>('farmer-quests', [
-    {
-      id: 'q1',
-      title: 'Khởi nghiệp',
-      description: 'Thu hoạch 5 Cà chua',
-      type: 'harvest',
-      targetId: 'tomato',
-      target: 5,
-      progress: 0,
-      reward: 100,
-      isClaimed: false,
-    },
-    {
-      id: 'q2',
-      title: 'Người trữ nước',
-      description: 'Tưới cây 10 lần',
-      type: 'water',
-      target: 10,
-      progress: 0,
-      reward: 150,
-      isClaimed: false,
-    },
-    {
-      id: 'q3',
-      title: 'Nông dân cà rốt',
-      description: 'Thu hoạch 10 Cà rốt',
-      type: 'harvest',
-      targetId: 'carrot',
-      target: 10,
-      progress: 0,
-      reward: 300,
-      isClaimed: false,
-    },
-    {
-      id: 'q4',
-      title: 'Đại gia tiền lẻ',
-      description: 'Kiếm tổng cộng 1000 Xu',
-      type: 'earn',
-      target: 1000,
-      progress: 0,
-      reward: 500,
-      isClaimed: false,
-    },
-    {
-      id: 'q5',
-      title: 'Vua Dưa Hấu',
-      description: 'Thu hoạch 5 Dưa hấu',
-      type: 'harvest',
-      targetId: 'watermelon',
-      target: 5,
-      progress: 0,
-      reward: 1000,
-      isClaimed: false,
-    },
-  ])
-  const nextQuestReset = useStorage('farmer-quest-reset', getNextEvenHour())
-  const questResetCountdown = ref('')
-  const toasts = ref<Toast[]>([])
-  let toastId = 0
+    if (typeof window !== 'undefined') {
+      let buf = ''
+      window.addEventListener('keydown', (e) => {
+        buf = (buf + e.key.toLowerCase()).slice(-20)
+        if (buf.includes('j2team')) {
+          coins.value += 99999
+          triggerShake(300)
+          showToast('🚀 HACK TRÀO PHÚ!', 'success')
+          buf = ''
+        }
+      })
+    }
+  }
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     const id = ++toastId
@@ -283,61 +358,12 @@ function _useFarm() {
     }, 4000)
   }
 
-  const checkQuestReset = () => {
-    const current = Date.now()
-    if (current >= nextQuestReset.value) {
-      quests.value.forEach((q) => {
-        q.progress = 0
-        q.isClaimed = false
-      })
-      nextQuestReset.value = getNextEvenHour()
-      showToast('Nhiệm vụ đã được làm mới! Cày tiếp đi chớ ngủ!', 'info')
-    }
-    const diff = nextQuestReset.value - Date.now()
-    if (diff > 0) {
-      const h = Math.floor(diff / (1000 * 60 * 60))
-      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-      const s = Math.floor((diff % (1000 * 60)) / 1000)
-      questResetCountdown.value = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-    }
+  const triggerShake = (duration = 500) => {
+    isShaking.value = true
+    setTimeout(() => {
+      isShaking.value = false
+    }, duration)
   }
-  checkQuestReset()
-
-  const now = ref(Date.now())
-  useIntervalFn(() => {
-    now.value = Date.now()
-    checkQuestReset()
-    plots.value.forEach((p) => {
-      if (p.seedId && p.plantedAt) {
-        const seed = getActualSeedInfo(p.seedId)
-        if (seed) {
-          const elapsed = (Date.now() - p.plantedAt) / 1000
-          if (!p.hasBug && elapsed < seed.growTime && elapsed > 2 && Math.random() < 0.01)
-            p.hasBug = true
-          if (p.hasBug) p.plantedAt += 1000
-        }
-      }
-    })
-  }, 1000)
-
-  const isNight = computed(() => {
-    const hour = new Date().getHours()
-    return hour >= 18 || hour < 6
-  })
-
-  const trackAction = (
-    type: 'harvest' | 'water' | 'earn',
-    amount: number = 1,
-    targetId?: string | null,
-  ) => {
-    quests.value.forEach((q) => {
-      if (!q.isClaimed && q.type === type && (type !== 'harvest' || q.targetId === targetId)) {
-        q.progress = Math.min(q.target, q.progress + amount)
-      }
-    })
-  }
-
-  const selectedSeed = ref<Seed | null>(null)
 
   const getActualSeedInfo = (seedId: string | null) => {
     const base = AVAILABLE_SEEDS.find((s) => s.id === seedId)
@@ -349,26 +375,9 @@ function _useFarm() {
     }
   }
 
-  const buyUpgrade = (type: 'fertilizer' | 'scythe') => {
-    const currentLv = upgrades.value[type]
-    if (currentLv >= 5) return
-    const cost = UPGRADE_PRICES[type][currentLv]
-    if (cost === undefined) return
-
-    if (coins.value >= cost) {
-      coins.value -= cost
-      upgrades.value[type]++
-      showToast('Nâng cấp thành công! Máy xịn cày tiền mới sướng!', 'success')
-    } else {
-      showToast(`Có ${coins.value} Xu mà đòi mua đồ ${cost} Xu à? Đi cày đi!`, 'error')
-    }
+  const selectSeed = (seed: Seed) => {
+    selectedSeed.value = seed
   }
-
-  const coinTargetRef = ref<HTMLElement | null>(null)
-  const flyingCoins = ref<
-    { id: number; startX: number; startY: number; endX: number; endY: number; amount: number }[]
-  >([])
-  let flyId = 0
 
   const harvestCrop = (event: MouseEvent | null, amount: number, seedId?: string | null) => {
     let endX = window.innerWidth - 100
@@ -381,10 +390,13 @@ function _useFarm() {
     const id = ++flyId
     const startX = event ? event.clientX : window.innerWidth / 2
     const startY = event ? event.clientY : window.innerHeight / 2
-
     flyingCoins.value.push({ id, startX, startY, endX, endY, amount })
-    trackAction('earn', amount)
-    if (seedId) trackAction('harvest', 1, seedId)
+
+    quests.value.forEach((q) => {
+      if (!q.isClaimed && q.type === 'earn') q.progress = Math.min(q.target, q.progress + amount)
+      if (!q.isClaimed && q.type === 'harvest' && seedId === q.targetId)
+        q.progress = Math.min(q.target, q.progress + 1)
+    })
 
     setTimeout(() => {
       coins.value += amount
@@ -393,155 +405,168 @@ function _useFarm() {
       if (xp.value >= xpToNextLevel.value) {
         xp.value -= xpToNextLevel.value
         level.value++
-        const bonus = level.value * 100
-        coins.value += bonus
-        showToast(`🎉 Lên cấp ${level.value}! Sếp thưởng nóng ${bonus} Xu!`, 'success')
+        coins.value += level.value * 100
+        showToast(`🎉 Lên cấp ${level.value}! Thưởng nóng ${level.value * 100} Xu!`, 'success')
       }
     }, 800)
   }
 
-  const smashBug = (event: MouseEvent, plotId: number) => {
+  const plantSeed = (plotId: number, seed: Seed) => {
     const plot = plots.value.find((p) => p.id === plotId)
-    if (plot && plot.hasBug) {
+    if (plot && coins.value >= seed.cost) {
+      coins.value -= seed.cost
+      plot.seedId = seed.id
+      plot.plantedAt = Date.now()
+      plot.watered = false
       plot.hasBug = false
-      harvestCrop(event, 5, null)
-      showToast('Bốp! Tiểu cường đã đăng xuất, lụm 5 Xu!', 'success')
+      return true
     }
+    return false
   }
 
-  // --- HỆ THỐNG TRẢ THƯỞNG 8 Ô (40% CÓ LỢI, 60% CÓ HẠI) ---
-  const applyGachaReward = (resultId: string, event: MouseEvent | null) => {
-    switch (resultId) {
-      case 'jackpot':
-        harvestCrop(event, 15000, null) // Tăng từ 2000 lên 15.000 Xu
-        showToast('🎰 SIÊU NỔ HŨ 15.000 XU! Đổi đời là đây chứ đâu!', 'success')
-        break
-      case 'mini_jackpot':
-        harvestCrop(event, 3000, null) // Tăng từ 500 lên 3000 Xu
-        showToast('💰 Trúng mánh lớn! Lụm 3.000 Xu bỏ túi!', 'success')
-        break
-      case 'refund':
-        harvestCrop(event, 1000, null) // Hoàn lại đúng giá vé mới
-        showToast('⚖️ Hoà vốn! Thở phào nhẹ nhõm...', 'info')
-        break
-      case 'trash':
-        harvestCrop(event, 1, null)
-        showToast('💀 Nhận 1 Xu an ủi. Thôi cờ bạc là bác thằng bần...', 'error')
-        break
-      case 'rain':
-        plots.value.forEach((p) => {
-          if (p.seedId && !p.watered) {
-            const seed = getActualSeedInfo(p.seedId)
-            if (seed) {
-              p.watered = true
-              p.plantedAt = Date.now() - (seed.growTime / 2) * 1000
-            }
-          }
-        })
-        showToast('🌧️ Mưa nhân tạo! Đã tự động tưới cho toàn bộ vườn đang khát!', 'success')
-        break
-      case 'fertilize':
-        plots.value.forEach((p) => {
-          if (p.seedId) {
-            const seed = getActualSeedInfo(p.seedId)
-            if (seed) {
-              p.watered = true
-              p.hasBug = false
-              p.plantedAt = Date.now() - seed.growTime * 1000
-            }
-          }
-        })
-        showToast('✨ Rắc phân bón thần kỳ! Toàn bộ cây đã chín ngay lập tức!', 'success')
-        break
-      case 'storm':
-        const plantedPlots = plots.value.filter((p) => p.seedId !== null)
-        if (plantedPlots.length > 0) {
-          const randomPlot = plantedPlots[Math.floor(Math.random() * plantedPlots.length)]
-
-          // Thêm dòng if này để TypeScript yên tâm là randomPlot chắc chắn tồn tại
-          if (randomPlot) {
-            randomPlot.seedId = null
-            randomPlot.plantedAt = null
-            randomPlot.watered = false
-            randomPlot.hasBug = false
-            showToast('🌪️ Bão táp vừa cuốn phăng đi 1 cây của bạn rồi!', 'error')
-          }
-        } else {
-          showToast('🌪️ Bão quét qua... may quá vườn trống không!', 'info')
-        }
-        break
-      case 'pest':
-        const hasPlants = plots.value.some((p) => p.seedId !== null)
-        if (hasPlants) {
-          plots.value.forEach((p) => {
-            if (p.seedId) p.hasBug = true
-          })
-          showToast('🐛 Đại dịch sâu bọ! Cây cối ngừng lớn, mau bắt sâu!', 'error')
-        } else {
-          showToast('🐛 Đàn sâu bay qua... nhưng không có lá để ăn!', 'info')
-        }
-        break
-      case 'thief':
-        const lost = Math.floor(coins.value * 0.1)
-        if (lost > 0) {
-          coins.value -= lost
-          showToast(`🥷 Trộm viếng thăm! Cuỗm mất ${lost} Xu của bạn!`, 'error')
-        } else {
-          showToast(`🥷 Trộm mò vào... thấy bạn nghèo rớt mồng tơi nên chê!`, 'info')
-        }
-        break
-    }
-  }
-
-  const claimQuest = (questId: string, event: MouseEvent) => {
-    const q = quests.value.find((q) => q.id === questId)
-    if (q && q.progress >= q.target && !q.isClaimed) {
-      q.isClaimed = true
-      harvestCrop(event, q.reward, null)
-      showToast(`Hoàn thành: ${q.title}! Đỉnh quá khum?`, 'success')
-    }
-  }
-
-  const unlockPlot = (plotId: number) => {
+  const waterPlot = (plotId: number) => {
     const plot = plots.value.find((p) => p.id === plotId)
-    if (plot && !plot.isUnlocked) {
-      if (coins.value >= plot.unlockCost) {
-        coins.value -= plot.unlockCost
-        plot.isUnlocked = true
-        showToast('Đã mua thêm đất! Chuẩn bị làm địa chủ rồi!', 'success')
-      } else {
-        showToast(`Cố quá thành quá cố đấy Nông dân, cày đủ ${plot.unlockCost} Xu đi!`, 'error')
+    if (plot && plot.seedId) {
+      const seed = getActualSeedInfo(plot.seedId)
+      if (seed) {
+        plot.watered = true
+        plot.plantedAt = Date.now() - (seed.growTime / 2) * 1000
+        quests.value.forEach((q) => {
+          if (!q.isClaimed && q.type === 'water') q.progress = Math.min(q.target, q.progress + 1)
+        })
       }
     }
   }
 
+  const harvestPlot = (plotId: number, event: MouseEvent) => {
+    const plot = plots.value.find((p) => p.id === plotId)
+    if (plot && plot.seedId) {
+      const seed = getActualSeedInfo(plot.seedId)
+      if (seed) {
+        harvestCrop(event, seed.reward, plot.seedId)
+        plot.seedId = plot.plantedAt = null
+        plot.watered = plot.hasBug = false
+      }
+    }
+  }
+
+  const applyGachaReward = (resultId: string, event: MouseEvent | null) => {
+    switch (resultId) {
+      case 'jackpot':
+        triggerShake(1000)
+        harvestCrop(event, 15000, null)
+        break
+      case 'mini_jackpot':
+        harvestCrop(event, 3000, null)
+        break
+      case 'refund':
+        harvestCrop(event, 1000, null)
+        break
+      case 'trash':
+        harvestCrop(event, 1, null)
+        break
+      case 'rain':
+        plots.value.forEach((p) => {
+          if (p.seedId && !p.watered) waterPlot(p.id)
+        })
+        break
+      case 'fertilize':
+        plots.value.forEach((p) => {
+          if (p.seedId) {
+            const s = getActualSeedInfo(p.seedId)
+            if (s) {
+              p.watered = true
+              p.hasBug = false
+              p.plantedAt = Date.now() - s.growTime * 1000
+            }
+          }
+        })
+        break
+      case 'storm':
+        const planted = plots.value.filter((p) => p.seedId !== null)
+        if (planted.length > 0) {
+          triggerShake(500)
+          const rp = planted[Math.floor(Math.random() * planted.length)]
+          if (rp) {
+            rp.seedId = rp.plantedAt = null
+            rp.watered = rp.hasBug = false
+            showToast('🌪️ Bão cuốn mất cây!', 'error')
+          }
+        }
+        break
+      case 'pest':
+        plots.value.forEach((p) => {
+          if (p.seedId) p.hasBug = true
+        })
+        break
+      case 'thief':
+        const lost = Math.floor(coins.value * 0.1)
+        coins.value -= lost
+        showToast(`🥷 Trộm cuỗm ${lost} Xu!`, 'error')
+        break
+    }
+  }
+
   return {
+    now,
     coins,
     plots,
-    selectedSeed,
-    AVAILABLE_SEEDS,
-    now,
-    isNight,
-    toasts,
-    showToast,
-    unlockPlot,
-    coinTargetRef,
-    flyingCoins,
-    harvestCrop,
     level,
     xp,
     xpToNextLevel,
     upgrades,
-    UPGRADE_PRICES,
-    getActualSeedInfo,
-    buyUpgrade,
-    quests,
-    claimQuest,
-    trackAction,
+    isShaking,
+    AVAILABLE_SEEDS,
+    isNight,
     questResetCountdown,
-    smashBug,
+    toasts,
+    showToast,
+    getActualSeedInfo,
+    coinTargetRef,
+    flyingCoins,
+    selectedSeed,
+    selectSeed,
+    plantSeed,
+    waterPlot,
+    harvestPlot,
     applyGachaReward,
+    triggerShake,
+    UPGRADE_PRICES,
+    buyUpgrade: (type: 'fertilizer' | 'scythe') => {
+      const lv = upgrades.value[type]
+      if (lv >= 5) return
+      const cost = UPGRADE_PRICES[type][lv]
+      if (typeof cost !== 'number') return
+      if (coins.value >= cost) {
+        coins.value -= cost
+        upgrades.value[type]++
+      }
+    },
+    unlockPlot: (id: number) => {
+      const p = plots.value.find((x) => x.id === id)
+      if (p && !p.isUnlocked && coins.value >= p.unlockCost) {
+        coins.value -= p.unlockCost
+        p.isUnlocked = true
+      }
+    },
+    quests,
+    claimQuest: (id: string, e: MouseEvent) => {
+      const q = quests.value.find((x) => x.id === id)
+      if (q && q.progress >= q.target && !q.isClaimed) {
+        q.isClaimed = true
+        harvestCrop(e, q.reward, null)
+      }
+    },
+    // TÍNH NĂNG MỚI: Tracking tiến độ Đập sâu
+    smashBug: (e: MouseEvent, id: number) => {
+      const p = plots.value.find((x) => x.id === id)
+      if (p && p.hasBug) {
+        p.hasBug = false
+        harvestCrop(e, 5, null)
+        quests.value.forEach((q) => {
+          if (!q.isClaimed && q.type === 'bug') q.progress = Math.min(q.target, q.progress + 1)
+        })
+      }
+    },
   }
 }
-
-export const useFarm = createSharedComposable(_useFarm)
