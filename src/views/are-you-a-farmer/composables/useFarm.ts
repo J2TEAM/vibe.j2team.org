@@ -73,20 +73,21 @@ export const AVAILABLE_SEEDS: Seed[] = [
   },
 ]
 
+// Cập nhật mã màu chuẩn Design System cho Gacha
 export const GACHA_OPTIONS = [
-  { id: 'jackpot', label: '15.000 Xu', icon: 'twemoji:money-bag', color: '#fde047' },
+  { id: 'jackpot', label: '15.000 Xu', icon: 'twemoji:money-bag', color: '#FFB830' }, // accent-amber
   {
     id: 'storm',
     label: 'Bão Táp',
     icon: 'twemoji:cloud-with-lightning-and-rain',
-    color: '#9ca3af',
-  },
-  { id: 'rain', label: 'Mưa', icon: 'twemoji:cloud-with-rain', color: '#93c5fd' },
-  { id: 'pest', label: 'Đại Dịch', icon: 'twemoji:bug', color: '#fca5a5' },
-  { id: 'mini_jackpot', label: '3.000 Xu', icon: 'twemoji:coin', color: '#86efac' },
-  { id: 'thief', label: 'Trộm', icon: 'twemoji:ninja', color: '#d1d5db' },
-  { id: 'fertilize', label: 'Thúc Chín', icon: 'twemoji:sparkles', color: '#f9a8d4' },
-  { id: 'trash', label: '1 Xu', icon: 'twemoji:skull', color: '#e5e7eb' },
+    color: '#4A6180',
+  }, // text-dim
+  { id: 'rain', label: 'Mưa', icon: 'twemoji:cloud-with-rain', color: '#38BDF8' }, // accent-sky
+  { id: 'pest', label: 'Đại Dịch', icon: 'twemoji:bug', color: '#FF6B4A' }, // accent-coral
+  { id: 'mini_jackpot', label: '3.000 Xu', icon: 'twemoji:coin', color: '#8B9DB5' }, // text-secondary
+  { id: 'thief', label: 'Trộm', icon: 'twemoji:ninja', color: '#1E2F42' }, // bg-elevated
+  { id: 'fertilize', label: 'Thúc Chín', icon: 'twemoji:sparkles', color: '#F0EDE6' }, // text-primary
+  { id: 'trash', label: '1 Xu', icon: 'twemoji:skull', color: '#253549' }, // border-default
 ]
 
 const UPGRADE_PRICES = {
@@ -103,7 +104,6 @@ const getNextEvenHour = () => {
   return next.getTime()
 }
 
-// === KHAI BÁO BIẾN GLOBAL ===
 const coins = useStorage('farmer-coins', 100)
 const level = useStorage('farmer-level', 1)
 const xp = useStorage('farmer-xp', 0)
@@ -205,7 +205,6 @@ const plots = useStorage<Plot[]>('farmer-plots-v6', [
   },
 ])
 
-// TÍNH NĂNG MỚI: 8 Nhiệm vụ (Đổi sang v3 để reset lại)
 const quests = useStorage<Quest[]>('farmer-quests-v3', [
   {
     id: 'q1',
@@ -295,13 +294,8 @@ const quests = useStorage<Quest[]>('farmer-quests-v3', [
 
 let isGameLoopInitialized = false
 
-// === HÀM CHÍNH XUẤT KHẨU ===
 export function useFarm() {
   const xpToNextLevel = computed(() => level.value * 150)
-  const isNight = computed(() => {
-    const h = new Date().getHours()
-    return h >= 18 || h < 6
-  })
 
   if (!isGameLoopInitialized) {
     isGameLoopInitialized = true
@@ -517,7 +511,6 @@ export function useFarm() {
     upgrades,
     isShaking,
     AVAILABLE_SEEDS,
-    isNight,
     questResetCountdown,
     toasts,
     showToast,
@@ -557,7 +550,6 @@ export function useFarm() {
         harvestCrop(e, q.reward, null)
       }
     },
-    // TÍNH NĂNG MỚI: Tracking tiến độ Đập sâu
     smashBug: (e: MouseEvent, id: number) => {
       const p = plots.value.find((x) => x.id === id)
       if (p && p.hasBug) {
