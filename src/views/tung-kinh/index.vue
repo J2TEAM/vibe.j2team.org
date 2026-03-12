@@ -5,7 +5,9 @@ import { useLocalStorage, useIntervalFn } from '@vueuse/core'
 import bgImage from './assets/bg_home1.jpg'
 import bonkImage from './assets/bonk.png'
 import bonkSound from './assets/audio-bonk.mp3'
-import beatSound from './assets/beat-background.mp3'
+
+// Nhạc nền gọi qua URL — thay bằng bất kỳ URL audio công khai nào cũng được
+const BEAT_URL = 'https://storage.wizlab.io.vn/sop/beat-background.mp3'
 
 // ── State ────────────────────────────────────────────────────────────────────
 const merit = useLocalStorage('tung-kinh-merit', 0)
@@ -76,7 +78,7 @@ watch(bgVolume, (v) => {
   if (bgAudio) bgAudio.volume = v / 100
 })
 onMounted(() => {
-  bgAudio = new Audio(beatSound)
+  bgAudio = new Audio(BEAT_URL)
   bgAudio.loop = true
   bgAudio.volume = bgVolume.value / 100
   bgAudio.play().catch(() => {})
@@ -397,6 +399,13 @@ function resetMerit() {
         </div>
       </Transition>
     </div>
+
+    <!-- ── Author ── -->
+    <p
+      class="fixed bottom-3 left-4 z-50 text-[9px] tracking-[0.18em] text-amber-800/50 select-none"
+    >
+      by Lion3993vn
+    </p>
   </div>
 </template>
 
