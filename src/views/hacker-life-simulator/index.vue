@@ -2,209 +2,250 @@
   <div class="page scanlines vignette">
     <canvas ref="matrixCanvas" class="matrix"></canvas>
 
-    <div class="app" :class="{ glitch: glitching, flash: flashing }">
-      <section class="panel left">
-        <div class="topbar">
-          <div class="brand">
-            <div class="led"></div>
-            <div>
-              <div class="title">Hacker Life Simulator // Mr. Robot Edition</div>
-              <div class="subtitle">fake split terminal • access escalation • cyberpunk beeps</div>
-            </div>
-          </div>
+    <div class="page-shell">
+      <header class="page-header animate-fade-up">
+        <div class="issue-badge">VOL.01 / 2026</div>
 
-          <div class="status-cluster">
-            <div class="status-chip">SYSTEM: {{ systemStatus }}</div>
-            <div class="status-chip">THREAT: {{ threatStatus }}</div>
-          </div>
+        <div class="hero-intro">
+          <div class="hero-kicker">interactive fake terminal playground</div>
+          <h1 class="page-title">
+            Hacker Life Simulator
+            <span>Mr. Robot Edition</span>
+          </h1>
+          <p class="page-description">
+            Spam bàn phím để “hack” theo phong cách Hollywood với split terminal,
+            fake intel monitor, popup ACCESS GRANTED và cyberpunk combo sound.
+          </p>
         </div>
 
-        <div class="terminal-split">
-          <div class="term-panel">
-            <div class="term-head">
-              <div class="dots">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
+        <div class="dot-divider" aria-hidden="true">
+          <span v-for="n in 40" :key="n" class="dot-divider-item" />
+        </div>
+      </header>
+
+      <div class="app" :class="{ glitch: glitching, flash: flashing }">
+        <section class="panel left">
+          <div class="topbar">
+            <div class="brand">
+              <div class="led"></div>
+              <div>
+                <div class="title">Hacker Life Simulator // Mr. Robot Edition</div>
+                <div class="subtitle">fake split terminal • access escalation • cyberpunk beeps</div>
               </div>
-              <div>shell://main-console</div>
-              <div>{{ mainHeadStatus }}</div>
             </div>
 
-            <div ref="terminalMainRef" class="term-body">
-              <p
-                v-for="(line, i) in terminalMain"
-                :key="`main-${i}`"
-                class="line"
-                :class="line.type"
-                v-html="line.html"
-              />
+            <div class="status-cluster">
+              <div class="status-chip">SYSTEM: {{ systemStatus }}</div>
+              <div class="status-chip">THREAT: {{ threatStatus }}</div>
             </div>
           </div>
 
-          <div class="term-panel">
-            <div class="term-head">
-              <div class="dots">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </div>
-              <div>sys://intel-monitor</div>
-              <div>{{ intelHeadStatus }}</div>
-            </div>
-
-            <div ref="terminalIntelRef" class="term-body">
-              <div class="sys-grid">
-                <div class="sys-card">
-                  <div class="sys-label">INTRUSION HEAT</div>
-                  <div class="sys-value">{{ heat }}%</div>
-                  <div class="mini-meter"><span :style="{ width: `${heat}%` }"></span></div>
+          <div class="terminal-split">
+            <div class="term-panel">
+              <div class="term-head">
+                <div class="dots">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
                 </div>
-
-                <div class="sys-card">
-                  <div class="sys-label">TRACE RISK</div>
-                  <div class="sys-value">{{ trace }}%</div>
-                  <div class="mini-meter"><span :style="{ width: `${trace}%` }"></span></div>
-                </div>
-
-                <div class="sys-card">
-                  <div class="sys-label">SIGNAL LOCK</div>
-                  <div class="sys-value">{{ signal }}%</div>
-                  <div class="mini-meter"><span :style="{ width: `${signal}%` }"></span></div>
-                </div>
-
-                <div class="sys-card">
-                  <div class="sys-label">ACTIVE SESSION</div>
-                  <div class="sys-value">{{ sessionValue }}</div>
-                </div>
+                <div>shell://main-console</div>
+                <div>{{ mainHeadStatus }}</div>
               </div>
 
-              <div style="height: 12px"></div>
-
-              <div>
+              <div ref="terminalMainRef" class="term-body">
                 <p
-                  v-for="(line, i) in intelLog"
-                  :key="`intel-${i}`"
+                  v-for="(line, i) in terminalMain"
+                  :key="`main-${i}`"
                   class="line"
                   :class="line.type"
-                >
-                  {{ line.text }}
-                </p>
+                  v-html="line.html"
+                />
+              </div>
+            </div>
+
+            <div class="term-panel">
+              <div class="term-head">
+                <div class="dots">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </div>
+                <div>sys://intel-monitor</div>
+                <div>{{ intelHeadStatus }}</div>
+              </div>
+
+              <div ref="terminalIntelRef" class="term-body">
+                <div class="sys-grid">
+                  <div class="sys-card">
+                    <div class="sys-label">INTRUSION HEAT</div>
+                    <div class="sys-value">{{ heat }}%</div>
+                    <div class="mini-meter"><span :style="{ width: `${heat}%` }"></span></div>
+                  </div>
+
+                  <div class="sys-card">
+                    <div class="sys-label">TRACE RISK</div>
+                    <div class="sys-value">{{ trace }}%</div>
+                    <div class="mini-meter"><span :style="{ width: `${trace}%` }"></span></div>
+                  </div>
+
+                  <div class="sys-card">
+                    <div class="sys-label">SIGNAL LOCK</div>
+                    <div class="sys-value">{{ signal }}%</div>
+                    <div class="mini-meter"><span :style="{ width: `${signal}%` }"></span></div>
+                  </div>
+
+                  <div class="sys-card">
+                    <div class="sys-label">ACTIVE SESSION</div>
+                    <div class="sys-value">{{ sessionValue }}</div>
+                  </div>
+                </div>
+
+                <div style="height: 12px"></div>
+
+                <div>
+                  <p
+                    v-for="(line, i) in intelLog"
+                    :key="`intel-${i}`"
+                    class="line"
+                    :class="line.type"
+                  >
+                    {{ line.text }}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="left-foot">
-          <div>
-            Spam bất kỳ phím nào để hack. Nhấn <span class="kbd">R</span> reset,
-            <span class="kbd">M</span> mute,
-            <span class="kbd">C</span> copy kết quả.
-          </div>
-          <div>
-            LAST KEY:
-            <span class="kbd">{{ lastKeyLabel }}</span>
-          </div>
-        </div>
-      </section>
-
-      <aside class="right">
-        <section class="panel card">
-          <h3 class="section-title">LIVE STATS</h3>
-          <div class="stats-grid">
-            <div class="stat">
-              <div class="label">KEYS PRESSED</div>
-              <div class="value">{{ keysPressed.toLocaleString('en-US') }}</div>
-              <small>Tổng số phím đã spam</small>
-            </div>
-
-            <div class="stat">
-              <div class="label">KEYS / SECOND</div>
-              <div class="value">{{ kps.toFixed(1) }}</div>
-              <small>Tốc độ hiện tại</small>
-            </div>
-
-            <div class="stat">
-              <div class="label">MISSION TIME</div>
-              <div class="value">{{ formatTime(elapsed) }}</div>
-              <small>Thời gian hack</small>
-            </div>
-
-            <div class="stat">
-              <div class="label">SYSTEMS BREACHED</div>
-              <div class="value">{{ breached }}</div>
-              <small>Target đã chiếm quyền</small>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel card">
-          <h3 class="section-title">MISSION PROGRESS</h3>
-          <div class="progress-wrap">
-            <div class="progress-head">
-              <span>{{ missionLabel }}</span>
-              <strong>{{ Math.floor(progress) }}%</strong>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" :style="{ width: `${progress}%` }"></div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel card">
-          <h3 class="section-title">TARGET CHAIN</h3>
-          <div class="targets">
-            <div
-              v-for="(target, index) in targets"
-              :key="target"
-              class="target"
-              :class="{ active: index === activeTarget && !finished }"
-            >
-              <span>
-                {{
-                  index < breached
-                    ? `✔ ${target}`
-                    : index === activeTarget && !finished
-                      ? `▶ ${target}`
-                      : `• ${target}`
-                }}
-              </span>
-              <span class="badge">
-                {{
-                  index < breached
-                    ? 'BREACHED'
-                    : index === activeTarget && !finished
-                      ? 'ACTIVE'
-                      : 'PENDING'
-                }}
-              </span>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel card">
-          <h3 class="section-title">RANK & CONTROL</h3>
-          <div class="rank-box">
+          <div class="left-foot">
             <div>
-              <div class="rank-name">{{ rankName }}</div>
-              <div class="rank-sub">{{ rankSub }}</div>
+              Spam bất kỳ phím nào để hack. Nhấn <span class="kbd">R</span> reset,
+              <span class="kbd">M</span> mute,
+              <span class="kbd">C</span> copy kết quả.
             </div>
-            <div class="badge">AUDIO: {{ muted ? 'OFF' : 'ON' }}</div>
-          </div>
-
-          <div class="controls">
-            <button @click="copyResult">Copy kết quả</button>
-            <button class="secondary" @click="resetMission">Reset mission</button>
-            <button class="secondary" @click="toggleMute">Mute / Unmute</button>
+            <div>
+              LAST KEY:
+              <span class="kbd">{{ lastKeyLabel }}</span>
+            </div>
           </div>
         </section>
 
-        <section class="panel card">
-          <div class="footer-note">
-            Project giải trí giả lập “hack cho ngầu” theo kiểu phim ảnh. Không thực hiện hành vi xâm nhập thật.
-          </div>
-        </section>
-      </aside>
+        <aside class="right">
+          <section class="panel card">
+            <h3 class="section-title">
+              <span class="section-marker marker-coral">//</span>
+              LIVE STATS
+            </h3>
+            <div class="stats-grid">
+              <div class="stat">
+                <div class="label">KEYS PRESSED</div>
+                <div class="value">{{ keysPressed.toLocaleString('en-US') }}</div>
+                <small>Tổng số phím đã spam</small>
+              </div>
+
+              <div class="stat">
+                <div class="label">KEYS / SECOND</div>
+                <div class="value">{{ kps.toFixed(1) }}</div>
+                <small>Tốc độ hiện tại</small>
+              </div>
+
+              <div class="stat">
+                <div class="label">MISSION TIME</div>
+                <div class="value">{{ formatTime(elapsed) }}</div>
+                <small>Thời gian hack</small>
+              </div>
+
+              <div class="stat">
+                <div class="label">SYSTEMS BREACHED</div>
+                <div class="value">{{ breached }}</div>
+                <small>Target đã chiếm quyền</small>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel card">
+            <h3 class="section-title">
+              <span class="section-marker marker-amber">//</span>
+              MISSION PROGRESS
+            </h3>
+            <div class="progress-wrap">
+              <div class="progress-head">
+                <span>{{ missionLabel }}</span>
+                <strong>{{ Math.floor(progress) }}%</strong>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" :style="{ width: `${progress}%` }"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel card">
+            <h3 class="section-title">
+              <span class="section-marker marker-sky">//</span>
+              TARGET CHAIN
+            </h3>
+            <div class="targets">
+              <div
+                v-for="(target, index) in targets"
+                :key="target"
+                class="target"
+                :class="{ active: index === activeTarget && !finished }"
+              >
+                <span>
+                  {{
+                    index < breached
+                      ? `✔ ${target}`
+                      : index === activeTarget && !finished
+                        ? `▶ ${target}`
+                        : `• ${target}`
+                  }}
+                </span>
+                <span class="badge">
+                  {{
+                    index < breached
+                      ? 'BREACHED'
+                      : index === activeTarget && !finished
+                        ? 'ACTIVE'
+                        : 'PENDING'
+                  }}
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel card">
+            <h3 class="section-title">
+              <span class="section-marker marker-coral">//</span>
+              RANK & CONTROL
+            </h3>
+            <div class="rank-box">
+              <div>
+                <div class="rank-name">{{ rankName }}</div>
+                <div class="rank-sub">{{ rankSub }}</div>
+              </div>
+              <div class="badge">AUDIO: {{ muted ? 'OFF' : 'ON' }}</div>
+            </div>
+
+            <div class="controls">
+              <button @click="copyResult">Copy kết quả</button>
+              <button class="secondary" @click="resetMission">Reset mission</button>
+              <button class="secondary" @click="toggleMute">Mute / Unmute</button>
+            </div>
+          </section>
+
+          <section class="panel card">
+            <div class="footer-note">
+              Project giải trí giả lập “hack cho ngầu” theo kiểu phim ảnh. Không thực hiện hành vi xâm nhập thật.
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <div class="back-home-wrap animate-fade-up">
+        <RouterLink to="/" class="back-home-link">
+          <Icon icon="lucide:arrow-left" class="back-home-icon" />
+          Về trang chủ
+        </RouterLink>
+      </div>
     </div>
 
     <div class="overlay" :class="{ hidden: started }">
@@ -236,6 +277,8 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { RouterLink } from 'vue-router'
+import { Icon } from '@iconify/vue'
 
 type MainLine = {
   html: string
@@ -283,7 +326,7 @@ const missionLabel = ref('Initializing cinematic exploit stack...')
 const lastKeyLabel = ref('-')
 
 const popupSub = ref(
-  'Root shell established. Mainframe compromised. You are now officially too cool for a normal terminal.'
+  'Root shell established. Mainframe compromised. You are now officially too cool for a normal terminal.',
 )
 
 const recentKeys = ref<number[]>([])
@@ -374,7 +417,7 @@ const warnLines = [
 
 const heat = computed(() => clamp(Math.floor(progress.value * 0.88 + kps.value * 3), 0, 100))
 const trace = computed(() =>
-  clamp(Math.floor(progress.value * 0.52 + Math.max(0, 14 - kps.value) * 2), 0, 100)
+  clamp(Math.floor(progress.value * 0.52 + Math.max(0, 14 - kps.value) * 2), 0, 100),
 )
 const signal = computed(() => clamp(Math.floor(progress.value * 0.95 + kps.value * 2.2), 0, 100))
 
@@ -400,7 +443,7 @@ watch(
     const el = terminalMainRef.value
     if (el) el.scrollTop = el.scrollHeight
   },
-  { deep: true }
+  { deep: true },
 )
 
 watch(
@@ -410,7 +453,7 @@ watch(
     const el = terminalIntelRef.value
     if (el) el.scrollTop = el.scrollHeight
   },
-  { deep: true }
+  { deep: true },
 )
 
 function choice<T>(arr: readonly T[]): T {
@@ -529,7 +572,7 @@ function beep(
   freq = 220,
   duration = 0.03,
   type: OscillatorType = 'square',
-  gainValue = 0.015
+  gainValue = 0.015,
 ): void {
   if (muted.value) return
 
@@ -584,7 +627,7 @@ function computeKps(): void {
 function getRank(
   currentKps: number,
   progressValue: number,
-  elapsedValue: number
+  elapsedValue: number,
 ): [string, string] {
   if (progressValue >= 100) {
     if (currentKps >= 11) return ['Mr. Robot', 'Bạn vừa hack như đang ở đoạn cao trào cuối phim.']
@@ -648,9 +691,9 @@ function randomMainBurst(key: string): void {
 
   addMainLine(
     `<span class="prompt">key@capture</span>:<span class="path">~/input</span>$ "${escapeHtml(
-      key
+      key,
     )}"<span class="fake-cursor"></span>`,
-    'dim'
+    'dim',
   )
 }
 
@@ -671,7 +714,7 @@ function randomIntelBurst(currentKps: number): void {
 function maybeBreach(): void {
   const should =
     breached.value < targets.length &&
-    progress.value >= (breached.value + 1) * (100 / targets.length)
+    progress.value >= ((breached.value + 1) * 100) / targets.length
 
   if (!should) return
 
@@ -797,7 +840,7 @@ function resetMission(): void {
 
   addMainLine(
     '<span class="prompt">root@fsociety</span>:<span class="path">~/console</span>$ reset --mission',
-    'ok'
+    'ok',
   )
   addMainLine('waiting for operator input...', 'dim')
   addIntelLine('[intel] monitor cleared', 'cyan')
@@ -898,7 +941,7 @@ function startMatrix(): void {
   }
 
   const draw = (): void => {
-    context.fillStyle = 'rgba(2, 8, 5, 0.11)'
+    context.fillStyle = 'rgba(15, 25, 35, 0.11)'
     context.fillRect(0, 0, window.innerWidth, window.innerHeight)
     context.font = `${fontSize}px Consolas, monospace`
 
@@ -909,7 +952,7 @@ function startMatrix(): void {
       const currentDrop = drops[i] ?? 0
       const y = currentDrop * fontSize
 
-      context.fillStyle = i % 7 === 0 ? 'rgba(210,255,220,.82)' : 'rgba(90,255,140,.72)'
+      context.fillStyle = i % 7 === 0 ? 'rgba(255, 184, 48, 0.72)' : 'rgba(56, 189, 248, 0.42)'
       context.fillText(text, x, y)
 
       if (y > window.innerHeight && Math.random() > 0.975) {
@@ -938,7 +981,7 @@ function startMatrix(): void {
 onMounted(() => {
   addMainLine(
     '<span class="prompt">root@fsociety</span>:<span class="path">~/console</span>$ status',
-    'ok'
+    'ok',
   )
   addMainLine('mr. robot edition loaded.', 'dim')
   addMainLine('press any key to begin.', 'dim')
@@ -977,11 +1020,94 @@ onBeforeUnmount(() => {
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(circle at top, rgba(40, 120, 80, 0.09), transparent 34%),
-    linear-gradient(180deg, #07100c 0%, #030705 36%, #010201 100%);
-  color: #8effb7;
-  font-family: Consolas, Monaco, 'Courier New', monospace;
+    radial-gradient(circle at top, rgba(255, 107, 74, 0.06), transparent 30%),
+    linear-gradient(180deg, #0f1923 0%, #132130 38%, #0f1923 100%);
+  color: #f0ede6;
+  font-family: 'Be Vietnam Pro', sans-serif;
   letter-spacing: 0.2px;
+}
+
+.page-shell {
+  position: relative;
+  z-index: 2;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.page-header {
+  position: relative;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.issue-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #ff6b4a;
+  color: #0f1923;
+  font-family: 'Anybody', sans-serif;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  padding: 8px 12px;
+  transform: rotate(3deg);
+}
+
+.hero-intro {
+  padding-top: 8px;
+}
+
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #253549;
+  background: #162232;
+  color: #4a6180;
+  font-family: 'Anybody', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  padding: 8px 12px;
+  text-transform: uppercase;
+}
+
+.page-title {
+  margin: 18px 0 0;
+  font-family: 'Anybody', sans-serif;
+  font-size: clamp(42px, 7vw, 84px);
+  line-height: 0.95;
+  font-weight: 800;
+  color: #ff6b4a;
+  letter-spacing: -0.04em;
+}
+
+.page-title span {
+  display: block;
+  color: #f0ede6;
+}
+
+.page-description {
+  max-width: 760px;
+  margin: 18px auto 0;
+  color: #8b9db5;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.dot-divider {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 22px;
+}
+
+.dot-divider-item {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: #253549;
 }
 
 .matrix {
@@ -1002,12 +1128,12 @@ onBeforeUnmount(() => {
   background:
     repeating-linear-gradient(
       to bottom,
-      rgba(255, 255, 255, 0.028) 0px,
-      rgba(255, 255, 255, 0.028) 1px,
+      rgba(255, 255, 255, 0.02) 0px,
+      rgba(255, 255, 255, 0.02) 1px,
       transparent 2px,
       transparent 4px
     );
-  opacity: 0.24;
+  opacity: 0.18;
   mix-blend-mode: screen;
 }
 
@@ -1017,7 +1143,7 @@ onBeforeUnmount(() => {
   inset: 0;
   pointer-events: none;
   z-index: 4;
-  box-shadow: inset 0 0 160px rgba(0, 0, 0, 0.95);
+  box-shadow: inset 0 0 160px rgba(0, 0, 0, 0.85);
 }
 
 .app {
@@ -1026,19 +1152,17 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: 1.35fr 0.9fr;
   gap: 14px;
-  padding: 14px;
-  height: 100%;
+  min-height: 72vh;
 }
 
 .panel {
   position: relative;
-  border: 1px solid rgba(91, 255, 145, 0.14);
-  background: rgba(5, 14, 10, 0.78);
-  border-radius: 16px;
+  border: 1px solid #253549;
+  background: rgba(22, 34, 50, 0.9);
+  border-radius: 0;
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.02) inset,
-    0 0 18px rgba(61, 255, 140, 0.12),
-    0 0 54px rgba(61, 255, 140, 0.06);
+    0 0 0 1px rgba(255, 255, 255, 0.015) inset,
+    0 14px 34px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   backdrop-filter: blur(6px);
 }
@@ -1063,8 +1187,8 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  border-bottom: 1px solid rgba(91, 255, 145, 0.14);
-  background: rgba(0, 0, 0, 0.18);
+  border-bottom: 1px solid #253549;
+  background: rgba(15, 25, 35, 0.62);
 }
 
 .brand {
@@ -1078,8 +1202,8 @@ onBeforeUnmount(() => {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #3dff8c;
-  box-shadow: 0 0 12px #3dff8c, 0 0 22px rgba(61, 255, 140, 0.65);
+  background: #ff6b4a;
+  box-shadow: 0 0 12px rgba(255, 107, 74, 0.7);
   animation: pulse 1.05s infinite alternate;
   flex: 0 0 auto;
 }
@@ -1098,7 +1222,8 @@ onBeforeUnmount(() => {
 .title {
   font-size: 18px;
   font-weight: 700;
-  color: #f4fff8;
+  color: #f0ede6;
+  font-family: 'Anybody', sans-serif;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1107,7 +1232,9 @@ onBeforeUnmount(() => {
 .subtitle {
   font-size: 11px;
   margin-top: 3px;
-  color: rgba(160, 255, 192, 0.72);
+  color: #8b9db5;
+  font-family: 'Anybody', sans-serif;
+  letter-spacing: 0.08em;
 }
 
 .status-cluster {
@@ -1119,20 +1246,22 @@ onBeforeUnmount(() => {
 }
 
 .status-chip {
-  border: 1px solid rgba(91, 255, 145, 0.14);
-  background: rgba(15, 35, 25, 0.5);
-  color: #e7fff0;
+  border: 1px solid #253549;
+  background: #162232;
+  color: #f0ede6;
   padding: 8px 10px;
-  border-radius: 999px;
+  border-radius: 0;
   font-size: 12px;
   white-space: nowrap;
+  font-family: 'Anybody', sans-serif;
+  letter-spacing: 0.06em;
 }
 
 .terminal-split {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
   min-height: 0;
-  background: linear-gradient(180deg, rgba(4, 10, 7, 0.95), rgba(2, 5, 4, 0.98));
+  background: linear-gradient(180deg, rgba(15, 25, 35, 0.96), rgba(22, 34, 50, 0.96));
 }
 
 .term-panel {
@@ -1142,8 +1271,8 @@ onBeforeUnmount(() => {
 }
 
 .term-panel + .term-panel {
-  border-left: 1px solid rgba(91, 255, 145, 0.14);
-  background: rgba(8, 18, 14, 0.74);
+  border-left: 1px solid #253549;
+  background: rgba(30, 47, 66, 0.78);
 }
 
 .term-head {
@@ -1152,10 +1281,11 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 10px;
   padding: 9px 12px;
-  border-bottom: 1px solid rgba(91, 255, 145, 0.14);
-  background: rgba(0, 0, 0, 0.16);
+  border-bottom: 1px solid #253549;
+  background: rgba(15, 25, 35, 0.4);
   font-size: 12px;
-  color: #dffff0;
+  color: #8b9db5;
+  font-family: 'Anybody', sans-serif;
 }
 
 .dots {
@@ -1172,13 +1302,13 @@ onBeforeUnmount(() => {
 }
 
 .dot:nth-child(1) {
-  background: #ff5f56;
+  background: #ff6b4a;
 }
 .dot:nth-child(2) {
-  background: #ffbd2e;
+  background: #ffb830;
 }
 .dot:nth-child(3) {
-  background: #27c93f;
+  background: #38bdf8;
 }
 
 .term-body {
@@ -1195,8 +1325,7 @@ onBeforeUnmount(() => {
 }
 
 .term-body::-webkit-scrollbar-thumb {
-  background: rgba(100, 255, 150, 0.14);
-  border-radius: 999px;
+  background: rgba(74, 97, 128, 0.4);
 }
 
 .term-body::-webkit-scrollbar-track {
@@ -1208,44 +1337,45 @@ onBeforeUnmount(() => {
   line-height: 1.42;
   font-size: 13px;
   word-break: break-word;
-  text-shadow: 0 0 8px rgba(61, 255, 140, 0.08);
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.08);
+  font-family: Consolas, Monaco, 'Courier New', monospace;
 }
 
 .line.dim {
-  color: rgba(170, 255, 198, 0.66);
+  color: #8b9db5;
 }
 .line.ok {
-  color: #eefff4;
+  color: #38bdf8;
 }
 .line.warn {
-  color: #ffef8a;
+  color: #ffb830;
 }
 .line.err {
-  color: #ff4f6f;
+  color: #ff6b4a;
 }
 .line.cyan {
-  color: #8ef7ff;
+  color: #f0ede6;
 }
 
 :deep(.prompt) {
-  color: #e4fff0;
+  color: #f0ede6;
 }
 :deep(.path) {
-  color: #78f2a9;
+  color: #38bdf8;
 }
 :deep(.accent) {
-  color: #fff6a8;
+  color: #ffb830;
 }
 
 :deep(.fake-cursor) {
   display: inline-block;
   width: 10px;
   height: 16px;
-  background: rgba(155, 255, 185, 0.85);
+  background: rgba(255, 107, 74, 0.88);
   vertical-align: middle;
   animation: blink 1s step-end infinite;
   margin-left: 4px;
-  box-shadow: 0 0 10px rgba(61, 255, 140, 0.25);
+  box-shadow: 0 0 10px rgba(255, 107, 74, 0.25);
 }
 
 @keyframes blink {
@@ -1265,28 +1395,31 @@ onBeforeUnmount(() => {
 }
 
 .sys-card {
-  border: 1px solid rgba(91, 255, 145, 0.14);
-  border-radius: 12px;
+  border: 1px solid #253549;
+  border-radius: 0;
   padding: 10px 11px;
-  background: rgba(10, 24, 18, 0.42);
+  background: #1e2f42;
 }
 
 .sys-label {
   font-size: 11px;
-  color: rgba(160, 255, 192, 0.72);
+  color: #8b9db5;
   margin-bottom: 6px;
+  font-family: 'Anybody', sans-serif;
+  letter-spacing: 0.08em;
 }
 
 .sys-value {
   font-size: 20px;
   font-weight: 700;
-  color: #f4fff8;
+  color: #f0ede6;
+  font-family: 'Anybody', sans-serif;
 }
 
 .mini-meter {
   margin-top: 8px;
   height: 8px;
-  border-radius: 999px;
+  border-radius: 0;
   background: rgba(255, 255, 255, 0.06);
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.03);
@@ -1296,8 +1429,8 @@ onBeforeUnmount(() => {
   display: block;
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, rgba(61, 255, 140, 0.45), rgba(152, 255, 188, 0.95));
-  box-shadow: 0 0 10px rgba(61, 255, 140, 0.18);
+  background: linear-gradient(90deg, rgba(255, 107, 74, 0.7), rgba(255, 184, 48, 0.95));
+  box-shadow: 0 0 10px rgba(255, 107, 74, 0.18);
   transition: width 0.09s linear;
 }
 
@@ -1307,10 +1440,10 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
-  border-top: 1px solid rgba(91, 255, 145, 0.14);
-  background: rgba(0, 0, 0, 0.18);
+  border-top: 1px solid #253549;
+  background: rgba(15, 25, 35, 0.4);
   font-size: 13px;
-  color: #ddffea;
+  color: #8b9db5;
   flex-wrap: wrap;
 }
 
@@ -1321,11 +1454,12 @@ onBeforeUnmount(() => {
   min-width: 30px;
   height: 26px;
   padding: 0 8px;
-  border-radius: 8px;
-  border: 1px solid rgba(91, 255, 145, 0.14);
-  background: rgba(20, 40, 28, 0.65);
-  color: #f3fff7;
+  border-radius: 0;
+  border: 1px solid #253549;
+  background: #1e2f42;
+  color: #f0ede6;
   font-size: 12px;
+  font-family: 'Anybody', sans-serif;
 }
 
 .right {
@@ -1342,8 +1476,27 @@ onBeforeUnmount(() => {
 .section-title {
   margin: 0 0 10px;
   font-size: 13px;
-  color: #f0fff5;
+  color: #f0ede6;
   letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Anybody', sans-serif;
+}
+
+.section-marker {
+  font-size: 12px;
+  tracking: 0.18em;
+}
+
+.marker-coral {
+  color: #ff6b4a;
+}
+.marker-amber {
+  color: #ffb830;
+}
+.marker-sky {
+  color: #38bdf8;
 }
 
 .stats-grid {
@@ -1353,35 +1506,38 @@ onBeforeUnmount(() => {
 }
 
 .stat {
-  border: 1px solid rgba(91, 255, 145, 0.14);
-  border-radius: 12px;
-  background: rgba(10, 24, 18, 0.42);
+  border: 1px solid #253549;
+  border-radius: 0;
+  background: #1e2f42;
   padding: 12px;
 }
 
 .stat .label {
   font-size: 11px;
-  color: rgba(160, 255, 192, 0.72);
+  color: #8b9db5;
   margin-bottom: 6px;
+  font-family: 'Anybody', sans-serif;
+  letter-spacing: 0.08em;
 }
 
 .stat .value {
   font-size: 24px;
   font-weight: 700;
-  color: #f4fff8;
+  color: #f0ede6;
+  font-family: 'Anybody', sans-serif;
 }
 
 .stat small {
   display: block;
   margin-top: 4px;
   font-size: 12px;
-  color: rgba(175, 255, 202, 0.75);
+  color: #4a6180;
 }
 
 .progress-wrap {
-  border: 1px solid rgba(91, 255, 145, 0.14);
-  border-radius: 12px;
-  background: rgba(10, 24, 18, 0.42);
+  border: 1px solid #253549;
+  border-radius: 0;
+  background: #1e2f42;
   overflow: hidden;
 }
 
@@ -1391,7 +1547,7 @@ onBeforeUnmount(() => {
   gap: 12px;
   align-items: center;
   padding: 12px 12px 8px;
-  color: #f4fff8;
+  color: #f0ede6;
   font-size: 13px;
 }
 
@@ -1399,7 +1555,7 @@ onBeforeUnmount(() => {
   height: 20px;
   margin: 0 12px 12px;
   background: rgba(255, 255, 255, 0.06);
-  border-radius: 999px;
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.04);
   position: relative;
@@ -1408,8 +1564,8 @@ onBeforeUnmount(() => {
 .progress-fill {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, rgba(61, 255, 140, 0.52), rgba(170, 255, 205, 0.98));
-  box-shadow: 0 0 20px rgba(61, 255, 140, 0.22);
+  background: linear-gradient(90deg, rgba(255, 107, 74, 0.92), rgba(255, 184, 48, 0.98));
+  box-shadow: 0 0 20px rgba(255, 107, 74, 0.18);
   transition: width 0.09s linear;
   position: relative;
 }
@@ -1421,7 +1577,7 @@ onBeforeUnmount(() => {
   bottom: 0;
   right: 0;
   width: 54px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42));
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.34));
   opacity: 0.6;
 }
 
@@ -1435,35 +1591,37 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  border: 1px solid rgba(91, 255, 145, 0.14);
-  border-radius: 10px;
+  border: 1px solid #253549;
+  border-radius: 0;
   padding: 10px 12px;
-  background: rgba(10, 24, 18, 0.42);
+  background: #1e2f42;
   font-size: 13px;
 }
 
 .target.active {
   box-shadow:
-    0 0 0 1px rgba(100, 255, 150, 0.08) inset,
-    0 0 16px rgba(61, 255, 140, 0.08);
-  border-color: rgba(100, 255, 150, 0.34);
+    0 0 0 1px rgba(255, 107, 74, 0.08) inset,
+    0 0 16px rgba(255, 107, 74, 0.06);
+  border-color: #ff6b4a;
 }
 
 .badge {
   font-size: 11px;
   padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(61, 255, 140, 0.2);
-  background: rgba(61, 255, 140, 0.1);
-  color: #eafff1;
+  border-radius: 0;
+  border: 1px solid #253549;
+  background: rgba(255, 184, 48, 0.08);
+  color: #f0ede6;
   white-space: nowrap;
+  font-family: 'Anybody', sans-serif;
+  letter-spacing: 0.06em;
 }
 
 .rank-box {
-  border: 1px solid rgba(91, 255, 145, 0.14);
-  border-radius: 12px;
+  border: 1px solid #253549;
+  border-radius: 0;
   padding: 12px;
-  background: rgba(10, 24, 18, 0.42);
+  background: #1e2f42;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1473,14 +1631,15 @@ onBeforeUnmount(() => {
 .rank-name {
   font-size: 20px;
   font-weight: 700;
-  color: #f4fff8;
-  text-shadow: 0 0 12px rgba(61, 255, 140, 0.12);
+  color: #f0ede6;
+  text-shadow: 0 0 12px rgba(255, 107, 74, 0.08);
+  font-family: 'Anybody', sans-serif;
 }
 
 .rank-sub {
   margin-top: 4px;
   font-size: 12px;
-  color: rgba(175, 255, 202, 0.8);
+  color: #8b9db5;
 }
 
 .controls {
@@ -1492,23 +1651,26 @@ onBeforeUnmount(() => {
 
 button {
   appearance: none;
-  border: none;
+  border: 1px solid #253549;
   outline: none;
   cursor: pointer;
   font: inherit;
-  color: #041109;
-  background: linear-gradient(180deg, #d6ffe1, #50ff8a);
+  color: #0f1923;
+  background: #ff6b4a;
   padding: 10px 14px;
-  border-radius: 10px;
+  border-radius: 0;
   font-weight: 800;
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.18),
-    0 0 0 1px rgba(255, 255, 255, 0.15) inset;
-  transition: transform 0.08s ease, filter 0.15s ease;
+  font-family: 'Anybody', sans-serif;
+  letter-spacing: 0.04em;
+  transition:
+    transform 0.08s ease,
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 button:hover {
-  filter: brightness(1.04);
+  background: #ff7a5d;
 }
 
 button:active {
@@ -1516,16 +1678,54 @@ button:active {
 }
 
 button.secondary {
-  background: linear-gradient(180deg, #26382b, #111d16);
-  color: #e6fff0;
-  border: 1px solid rgba(91, 255, 145, 0.14);
+  background: #162232;
+  color: #8b9db5;
+  border: 1px solid #253549;
   box-shadow: none;
+}
+
+button.secondary:hover {
+  color: #f0ede6;
+  border-color: #ff6b4a;
+  background: #1e2f42;
 }
 
 .footer-note {
   font-size: 11px;
-  color: rgba(170, 255, 198, 0.68);
+  color: #8b9db5;
   line-height: 1.6;
+}
+
+.back-home-wrap {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+}
+
+.back-home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #253549;
+  background: #162232;
+  color: #8b9db5;
+  text-decoration: none;
+  padding: 10px 16px;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.back-home-link:hover {
+  border-color: #ff6b4a;
+  color: #f0ede6;
+  background: #1e2f42;
+}
+
+.back-home-icon {
+  width: 16px;
+  height: 16px;
 }
 
 .overlay {
@@ -1534,8 +1734,10 @@ button.secondary {
   z-index: 6;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at center, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.78));
-  transition: opacity 0.25s ease, visibility 0.25s ease;
+  background: radial-gradient(circle at center, rgba(15, 25, 35, 0.2), rgba(15, 25, 35, 0.82));
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease;
 }
 
 .overlay.hidden {
@@ -1546,22 +1748,23 @@ button.secondary {
 
 .hero {
   width: min(860px, calc(100vw - 32px));
-  border: 1px solid rgba(91, 255, 145, 0.14);
-  border-radius: 18px;
-  background: rgba(4, 12, 9, 0.9);
+  border: 1px solid #253549;
+  border-radius: 0;
+  background: rgba(22, 34, 50, 0.96);
   box-shadow:
     0 20px 80px rgba(0, 0, 0, 0.58),
-    0 0 40px rgba(61, 255, 140, 0.08);
+    0 0 40px rgba(255, 107, 74, 0.06);
   padding: 26px;
   text-align: center;
 }
 
 .hero h1 {
   margin: 0 0 8px;
-  color: #f4fff8;
+  color: #ff6b4a;
   font-size: clamp(28px, 5vw, 50px);
   line-height: 1.02;
-  text-shadow: 0 0 16px rgba(61, 255, 140, 0.12);
+  text-shadow: 0 0 16px rgba(255, 107, 74, 0.08);
+  font-family: 'Anybody', sans-serif;
 }
 
 .hero p {
@@ -1569,26 +1772,26 @@ button.secondary {
   max-width: 700px;
   font-size: 15px;
   line-height: 1.72;
-  color: rgba(210, 255, 225, 0.86);
+  color: #8b9db5;
 }
 
 .big-kbd {
   margin: 18px auto 12px;
   width: max-content;
   padding: 12px 18px;
-  border: 1px solid rgba(91, 255, 145, 0.14);
-  border-radius: 12px;
-  background: rgba(20, 40, 28, 0.55);
-  color: #f7fffa;
+  border: 1px solid #253549;
+  border-radius: 0;
+  background: #1e2f42;
+  color: #f0ede6;
   font-size: 14px;
   letter-spacing: 1px;
-  box-shadow: 0 0 16px rgba(61, 255, 140, 0.08);
+  font-family: 'Anybody', sans-serif;
 }
 
 .mini {
   margin-top: 12px;
   font-size: 12px;
-  color: rgba(175, 255, 202, 0.76);
+  color: #4a6180;
 }
 
 .center-popup {
@@ -1598,18 +1801,20 @@ button.secondary {
   transform: translate(-50%, -50%) scale(0.96);
   z-index: 9;
   width: min(720px, calc(100vw - 40px));
-  border: 1px solid rgba(110, 255, 160, 0.28);
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(3, 14, 8, 0.94), rgba(2, 8, 5, 0.97));
+  border: 1px solid #ff6b4a;
+  border-radius: 0;
+  background: linear-gradient(180deg, rgba(22, 34, 50, 0.96), rgba(15, 25, 35, 0.98));
   box-shadow:
     0 24px 90px rgba(0, 0, 0, 0.64),
-    0 0 26px rgba(61, 255, 140, 0.12),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+    0 0 26px rgba(255, 107, 74, 0.08);
   padding: 22px;
   text-align: center;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    visibility 0.2s ease;
   pointer-events: none;
 }
 
@@ -1623,27 +1828,26 @@ button.secondary {
   font-size: clamp(28px, 5vw, 54px);
   font-weight: 900;
   letter-spacing: 2px;
-  color: #f4fff8;
-  text-shadow:
-    0 0 10px rgba(61, 255, 140, 0.25),
-    0 0 28px rgba(61, 255, 140, 0.15);
+  color: #ff6b4a;
+  text-shadow: 0 0 12px rgba(255, 107, 74, 0.12);
   margin: 0 0 8px;
+  font-family: 'Anybody', sans-serif;
 }
 
 .popup-sub {
   font-size: 14px;
-  color: rgba(205, 255, 220, 0.84);
+  color: #8b9db5;
   line-height: 1.68;
 }
 
 .popup-glow {
   position: absolute;
   inset: -2px;
-  border-radius: 20px;
+  border-radius: 0;
   pointer-events: none;
   box-shadow:
-    0 0 0 1px rgba(100, 255, 150, 0.1),
-    0 0 30px rgba(61, 255, 140, 0.08);
+    0 0 0 1px rgba(255, 107, 74, 0.08),
+    0 0 30px rgba(255, 107, 74, 0.05);
 }
 
 .toast {
@@ -1653,18 +1857,17 @@ button.secondary {
   z-index: 10;
   max-width: min(520px, calc(100vw - 32px));
   padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(91, 255, 145, 0.14);
-  background: rgba(5, 18, 10, 0.94);
-  color: #effff5;
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.02) inset,
-    0 0 18px rgba(61, 255, 140, 0.12),
-    0 0 54px rgba(61, 255, 140, 0.06);
+  border-radius: 0;
+  border: 1px solid #253549;
+  background: rgba(22, 34, 50, 0.96);
+  color: #f0ede6;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
   font-size: 13px;
   opacity: 0;
   transform: translateY(10px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
   pointer-events: none;
 }
 
@@ -1711,7 +1914,7 @@ button.secondary {
     filter: brightness(1);
   }
   45% {
-    filter: brightness(1.25);
+    filter: brightness(1.12);
   }
   100% {
     filter: brightness(1);
@@ -1740,10 +1943,20 @@ button.secondary {
 }
 
 @media (max-width: 1050px) {
+  .page-shell {
+    padding: 16px;
+  }
+
+  .issue-badge {
+    position: static;
+    display: inline-block;
+    margin-bottom: 14px;
+  }
+
   .app {
     grid-template-columns: 1fr;
     grid-template-rows: minmax(56vh, 1fr) auto;
-    height: 100%;
+    min-height: auto;
   }
 
   .terminal-split {
@@ -1752,7 +1965,7 @@ button.secondary {
 
   .term-panel + .term-panel {
     border-left: none;
-    border-top: 1px solid rgba(91, 255, 145, 0.14);
+    border-top: 1px solid #253549;
   }
 }
 </style>
