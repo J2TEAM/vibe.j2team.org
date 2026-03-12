@@ -12,8 +12,9 @@ const mapRef = useMap()
 const containerRef = ref<HTMLDivElement | null>(null)
 let mapInstance: MapboxMap | null = null
 
-// Dán Mapbox token trực tiếp (hoặc để '' nếu dùng .env VITE_MAPBOX_TOKEN)
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined
+// Mapbox public token (visible in browser anyway — https://docs.mapbox.com/help/glossary/access-token/)
+const MAPBOX_TOKEN =
+  'pk.eyJ1IjoidHVhbnRhbXR1b25nIiwiYSI6ImNsZ3lpd3Y4ODBhMzEzbHBlejh1Zjc3eGYifQ.i6qdKYjYC6bof7_KDOfGQA'
 
 onMounted(async () => {
   if (!containerRef.value || !MAPBOX_TOKEN) return
@@ -41,9 +42,7 @@ onMounted(async () => {
   map.on('style.load', () => {
     const layers = map.getStyle().layers
     const labelLayer = layers?.find(
-      (l) =>
-        l.type === 'symbol' &&
-        (l.layout as Record<string, unknown>)?.['text-field']
+      (l) => l.type === 'symbol' && (l.layout as Record<string, unknown>)?.['text-field'],
     )
     const beforeId = labelLayer?.id
 
@@ -78,7 +77,7 @@ onMounted(async () => {
           'fill-extrusion-opacity': 0.7,
         },
       },
-      beforeId
+      beforeId,
     )
   })
 
@@ -99,7 +98,7 @@ watch(
   () => {
     const map = mapRef.value
     if (map) map.setCenter([props.center.lng, props.center.lat], { duration: 0 })
-  }
+  },
 )
 </script>
 
