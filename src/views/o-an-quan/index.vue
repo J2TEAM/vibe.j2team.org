@@ -105,9 +105,9 @@ function handleDirectionCancel() {
       <MoveHistory :history="moveHistory" />
 
       <!-- Hướng dẫn chơi -->
-      <section class="mb-8">
+      <section class="mb-8 animate-fade-up animate-delay-5">
         <h2
-          class="font-display text-lg font-semibold text-text-primary mb-4 flex items-center gap-3"
+          class="font-display text-2xl font-semibold text-text-primary mb-4 flex items-center gap-3"
         >
           <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
           Luật chơi
