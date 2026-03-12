@@ -39,7 +39,7 @@ declare module 'mapbox-gl' {
     unproject(point: [number, number]): LngLat
     queryRenderedFeatures(
       bbox: [[number, number], [number, number]],
-      options?: { layers?: string[] }
+      options?: { layers?: string[] },
     ): unknown[]
   }
 

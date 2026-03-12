@@ -1,7 +1,7 @@
 import { inject, provide, type Ref } from 'vue'
 import type { Map as MapboxMap } from 'mapbox-gl'
 
-const MAP_KEY = Symbol('resident-evil-map')
+const MAP_KEY = Symbol('resident-lor-map')
 
 export function provideMap(mapRef: Ref<MapboxMap | null>) {
   provide(MAP_KEY, mapRef)

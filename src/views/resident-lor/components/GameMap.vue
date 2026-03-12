@@ -12,7 +12,7 @@ const mapRef = useMap()
 const containerRef = ref<HTMLDivElement | null>(null)
 let mapInstance: MapboxMap | null = null
 
-// Mapbox public token (visible in browser anyway — https://docs.mapbox.com/help/glossary/access-token/)
+// Mapbox public token (https://docs.mapbox.com/help/glossary/access-token/)
 const MAPBOX_TOKEN =
   'pk.eyJ1IjoidHVhbnRhbXR1b25nIiwiYSI6ImNsZ3lpd3Y4ODBhMzEzbHBlejh1Zjc3eGYifQ.i6qdKYjYC6bof7_KDOfGQA'
 

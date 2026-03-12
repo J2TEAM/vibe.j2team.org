@@ -1,6 +1,6 @@
 /**
  * Load Mapbox GL JS + CSS from CDN (no npm dependency).
- * Chỉ tải khi vào trang resident-evil.
+ * Chỉ tải khi vào trang resident-lor.
  */
 
 const MAPBOX_VERSION = '3.19.1'
@@ -15,7 +15,10 @@ export interface MapboxMapInstance {
   remove(): void
   addControl(control: unknown, position?: string): MapboxMapInstance
   unproject(point: [number, number]): { lng: number; lat: number }
-  queryRenderedFeatures(bbox: [[number, number], [number, number]], options?: { layers?: string[] }): unknown[]
+  queryRenderedFeatures(
+    bbox: [[number, number], [number, number]],
+    options?: { layers?: string[] },
+  ): unknown[]
 }
 
 export type MapboxGL = {

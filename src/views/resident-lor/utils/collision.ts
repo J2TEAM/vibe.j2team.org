@@ -8,16 +8,11 @@ const BUILDING_LAYER_ID = '3d-buildings'
  * Trả về true nếu đi được (không bị chặn), false nếu bị chặn.
  * Trả về true nếu layer chưa có (style chưa load xong) để tránh lỗi.
  */
-export function isWalkable(
-  map: MapboxMap | null,
-  lat: number,
-  lng: number
-): boolean {
+export function isWalkable(map: MapboxMap | null, lat: number, lng: number): boolean {
   if (!map) return true
   try {
     const style = map.getStyle()
-    const hasLayer =
-      style?.layers?.some((l) => l.id === BUILDING_LAYER_ID) ?? false
+    const hasLayer = style?.layers?.some((l) => l.id === BUILDING_LAYER_ID) ?? false
     if (!hasLayer) return true
 
     const point = map.project([lng, lat])
@@ -45,7 +40,7 @@ const UNSTUCK_POINTS_PER_RING = 8
 export function findWalkableNear(
   lat: number,
   lng: number,
-  check: (lat: number, lng: number) => boolean
+  check: (lat: number, lng: number) => boolean,
 ): { lat: number; lng: number } | null {
   for (let r = 1; r <= UNSTUCK_RINGS; r++) {
     const dist = r * UNSTUCK_STEP

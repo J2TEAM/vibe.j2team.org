@@ -15,7 +15,7 @@ export type UsePlayerHPOptions = {
 export function usePlayerHP(
   playerPosition: Ref<{ lat: number; lng: number }>,
   zombies: Ref<Zombie[]>,
-  options?: UsePlayerHPOptions
+  options?: UsePlayerHPOptions,
 ) {
   const {
     maxHp: max = 100,

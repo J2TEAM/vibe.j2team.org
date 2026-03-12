@@ -12,7 +12,7 @@ export type UsePlayerMovementOptions = {
 export function usePlayerMovement(
   initialLat = 10.78,
   initialLng = 106.7,
-  options?: UsePlayerMovementOptions
+  options?: UsePlayerMovementOptions,
 ) {
   const { isWalkable, getUnstuck } = options ?? {}
   const position = ref({ lat: initialLat, lng: initialLng })
@@ -21,7 +21,11 @@ export function usePlayerMovement(
 
   const handleKeyDown = (e: KeyboardEvent) => {
     const k = e.key.toLowerCase()
-    const arrow = e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight'
+    const arrow =
+      e.key === 'ArrowUp' ||
+      e.key === 'ArrowDown' ||
+      e.key === 'ArrowLeft' ||
+      e.key === 'ArrowRight'
     if (['w', 'a', 's', 'd'].includes(k) || arrow) {
       e.preventDefault()
     }

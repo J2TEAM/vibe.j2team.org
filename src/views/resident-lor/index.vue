@@ -19,11 +19,9 @@ const INITIAL_LNG = 106.7
 const mapRef = ref<MapboxMap | null>(null)
 provideMap(mapRef)
 
-const isWalkable = (lat: number, lng: number) =>
-  checkWalkable(mapRef.value, lat, lng)
+const isWalkable = (lat: number, lng: number) => checkWalkable(mapRef.value, lat, lng)
 
-const getUnstuck = (lat: number, lng: number) =>
-  findWalkableNear(lat, lng, isWalkable)
+const getUnstuck = (lat: number, lng: number) => findWalkableNear(lat, lng, isWalkable)
 
 const { position, keys } = usePlayerMovement(INITIAL_LAT, INITIAL_LNG, {
   isWalkable,
@@ -67,7 +65,7 @@ function playAgain() {
 </script>
 
 <template>
-  <div class="resident-evil-view">
+  <div class="resident-lor-view">
     <GameMap :center="position" />
     <GamePlayer :keys="keys" />
     <GameZombies :zombies="zombies" />
@@ -76,10 +74,10 @@ function playAgain() {
     <div v-if="isGameOver" class="game-over-overlay">
       <div class="game-over-box">
         <h2 class="game-over-title">Hết màn</h2>
-        <p class="game-over-score">Điểm: <strong>{{ finalScore }}</strong></p>
-        <button type="button" class="btn-play-again" @click="playAgain">
-          Chơi lại
-        </button>
+        <p class="game-over-score">
+          Điểm: <strong>{{ finalScore }}</strong>
+        </p>
+        <button type="button" class="btn-play-again" @click="playAgain">Chơi lại</button>
       </div>
     </div>
 
@@ -87,10 +85,7 @@ function playAgain() {
       <div class="hud-row">
         <span class="hud-label">HP</span>
         <div class="hp-bar">
-          <div
-            class="hp-fill"
-            :style="{ width: `${Math.max(0, (hp / maxHp) * 100)}%` }"
-          />
+          <div class="hp-fill" :style="{ width: `${Math.max(0, (hp / maxHp) * 100)}%` }" />
         </div>
         <span class="hp-text">{{ Math.max(0, hp) }} / {{ maxHp }}</span>
       </div>
@@ -100,18 +95,12 @@ function playAgain() {
       </div>
     </div>
 
-    <RouterLink
-      to="/"
-      class="home-link"
-      title="Về trang chủ"
-    >
-      🏠 Về trang chủ
-    </RouterLink>
+    <RouterLink to="/" class="home-link" title="Về trang chủ"> 🏠 Về trang chủ </RouterLink>
   </div>
 </template>
 
 <style scoped>
-.resident-evil-view {
+.resident-lor-view {
   position: relative;
   width: 100vw;
   height: 100vh;

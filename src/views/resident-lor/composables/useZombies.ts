@@ -15,7 +15,7 @@ const SPAWN_WALKABLE_ATTEMPTS = 30
 
 function getDirectionToward(
   from: { lat: number; lng: number },
-  to: { lat: number; lng: number }
+  to: { lat: number; lng: number },
 ): Direction {
   const dLat = to.lat - from.lat
   const dLng = to.lng - from.lng
@@ -40,11 +40,7 @@ function randomSpeed() {
   return ZOMBIE_SPEED_MIN + Math.random() * (ZOMBIE_SPEED_MAX - ZOMBIE_SPEED_MIN)
 }
 
-function spawnZombieAt(
-  lat: number,
-  lng: number,
-  id: string
-): Zombie {
+function spawnZombieAt(lat: number, lng: number, id: string): Zombie {
   return {
     id,
     lat,
@@ -60,7 +56,7 @@ function spawnZombieAt(
 function trySpawnZombieWalkable(
   center: { lat: number; lng: number },
   id: string,
-  isWalkable: (lat: number, lng: number) => boolean
+  isWalkable: (lat: number, lng: number) => boolean,
 ): Zombie | null {
   for (let i = 0; i < SPAWN_WALKABLE_ATTEMPTS; i++) {
     const angle = Math.random() * Math.PI * 2
@@ -83,7 +79,7 @@ export type UseZombiesOptions = {
 
 export function useZombies(
   playerPosition: Ref<{ lat: number; lng: number }>,
-  options?: UseZombiesOptions
+  options?: UseZombiesOptions,
 ) {
   const { isWalkable } = options ?? {}
   const zombies = ref<Zombie[]>([])
@@ -97,7 +93,7 @@ export function useZombies(
         : spawnZombieAt(
             center.lat + (Math.random() - 0.5) * 0.0002,
             center.lng + (Math.random() - 0.5) * 0.0002,
-            nextId()
+            nextId(),
           )
       if (z) zombies.value = [...zombies.value, z]
     }
@@ -109,7 +105,7 @@ export function useZombies(
     zombies.value = zombies.value.map((z) =>
       z.id === id && z.state === 'alive'
         ? { ...z, state: 'dying' as ZombieState, deathStartTime: Date.now() }
-        : z
+        : z,
     )
   }
 
@@ -136,11 +132,7 @@ export function useZombies(
           return { ...z, state: 'dying' as ZombieState, deathStartTime: now }
         }
 
-        if (
-          z.state === 'dying' &&
-          z.deathStartTime &&
-          now - z.deathStartTime > DEATH_DURATION_MS
-        ) {
+        if (z.state === 'dying' && z.deathStartTime && now - z.deathStartTime > DEATH_DURATION_MS) {
           return null
         }
         if (z.state === 'dying') return z
@@ -154,10 +146,7 @@ export function useZombies(
         const newLat = z.lat + (dLat / dist) * step
         const newLng = z.lng + (dLng / dist) * step
         if (isWalkable && !isWalkable(newLat, newLng)) return z
-        const direction = getDirectionToward(
-          { lat: z.lat, lng: z.lng },
-          pos
-        )
+        const direction = getDirectionToward({ lat: z.lat, lng: z.lng }, pos)
         return { ...z, lat: newLat, lng: newLng, direction }
       })
       .filter((z): z is Zombie => z !== null)

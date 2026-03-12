@@ -18,9 +18,7 @@ const deathFrame = ref(0)
 const isDying = computed(() => props.zombie.state === 'dying')
 
 const frames = computed(() =>
-  isDying.value
-    ? DEATH_FRAMES[props.zombie.direction]
-    : WALK_FRAMES[props.zombie.direction]
+  isDying.value ? DEATH_FRAMES[props.zombie.direction] : WALK_FRAMES[props.zombie.direction],
 )
 const frameIndex = computed(() => (isDying.value ? deathFrame.value : walkFrame.value))
 const src = computed(() => frames.value[frameIndex.value] ?? frames.value[0])
@@ -30,20 +28,24 @@ watch(isDying, () => {
 })
 
 const intervalId = ref<ReturnType<typeof setInterval> | null>(null)
-watch([isDying, src], () => {
-  if (intervalId.value) clearInterval(intervalId.value)
-  if (!src.value) return
-  intervalId.value = setInterval(
-    () => {
-      if (isDying.value) {
-        deathFrame.value = Math.min(deathFrame.value + 1, 6)
-      } else {
-        walkFrame.value = (walkFrame.value + 1) % 6
-      }
-    },
-    isDying.value ? DEATH_FRAME_MS : WALK_FRAME_MS
-  )
-}, { immediate: true })
+watch(
+  [isDying, src],
+  () => {
+    if (intervalId.value) clearInterval(intervalId.value)
+    if (!src.value) return
+    intervalId.value = setInterval(
+      () => {
+        if (isDying.value) {
+          deathFrame.value = Math.min(deathFrame.value + 1, 6)
+        } else {
+          walkFrame.value = (walkFrame.value + 1) % 6
+        }
+      },
+      isDying.value ? DEATH_FRAME_MS : WALK_FRAME_MS,
+    )
+  },
+  { immediate: true },
+)
 
 onUnmounted(() => {
   if (intervalId.value) clearInterval(intervalId.value)

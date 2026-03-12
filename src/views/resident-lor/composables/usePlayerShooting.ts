@@ -14,7 +14,7 @@ let nextId = 0
 function getShootDirection(
   map: MapboxMap,
   mouseX: number,
-  mouseY: number
+  mouseY: number,
 ): { dirLat: number; dirLng: number } {
   const centerX = window.innerWidth / 2
   const centerY = window.innerHeight / 2
@@ -43,7 +43,7 @@ export type UsePlayerShootingOptions = {
 export function usePlayerShooting(
   playerPosition: Ref<{ lat: number; lng: number }>,
   mapRef: Ref<MapboxMap | null>,
-  options?: UsePlayerShootingOptions
+  options?: UsePlayerShootingOptions,
 ) {
   const { isWalkable, zombies: zombiesRef, onZombieHit } = options ?? {}
   const bullets = ref<Bullet[]>([])
@@ -114,9 +114,7 @@ export function usePlayerShooting(
         const newLat = b.lat + b.dirLat * BULLET_SPEED
         const newLng = b.lng + b.dirLng * BULLET_SPEED
         if (isWalkable && !isWalkable(newLat, newLng)) return null
-        const traveled = Math.sqrt(
-          (newLat - b.startLat) ** 2 + (newLng - b.startLng) ** 2
-        )
+        const traveled = Math.sqrt((newLat - b.startLat) ** 2 + (newLng - b.startLng) ** 2)
         if (traveled >= BULLET_MIN_DISTANCE_TO_HIT) {
           const aliveZombies = (zombiesRef?.value ?? []).filter((z) => z.state === 'alive')
           for (const z of aliveZombies) {
@@ -127,9 +125,7 @@ export function usePlayerShooting(
             }
           }
         }
-        const dist = Math.sqrt(
-          (newLat - b.startLat) ** 2 + (newLng - b.startLng) ** 2
-        )
+        const dist = Math.sqrt((newLat - b.startLat) ** 2 + (newLng - b.startLng) ** 2)
         if (dist > BULLET_MAX_DISTANCE) return null
         return { ...b, lat: newLat, lng: newLng }
       })
