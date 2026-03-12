@@ -319,7 +319,7 @@ useEventListener(document, 'keydown', handleKeydown)
 
       <!-- Placeholder card -->
       <a
-        v-if="!isFiltering"
+        v-if="!isFiltering && (showAll || hiddenCount <= 0)"
         href="#cach-tham-gia"
         class="flex items-center justify-center border border-dashed border-border-default p-6 text-text-dim animate-pulse-border transition-colors duration-300 hover:border-accent-coral hover:text-accent-coral"
       >
