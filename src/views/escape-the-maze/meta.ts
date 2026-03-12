@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description: 'Thoát khỏi mê cung được tạo ngẫu nhiên. Bạn có tìm được đường ra nhanh nhất?',
   author: 'hoyvoh',
   category: 'game',
+  facebook: '',
 }
 
 export default meta

@@ -1,9 +1,29 @@
 <script setup lang="ts">
-import { ref, watch, onErrorCaptured } from 'vue'
+import { computed, ref, watch, onErrorCaptured } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+
+const GITHUB_ISSUES_URL = 'https://github.com/J2TEAM/vibe.j2team.org/issues/new'
 
 const route = useRoute()
 const error = ref<Error | null>(null)
+
+const reportUrl = computed(() => {
+  if (!error.value) return ''
+  const title = `[Bug] ${error.value.message}`
+  const body = [
+    '## Mô tả lỗi',
+    '',
+    `- **Trang:** \`${route.fullPath}\``,
+    `- **Lỗi:** \`${error.value.message}\``,
+    `- **User Agent:** \`${navigator.userAgent}\``,
+    '',
+    '## Các bước tái hiện',
+    '',
+    '1. ',
+  ].join('\n')
+  const params = new URLSearchParams({ title, body })
+  return `${GITHUB_ISSUES_URL}?${params}`
+})
 
 onErrorCaptured((err: Error) => {
   error.value = err
@@ -55,6 +75,14 @@ function retry() {
           VỀ TRANG CHỦ
         </RouterLink>
       </div>
+      <a
+        :href="reportUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="mt-6 inline-block text-sm text-text-secondary hover:text-accent-coral transition-colors underline underline-offset-4"
+      >
+        Báo lỗi trên GitHub
+      </a>
     </div>
   </div>
   <slot v-else />

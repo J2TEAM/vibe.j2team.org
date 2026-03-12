@@ -38,6 +38,9 @@ __screenshots__/
 # Do Nothing: file tiếng chim lớn (dùng birds.mp3 nhẹ hoặc tiếng tổng hợp)
 public/sounds/*.flac
 
+# Generated at build time by scripts/generate-pages-json.mjs
+public/data/pages.json
+
 # Vite
 *.timestamp-*-*.mjs
 

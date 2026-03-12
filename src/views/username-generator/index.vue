@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useClipboard } from '@vueuse/core'
 
 const username = ref('')
 
@@ -46,8 +47,10 @@ function generate() {
   username.value = `${a}_${n}${num}`
 }
 
+const { copy: clipboardCopy } = useClipboard()
+
 async function copy() {
-  await navigator.clipboard.writeText(username.value)
+  await clipboardCopy(username.value)
   alert('Đã copy username!')
 }
 </script>

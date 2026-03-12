@@ -62,8 +62,10 @@ export function scoreRelease(input: ScoreInput): ScoreBreakdown {
     input.deployers.length === 0
       ? 0
       : Math.round(
-          input.deployers.reduce((sum, deployer) => sum + scoreOneDeployer(input.nowYear, deployer), 0) /
-            input.deployers.length,
+          input.deployers.reduce(
+            (sum, deployer) => sum + scoreOneDeployer(input.nowYear, deployer),
+            0,
+          ) / input.deployers.length,
         )
 
   if (deployerBonus !== 0) {
