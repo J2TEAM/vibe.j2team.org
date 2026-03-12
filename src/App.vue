@@ -3,6 +3,7 @@ import { RouterView, useRoute } from 'vue-router'
 import { useHead, useSeoMeta } from '@unhead/vue'
 import { computed } from 'vue'
 import ErrorBoundary from '@/components/ErrorBoundary.vue'
+import EdgeToolbar from '@/components/EdgeToolbar.vue'
 
 const route = useRoute()
 
@@ -41,4 +42,8 @@ useSeoMeta({
       <component :is="Component" />
     </ErrorBoundary>
   </RouterView>
+  <EdgeToolbar
+    v-if="route.meta.pagePath && route.meta.showToolbar !== false"
+    :page-path="route.meta.pagePath as string"
+  />
 </template>

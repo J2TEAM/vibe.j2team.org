@@ -5,7 +5,7 @@ const meta: PageMeta = {
   description: 'Convert image to LEGO mosaic',
   author: 'Nguyễn Thành Đạt',
   facebook: 'https://www.facebook.com/nguyenthanhdat2704',
-  category: 'tool',
+  category: 'creative',
 }
 
 export default meta

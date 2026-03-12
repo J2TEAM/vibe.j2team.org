@@ -2,6 +2,7 @@
 import { RouterLink } from 'vue-router'
 import { multiAppAuthors } from '@/data/leaderboard'
 import { getCategoryLabel } from '@/data/categories'
+import { toAuthorSlug } from '@/data/authors'
 
 interface RankStyle {
   card: string
@@ -74,17 +75,13 @@ const styledAuthors = multiAppAuthors.map((stat) => ({
 
           <!-- Author -->
           <h2 class="mt-2 font-display text-xl font-bold">
-            <a
-              v-if="stat.facebook"
-              :href="stat.facebook"
-              target="_blank"
-              rel="noopener noreferrer"
+            <RouterLink
+              :to="`/author/${toAuthorSlug(stat.author)}`"
               class="transition-colors"
               :class="style.hover"
             >
               {{ stat.author }}
-            </a>
-            <span v-else>{{ stat.author }}</span>
+            </RouterLink>
           </h2>
 
           <p class="mt-1 text-sm text-text-secondary">

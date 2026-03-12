@@ -1,10 +1,12 @@
 ﻿<script setup lang="ts">
 import BuaControlPanel from './BuaControlPanel.vue'
+import type { DrawingStats } from '../types/drawing'
 
 const props = defineProps<{
   open: boolean
   designName: string
   infoText: string
+  drawingStats: DrawingStats | null
 }>()
 
 const emit = defineEmits<{
@@ -42,6 +44,19 @@ const emit = defineEmits<{
       >
         Lưu vào bộ sưu tập
       </button>
+
+      <div
+        v-if="props.drawingStats"
+        class="border border-border-default bg-bg-elevated px-3 py-2 text-xs text-text-dim"
+      >
+        <p class="uppercase tracking-wider text-text-dim">// Thông số</p>
+        <p class="mt-1">
+          Vùng vẽ: {{ Math.round(props.drawingStats.canvasWidth) }}×{{
+            Math.round(props.drawingStats.canvasHeight)
+          }}px
+        </p>
+        <p>Nét: {{ props.drawingStats.strokeCount }} · Điểm: {{ props.drawingStats.pointCount }}</p>
+      </div>
 
       <button
         class="w-full border border-border-default px-3 py-2 text-left text-sm text-text-secondary transition hover:border-accent-amber hover:bg-bg-elevated hover:text-text-primary"

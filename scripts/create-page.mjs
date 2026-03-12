@@ -16,6 +16,7 @@ const { values: flags, positionals } = parseArgs({
     author: { type: 'string' },
     facebook: { type: 'string' },
     category: { type: 'string' },
+    'hide-toolbar': { type: 'boolean' },
   },
   allowPositionals: true,
 })
@@ -24,7 +25,7 @@ const slug = positionals[0]
 
 if (!slug) {
   console.error(
-    'Usage: pnpm create:page <slug> [--name "..."] [--description "..."] [--author "..."] [--category game|tool|fun|learn|spiritual|connect|other] [--facebook "..."]',
+    'Usage: pnpm create:page <slug> [--name "..."] [--description "..."] [--author "..."] [--category game|tool|fun|learn|spiritual|connect|other] [--facebook "..."] [--hide-toolbar]',
   )
   exit(1)
 }
@@ -94,13 +95,14 @@ async function main() {
 
   // Build meta.ts
   const facebookLine = facebook ? `\n  facebook: '${facebook}',` : ''
+  const showToolbarLine = flags['hide-toolbar'] ? '\n  showToolbar: false,' : ''
   const metaContent = `import type { PageMeta } from '@/types/page'
 
 const meta: PageMeta = {
   name: '${name}',
   description: '${description}',
   author: '${author}',${facebookLine}
-  category: '${category}',
+  category: '${category}',${showToolbarLine}
 }
 
 export default meta
