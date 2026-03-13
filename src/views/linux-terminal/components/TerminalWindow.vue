@@ -11,15 +11,20 @@ defineProps<{
 const ESC = String.fromCharCode(27)
 
 function renderText(text: string): string {
-  return text
-    .split(ESC + '[bold]').join('')
-    .split(ESC + '[cyan]').join('')
-    .split(ESC + '[reset]').join('')
-    // highlight dir entries in ls short output
-    .replace(
-      new RegExp(ESC.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\[dir\\](\\S+)', 'g'),
-      '<span class="text-sky-400 font-bold">$1</span>',
-    )
+  return (
+    text
+      .split(ESC + '[bold]')
+      .join('')
+      .split(ESC + '[cyan]')
+      .join('')
+      .split(ESC + '[reset]')
+      .join('')
+      // highlight dir entries in ls short output
+      .replace(
+        new RegExp(ESC.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\[dir\\](\\S+)', 'g'),
+        '<span class="text-sky-400 font-bold">$1</span>',
+      )
+  )
 }
 </script>
 
@@ -31,7 +36,9 @@ function renderText(text: string): string {
         <span class="shrink-0 select-none whitespace-nowrap">
           <span class="text-emerald-400 font-bold">{{ line.prompt?.split(':')[0] }}</span>
           <span class="text-slate-500">:</span>
-          <span class="text-sky-400 font-bold">{{ line.prompt?.split(':')[1]?.split('$')[0] }}</span>
+          <span class="text-sky-400 font-bold">{{
+            line.prompt?.split(':')[1]?.split('$')[0]
+          }}</span>
           <span class="text-slate-500">$</span>
         </span>
         <span class="text-text-primary break-all">{{ line.text }}</span>

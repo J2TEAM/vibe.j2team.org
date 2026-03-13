@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref} from 'vue'
+import { ref } from 'vue'
 import type { OutputLine } from '../domain/CommandExecutor'
 
 defineProps<{
@@ -53,10 +53,7 @@ defineExpose({ focus })
 </script>
 
 <template>
-  <div
-    class="font-mono text-sm leading-relaxed flex items-start gap-2 mt-1"
-    @click="focus"
-  >
+  <div class="font-mono text-sm leading-relaxed flex items-start gap-2 mt-1" @click="focus">
     <!-- Prompt -->
     <span class="shrink-0 select-none">
       <span class="text-emerald-400 font-bold">{{ prompt.split(':')[0] }}</span>

@@ -21,15 +21,19 @@ const historyIndex = ref(-1)
 // Boot sequence shown on mount
 const BOOT_LINES: OutputLine[] = [
   { id: -10, type: 'info', text: '  ██╗     ██╗███╗   ██╗██╗   ██╗██╗  ██╗' },
-  { id: -9,  type: 'info', text: '  ██║     ██║████╗  ██║██║   ██║╚██╗██╔╝' },
-  { id: -8,  type: 'info', text: '  ██║     ██║██╔██╗ ██║██║   ██║ ╚███╔╝ ' },
-  { id: -7,  type: 'info', text: '  ██║     ██║██║╚██╗██║██║   ██║ ██╔██╗ ' },
-  { id: -6,  type: 'info', text: '  ███████╗██║██║ ╚████║╚██████╔╝██╔╝ ██╗' },
-  { id: -5,  type: 'info', text: '  ╚══════╝╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝' },
-  { id: -4,  type: 'output', text: '' },
-  { id: -3,  type: 'success', text: '  Linux Terminal Simulator v1.0 — vibe.j2team.org' },
-  { id: -2,  type: 'output', text: '  Gõ "help" để xem danh sách lệnh. Tab để autocomplete. ↑↓ lịch sử.' },
-  { id: -1,  type: 'output', text: '' },
+  { id: -9, type: 'info', text: '  ██║     ██║████╗  ██║██║   ██║╚██╗██╔╝' },
+  { id: -8, type: 'info', text: '  ██║     ██║██╔██╗ ██║██║   ██║ ╚███╔╝ ' },
+  { id: -7, type: 'info', text: '  ██║     ██║██║╚██╗██║██║   ██║ ██╔██╗ ' },
+  { id: -6, type: 'info', text: '  ███████╗██║██║ ╚████║╚██████╔╝██╔╝ ██╗' },
+  { id: -5, type: 'info', text: '  ╚══════╝╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝' },
+  { id: -4, type: 'output', text: '' },
+  { id: -3, type: 'success', text: '  Linux Terminal Simulator v1.0 — vibe.j2team.org' },
+  {
+    id: -2,
+    type: 'output',
+    text: '  Gõ "help" để xem danh sách lệnh. Tab để autocomplete. ↑↓ lịch sử.',
+  },
+  { id: -1, type: 'output', text: '' },
 ]
 
 // ---- Scroll to bottom ----------------------------------------------------
@@ -58,7 +62,7 @@ function submitCommand(value: string) {
   const newLines = executor.execute(trimmed)
 
   // Check for clear signal
-  if (newLines.some(l => l.text === '__CLEAR__')) {
+  if (newLines.some((l) => l.text === '__CLEAR__')) {
     lines.value = []
     scrollBottom()
     return
@@ -164,9 +168,7 @@ onUnmounted(() => {
     @click="focusInput"
   >
     <!-- Title bar (macOS-style with linux feel) -->
-    <div
-      class="shrink-0 h-9 bg-[#161b22] border-b border-[#30363d] flex items-center px-4 gap-3"
-    >
+    <div class="shrink-0 h-9 bg-[#161b22] border-b border-[#30363d] flex items-center px-4 gap-3">
       <!-- Traffic lights -->
       <div class="flex items-center gap-1.5">
         <RouterLink
@@ -174,7 +176,10 @@ onUnmounted(() => {
           class="w-3 h-3 rounded-full bg-[#ff5f56] hover:brightness-110 transition flex items-center justify-center group"
           title="Về trang chủ"
         >
-          <span class="text-[7px] text-[#800000] opacity-0 group-hover:opacity-100 font-bold leading-none">×</span>
+          <span
+            class="text-[7px] text-[#800000] opacity-0 group-hover:opacity-100 font-bold leading-none"
+            >×</span
+          >
         </RouterLink>
         <div class="w-3 h-3 rounded-full bg-[#ffbd2e]" />
         <div class="w-3 h-3 rounded-full bg-[#27c93f]" />
@@ -195,14 +200,10 @@ onUnmounted(() => {
     <div
       ref="scrollRef"
       class="flex-1 overflow-y-auto bg-[#0d1117] px-4 py-3"
-      style="scrollbar-width: thin; scrollbar-color: #30363d transparent;"
+      style="scrollbar-width: thin; scrollbar-color: #30363d transparent"
     >
       <!-- Output history -->
-      <TerminalWindow
-        :lines="lines"
-        :prompt="currentPrompt"
-        :current-input="currentInput"
-      />
+      <TerminalWindow :lines="lines" :prompt="currentPrompt" :current-input="currentInput" />
 
       <!-- Active prompt line -->
       <TerminalPrompt

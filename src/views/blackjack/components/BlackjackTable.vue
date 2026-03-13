@@ -1,48 +1,48 @@
 <script setup lang="ts">
-import PlayingCard from "./PlayingCard.vue";
-import type { Player, Dealer, GameStatus, Card } from "../types/blackjack";
+import PlayingCard from './PlayingCard.vue'
+import type { Player, Dealer, GameStatus, Card } from '../types/blackjack'
 
 const props = defineProps<{
-  player: Player;
-  dealer: Dealer;
-  status: GameStatus;
-  message: string;
-  isSoundEnabled: boolean;
-  getScoreDisplay: (hand: Card[]) => string;
-}>();
+  player: Player
+  dealer: Dealer
+  status: GameStatus
+  message: string
+  isSoundEnabled: boolean
+  getScoreDisplay: (hand: Card[]) => string
+}>()
 
 const emit = defineEmits<{
-  (e: "toggle-sound"): void;
-}>();
+  (e: 'toggle-sound'): void
+}>()
 
 const getHandResult = (hIdx: number) => {
-  if (props.status !== "ended") return null;
-  const pScore = props.player.scores[hIdx];
-  if (pScore === undefined) return null;
-  
-  const dScore = props.dealer.score;
-  if (pScore > 21) return "QUÁ 21";
-  if (dScore > 21 || pScore > dScore) return "THẮNG";
-  if (pScore === dScore) return "HÒA";
-  return "THUA";
-};
+  if (props.status !== 'ended') return null
+  const pScore = props.player.scores[hIdx]
+  if (pScore === undefined) return null
+
+  const dScore = props.dealer.score
+  if (pScore > 21) return 'QUÁ 21'
+  if (dScore > 21 || pScore > dScore) return 'THẮNG'
+  if (pScore === dScore) return 'HÒA'
+  return 'THUA'
+}
 
 // CSS class for result labels
 const getResultClass = (res: string | null) => {
-  if (!res) return "";
+  if (!res) return ''
   switch (res) {
-    case "THẮNG":
-    case "BLACKJACK":
-      return "bg-green-600 text-white shadow-[0_0_20px_rgba(22,163,74,0.4)]";
-    case "THUA":
-      return "bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]";
-    case "HÒA":
-    case "QUÁ 21":
-      return "bg-amber-500 text-bg-deep shadow-[0_0_20px_rgba(245,158,11,0.4)]";
+    case 'THẮNG':
+    case 'BLACKJACK':
+      return 'bg-green-600 text-white shadow-[0_0_20px_rgba(22,163,74,0.4)]'
+    case 'THUA':
+      return 'bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.4)]'
+    case 'HÒA':
+    case 'QUÁ 21':
+      return 'bg-amber-500 text-bg-deep shadow-[0_0_20px_rgba(245,158,11,0.4)]'
     default:
-      return "bg-accent-coral text-bg-deep shadow-[0_0_20px_rgba(255,107,74,0.3)]";
+      return 'bg-accent-coral text-bg-deep shadow-[0_0_20px_rgba(255,107,74,0.3)]'
   }
-};
+}
 </script>
 
 <template>

@@ -1,365 +1,365 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
-import { RouterLink } from "vue-router";
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { RouterLink } from 'vue-router'
 
 interface Horse {
-  id: number;
-  name: string;
-  color: string;
-  progress: number;
-  emoji: string;
-  wpm: number;
+  id: number
+  name: string
+  color: string
+  progress: number
+  emoji: string
+  wpm: number
 }
 
-type GameMode = "solo" | "race";
-type GameState = "menu" | "countdown" | "playing" | "finished";
+type GameMode = 'solo' | 'race'
+type GameState = 'menu' | 'countdown' | 'playing' | 'finished'
 
-const gameState = ref<GameState>("menu");
-const gameMode = ref<GameMode>("race");
-const typedText = ref("");
-const correctChars = ref(0);
-const totalCorrectChars = ref(0);
-const errors = ref(0);
-const startTime = ref<number | null>(null);
-const elapsedTime = ref(0);
-const countdownTime = ref(10);
-const raceDuration = ref(120);
-const timerInterval = ref<number | null>(null);
-const botIntervals = ref<number[]>([]);
-const textCompletedCount = ref(0);
+const gameState = ref<GameState>('menu')
+const gameMode = ref<GameMode>('race')
+const typedText = ref('')
+const correctChars = ref(0)
+const totalCorrectChars = ref(0)
+const errors = ref(0)
+const startTime = ref<number | null>(null)
+const elapsedTime = ref(0)
+const countdownTime = ref(10)
+const raceDuration = ref(120)
+const timerInterval = ref<number | null>(null)
+const botIntervals = ref<number[]>([])
+const textCompletedCount = ref(0)
 
 const sampleTexts = [
-  "typing nhanh là một kỹ năng quan trọng trong thời đại công nghệ. hãy luyện tập mỗi ngày để cải thiện tốc độ gõ phím của bạn.",
-  "j2team community là nơi tập hợp những người yêu thích lập trình và công nghệ. cùng nhau học hỏi và phát triển mỗi ngày.",
-  "việt nam là đất nước xinh đẹp với văn hóa lâu đời. chúng ta tự hào về truyền thống và hướng tới tương lai tươi sáng.",
-  "lập trình không chỉ là viết code mà còn là nghệ thuật giải quyết vấn đề. hãy sáng tạo và không ngừng học hỏi.",
-];
+  'typing nhanh là một kỹ năng quan trọng trong thời đại công nghệ. hãy luyện tập mỗi ngày để cải thiện tốc độ gõ phím của bạn.',
+  'j2team community là nơi tập hợp những người yêu thích lập trình và công nghệ. cùng nhau học hỏi và phát triển mỗi ngày.',
+  'việt nam là đất nước xinh đẹp với văn hóa lâu đời. chúng ta tự hào về truyền thống và hướng tới tương lai tươi sáng.',
+  'lập trình không chỉ là viết code mà còn là nghệ thuật giải quyết vấn đề. hãy sáng tạo và không ngừng học hỏi.',
+]
 
-const targetText = ref("");
-const horses = ref<Horse[]>([]);
-const customText = ref("");
-const fileInputRef = ref<HTMLInputElement | null>(null);
-const inputRef = ref<HTMLTextAreaElement | null>(null);
+const targetText = ref('')
+const horses = ref<Horse[]>([])
+const customText = ref('')
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const inputRef = ref<HTMLTextAreaElement | null>(null)
 
 const initializeHorses = (): void => {
-  if (gameMode.value === "solo") {
+  if (gameMode.value === 'solo') {
     horses.value = [
-      { id: 1, name: "Bạn", color: "bg-accent-coral", progress: 0, emoji: "🏇", wpm: 0 },
-    ];
+      { id: 1, name: 'Bạn', color: 'bg-accent-coral', progress: 0, emoji: '🏇', wpm: 0 },
+    ]
   } else {
     horses.value = [
-      { id: 1, name: "Bạn", color: "bg-accent-coral", progress: 0, emoji: "🏇", wpm: 0 },
+      { id: 1, name: 'Bạn', color: 'bg-accent-coral', progress: 0, emoji: '🏇', wpm: 0 },
       {
         id: 2,
-        name: "Bot 1",
-        color: "bg-accent-amber",
+        name: 'Bot 1',
+        color: 'bg-accent-amber',
         progress: 0,
-        emoji: "🐴",
+        emoji: '🐴',
         wpm: 45 + Math.random() * 10,
       },
       {
         id: 3,
-        name: "Bot 2",
-        color: "bg-accent-sky",
+        name: 'Bot 2',
+        color: 'bg-accent-sky',
         progress: 0,
-        emoji: "🐎",
+        emoji: '🐎',
         wpm: 50 + Math.random() * 10,
       },
       {
         id: 4,
-        name: "Bot 3",
-        color: "bg-text-secondary",
+        name: 'Bot 3',
+        color: 'bg-text-secondary',
         progress: 0,
-        emoji: "🦄",
+        emoji: '🦄',
         wpm: 55 + Math.random() * 10,
       },
       {
         id: 5,
-        name: "Bot 4",
-        color: "bg-text-dim",
+        name: 'Bot 4',
+        color: 'bg-text-dim',
         progress: 0,
-        emoji: "🎠",
+        emoji: '🎠',
         wpm: 60 + Math.random() * 10,
       },
-    ];
+    ]
   }
-};
+}
 
 const getRandomText = (): string => {
-  const text = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
-  return text ?? sampleTexts[0] ?? "";
-};
+  const text = sampleTexts[Math.floor(Math.random() * sampleTexts.length)]
+  return text ?? sampleTexts[0] ?? ''
+}
 
 const selectMode = (mode: GameMode): void => {
-  gameMode.value = mode;
-};
+  gameMode.value = mode
+}
 
 const startCountdown = (): void => {
   if (customText.value.trim()) {
-    targetText.value = customText.value.trim().toLowerCase();
+    targetText.value = customText.value.trim().toLowerCase()
   } else {
-    targetText.value = getRandomText();
+    targetText.value = getRandomText()
   }
 
-  gameState.value = "countdown";
-  countdownTime.value = 10;
-  typedText.value = "";
-  correctChars.value = 0;
-  totalCorrectChars.value = 0;
-  textCompletedCount.value = 0;
-  errors.value = 0;
-  elapsedTime.value = 0;
-  initializeHorses();
+  gameState.value = 'countdown'
+  countdownTime.value = 10
+  typedText.value = ''
+  correctChars.value = 0
+  totalCorrectChars.value = 0
+  textCompletedCount.value = 0
+  errors.value = 0
+  elapsedTime.value = 0
+  initializeHorses()
 
   const countdownInterval = setInterval(() => {
-    countdownTime.value--;
+    countdownTime.value--
     if (countdownTime.value <= 0) {
-      clearInterval(countdownInterval);
-      startRace();
+      clearInterval(countdownInterval)
+      startRace()
     }
-  }, 1000);
-};
+  }, 1000)
+}
 
 const startRace = (): void => {
-  gameState.value = "playing";
-  startTime.value = Date.now();
-  elapsedTime.value = 0;
-  typedText.value = "";
+  gameState.value = 'playing'
+  startTime.value = Date.now()
+  elapsedTime.value = 0
+  typedText.value = ''
 
   setTimeout(() => {
-    inputRef.value?.focus();
-    inputRef.value?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, 100);
+    inputRef.value?.focus()
+    inputRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, 100)
 
   timerInterval.value = window.setInterval(() => {
     if (startTime.value) {
-      elapsedTime.value = Math.floor((Date.now() - startTime.value) / 1000);
+      elapsedTime.value = Math.floor((Date.now() - startTime.value) / 1000)
       if (elapsedTime.value >= raceDuration.value) {
-        finishGame();
+        finishGame()
       }
     }
-  }, 100);
+  }, 100)
 
-  if (gameMode.value === "race") {
-    startBotMovement();
+  if (gameMode.value === 'race') {
+    startBotMovement()
   }
-};
+}
 
 const resetGame = (): void => {
-  gameState.value = "menu";
-  typedText.value = "";
-  correctChars.value = 0;
-  totalCorrectChars.value = 0;
-  textCompletedCount.value = 0;
-  errors.value = 0;
-  startTime.value = null;
-  elapsedTime.value = 0;
-  countdownTime.value = 10;
-  customText.value = "";
+  gameState.value = 'menu'
+  typedText.value = ''
+  correctChars.value = 0
+  totalCorrectChars.value = 0
+  textCompletedCount.value = 0
+  errors.value = 0
+  startTime.value = null
+  elapsedTime.value = 0
+  countdownTime.value = 10
+  customText.value = ''
 
   if (timerInterval.value) {
-    clearInterval(timerInterval.value);
-    timerInterval.value = null;
+    clearInterval(timerInterval.value)
+    timerInterval.value = null
   }
 
-  botIntervals.value.forEach((interval) => clearInterval(interval));
-  botIntervals.value = [];
+  botIntervals.value.forEach((interval) => clearInterval(interval))
+  botIntervals.value = []
 
-  initializeHorses();
-};
+  initializeHorses()
+}
 
 const handleInput = (): void => {
-  if (gameState.value !== "playing") return;
+  if (gameState.value !== 'playing') return
 
-  const typed = typedText.value.toLowerCase();
-  const target = targetText.value;
+  const typed = typedText.value.toLowerCase()
+  const target = targetText.value
 
-  let correct = 0;
-  let totalErrors = 0;
+  let correct = 0
+  let totalErrors = 0
 
   for (let i = 0; i < typed.length; i++) {
     if (i < target.length && typed[i] === target[i]) {
-      correct++;
+      correct++
     } else {
-      totalErrors++;
+      totalErrors++
     }
   }
 
-  const previousCorrect = correctChars.value;
-  correctChars.value = correct;
-  errors.value = totalErrors;
+  const previousCorrect = correctChars.value
+  correctChars.value = correct
+  errors.value = totalErrors
 
-  totalCorrectChars.value = totalCorrectChars.value - previousCorrect + correct;
+  totalCorrectChars.value = totalCorrectChars.value - previousCorrect + correct
 
-  updatePlayerProgress();
+  updatePlayerProgress()
 
   // Khi gõ xong văn bản hiện tại, chuyển sang văn bản mới ngay lập tức
   if (correct === target.length && typed.length === target.length) {
-    textCompletedCount.value++;
+    textCompletedCount.value++
 
     // Chuyển sang văn bản mới để tiếp tục gõ
     if (customText.value.trim()) {
-      targetText.value = customText.value.trim().toLowerCase();
+      targetText.value = customText.value.trim().toLowerCase()
     } else {
-      targetText.value = getRandomText();
+      targetText.value = getRandomText()
     }
 
     // Reset sau khi đã set văn bản mới
-    typedText.value = "";
-    correctChars.value = 0;
+    typedText.value = ''
+    correctChars.value = 0
   }
-};
+}
 
 const handleFocus = (): void => {
-  if (gameState.value === "playing") {
+  if (gameState.value === 'playing') {
     setTimeout(() => {
-      inputRef.value?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 300);
+      inputRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 300)
   }
-};
+}
 
 const updatePlayerProgress = (): void => {
-  if (elapsedTime.value === 0 || !horses.value[0]) return;
+  if (elapsedTime.value === 0 || !horses.value[0]) return
 
   // Tính progress dựa trên tốc độ gõ thực tế so với mục tiêu
   // Để thắng bot, cần gõ ~55 WPM (275 ký tự/phút = 4.58 ký tự/giây)
-  const targetCharsPerSecond = (55 * 5) / 60; // 55 WPM = 4.58 chars/s
-  const expectedTotalChars = targetCharsPerSecond * raceDuration.value;
+  const targetCharsPerSecond = (55 * 5) / 60 // 55 WPM = 4.58 chars/s
+  const expectedTotalChars = targetCharsPerSecond * raceDuration.value
 
-  const progress = (totalCorrectChars.value / expectedTotalChars) * 100;
-  horses.value[0].progress = Math.min(progress, 100);
-};
+  const progress = (totalCorrectChars.value / expectedTotalChars) * 100
+  horses.value[0].progress = Math.min(progress, 100)
+}
 
 const startBotMovement = (): void => {
-  botIntervals.value = [];
+  botIntervals.value = []
 
   horses.value.slice(1).forEach((horse) => {
     // Bot progress dựa trên WPM của chúng
     // WPM -> chars/second -> progress/second
-    const charsPerSecond = (horse.wpm * 5) / 60;
-    const targetCharsPerSecond = (55 * 5) / 60; // Baseline 55 WPM
+    const charsPerSecond = (horse.wpm * 5) / 60
+    const targetCharsPerSecond = (55 * 5) / 60 // Baseline 55 WPM
 
     // Progress bot tăng mỗi giây dựa trên tốc độ của chúng
-    const progressPerSecond = (charsPerSecond / targetCharsPerSecond) * (100 / raceDuration.value);
+    const progressPerSecond = (charsPerSecond / targetCharsPerSecond) * (100 / raceDuration.value)
 
     // Thêm yếu tố ngẫu nhiên nhẹ để bot không đều nhau
-    const randomFactor = 0.95 + Math.random() * 0.1;
-    const adjustedProgressPerSecond = progressPerSecond * randomFactor;
+    const randomFactor = 0.95 + Math.random() * 0.1
+    const adjustedProgressPerSecond = progressPerSecond * randomFactor
 
     const interval = window.setInterval(() => {
-      if (gameState.value !== "playing") {
-        clearInterval(interval);
-        return;
+      if (gameState.value !== 'playing') {
+        clearInterval(interval)
+        return
       }
 
-      horse.progress += adjustedProgressPerSecond * 0.1;
+      horse.progress += adjustedProgressPerSecond * 0.1
 
       if (horse.progress >= 100) {
-        horse.progress = 100;
-        clearInterval(interval);
+        horse.progress = 100
+        clearInterval(interval)
 
         if (horses.value[0] && horses.value[0].progress < 100) {
           setTimeout(() => {
-            if (gameState.value === "playing") {
-              finishGame();
+            if (gameState.value === 'playing') {
+              finishGame()
             }
-          }, 500);
+          }, 500)
         }
       }
-    }, 100);
+    }, 100)
 
-    botIntervals.value.push(interval);
-  });
-};
+    botIntervals.value.push(interval)
+  })
+}
 
 const finishGame = (): void => {
-  gameState.value = "finished";
+  gameState.value = 'finished'
 
   if (timerInterval.value) {
-    clearInterval(timerInterval.value);
-    timerInterval.value = null;
+    clearInterval(timerInterval.value)
+    timerInterval.value = null
   }
 
-  botIntervals.value.forEach((interval) => clearInterval(interval));
-  botIntervals.value = [];
+  botIntervals.value.forEach((interval) => clearInterval(interval))
+  botIntervals.value = []
 
   horses.value.forEach((horse) => {
-    if (horse.progress > 100) horse.progress = 100;
-  });
-};
+    if (horse.progress > 100) horse.progress = 100
+  })
+}
 
 const handleFileUpload = (event: Event): void => {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
-  if (!file) return;
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
 
-  const reader = new FileReader();
+  const reader = new FileReader()
   reader.onload = (e) => {
-    const text = e.target?.result as string;
+    const text = e.target?.result as string
     if (text && text.trim()) {
-      customText.value = text.trim();
+      customText.value = text.trim()
     }
-  };
-  reader.readAsText(file);
-};
+  }
+  reader.readAsText(file)
+}
 
 const triggerFileInput = (): void => {
-  fileInputRef.value?.click();
-};
+  fileInputRef.value?.click()
+}
 
 const clearCustomText = (): void => {
-  customText.value = "";
+  customText.value = ''
   if (fileInputRef.value) {
-    fileInputRef.value.value = "";
+    fileInputRef.value.value = ''
   }
-};
+}
 
 const accuracy = computed(() => {
-  const total = totalCorrectChars.value + errors.value;
-  if (total === 0) return 100;
-  return Math.round((totalCorrectChars.value / total) * 100);
-});
+  const total = totalCorrectChars.value + errors.value
+  if (total === 0) return 100
+  return Math.round((totalCorrectChars.value / total) * 100)
+})
 
 const wpm = computed(() => {
-  if (elapsedTime.value === 0) return 0;
-  const minutes = elapsedTime.value / 60;
-  const words = totalCorrectChars.value / 5;
-  return Math.round(words / minutes);
-});
+  if (elapsedTime.value === 0) return 0
+  const minutes = elapsedTime.value / 60
+  const words = totalCorrectChars.value / 5
+  return Math.round(words / minutes)
+})
 
 const remainingTime = computed(() => {
-  return Math.max(0, raceDuration.value - elapsedTime.value);
-});
+  return Math.max(0, raceDuration.value - elapsedTime.value)
+})
 
 const winner = computed(() => {
-  if (gameState.value !== "finished") return null;
-  const sorted = [...horses.value].sort((a, b) => b.progress - a.progress);
-  return sorted[0];
-});
+  if (gameState.value !== 'finished') return null
+  const sorted = [...horses.value].sort((a, b) => b.progress - a.progress)
+  return sorted[0]
+})
 
 const playerRank = computed(() => {
-  if (gameState.value !== "finished") return 0;
-  const sorted = [...horses.value].sort((a, b) => b.progress - a.progress);
-  return sorted.findIndex((h) => h.id === 1) + 1;
-});
+  if (gameState.value !== 'finished') return 0
+  const sorted = [...horses.value].sort((a, b) => b.progress - a.progress)
+  return sorted.findIndex((h) => h.id === 1) + 1
+})
 
 watch(
   () => horses.value[0]?.progress,
   (newProgress) => {
-    if (gameState.value === "playing" && newProgress !== undefined && newProgress >= 100) {
-      finishGame();
+    if (gameState.value === 'playing' && newProgress !== undefined && newProgress >= 100) {
+      finishGame()
     }
   },
-);
+)
 
 onMounted(() => {
-  initializeHorses();
-});
+  initializeHorses()
+})
 
 onUnmounted(() => {
-  if (timerInterval.value) clearInterval(timerInterval.value);
-  botIntervals.value.forEach((interval) => clearInterval(interval));
-});
+  if (timerInterval.value) clearInterval(timerInterval.value)
+  botIntervals.value.forEach((interval) => clearInterval(interval))
+})
 </script>
 
 <template>

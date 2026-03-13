@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import type { Card, Suit } from "../types/blackjack";
+import { computed } from 'vue'
+import type { Card, Suit } from '../types/blackjack'
 
 const props = defineProps<{
-  card: Card;
-}>();
+  card: Card
+}>()
 
 const suitSymbol = computed(() => {
   const symbols: Record<Suit, string> = {
-    hearts: "♥",
-    diamonds: "♦",
-    clubs: "♣",
-    spades: "♠",
-  };
-  return symbols[props.card.suit];
-});
+    hearts: '♥',
+    diamonds: '♦',
+    clubs: '♣',
+    spades: '♠',
+  }
+  return symbols[props.card.suit]
+})
 
-const isRed = computed(() => ["hearts", "diamonds"].includes(props.card.suit));
+const isRed = computed(() => ['hearts', 'diamonds'].includes(props.card.suit))
 </script>
 
 <template>

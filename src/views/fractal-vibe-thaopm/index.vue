@@ -80,8 +80,8 @@ const gameState = ref<'playing' | 'over'>('playing')
 const deathMessage = ref('')
 const devAlert = ref(false)
 
-let canvas: HTMLCanvasElement
-let ctx: CanvasRenderingContext2D
+let canvas!: HTMLCanvasElement
+let ctx!: CanvasRenderingContext2D
 
 const bug = { x: 400, y: 210, radius: 18 }
 const devCursor = { x: 850, y: 210, speed: 1.8, active: false }
@@ -124,7 +124,7 @@ let surpriseActive = false
 let surpriseEndTime = 0
 let nextSurpriseTime = 0
 
-// 3 NÚT SKILL DI CHUYỂN
+// 3 NÚT SKILL
 type ActionButton = {
   id: number
   x: number
@@ -251,6 +251,7 @@ function drawDevCursor() {
 function drawSurprise() {
   if (!surpriseActive) return
   const s = surpriseDeaths[currentSurpriseIndex]
+  if (!s) return
   const pulse = Math.sin(Date.now() / 40) * 0.6 + 1.2
   ctx.save()
   ctx.globalAlpha = pulse * 0.95
@@ -334,6 +335,7 @@ function repositionButton(btn: ActionButton) {
 function checkButtonHit(mx: number, my: number) {
   for (let i = 0; i < actionButtons.length; i++) {
     const btn = actionButtons[i]
+    if (!btn) continue
     const dx = mx - btn.x
     const dy = my - btn.y
     if (Math.hypot(dx, dy) < btn.size / 2 + 12) {
@@ -347,6 +349,7 @@ function checkButtonHit(mx: number, my: number) {
 
 function activateAction(idx: number) {
   const btn = actionButtons[idx]
+  if (!btn) return
   if (btn.id === 0) {
     score.value += 80
     spawnParticle('🛠️ PHÁ HÀM!', bug.x, bug.y - 45)
@@ -373,6 +376,7 @@ function triggerSurprise(now: number) {
   surpriseActive = true
   surpriseEndTime = now + 1700
   const s = surpriseDeaths[currentSurpriseIndex]
+  if (!s) return
   screenShake = 42
   flashAlpha = 0.98
   spawnParticle(s.emoji + ' ' + s.name, bug.x + (Math.random() - 0.5) * 120, bug.y - 90)
@@ -416,7 +420,8 @@ function gameLoop() {
   }
 
   if (surpriseActive && now > surpriseEndTime) {
-    deathMessage.value = surpriseDeaths[currentSurpriseIndex].message
+    const s = surpriseDeaths[currentSurpriseIndex]
+    if (s) deathMessage.value = s.message
     gameOver()
     return
   }
@@ -450,6 +455,7 @@ function gameLoop() {
 
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i]
+    if (!p) continue
     p.y += p.vy
     p.life--
     p.alpha = p.life / 52
@@ -489,21 +495,24 @@ function startGame() {
   flashAlpha = 0
   nextSurpriseTime = Date.now() + 7000
 
-  actionButtons[0].x = 180
-  actionButtons[0].y = 260
-  actionButtons[0].vx = 1.4
-  actionButtons[0].vy = 0.9
-  actionButtons[0].life = 2250
-  actionButtons[1].x = 400
-  actionButtons[1].y = 310
-  actionButtons[1].vx = -1.1
-  actionButtons[1].vy = 1.6
-  actionButtons[1].life = 2250
-  actionButtons[2].x = 620
-  actionButtons[2].y = 240
-  actionButtons[2].vx = 1.3
-  actionButtons[2].vy = -1.2
-  actionButtons[2].life = 2250
+  // Reset nút skill - dùng ! để assert chắc chắn tồn tại
+  actionButtons[0]!.x = 180
+  actionButtons[0]!.y = 260
+  actionButtons[0]!.vx = 1.4
+  actionButtons[0]!.vy = 0.9
+  actionButtons[0]!.life = 2250
+
+  actionButtons[1]!.x = 400
+  actionButtons[1]!.y = 310
+  actionButtons[1]!.vx = -1.1
+  actionButtons[1]!.vy = 1.6
+  actionButtons[1]!.life = 2250
+
+  actionButtons[2]!.x = 620
+  actionButtons[2]!.y = 240
+  actionButtons[2]!.vx = 1.3
+  actionButtons[2]!.vy = -1.2
+  actionButtons[2]!.life = 2250
 
   requestAnimationFrame(gameLoop)
 }
@@ -527,8 +536,12 @@ function handleCanvasClick(e: MouseEvent) {
 }
 
 onMounted(() => {
-  canvas = document.getElementById('gameCanvas') as HTMLCanvasElement
-  ctx = canvas.getContext('2d', { alpha: true }) as CanvasRenderingContext2D
+  const canvasEl = document.getElementById('gameCanvas')
+  if (!canvasEl) return
+  canvas = canvasEl as HTMLCanvasElement
+  const context = canvas.getContext('2d', { alpha: true })
+  if (!context) return
+  ctx = context
 
   canvas.addEventListener('mousemove', handleMouse)
   canvas.addEventListener('click', handleCanvasClick)
@@ -536,6 +549,7 @@ onMounted(() => {
   canvas.addEventListener('touchmove', (e: TouchEvent) => {
     e.preventDefault()
     const touch = e.touches[0]
+    if (!touch) return
     const rect = canvas.getBoundingClientRect()
     mouse.x = touch.clientX - rect.left
     mouse.y = touch.clientY - rect.top
@@ -545,6 +559,7 @@ onMounted(() => {
     if (gameState.value !== 'playing') return
     const rect = canvas.getBoundingClientRect()
     const touch = e.changedTouches[0]
+    if (!touch) return
     const mx = touch.clientX - rect.left
     const my = touch.clientY - rect.top
     checkButtonHit(mx, my)

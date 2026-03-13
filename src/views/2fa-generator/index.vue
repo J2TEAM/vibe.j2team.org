@@ -215,7 +215,8 @@ async function scanQRCode(blob: Blob) {
     }
   } catch (err) {
     console.error('QR Scan Error:', err)
-    errorMessage.value = 'Có lỗi xảy ra khi phân tích ảnh hoặc trình duyệt chặn tải thư viện quét mã.'
+    errorMessage.value =
+      'Có lỗi xảy ra khi phân tích ảnh hoặc trình duyệt chặn tải thư viện quét mã.'
   } finally {
     isScanningQR.value = false
   }

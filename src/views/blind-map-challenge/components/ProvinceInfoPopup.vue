@@ -21,8 +21,9 @@ defineProps<{
           transform: 'translate(-50%, -110%)',
         }"
       >
-        <div class="bg-bg-surface border border-accent-sky p-3 min-w-[200px]
-                    shadow-lg shadow-accent-sky/10 text-sm">
+        <div
+          class="bg-bg-surface border border-accent-sky p-3 min-w-[200px] shadow-lg shadow-accent-sky/10 text-sm"
+        >
           <h4 class="font-display font-bold text-accent-sky text-base mb-1">
             {{ province.name }}
           </h4>

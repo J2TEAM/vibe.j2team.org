@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { SCENES } from "../scenes/config";
+import { SCENES } from '../scenes/config'
 
 defineProps<{
-  currentScene: number;
-  scrollProgress: number;
-}>();
+  currentScene: number
+  scrollProgress: number
+}>()
 </script>
 
 <template>
@@ -18,13 +18,13 @@ defineProps<{
         <h1
           class="font-display text-xl md:text-3xl lg:text-4xl font-thin tracking-[0.2em] md:tracking-[0.5em] text-transparent uppercase text-outline-cinematic animate-reveal"
         >
-          {{ SCENES[currentScene]?.text || "" }}
+          {{ SCENES[currentScene]?.text || '' }}
         </h1>
         <div
           v-if="scrollProgress < 0.1"
           class="mt-12 md:mt-16 animate-pulse-slow font-body text-white/60 text-[9px] md:text-[10px] tracking-[0.8em] md:tracking-[1.5em] uppercase px-4"
         >
-          {{ SCENES[currentScene]?.subtext || "" }}
+          {{ SCENES[currentScene]?.subtext || '' }}
         </div>
       </template>
 
@@ -33,7 +33,7 @@ defineProps<{
         <p
           class="font-body text-white/50 text-sm md:text-2xl tracking-[0.1em] md:tracking-[0.15em] font-extralight italic leading-relaxed max-w-4xl px-4"
         >
-          {{ SCENES[currentScene]?.text || "" }}
+          {{ SCENES[currentScene]?.text || '' }}
         </p>
       </template>
 
@@ -47,7 +47,7 @@ defineProps<{
               textShadow: `0 0 35px ${SCENES[currentScene]?.accent || 'rgba(255, 255, 255, 0.25)'}`,
             }"
           >
-            {{ SCENES[currentScene]?.text || "" }}
+            {{ SCENES[currentScene]?.text || '' }}
           </h2>
           <p
             v-if="SCENES[currentScene]?.subtext"
@@ -59,7 +59,7 @@ defineProps<{
                 : 'none',
             }"
           >
-            {{ SCENES[currentScene]?.subtext || "" }}
+            {{ SCENES[currentScene]?.subtext || '' }}
           </p>
         </div>
       </template>
@@ -70,13 +70,13 @@ defineProps<{
           <p
             class="font-body text-[8px] md:text-xs tracking-[1em] md:tracking-[1.5em] uppercase text-white/30 mb-8 px-4 animate-reveal"
           >
-            {{ SCENES[currentScene]?.text || "" }}
+            {{ SCENES[currentScene]?.text || '' }}
           </p>
           <h2
             class="font-display text-2xl md:text-6xl tracking-[0.4em] md:tracking-[0.8em] font-extralight text-white px-4"
             style="text-shadow: 0 0 40px rgba(255, 255, 255, 0.2)"
           >
-            {{ SCENES[currentScene]?.subtext || "" }}
+            {{ SCENES[currentScene]?.subtext || '' }}
           </h2>
         </div>
       </template>
@@ -123,7 +123,7 @@ defineProps<{
               textShadow: `0 0 20px ${SCENES[currentScene]?.accent || 'rgba(255, 255, 255, 0.1)'}`,
             }"
           >
-            {{ SCENES[currentScene]?.text || "" }}
+            {{ SCENES[currentScene]?.text || '' }}
           </p>
           <p
             v-if="SCENES[currentScene]?.subtext"
@@ -135,7 +135,7 @@ defineProps<{
                 : 'none',
             }"
           >
-            {{ SCENES[currentScene]?.subtext || "" }}
+            {{ SCENES[currentScene]?.subtext || '' }}
           </p>
         </div>
       </template>

@@ -149,7 +149,9 @@ function renderTitleScene(ctx: CanvasRenderingContext2D, w: number, h: number, e
     const animTime = sceneTime - 0.3
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
-        const distFromCenter = Math.sqrt(Math.pow(col - centerCol, 2) + Math.pow(row - centerRow, 2))
+        const distFromCenter = Math.sqrt(
+          Math.pow(col - centerCol, 2) + Math.pow(row - centerRow, 2),
+        )
         const normalizedDist = distFromCenter / maxDist
         const delay = normalizedDist * staggerDuration
         const tileTime = animTime - delay
@@ -206,7 +208,10 @@ function renderPatternsScene(ctx: CanvasRenderingContext2D, w: number, h: number
   const duration = SCENES[1]!.duration
 
   const patternDuration = duration / FEATURED_PATTERNS.length
-  const patternIndex = Math.min(Math.floor(sceneTime / patternDuration), FEATURED_PATTERNS.length - 1)
+  const patternIndex = Math.min(
+    Math.floor(sceneTime / patternDuration),
+    FEATURED_PATTERNS.length - 1,
+  )
   const patternTime = sceneTime - patternIndex * patternDuration
   const featured = FEATURED_PATTERNS[patternIndex]!
 
@@ -317,7 +322,12 @@ function renderPatternsScene(ctx: CanvasRenderingContext2D, w: number, h: number
   ctx.fillRect(0, 0, w, h)
 }
 
-function renderKaleidoscopeScene(ctx: CanvasRenderingContext2D, w: number, h: number, elapsed: number) {
+function renderKaleidoscopeScene(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  elapsed: number,
+) {
   const sceneTime = elapsed - SCENES[2]!.startTime
 
   ctx.fillStyle = BG_DARK
@@ -408,7 +418,8 @@ function animate() {
   const now = performance.now() / 1000
   const elapsed = now - startTimeRef.value
 
-  const effectiveDuration = props.totalDuration > SINGLE_PLAY_DURATION ? props.totalDuration : SINGLE_PLAY_DURATION
+  const effectiveDuration =
+    props.totalDuration > SINGLE_PLAY_DURATION ? props.totalDuration : SINGLE_PLAY_DURATION
 
   if (elapsed >= effectiveDuration) {
     finished.value = true
@@ -548,7 +559,9 @@ async function handleReplay() {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 bg-bg-deep overflow-hidden select-none font-body text-text-primary h-screen w-screen">
+  <div
+    class="fixed inset-0 z-50 bg-bg-deep overflow-hidden select-none font-body text-text-primary h-screen w-screen"
+  >
     <!-- Canvas layer -->
     <div
       class="absolute inset-0 flex items-center justify-center -z-10"
@@ -562,7 +575,7 @@ async function handleReplay() {
     <!-- Vignette -->
     <div
       class="pointer-events-none absolute inset-0 -z-10"
-      style="box-shadow: inset 0 0 150px rgba(13, 10, 8, 0.9);"
+      style="box-shadow: inset 0 0 150px rgba(13, 10, 8, 0.9)"
     />
 
     <!-- Transition overlay -->
@@ -579,11 +592,16 @@ async function handleReplay() {
     >
       <div class="text-6xl text-white/50 mb-4 tracking-[-8px]">❚❚</div>
       <p class="font-display text-2xl font-bold tracking-[0.2em] text-white">Tạm dừng</p>
-      <p class="font-display text-sm uppercase tracking-widest text-[#D4A574]/60 mt-3">Nhấn để tiếp tục</p>
+      <p class="font-display text-sm uppercase tracking-widest text-[#D4A574]/60 mt-3">
+        Nhấn để tiếp tục
+      </p>
     </div>
 
     <!-- Interactive Overlays -->
-    <div v-if="!paused && !finished" class="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between p-8">
+    <div
+      v-if="!paused && !finished"
+      class="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between p-8"
+    >
       <button
         class="pointer-events-auto self-end p-2 text-2xl text-white/50 transition hover:text-white"
         @click.stop="handleBack"
@@ -592,15 +610,22 @@ async function handleReplay() {
       </button>
 
       <!-- Title Scene -->
-      <div v-if="currentScene === 'title'" class="flex flex-col items-center justify-center h-full text-center pb-[10vh]">
-        <h1 class="font-display text-[9vw] font-black tracking-tight leading-none text-white drop-shadow-lg">
+      <div
+        v-if="currentScene === 'title'"
+        class="flex flex-col items-center justify-center h-full text-center pb-[10vh]"
+      >
+        <h1
+          class="font-display text-[9vw] font-black tracking-tight leading-none text-white drop-shadow-lg"
+        >
           Gạch Bông
         </h1>
         <div class="w-16 h-1 my-6 bg-[#FF6B4A]/80 shadow-[0_0_15px_rgba(255,107,74,0.5)]" />
         <p class="font-display text-[3.5vw] font-medium tracking-[0.05em] text-[#D4A574]">
           Hoa Văn Truyền Thống Việt Nam
         </p>
-        <p class="font-display text-[1.8vw] tracking-[0.3em] font-medium text-white/50 uppercase block mt-12 px-6 py-2 border-y border-white/20">
+        <p
+          class="font-display text-[1.8vw] tracking-[0.3em] font-medium text-white/50 uppercase block mt-12 px-6 py-2 border-y border-white/20"
+        >
           Âm nhạc · Hoạ tiết · Hình học
         </p>
       </div>
@@ -611,29 +636,53 @@ async function handleReplay() {
         class="absolute bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/60 backdrop-blur-md px-6 py-3 border border-white/10 rounded-full"
       >
         <span class="text-2xl">{{ currentPatternLabel.emoji }}</span>
-        <span class="font-display text-xl font-semibold tracking-widest text-white uppercase">{{ currentPatternLabel.name }}</span>
+        <span class="font-display text-xl font-semibold tracking-widest text-white uppercase">{{
+          currentPatternLabel.name
+        }}</span>
       </div>
 
       <!-- Credits -->
-      <div v-if="currentScene === 'credits'" class="flex flex-col items-center justify-center h-full text-center pb-[5vh] gap-3">
-        <p class="font-display text-3xl font-bold text-[#FF6B4A] tracking-widest uppercase">Gạch Bông</p>
-        <p class="font-display text-lg tracking-widest text-white/40 uppercase">Hoa văn truyền thống Việt Nam</p>
+      <div
+        v-if="currentScene === 'credits'"
+        class="flex flex-col items-center justify-center h-full text-center pb-[5vh] gap-3"
+      >
+        <p class="font-display text-3xl font-bold text-[#FF6B4A] tracking-widest uppercase">
+          Gạch Bông
+        </p>
+        <p class="font-display text-lg tracking-widest text-white/40 uppercase">
+          Hoa văn truyền thống Việt Nam
+        </p>
         <div class="w-8 h-[1px] bg-white/20 my-2" />
-        <p class="font-display text-sm tracking-[0.2em] text-[#D4A574]/80">20 hoạ tiết truyền thống</p>
-        <p class="font-display text-sm tracking-[0.2em] text-[#D4A574]/80">Tất cả render bằng hình học thuần tuý</p>
+        <p class="font-display text-sm tracking-[0.2em] text-[#D4A574]/80">
+          20 hoạ tiết truyền thống
+        </p>
+        <p class="font-display text-sm tracking-[0.2em] text-[#D4A574]/80">
+          Tất cả render bằng hình học thuần tuý
+        </p>
         <p class="font-display text-sm tracking-[0.2em] text-[#D4A574]/80">Không dùng hình ảnh</p>
         <div class="w-8 h-[1px] bg-white/20 my-2" />
         <p class="text-2xl animate-pulse">🇻🇳</p>
-        <p class="font-display text-xs tracking-[0.3em] text-white/30 uppercase mt-2">Made with <span class="text-red-500">❤️</span> in Vietnam</p>
-        <p class="font-display text-[10px] tracking-[0.4em] text-white/20 uppercase mt-4">A Yellow Studio Labs product</p>
+        <p class="font-display text-xs tracking-[0.3em] text-white/30 uppercase mt-2">
+          Made with <span class="text-red-500">❤️</span> in Vietnam
+        </p>
+        <p class="font-display text-[10px] tracking-[0.4em] text-white/20 uppercase mt-4">
+          A Yellow Studio Labs product
+        </p>
       </div>
     </div>
 
     <!-- End screen -->
-    <div v-if="finished" class="absolute inset-0 z-30 flex items-center justify-center bg-bg-deep/90 backdrop-blur-sm p-4">
-      <div class="flex flex-col items-center bg-bg-surface border border-border-default max-w-lg w-full p-10 text-center animate-fade-up shadow-2xl">
+    <div
+      v-if="finished"
+      class="absolute inset-0 z-30 flex items-center justify-center bg-bg-deep/90 backdrop-blur-sm p-4"
+    >
+      <div
+        class="flex flex-col items-center bg-bg-surface border border-border-default max-w-lg w-full p-10 text-center animate-fade-up shadow-2xl"
+      >
         <h2 class="font-display text-4xl font-bold text-accent-coral mb-2">Gạch Bông</h2>
-        <p class="text-text-secondary tracking-widest uppercase text-sm font-display mb-10">MV Intro</p>
+        <p class="text-text-secondary tracking-widest uppercase text-sm font-display mb-10">
+          MV Intro
+        </p>
 
         <div class="flex flex-col w-full gap-3 mb-10">
           <button
@@ -658,14 +707,18 @@ async function handleReplay() {
           >
             <span class="text-4xl mr-4">⭐</span>
             <div class="flex-1 min-w-0">
-              <span class="block font-display text-lg font-bold text-text-primary group-hover:text-accent-amber transition-colors">
+              <span
+                class="block font-display text-lg font-bold text-text-primary group-hover:text-accent-amber transition-colors"
+              >
                 Hoa Chanh – Sài Gòn Retro
               </span>
               <span class="block text-sm text-text-secondary truncate mt-1">
                 Ngôi sao 8 cánh rực rỡ trên đường phố Sài Gòn
               </span>
             </div>
-            <span class="text-xs tracking-wider uppercase bg-accent-amber/20 text-accent-amber px-2.5 py-1 ml-4 whitespace-nowrap hidden sm:block">
+            <span
+              class="text-xs tracking-wider uppercase bg-accent-amber/20 text-accent-amber px-2.5 py-1 ml-4 whitespace-nowrap hidden sm:block"
+            >
               XEM NGAY
             </span>
           </div>

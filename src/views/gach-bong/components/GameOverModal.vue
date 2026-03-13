@@ -21,7 +21,9 @@ function formatTime(seconds: number): string {
 
 <template>
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-bg-deep/80 backdrop-blur-sm">
-    <div class="border border-border-default bg-bg-surface p-8 text-center max-w-sm w-full mx-4 animate-fade-up">
+    <div
+      class="border border-border-default bg-bg-surface p-8 text-center max-w-sm w-full mx-4 animate-fade-up"
+    >
       <div class="text-5xl mb-4">{{ won ? '🎉' : '⏰' }}</div>
       <h2
         class="font-display text-2xl font-bold mb-2"
@@ -36,7 +38,9 @@ function formatTime(seconds: number): string {
       <!-- Stats -->
       <div class="grid grid-cols-2 gap-4 mb-6">
         <div class="border border-border-default bg-bg-elevated p-3">
-          <span class="font-display text-xl font-bold text-accent-coral block">{{ score.toLocaleString() }}</span>
+          <span class="font-display text-xl font-bold text-accent-coral block">{{
+            score.toLocaleString()
+          }}</span>
           <span class="text-text-dim text-xs font-display tracking-widest">ĐIỂM</span>
         </div>
         <div class="border border-border-default bg-bg-elevated p-3">
@@ -46,11 +50,15 @@ function formatTime(seconds: number): string {
           <span class="text-text-dim text-xs font-display tracking-widest">CÒN LẠI</span>
         </div>
         <div class="border border-border-default bg-bg-elevated p-3">
-          <span class="font-display text-xl font-bold text-text-primary block">{{ hintsUsed }}</span>
+          <span class="font-display text-xl font-bold text-text-primary block">{{
+            hintsUsed
+          }}</span>
           <span class="text-text-dim text-xs font-display tracking-widest">GỢI Ý</span>
         </div>
         <div class="border border-border-default bg-bg-elevated p-3">
-          <span class="font-display text-xl font-bold text-text-primary block">{{ shufflesUsed }}</span>
+          <span class="font-display text-xl font-bold text-text-primary block">{{
+            shufflesUsed
+          }}</span>
           <span class="text-text-dim text-xs font-display tracking-widest">XÁO BÀI</span>
         </div>
       </div>

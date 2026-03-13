@@ -65,26 +65,36 @@ export function openShareCard(options: OpenShareCardOptions, targetTab?: Window)
     ['Generated', String(options.payload.generatedAt || '-')],
   ]
 
-  const initialStatsHtml = initialCards.map(([k, v]) => {
-    return `<div class="cell"><div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(v)}</div></div>`
-  }).join('')
+  const initialStatsHtml = initialCards
+    .map(([k, v]) => {
+      return `<div class="cell"><div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(v)}</div></div>`
+    })
+    .join('')
 
-  const initialRenderGridHtml = initialCards.map(([k, v]) => {
-    return `<div class="render-cell"><div class="render-k">${escapeHtml(k)}</div><div class="render-v">${escapeHtml(v)}</div></div>`
-  }).join('')
+  const initialRenderGridHtml = initialCards
+    .map(([k, v]) => {
+      return `<div class="render-cell"><div class="render-k">${escapeHtml(k)}</div><div class="render-v">${escapeHtml(v)}</div></div>`
+    })
+    .join('')
 
   const initialBadgesHtml = [
     `RANK: ${String(options.payload.rank || '-')}`,
     `SEED: ${String(options.payload.dailySeed || '-')}`,
     `MODE: ${String(options.payload.mode || '-')}`,
-  ].map((item) => `<span class="render-badge">${escapeHtml(item)}</span>`).join('')
+  ]
+    .map((item) => `<span class="render-badge">${escapeHtml(item)}</span>`)
+    .join('')
 
   const initialChaos = Number(options.payload.chaos ?? 0)
   const initialCampaignScore = Number(options.payload.campaignScore ?? 0)
-  const initialSlimeSrc = initialChaos >= 85 ? defeatSvg
-    : initialCampaignScore >= 80 ? victorySvg
-    : initialChaos >= 65 ? warningSvg
-    : slimeIdleSvg
+  const initialSlimeSrc =
+    initialChaos >= 85
+      ? defeatSvg
+      : initialCampaignScore >= 80
+        ? victorySvg
+        : initialChaos >= 65
+          ? warningSvg
+          : slimeIdleSvg
 
   const payloadEncoded = encodeURIComponent(JSON.stringify(options.payload))
   const messageEncoded = encodeURIComponent(options.message)

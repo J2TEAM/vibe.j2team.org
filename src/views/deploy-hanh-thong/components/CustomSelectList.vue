@@ -74,7 +74,10 @@ function chooseOption(value: string): void {
         @click="chooseOption(option.value)"
       >
         <div>
-          <p class="text-sm" :class="option.value === modelValue ? 'text-text-primary' : 'text-text-secondary'">
+          <p
+            class="text-sm"
+            :class="option.value === modelValue ? 'text-text-primary' : 'text-text-secondary'"
+          >
             {{ option.label }}
           </p>
           <p class="text-xs text-text-dim">{{ option.description }}</p>

@@ -40,6 +40,7 @@ src/views/gunny-lite/
 ### Phase 1: Engine vật lý (nền tảng, phải làm trước)
 
 **1. Terrain System** (`useTerrain.ts`)
+
 - Địa hình lưu dưới dạng **OffscreenCanvas** làm collision mask (pixel đen = có đất, trắng = rỗng)
 - Khi đạn nổ tại `(x, y)` với bán kính `R`: xóa các pixel trong hình tròn trên mask
 - Dùng `ctx.getImageData` / `ctx.putImageData` để đọc/ghi pixel
@@ -49,10 +50,12 @@ src/views/gunny-lite/
 **2. Ballistics Engine** (`usePhysics.ts` + `utils/ballistics.ts`)
 
 Công thức quỹ đạo (từ nghiên cứu):
+
 ```
 x(t) = x₀ + (v₀·cos θ)·t + ½·a_wind·t²
 y(t) = y₀ + (v₀·sin θ)·t - ½·g·t²
 ```
+
 - `v₀`: lực bắn (0–100, người chơi giữ Space)
 - `θ`: góc bắn (điều chỉnh bằng phím ↑/↓)
 - `g`: trọng lực (hằng số, mặc định ~9.8 game units/s²)
@@ -60,6 +63,7 @@ y(t) = y₀ + (v₀·sin θ)·t - ½·g·t²
 - Simulate theo từng tick (dt), không dùng analytical path để dễ kiểm tra collision
 
 **3. Collision Detection**
+
 - Mỗi tick của đạn: kiểm tra `getImageData` tại pixel hiện tại trên terrain mask → nổ nếu va chạm
 - Kiểm tra va chạm với bounding box nhân vật (AABB)
 - Nếu đạn ra ngoài biên map → hủy
@@ -71,15 +75,18 @@ y(t) = y₀ + (v₀·sin θ)·t - ½·g·t²
 **4. Turn/Delay System** (`useGameState.ts`)
 
 Công thức delay cho mỗi lượt:
+
 ```
 Total_Delay = (D_base + ΣD_items) × (1 − Agility / K)
 ```
+
 - Sau mỗi lượt bắn: cộng delay vào tổng delay của nhân vật
 - Nhân vật có tổng delay thấp nhất → lượt tiếp theo
 - Hỗ trợ **turn đôi** (bắn nhẹ = delay thấp → có thể đi lại ngay)
 - Hiển thị turn order bar có tên + avatar theo thứ tự delay
 
 **5. Player Controls** (`useInput.ts`)
+
 - **Góc**: `ArrowUp`/`ArrowDown` (giới hạn bởi loại vũ khí)
 - **Lực**: giữ `Space` để tích lực (Power Bar tăng dần), thả để bắn
 - **Di chuyển**: `ArrowLeft`/`ArrowRight` (tiêu stamina, tăng delay)
@@ -87,11 +94,13 @@ Total_Delay = (D_base + ΣD_items) × (1 − Agility / K)
 - Đồng hồ đếm ngược mỗi lượt (mặc định 15 giây)
 
 **6. Wind System**
+
 - Mỗi lượt: random hướng (trái/phải) và cường độ gió (0–10)
 - Animate chỉ báo gió khi gió thay đổi (effect thị giác mạnh)
 - Giá trị gió ảnh hưởng trực tiếp vào `a_wind` trong trajectory
 
 **7. HUD** (`HUD.vue`)
+
 - **Angle Gauge**: số góc hiện tại + giới hạn vũ khí + vạch góc lượt trước
 - **Power Bar**: thanh dọc có vạch chia mỗi 5 đơn vị, fill khi giữ Space
 - **Wind Indicator**: mũi tên hướng + số giá trị, animate khi đổi
@@ -104,24 +113,27 @@ Total_Delay = (D_base + ΣD_items) × (1 − Agility / K)
 
 **8. Hệ thống Vũ khí** (5 loại cơ bản từ nghiên cứu)
 
-| Vũ khí | Góc | Chỉ số mạnh | Đặc điểm |
-|--------|-----|-------------|----------|
-| Lựu đạn | 55°–70° | Thủ, May mắn | Đào hố cực mạnh, nổ rộng |
-| Lu gạch | 20°–65° | Công, Thủ | Sát thương ổn định |
-| Sấm sét | 20°–55° | May mắn | Bạo kích cao |
-| Phi tiêu | 15°–50° | Nhanh nhẹn | Delay thấp, cướp lượt |
-| Tủ lạnh | 50°–70° | Toàn diện | Tốt cho địa hình phức tạp |
+| Vũ khí   | Góc     | Chỉ số mạnh  | Đặc điểm                  |
+| -------- | ------- | ------------ | ------------------------- |
+| Lựu đạn  | 55°–70° | Thủ, May mắn | Đào hố cực mạnh, nổ rộng  |
+| Lu gạch  | 20°–65° | Công, Thủ    | Sát thương ổn định        |
+| Sấm sét  | 20°–55° | May mắn      | Bạo kích cao              |
+| Phi tiêu | 15°–50° | Nhanh nhẹn   | Delay thấp, cướp lượt     |
+| Tủ lạnh  | 50°–70° | Toàn diện    | Tốt cho địa hình phức tạp |
 
 **9. Công thức sát thương** (`utils/damage.ts`)
+
 ```
 A (damage out) = weapon_dmg × (1 + ATK / 1000)
 B (damage reduction) = armor × (1 + DEF / 1000)
 Final = (A − B) × buff_coefficient × crit_coefficient
 ```
+
 - Critical: xác suất từ Luck, hệ số ×1.5 hoặc ×2.0
 - Crit_coefficient = 1.0 nếu không bạo kích
 
 **10. Vật phẩm Buff** (`BuffPanel.vue`)
+
 - Tăng sát thương: 10% / 20% / 30% / 40% / 50%
 - Tấn công thêm: +1 viên (giảm damage/viên để cân bằng)
 - Ba tia (Trident): 3 viên theo hình quạt
@@ -133,6 +145,7 @@ Final = (A − B) × buff_coefficient × crit_coefficient
 ### Phase 4: AI & Polish
 
 **11. Simple AI** (`useAI.ts`)
+
 - Chiến thuật mặc định: góc 65° ± gió × 2
 - Điều chỉnh lực theo khoảng cách đến địch
 - 30% xác suất chọn chiến thuật đào hố (góc cao 85°–90°)
@@ -140,12 +153,12 @@ Final = (A − B) × buff_coefficient × crit_coefficient
 
 **12. Character Stats** (đơn giản hóa cho Lite)
 
-| Chỉ số | Tác dụng |
-|--------|----------|
-| Tấn công (ATK) | Tăng sát thương (công thức A) |
-| Phòng thủ (DEF) | Tăng giáp giảm sát thương (công thức B) |
-| Nhanh nhẹn (AGI) | Giảm delay, tăng stamina tối đa |
-| May mắn (LCK) | Tăng tỉ lệ và hệ số bạo kích |
+| Chỉ số           | Tác dụng                                |
+| ---------------- | --------------------------------------- |
+| Tấn công (ATK)   | Tăng sát thương (công thức A)           |
+| Phòng thủ (DEF)  | Tăng giáp giảm sát thương (công thức B) |
+| Nhanh nhẹn (AGI) | Giảm delay, tăng stamina tối đa         |
+| May mắn (LCK)    | Tăng tỉ lệ và hệ số bạo kích            |
 
 2 nhân vật mặc định với build khác nhau: **Glass Canon** (ATK cao, DEF thấp) vs **Tank** (DEF cao, AGI thấp)
 

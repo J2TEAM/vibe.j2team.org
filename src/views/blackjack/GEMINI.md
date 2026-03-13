@@ -4,15 +4,15 @@
 
 - **Tên:** Blackjack Game
 - **Mục tiêu:** :
-    1. Là một game blackjack
-    2. giao diện áp dụng đúng theo file docs/DESIGN_SYSTEM.md
-    3. Responsive — trang phải hiển thị tốt trên mobile
-    4. cần có chỗ VOL.01 / 2026 giống trang chủ
-    5. Có nút Home về trang chủ ở trên đầu bên trái, và nút về đầu trang
-    6. Mỗi trang con hoạt động độc lập — chỉ làm việc trong thư mục trang của mình tức là chỉ code trong thư mục blackjack
-    7. Code dễ hiểu có thể phân chia các thư mục các file theo từng chức năng sao cho dễ đọc dễ hiểu dễ sửa
+  1. Là một game blackjack
+  2. giao diện áp dụng đúng theo file docs/DESIGN_SYSTEM.md
+  3. Responsive — trang phải hiển thị tốt trên mobile
+  4. cần có chỗ VOL.01 / 2026 giống trang chủ
+  5. Có nút Home về trang chủ ở trên đầu bên trái, và nút về đầu trang
+  6. Mỗi trang con hoạt động độc lập — chỉ làm việc trong thư mục trang của mình tức là chỉ code trong thư mục blackjack
+  7. Code dễ hiểu có thể phân chia các thư mục các file theo từng chức năng sao cho dễ đọc dễ hiểu dễ sửa
 - **Công cụ:**
-    1. VUE js
+  1. VUE js
 
 ## 💻 Quy ước viết mã
 

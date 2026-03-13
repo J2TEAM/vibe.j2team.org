@@ -1,388 +1,388 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 
 // Game state
-const score = ref(0);
-const bugsFixed = ref(0);
-const bugsCreated = ref(0);
-const isPlaying = ref(false);
-const showFakeLoading = ref(false);
-const loadingProgress = ref(0);
-const showFailMessage = ref(false);
-const failMessage = ref("");
+const score = ref(0)
+const bugsFixed = ref(0)
+const bugsCreated = ref(0)
+const isPlaying = ref(false)
+const showFakeLoading = ref(false)
+const loadingProgress = ref(0)
+const showFailMessage = ref(false)
+const failMessage = ref('')
 
 // Bug position
-const bugX = ref(50);
-const bugY = ref(50);
-const bugOpacity = ref(1);
-const bugScale = ref(1);
-const isJumping = ref(false);
+const bugX = ref(50)
+const bugY = ref(50)
+const bugOpacity = ref(1)
+const bugScale = ref(1)
+const isJumping = ref(false)
 
 // Cursor tracking
-const cursorX = ref(0);
-const cursorY = ref(0);
+const cursorX = ref(0)
+const cursorY = ref(0)
 
 // VS Code simulation - LONG CODE for difficulty
 const codeLines = ref<string[]>([
   'import { Bug, Developer, Coffee } from "./chaos";',
   'import { sleep } from "./utils";',
-  "",
-  "class BugFixer {",
-  "  private bugs: Bug[] = [];",
-  "  private sanity = 100;",
-  "",
-  "  constructor() {",
-  "    this.bugs = this.loadBugs();",
-  "  }",
-  "",
-  "  async fixBug(bug: Bug): Promise<boolean> {",
+  '',
+  'class BugFixer {',
+  '  private bugs: Bug[] = [];',
+  '  private sanity = 100;',
+  '',
+  '  constructor() {',
+  '    this.bugs = this.loadBugs();',
+  '  }',
+  '',
+  '  async fixBug(bug: Bug): Promise<boolean> {',
   '    console.log("Attempting to fix...");',
-  "    await sleep(Infinity);",
-  "    return this.createMoreBugs(bug);",
-  "  }",
-  "",
-  "  private createMoreBugs(original: Bug): boolean {",
-  "    const newBugs = [];",
-  "    for (let i = 0; i < 1000; i++) {",
-  "      newBugs.push(new Bug());",
-  "    }",
-  "    this.bugs.push(...newBugs);",
-  "    return false; // Never fixed",
-  "  }",
-  "",
-  "  private loadBugs(): Bug[] {",
-  "    return Array.from({ length: 999 }, () => new Bug());",
-  "  }",
-  "",
-  "  drinkCoffee(): void {",
-  "    this.sanity = Math.max(0, this.sanity - 10);",
-  "  }",
-  "}",
-  "",
-  "const fixer = new BugFixer();",
-  "fixer.drinkCoffee();",
-  "",
-  "// This code was written by a developer who is no longer here",
-  "// They left behind only this comment and 157 bugs",
-  "",
-  "export default fixer;",
-]);
-const deletedLines = ref<number[]>([]);
+  '    await sleep(Infinity);',
+  '    return this.createMoreBugs(bug);',
+  '  }',
+  '',
+  '  private createMoreBugs(original: Bug): boolean {',
+  '    const newBugs = [];',
+  '    for (let i = 0; i < 1000; i++) {',
+  '      newBugs.push(new Bug());',
+  '    }',
+  '    this.bugs.push(...newBugs);',
+  '    return false; // Never fixed',
+  '  }',
+  '',
+  '  private loadBugs(): Bug[] {',
+  '    return Array.from({ length: 999 }, () => new Bug());',
+  '  }',
+  '',
+  '  drinkCoffee(): void {',
+  '    this.sanity = Math.max(0, this.sanity - 10);',
+  '  }',
+  '}',
+  '',
+  'const fixer = new BugFixer();',
+  'fixer.drinkCoffee();',
+  '',
+  '// This code was written by a developer who is no longer here',
+  '// They left behind only this comment and 157 bugs',
+  '',
+  'export default fixer;',
+])
+const deletedLines = ref<number[]>([])
 
 // Gaslighting quotes
 const gaslightQuotes = [
-  "Code này copy trên StackOverflow đúng không?",
-  "Máy tôi chạy bình thường mà?",
-  "Junior mới vào làm à?",
-  "Bug này là feature đấy bạn ơi!",
-  "Lần trước chạy được mà...",
-  "Bạn có chắc đã click đúng không?",
-  "Đây là lỗi của browser thôi!",
-  "Code clean lắm, không có bug đâu!",
-  "Thằng dev trước viết thế mà!",
-  "Tôi tưởng đã fix rồi?!",
-  "Check lại Logic đi, có học căn bản không đấy?",
-  "Chắc do ăn ở nên Bug nó mới nhảy...",
-  "Lương nghìn đô mà fix con Bug này không xong?",
-  "Đừng đập nữa, đập cũng có trúng đâu mà.",
-  "Để tôi gọi Intern vào fix hộ cho nhé?",
-  "Code như này mà cũng đòi qua vòng Review à?",
-  "Thôi reset máy đi, hy vọng là nó hết.",
-  "Nhìn bạn click mà tôi thấy tội cho con chuột.",
-  "Bug này không khó, chỉ là bạn không đủ trình.",
-  "Bạn có đang dùng đúng tay thuận không đấy?",
-  "Clear Cache chưa? Hay là do... trình độ?",
-  "Ủa, nãy giờ bạn đang thực sự cố gắng đấy à?",
-  "Hay là chuyển sang làm Tester đi cho nhàn?",
-  "Google không tính phí, sao không lên đó mà tìm?",
-  "Code chạy bằng niềm tin à mà đòi fix?",
-  "Mắt bạn có bị cận không? Nó nằm lù lù ra đó!",
-  "Tắt máy đi ngủ đi, mai Bug nó tự hết (đùa đấy).",
-  "Bạn mà fix được con này tôi đi bằng đầu!",
+  'Code này copy trên StackOverflow đúng không?',
+  'Máy tôi chạy bình thường mà?',
+  'Junior mới vào làm à?',
+  'Bug này là feature đấy bạn ơi!',
+  'Lần trước chạy được mà...',
+  'Bạn có chắc đã click đúng không?',
+  'Đây là lỗi của browser thôi!',
+  'Code clean lắm, không có bug đâu!',
+  'Thằng dev trước viết thế mà!',
+  'Tôi tưởng đã fix rồi?!',
+  'Check lại Logic đi, có học căn bản không đấy?',
+  'Chắc do ăn ở nên Bug nó mới nhảy...',
+  'Lương nghìn đô mà fix con Bug này không xong?',
+  'Đừng đập nữa, đập cũng có trúng đâu mà.',
+  'Để tôi gọi Intern vào fix hộ cho nhé?',
+  'Code như này mà cũng đòi qua vòng Review à?',
+  'Thôi reset máy đi, hy vọng là nó hết.',
+  'Nhìn bạn click mà tôi thấy tội cho con chuột.',
+  'Bug này không khó, chỉ là bạn không đủ trình.',
+  'Bạn có đang dùng đúng tay thuận không đấy?',
+  'Clear Cache chưa? Hay là do... trình độ?',
+  'Ủa, nãy giờ bạn đang thực sự cố gắng đấy à?',
+  'Hay là chuyển sang làm Tester đi cho nhàn?',
+  'Google không tính phí, sao không lên đó mà tìm?',
+  'Code chạy bằng niềm tin à mà đòi fix?',
+  'Mắt bạn có bị cận không? Nó nằm lù lù ra đó!',
+  'Tắt máy đi ngủ đi, mai Bug nó tự hết (đùa đấy).',
+  'Bạn mà fix được con này tôi đi bằng đầu!',
   "Càng fix càng hỏng, đúng là 'bàn tay vàng' trong làng tạo Bug.",
-  "Bình tĩnh, hít thở sâu... rồi chấp nhận mình kém đi.",
-];
+  'Bình tĩnh, hít thở sâu... rồi chấp nhận mình kém đi.',
+]
 // Fail message quotes - more roasting
 const failQuotes = [
-  "Chúc mừng! Bạn đã tạo thêm được một đống bug! 🎉",
-  "Code của bạn đẹp lắm... đẹp như một đống hỗn độn!",
-  "Feature mới của bạn đây - bug nè! 🐛",
-  "Commit đi, PR đi, có bug thì người ta fix!",
-  "Merge xong rồi, giờ thì enjoy cái bug của bạn nhé!",
-  "Dev không có bug như pizza không có phô mai - không thể nào!",
-  "Test ở đâu? Production chính là test environment!",
-  "Code sạch sẽ như cuộc đời bạn vậy... à không, có bug đấy!",
-  "Pull request: ❌, Bug report: ✅",
-  "Fix một bug = Tạo hai bug mới. Toán học lừa đảo!",
-];
-const currentQuote = ref("");
-const showQuote = ref(false);
+  'Chúc mừng! Bạn đã tạo thêm được một đống bug! 🎉',
+  'Code của bạn đẹp lắm... đẹp như một đống hỗn độn!',
+  'Feature mới của bạn đây - bug nè! 🐛',
+  'Commit đi, PR đi, có bug thì người ta fix!',
+  'Merge xong rồi, giờ thì enjoy cái bug của bạn nhé!',
+  'Dev không có bug như pizza không có phô mai - không thể nào!',
+  'Test ở đâu? Production chính là test environment!',
+  'Code sạch sẽ như cuộc đời bạn vậy... à không, có bug đấy!',
+  'Pull request: ❌, Bug report: ✅',
+  'Fix một bug = Tạo hai bug mới. Toán học lừa đảo!',
+]
+const currentQuote = ref('')
+const showQuote = ref(false)
 
 // Audio
-let audioCtx: AudioContext | null = null;
+let audioCtx: AudioContext | null = null
 
 const initAudio = () => {
   if (!audioCtx) {
     audioCtx = new (
       window.AudioContext ||
       (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-    )();
+    )()
   }
-};
+}
 
 const playEvilLaugh = () => {
-  if (!audioCtx) return;
-  if (audioCtx.state === "suspended") audioCtx.resume();
+  if (!audioCtx) return
+  if (audioCtx.state === 'suspended') audioCtx.resume()
 
-  const now = audioCtx.currentTime;
+  const now = audioCtx.currentTime
   // Laughing pattern: ha-ha-ha
-  const laughFreqs = [300, 280, 320, 260, 340];
+  const laughFreqs = [300, 280, 320, 260, 340]
   laughFreqs.forEach((freq, i) => {
-    const osc = audioCtx!.createOscillator();
-    const gain = audioCtx!.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx!.destination);
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(freq, now + i * 0.15);
-    osc.frequency.exponentialRampToValueAtTime(freq * 0.5, now + i * 0.15 + 0.1);
-    gain.gain.setValueAtTime(0.08, now + i * 0.15);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.15);
-    osc.start(now + i * 0.15);
-    osc.stop(now + i * 0.15 + 0.15);
-  });
-};
+    const osc = audioCtx!.createOscillator()
+    const gain = audioCtx!.createGain()
+    osc.connect(gain)
+    gain.connect(audioCtx!.destination)
+    osc.type = 'sawtooth'
+    osc.frequency.setValueAtTime(freq, now + i * 0.15)
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.5, now + i * 0.15 + 0.1)
+    gain.gain.setValueAtTime(0.08, now + i * 0.15)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.15)
+    osc.start(now + i * 0.15)
+    osc.stop(now + i * 0.15 + 0.15)
+  })
+}
 
 const playSuccessSound = () => {
-  if (!audioCtx) return;
-  if (audioCtx.state === "suspended") audioCtx.resume();
+  if (!audioCtx) return
+  if (audioCtx.state === 'suspended') audioCtx.resume()
 
-  const now = audioCtx.currentTime;
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.type = "sine";
-  osc.frequency.setValueAtTime(523, now);
-  osc.frequency.setValueAtTime(659, now + 0.1);
-  osc.frequency.setValueAtTime(784, now + 0.2);
-  gain.gain.setValueAtTime(0.1, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-  osc.start(now);
-  osc.stop(now + 0.3);
-};
+  const now = audioCtx.currentTime
+  const osc = audioCtx.createOscillator()
+  const gain = audioCtx.createGain()
+  osc.connect(gain)
+  gain.connect(audioCtx.destination)
+  osc.type = 'sine'
+  osc.frequency.setValueAtTime(523, now)
+  osc.frequency.setValueAtTime(659, now + 0.1)
+  osc.frequency.setValueAtTime(784, now + 0.2)
+  gain.gain.setValueAtTime(0.1, now)
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3)
+  osc.start(now)
+  osc.stop(now + 0.3)
+}
 
 // Cursor tracking
 const handleMouseMove = (e: MouseEvent) => {
-  cursorX.value = e.clientX;
-  cursorY.value = e.clientY;
+  cursorX.value = e.clientX
+  cursorY.value = e.clientY
 
   if (isPlaying.value && !showFakeLoading.value) {
-    updateBugPosition();
+    updateBugPosition()
   }
-};
+}
 
 // Calculate bug escape - only jump when cursor is close
 const updateBugPosition = () => {
   // If bug is currently jumping, don't jump again
-  if (isJumping.value) return;
+  if (isJumping.value) return
 
   // Get viewport dimensions
-  const maxX = window.innerWidth - 80;
-  const maxY = window.innerHeight - 80;
+  const maxX = window.innerWidth - 80
+  const maxY = window.innerHeight - 80
 
   // Calculate distance to cursor
-  const dx = bugX.value - cursorX.value;
-  const dy = bugY.value - cursorY.value;
-  const distance = Math.sqrt(dx * dx + dy * dy);
+  const dx = bugX.value - cursorX.value
+  const dy = bugY.value - cursorY.value
+  const distance = Math.sqrt(dx * dx + dy * dy)
 
   // If cursor is extremely close (50px), trigger invisibility and teleport
   if (distance < 50) {
-    triggerInvisibility();
-    return;
+    triggerInvisibility()
+    return
   }
 
   // Only jump when cursor is close (within 150px) - 90% evasion rate
   if (distance < 150 && Math.random() > 0.1) {
     // Start jump cooldown
-    isJumping.value = true;
+    isJumping.value = true
 
     // Jump to completely random position
-    bugX.value = Math.random() * maxX + 20;
-    bugY.value = Math.random() * maxY + 20;
+    bugX.value = Math.random() * maxX + 20
+    bugY.value = Math.random() * maxY + 20
 
     // Cooldown - bug stays still for 100ms after jumping
     setTimeout(() => {
-      isJumping.value = false;
-    }, 400);
+      isJumping.value = false
+    }, 400)
   }
   // If cursor is far (>150px) or 10% "lag" chance, bug stays still
-};
+}
 
 // Invisibility skill - teleport to random position
 const triggerInvisibility = () => {
-  bugOpacity.value = 0;
+  bugOpacity.value = 0
 
   setTimeout(() => {
-    const maxX = window.innerWidth - 80;
-    const maxY = window.innerHeight - 80;
-    bugX.value = Math.random() * maxX + 20;
-    bugY.value = Math.random() * maxY + 20;
+    const maxX = window.innerWidth - 80
+    const maxY = window.innerHeight - 80
+    bugX.value = Math.random() * maxX + 20
+    bugY.value = Math.random() * maxY + 20
 
     setTimeout(() => {
-      bugOpacity.value = 1;
-    }, 100);
-  }, 200);
-};
+      bugOpacity.value = 1
+    }, 100)
+  }, 200)
+}
 
 // Click handling
 const handleClick = (e: MouseEvent) => {
-  if (!isPlaying.value || showFakeLoading.value) return;
+  if (!isPlaying.value || showFakeLoading.value) return
 
-  initAudio();
+  initAudio()
 
   // Check if click hit the bug (within 40px radius)
-  const dx = bugX.value + 40 - e.clientX;
-  const dy = bugY.value + 40 - e.clientY;
-  const distance = Math.sqrt(dx * dx + dy * dy);
+  const dx = bugX.value + 40 - e.clientX
+  const dy = bugY.value + 40 - e.clientY
+  const distance = Math.sqrt(dx * dx + dy * dy)
 
   if (distance < 40) {
     // Hit the bug!
-    handleBugHit();
+    handleBugHit()
   } else {
     // Missed!
-    handleMiss();
+    handleMiss()
   }
-};
+}
 
 const handleBugHit = () => {
-  score.value++;
-  bugsFixed.value++;
-  playSuccessSound();
+  score.value++
+  bugsFixed.value++
+  playSuccessSound()
 
   // Trigger fake loading
-  showFakeLoading.value = true;
-  loadingProgress.value = 0;
+  showFakeLoading.value = true
+  loadingProgress.value = 0
 
   // Fake loading progress
   const loadingInterval = setInterval(() => {
-    loadingProgress.value += Math.random() * 15;
+    loadingProgress.value += Math.random() * 15
 
     if (loadingProgress.value >= 99) {
-      loadingProgress.value = 99;
-      clearInterval(loadingInterval);
+      loadingProgress.value = 99
+      clearInterval(loadingInterval)
 
       // Show fail message after "completing"
       setTimeout(() => {
-        showFailMessage.value = true;
-        failMessage.value = failQuotes[Math.floor(Math.random() * failQuotes.length)] ?? "";
-        bugsCreated.value += Math.floor(Math.random() * 50) + 100;
+        showFailMessage.value = true
+        failMessage.value = failQuotes[Math.floor(Math.random() * failQuotes.length)] ?? ''
+        bugsCreated.value += Math.floor(Math.random() * 50) + 100
 
         // Delete a random line from the fake code
         const availableLines = codeLines.value
           .map((_, i) => i)
-          .filter((i) => !deletedLines.value.includes(i) && codeLines.value[i]?.trim() !== "");
+          .filter((i) => !deletedLines.value.includes(i) && codeLines.value[i]?.trim() !== '')
         if (availableLines.length > 0) {
-          const lineToDelete = availableLines[Math.floor(Math.random() * availableLines.length)];
+          const lineToDelete = availableLines[Math.floor(Math.random() * availableLines.length)]
           if (lineToDelete !== undefined) {
-            deletedLines.value.push(lineToDelete);
+            deletedLines.value.push(lineToDelete)
           }
         }
 
-        playEvilLaugh();
+        playEvilLaugh()
 
         // Reset after showing message
         setTimeout(() => {
-          showFakeLoading.value = false;
-          showFailMessage.value = false;
-          loadingProgress.value = 0;
+          showFakeLoading.value = false
+          showFailMessage.value = false
+          loadingProgress.value = 0
 
           // Move bug to new position
-          const maxX = window.innerWidth - 80;
-          const maxY = window.innerHeight - 80;
-          bugX.value = Math.random() * maxX + 20;
-          bugY.value = Math.random() * maxY + 20;
-        }, 2500);
-      }, 500);
+          const maxX = window.innerWidth - 80
+          const maxY = window.innerHeight - 80
+          bugX.value = Math.random() * maxX + 20
+          bugY.value = Math.random() * maxY + 20
+        }, 2500)
+      }, 500)
     }
-  }, 100);
-};
+  }, 100)
+}
 
 const handleMiss = () => {
-  playEvilLaugh();
+  playEvilLaugh()
 
   // Show random gaslighting quote
-  currentQuote.value = gaslightQuotes[Math.floor(Math.random() * gaslightQuotes.length)] ?? "";
-  showQuote.value = true;
+  currentQuote.value = gaslightQuotes[Math.floor(Math.random() * gaslightQuotes.length)] ?? ''
+  showQuote.value = true
 
   setTimeout(() => {
-    showQuote.value = false;
-  }, 2000);
-};
+    showQuote.value = false
+  }, 2000)
+}
 
 // Start game
 const startGame = () => {
-  initAudio();
-  score.value = 0;
-  bugsFixed.value = 0;
-  bugsCreated.value = 0;
-  deletedLines.value = [];
+  initAudio()
+  score.value = 0
+  bugsFixed.value = 0
+  bugsCreated.value = 0
+  deletedLines.value = []
   codeLines.value = [
     'import { Bug, Developer, Coffee } from "./chaos";',
     'import { sleep } from "./utils";',
-    "",
-    "class BugFixer {",
-    "  private bugs: Bug[] = [];",
-    "  private sanity = 100;",
-    "",
-    "  constructor() {",
-    "    this.bugs = this.loadBugs();",
-    "  }",
-    "",
-    "  async fixBug(bug: Bug): Promise<boolean> {",
+    '',
+    'class BugFixer {',
+    '  private bugs: Bug[] = [];',
+    '  private sanity = 100;',
+    '',
+    '  constructor() {',
+    '    this.bugs = this.loadBugs();',
+    '  }',
+    '',
+    '  async fixBug(bug: Bug): Promise<boolean> {',
     '    console.log("Attempting to fix...");',
-    "    await sleep(Infinity);",
-    "    return this.createMoreBugs(bug);",
-    "  }",
-    "",
-    "  private createMoreBugs(original: Bug): boolean {",
-    "    const newBugs = [];",
-    "    for (let i = 0; i < 1000; i++) {",
-    "      newBugs.push(new Bug());",
-    "    }",
-    "    this.bugs.push(...newBugs);",
-    "    return false; // Never fixed",
-    "  }",
-    "",
-    "  private loadBugs(): Bug[] {",
-    "    return Array.from({ length: 999 }, () => new Bug());",
-    "  }",
-    "",
-    "  drinkCoffee(): void {",
-    "    this.sanity = Math.max(0, this.sanity - 10);",
-    "  }",
-    "}",
-    "",
-    "const fixer = new BugFixer();",
-    "fixer.drinkCoffee();",
-    "",
-    "// This code was written by a developer who is no longer here",
-    "// They left behind only this comment and 157 bugs",
-    "",
-    "export default fixer;",
-  ];
-  isPlaying.value = true;
+    '    await sleep(Infinity);',
+    '    return this.createMoreBugs(bug);',
+    '  }',
+    '',
+    '  private createMoreBugs(original: Bug): boolean {',
+    '    const newBugs = [];',
+    '    for (let i = 0; i < 1000; i++) {',
+    '      newBugs.push(new Bug());',
+    '    }',
+    '    this.bugs.push(...newBugs);',
+    '    return false; // Never fixed',
+    '  }',
+    '',
+    '  private loadBugs(): Bug[] {',
+    '    return Array.from({ length: 999 }, () => new Bug());',
+    '  }',
+    '',
+    '  drinkCoffee(): void {',
+    '    this.sanity = Math.max(0, this.sanity - 10);',
+    '  }',
+    '}',
+    '',
+    'const fixer = new BugFixer();',
+    'fixer.drinkCoffee();',
+    '',
+    '// This code was written by a developer who is no longer here',
+    '// They left behind only this comment and 157 bugs',
+    '',
+    'export default fixer;',
+  ]
+  isPlaying.value = true
 
   // Initial bug position
-  bugX.value = window.innerWidth / 2 - 40;
-  bugY.value = window.innerHeight / 2 - 40;
+  bugX.value = window.innerWidth / 2 - 40
+  bugY.value = window.innerHeight / 2 - 40
 
   // Show initial quote
-  currentQuote.value = gaslightQuotes[Math.floor(Math.random() * gaslightQuotes.length)] ?? "";
-  showQuote.value = true;
+  currentQuote.value = gaslightQuotes[Math.floor(Math.random() * gaslightQuotes.length)] ?? ''
+  showQuote.value = true
   setTimeout(() => {
-    showQuote.value = false;
-  }, 3000);
-};
+    showQuote.value = false
+  }, 3000)
+}
 
 // Computed
 const bugStyle = computed(() => ({
@@ -390,16 +390,16 @@ const bugStyle = computed(() => ({
   top: `${bugY.value}px`,
   opacity: bugOpacity.value,
   transform: `scale(${bugScale.value})`,
-  transition: "left 0.08s linear, top 0.08s linear, opacity 0.15s ease",
-}));
+  transition: 'left 0.08s linear, top 0.08s linear, opacity 0.15s ease',
+}))
 
 onMounted(() => {
-  window.addEventListener("mousemove", handleMouseMove);
-});
+  window.addEventListener('mousemove', handleMouseMove)
+})
 
 onUnmounted(() => {
-  window.removeEventListener("mousemove", handleMouseMove);
-});
+  window.removeEventListener('mousemove', handleMouseMove)
+})
 </script>
 
 <template>

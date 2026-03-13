@@ -1,39 +1,39 @@
 <script setup lang="ts">
 defineProps<{
-  isOpen: boolean;
-}>();
+  isOpen: boolean
+}>()
 
 const emit = defineEmits<{
-  (e: "close"): void;
-}>();
+  (e: 'close'): void
+}>()
 
 const rules = [
   {
-    title: "Mục tiêu",
+    title: 'Mục tiêu',
     desc: `Đạt tổng điểm gần 21 nhất có thể nhưng không được vượt quá 21 điểm.
 Ai có điểm cao hơn là người thắng.`,
   },
   {
-    title: "Giá trị quân bài",
-    desc: "2-10 giữ nguyên giá trị. J, Q, K tính 10 điểm. Át (A) tính 1 hoặc 11 điểm tùy điều kiện có lợi nhất cho người chơi.",
+    title: 'Giá trị quân bài',
+    desc: '2-10 giữ nguyên giá trị. J, Q, K tính 10 điểm. Át (A) tính 1 hoặc 11 điểm tùy điều kiện có lợi nhất cho người chơi.',
   },
   {
-    title: "Các lựa chọn",
+    title: 'Các lựa chọn',
     desc: `RÚT: Lấy thêm 1 lá bài.
 DỪNG: Giữ nguyên bài hiện tại.
 GẤP ĐÔI (x2): Gấp đôi tiền cược và chỉ được rút duy nhất 1 lá.
 TÁCH: Nếu có 2 lá bài giống giá trị, tách thành 2 phần bài.`,
   },
   {
-    title: "Luật của Dealer",
-    desc: "Dealer bắt buộc phải rút bài cho đến khi tổng điểm đạt ít nhất 17 điểm.",
+    title: 'Luật của Dealer',
+    desc: 'Dealer bắt buộc phải rút bài cho đến khi tổng điểm đạt ít nhất 17 điểm.',
   },
   {
-    title: "Số dư",
+    title: 'Số dư',
     desc: `Withdraw để lưu số dư của mình.
 Deposit để nạp lại số dư.`,
   },
-];
+]
 </script>
 
 <template>
