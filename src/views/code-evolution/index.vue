@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue'
+import { ref, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { LANGUAGES, RECIPES } from './data'
 
@@ -18,19 +18,19 @@ let instanceCounter = 0
 const draggingItem = ref<WorkspaceItem | null>(null)
 const offset = { x: 0, y: 0 }
 
-// Điều hướng về sảnh
+// LOGIC CHIẾN THẮNG
+const isVictory = computed(() => unlockedIds.value.length === Object.keys(LANGUAGES).length)
+
 const goHome = () => {
   router.push('/')
 }
 
-// Thêm item mới vào vùng làm việc
 const addItem = (id: string, x: number, y: number) => {
   const newItem = { id, x, y, instanceId: instanceCounter++, isHighlight: false }
   workspaceItems.value.push(newItem)
   checkMerge(newItem)
 }
 
-// 1. FIX LỖI: Hàm onDrop xử lý khi thả từ Sidebar vào Workspace
 const onDrop = (e: DragEvent) => {
   e.preventDefault()
   const id = e.dataTransfer?.getData('langId')
@@ -44,7 +44,6 @@ const onSidebarDragStart = (e: DragEvent, id: string) => {
   e.dataTransfer?.setData('langId', id)
 }
 
-// Logic ghép ngôn ngữ
 const checkMerge = (item: WorkspaceItem) => {
   const target = workspaceItems.value.find((other) => {
     if (other.instanceId === item.instanceId) return false
@@ -65,7 +64,6 @@ const checkMerge = (item: WorkspaceItem) => {
   }
 }
 
-// Xử lý tọa độ an toàn cho TS
 const getPointerPos = (e: MouseEvent | TouchEvent) => {
   if ('touches' in e) {
     const t = e.touches[0]
@@ -107,6 +105,11 @@ const endMove = () => {
   workspaceItems.value.forEach((i) => (i.isHighlight = false))
 }
 
+const resetGame = () => {
+  unlockedIds.value = ['binary', 'logic', 'math', 'internet']
+  workspaceItems.value = []
+}
+
 onUnmounted(() => {
   workspaceItems.value = []
 })
@@ -120,10 +123,22 @@ onUnmounted(() => {
     @touchmove="onMove"
     @touchend="endMove"
   >
+    <div v-if="isVictory" class="victory-overlay">
+      <div class="victory-card">
+        <div class="victory-icon">🏆</div>
+        <h2>THÀNH TỰU TỐI THƯỢNG!</h2>
+        <p>Bạn đã khám phá ra toàn bộ bí mật của lịch sử lập trình.</p>
+        <div class="victory-buttons">
+          <button @click="resetGame" class="btn-replay">CHƠI LẠI</button>
+          <button @click="goHome" class="btn-home">VỀ SẢNH</button>
+        </div>
+      </div>
+    </div>
+
     <div class="workspace" @dragover.prevent @drop="onDrop">
       <div class="top-nav">
         <button @click="goHome" class="back-btn">← SẢNH</button>
-        <div class="status-badge">
+        <div class="status-badge" :class="{ 'victory-glow': isVictory }">
           KHÁM PHÁ: {{ unlockedIds.length }} / {{ Object.keys(LANGUAGES).length }}
         </div>
       </div>
@@ -193,7 +208,89 @@ onUnmounted(() => {
   color: #f1f5f9;
   font-family: 'JetBrains Mono', monospace;
   overflow: hidden;
+  position: relative;
 }
+
+/* CSS VICTORY */
+.victory-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.9);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.5s ease;
+}
+
+.victory-card {
+  background: #0f172a;
+  padding: 40px;
+  border-radius: 30px;
+  border: 2px solid #22d3ee;
+  text-align: center;
+  box-shadow: 0 0 50px rgba(34, 211, 238, 0.3);
+  max-width: 400px;
+}
+
+.victory-icon {
+  font-size: 60px;
+  margin-bottom: 20px;
+}
+.victory-card h2 {
+  color: #22d3ee;
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+}
+.victory-card p {
+  opacity: 0.7;
+  margin-bottom: 30px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.victory-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+.btn-replay,
+.btn-home {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+}
+.btn-replay {
+  background: #22d3ee;
+  color: #020617;
+}
+.btn-home {
+  background: #1e293b;
+  color: white;
+}
+
+.victory-glow {
+  box-shadow: 0 0 20px #22d3ee;
+  border-color: #22d3ee !important;
+  color: #020617 !important;
+  background: #22d3ee !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* PHẦN CÒN LẠI */
 .prevent-select {
   -webkit-user-select: none;
   user-select: none;
@@ -222,6 +319,7 @@ onUnmounted(() => {
   border-radius: 12px;
   font-size: 11px;
   font-weight: 800;
+  transition: all 0.3s;
 }
 .status-badge {
   color: #22d3ee;

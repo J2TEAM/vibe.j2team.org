@@ -8,6 +8,7 @@ export interface Language {
 }
 
 export const LANGUAGES: Record<string, Language | undefined> = {
+  // 1-4. GỐC (4)
   binary: { id: 'binary', name: 'Binary', year: 1940, icon: '01', color: '#94a3b8', parents: [] },
   logic: {
     id: 'logic',
@@ -26,6 +27,8 @@ export const LANGUAGES: Record<string, Language | undefined> = {
     color: '#3b82f6',
     parents: [],
   },
+
+  // 5-7. TIỀN THÂN (3)
   assembly: {
     id: 'assembly',
     name: 'Assembly',
@@ -50,6 +53,8 @@ export const LANGUAGES: Record<string, Language | undefined> = {
     color: '#10b981',
     parents: ['fortran'],
   },
+
+  // 8-13. KINH ĐIỂN (6)
   c: {
     id: 'c',
     name: 'C Language',
@@ -90,14 +95,6 @@ export const LANGUAGES: Record<string, Language | undefined> = {
     color: '#f7df1e',
     parents: ['c', 'internet'],
   },
-  typescript: {
-    id: 'typescript',
-    name: 'TypeScript',
-    year: 2012,
-    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg',
-    color: '#3178c6',
-    parents: ['javascript', 'logic'],
-  },
   php: {
     id: 'php',
     name: 'PHP',
@@ -105,6 +102,16 @@ export const LANGUAGES: Record<string, Language | undefined> = {
     icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg',
     color: '#777bb4',
     parents: ['c', 'internet'],
+  },
+
+  // 14-20. HIỆN ĐẠI & BỔ SUNG (7)
+  typescript: {
+    id: 'typescript',
+    name: 'TypeScript',
+    year: 2012,
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg',
+    color: '#3178c6',
+    parents: ['javascript', 'logic'],
   },
   go: {
     id: 'go',
@@ -120,7 +127,7 @@ export const LANGUAGES: Record<string, Language | undefined> = {
     year: 2010,
     icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/rust/rust-original.svg',
     color: '#DEA584',
-    parents: ['cpp', 'logic'],
+    parents: ['cpp', 'math'],
   },
   swift: {
     id: 'swift',
@@ -128,10 +135,34 @@ export const LANGUAGES: Record<string, Language | undefined> = {
     year: 2014,
     icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/swift/swift-original.svg',
     color: '#f05138',
-    parents: ['cpp'],
+    parents: ['cpp', 'csharp'],
+  },
+  kotlin: {
+    id: 'kotlin',
+    name: 'Kotlin',
+    year: 2011,
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kotlin/kotlin-original.svg',
+    color: '#7F52FF',
+    parents: ['java', 'typescript'],
+  },
+  csharp: {
+    id: 'csharp',
+    name: 'C#',
+    year: 2000,
+    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg',
+    color: '#239120',
+    parents: ['c', 'java'],
+  },
+  mojo: {
+    id: 'mojo',
+    name: 'Mojo',
+    year: 2023,
+    icon: '🔥',
+    color: '#ff4b4b',
+    parents: ['cpp', 'python'],
   },
 }
-
+//20 công thức ghép ngôn ngữ lập trình
 export const RECIPES: Record<string, string> = {
   'binary+logic': 'assembly',
   'logic+math': 'fortran',
@@ -139,10 +170,14 @@ export const RECIPES: Record<string, string> = {
   'algol+assembly': 'c',
   'c+logic': 'cpp',
   'c+math': 'python',
-  'c+internet': 'javascript',
-  'cpp+logic': 'rust',
-  'c+python': 'go',
+  'c+internet': 'php',
+  'cpp+logic': 'java',
+  'internet+php': 'javascript',
   'javascript+logic': 'typescript',
-  'internet+php': 'javascript', // Fixed: Duplicate keys removed
-  'c+java': 'php',
+  'java+typescript': 'kotlin',
+  'c+python': 'go',
+  'cpp+python': 'mojo',
+  'cpp+math': 'rust',
+  'c+java': 'csharp',
+  'cpp+csharp': 'swift',
 }
