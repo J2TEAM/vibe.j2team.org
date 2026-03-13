@@ -70,6 +70,15 @@ const exportImage = async () => {
   >
     <!-- Cột Controls (Bên trái) -->
     <div class="w-full md:w-1/3 bg-bg-surface p-6 border border-border-default h-fit">
+      <!-- Nút Về Trang Chủ -->
+      <RouterLink
+        to="/"
+        class="inline-flex items-center gap-2 text-text-secondary hover:text-accent-coral mb-6 transition-colors font-medium"
+      >
+        <Icon icon="lucide:arrow-left" class="size-4" />
+        Về trang chủ
+      </RouterLink>
+
       <h1 class="text-2xl font-display font-bold text-accent-coral flex items-center gap-2 mb-6">
         <Icon icon="lucide:image" class="size-6" />
         Code Meme Gen
