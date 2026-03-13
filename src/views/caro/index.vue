@@ -9,6 +9,8 @@ import pageMeta from '@/views/caro/meta'
 
 const WIN_CONDITION = 5
 const BOARD_SIZE = 19
+const CELL_GAP = 2
+const GRID_PADDING = 12
 
 const gameStarted = ref(false)
 const board = ref<Board>([])
@@ -27,8 +29,8 @@ const gridStyle = computed(() => ({
   display: 'grid',
   gridTemplateColumns: `repeat(${BOARD_SIZE}, ${cellSizePx}px)`,
   gridTemplateRows: `repeat(${BOARD_SIZE}, ${cellSizePx}px)`,
-  gap: '2px',
-  padding: '12px',
+  gap: `${CELL_GAP}px`,
+  padding: `${GRID_PADDING}px`,
 }))
 
 function createEmptyBoard(size: number): Board {
@@ -41,6 +43,24 @@ function isBoardFull(): boolean {
 
 function isInWinning(row: number, col: number): boolean {
   return winningPositions.value.some((p) => p.row === row && p.col === col)
+}
+
+const boardWrapperRef = ref<HTMLElement | null>(null)
+
+function scrollBoardToCenter() {
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      const el = boardWrapperRef.value
+      if (!el || el.scrollWidth <= el.clientWidth) return
+      const scrollLeft = (el.scrollWidth - el.clientWidth) / 2
+      const scrollTop = (el.scrollHeight - el.clientHeight) / 2
+      el.scrollTo({
+        left: Math.max(0, scrollLeft),
+        top: Math.max(0, scrollTop),
+        behavior: 'smooth',
+      })
+    })
+  })
 }
 
 function startGame() {
@@ -59,6 +79,7 @@ function startGame() {
   if (currentPlayer.value === aiPlayer.value) {
     nextTick(() => runAiMove())
   }
+  scrollBoardToCenter()
 }
 
 function onCellClick(row: number, col: number) {
@@ -197,26 +218,38 @@ const statusText = computed(() => {
           </button>
         </div>
 
-        <div class="caro-board flex flex-col items-center" :style="{ marginTop: '16px' }">
-          <div
-            class="rounded-[12px] border border-border-default bg-bg-surface p-3 shadow-lg"
-            :style="gridStyle"
-          >
-            <template v-for="(rowData, r) in board" :key="r">
-              <BoardCell
-                v-for="(cell, c) in rowData"
-                :key="`${r}-${c}`"
-                :value="cell"
-                :cell-size="cellSizePx"
-                :is-winning="isInWinning(r, c)"
-                :is-last-move="lastMovePosition?.row === r && lastMovePosition?.col === c"
-                :game-ended="gameEnded"
-                @click="onCellClick(r, c)"
-              />
-            </template>
+        <div
+          ref="boardWrapperRef"
+          class="caro-board-wrapper mt-4 w-full overflow-auto touch-pan-x touch-pan-y"
+        >
+          <div class="caro-board mx-auto w-max">
+            <div
+              class="rounded-[12px] border border-border-default bg-bg-surface p-3 shadow-lg"
+              :style="gridStyle"
+            >
+              <template v-for="(rowData, r) in board" :key="r">
+                <BoardCell
+                  v-for="(cell, c) in rowData"
+                  :key="`${r}-${c}`"
+                  :value="cell"
+                  :cell-size="cellSizePx"
+                  :is-winning="isInWinning(r, c)"
+                  :is-last-move="lastMovePosition?.row === r && lastMovePosition?.col === c"
+                  :game-ended="gameEnded"
+                  @click="onCellClick(r, c)"
+                />
+              </template>
+            </div>
           </div>
         </div>
       </div>
     </template>
   </div>
 </template>
+
+<style scoped>
+.caro-board-wrapper {
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+}
+</style>
