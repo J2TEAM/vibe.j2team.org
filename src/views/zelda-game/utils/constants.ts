@@ -192,9 +192,17 @@ export const FINAL_STAND_STUN_TIME = 2.0 // shorter stun window in Phase 4
 export const FINAL_STAND_CYCLE_SPEED = 1.2 // attack speed multiplier for Phase 4
 
 // --- Minion Summoning (Phase 1) ---
-export const MINION_SUMMON_INTERVAL = 15.0 // seconds between summon waves
-export const MINION_COUNT = 2 // Bokoblins per summon wave
+export const MINION_SUMMON_INTERVAL = 6.0 // seconds between summon waves
+export const MINION_COUNT = 2 // Bokoblins per summon wave (legacy, used as default)
 export const MINION_RESUMMON_DELAY = 5.0 // delay before re-summoning after minions die
+
+/** Per-phase minion configuration: [melee count, archer count] */
+export const MINION_PHASE_CONFIG: Record<string, { melee: number; archers: number }> = {
+  dark_sorcery: { melee: 2, archers: 0 },
+  teleportation: { melee: 1, archers: 1 },
+  calamity: { melee: 2, archers: 1 },
+  final_stand: { melee: 2, archers: 1 },
+}
 
 // --- Pillar Destruction ---
 export const PILLAR_SHOCKWAVE_RADIUS = 96 // visual shockwave radius (px) — 3 tiles
@@ -214,6 +222,7 @@ export const HAPTIC_GAME_OVER = 200 // ms
 
 // --- Dev Flags ---
 export const EFFECTS_DEBUG = false // set true to show pool usage overlay
+export const DEBUG_OVERLAY = false // set true to show FPS counter and debug info panel
 
 // --- Audio ---
 export const MASTER_VOLUME = 0.3

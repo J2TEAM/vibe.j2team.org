@@ -33,6 +33,7 @@ import {
   MINION_SUMMON_INTERVAL,
   MINION_COUNT,
   MINION_RESUMMON_DELAY,
+  MINION_PHASE_CONFIG,
   TILE_SIZE,
 } from '../utils/constants'
 
@@ -532,12 +533,16 @@ export class Ganon extends Enemy {
     }
   }
 
+  /** Check if summoning is ready (shared across all phases) */
+  private shouldStartSummoning(): boolean {
+    return (
+      this.minionTimer <= 0 || (this.minionResummonTimer <= 0 && this.minionResummonTimer !== -1)
+    )
+  }
+
   private decidePhase1(player: Player, distToPlayer: number): void {
     // Check if summoning is ready
-    if (
-      this.minionTimer <= 0 ||
-      (this.minionResummonTimer <= 0 && this.minionResummonTimer !== -1)
-    ) {
+    if (this.shouldStartSummoning()) {
       this.startSummoning(player)
       return
     }
@@ -553,12 +558,22 @@ export class Ganon extends Enemy {
   }
 
   private decidePhase2(_player: Player): void {
+    // Check if summoning is ready
+    if (this.shouldStartSummoning()) {
+      this.startSummoning(_player)
+      return
+    }
     // Always teleport first, then pick dark_slash or triple_orb
     this.postTeleportAction = Math.random() < 0.5 ? 'dark_slash' : 'triple_orb'
     this.startTeleport(_player)
   }
 
   private decidePhase3(player: Player): void {
+    // Check if summoning is ready
+    if (this.shouldStartSummoning()) {
+      this.startSummoning(player)
+      return
+    }
     // Teleport → weighted random attack
     const roll = Math.random()
     if (roll < 0.35) {
@@ -572,6 +587,12 @@ export class Ganon extends Enemy {
   }
 
   private decidePhase4(): void {
+    // Phase 4 still follows fixed cycle but can summon between cycles
+    if (this.shouldStartSummoning()) {
+      // Use a dummy player position for summoning — positions calculated relative to Ganon
+      this.startSummoningNoPlayer()
+      return
+    }
     // Fixed cycle: dark_slash → triple_orb → ground_slam_charge → stunned
     const action = PHASE4_CYCLE[this.cycleStep]!
     this.cycleStep = (this.cycleStep + 1) % PHASE4_CYCLE.length
@@ -631,8 +652,20 @@ export class Ganon extends Enemy {
     this.summonTimer = SUMMONING_DURATION
     this.facePlayer(player)
     this._shouldSummon = false
+    // Reset resummon timer so it doesn't re-trigger immediately after this summon
+    this.minionResummonTimer = -1
     // Pre-calculate spawn positions near Ganon
     this.minionPositions = this.calculateMinionPositions(player)
+  }
+
+  /** Phase 4 variant — no player reference needed for facing */
+  private startSummoningNoPlayer(): void {
+    this._ai = 'summoning'
+    this.summonTimer = SUMMONING_DURATION
+    this._shouldSummon = false
+    this.minionResummonTimer = -1
+    // Spawn positions around Ganon (spread evenly)
+    this.minionPositions = this.calculateMinionPositionsAroundSelf()
   }
 
   // ─── Dark Orb Management ──────────────────────────────────────────
@@ -812,9 +845,7 @@ export class Ganon extends Enemy {
   // ─── Minion Management ────────────────────────────────────────────
 
   private updateMinionTimers(dt: number): void {
-    // Only summon in Phase 1
-    if (this.phase !== 'dark_sorcery') return
-
+    // Summon minions in all phases
     if (this.minionTimer > 0) {
       this.minionTimer -= dt
     }
@@ -832,9 +863,14 @@ export class Ganon extends Enemy {
     return false
   }
 
-  /** Where to spawn minions (2 positions near Ganon) */
+  /** Where to spawn minions near Ganon */
   getMinionSpawnPositions(): Vec2[] {
     return this.minionPositions
+  }
+
+  /** Get per-phase minion configuration */
+  getMinionConfig(): { melee: number; archers: number } {
+    return MINION_PHASE_CONFIG[this.phase] ?? { melee: MINION_COUNT, archers: 0 }
   }
 
   /** Signal that minions have been killed, start resummon timer */
@@ -843,17 +879,47 @@ export class Ganon extends Enemy {
   }
 
   private calculateMinionPositions(player: Player): Vec2[] {
+    const config = MINION_PHASE_CONFIG[this.phase] ?? { melee: MINION_COUNT, archers: 0 }
+    const totalCount = config.melee + config.archers
     const positions: Vec2[] = []
     const center = this.getCenter()
     const pc = player.getCenter()
 
-    for (let i = 0; i < MINION_COUNT; i++) {
+    for (let i = 0; i < totalCount; i++) {
       // Spawn minions on the opposite side of Ganon from the player
-      const angle = Math.atan2(center.y - pc.y, center.x - pc.x) + (i - 0.5) * Math.PI * 0.5
+      const angle =
+        Math.atan2(center.y - pc.y, center.x - pc.x) + (i - (totalCount - 1) / 2) * Math.PI * 0.4
       let spawnX = center.x + Math.cos(angle) * TILE_SIZE * 3
       let spawnY = center.y + Math.sin(angle) * TILE_SIZE * 3
 
       // Clamp within arena
+      spawnX = Math.max(
+        this.arenaLeft + TILE_SIZE,
+        Math.min(this.arenaRight - TILE_SIZE * 2, spawnX),
+      )
+      spawnY = Math.max(
+        this.arenaTop + TILE_SIZE,
+        Math.min(this.arenaBottom - TILE_SIZE * 2, spawnY),
+      )
+
+      positions.push({ x: spawnX, y: spawnY })
+    }
+
+    return positions
+  }
+
+  /** Spread positions evenly around Ganon (used when no player reference) */
+  private calculateMinionPositionsAroundSelf(): Vec2[] {
+    const config = MINION_PHASE_CONFIG[this.phase] ?? { melee: MINION_COUNT, archers: 0 }
+    const totalCount = config.melee + config.archers
+    const positions: Vec2[] = []
+    const center = this.getCenter()
+
+    for (let i = 0; i < totalCount; i++) {
+      const angle = (i / totalCount) * Math.PI * 2
+      let spawnX = center.x + Math.cos(angle) * TILE_SIZE * 3
+      let spawnY = center.y + Math.sin(angle) * TILE_SIZE * 3
+
       spawnX = Math.max(
         this.arenaLeft + TILE_SIZE,
         Math.min(this.arenaRight - TILE_SIZE * 2, spawnX),
@@ -986,13 +1052,6 @@ export class Ganon extends Enemy {
 
       // Draw Ganon body (procedural — dark armored figure)
       this.drawGanonBody(ctx)
-
-      // Damage flash overlay
-      if (this.getDamageFlashProgress() > 0) {
-        ctx.globalCompositeOperation = 'source-atop'
-        ctx.fillStyle = `rgba(255, 0, 0, ${this.getDamageFlashProgress() * 0.5})`
-        ctx.fillRect(this.pos.x, this.pos.y, GANON_SPRITE_SIZE, GANON_SPRITE_SIZE)
-      }
 
       ctx.restore()
     })

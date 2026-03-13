@@ -1,5 +1,11 @@
 import type { Camera } from '../engine/Camera'
-import type { TileMap, InputState, StageObjective, Vec2 } from '../utils/types'
+import type {
+  TileMap,
+  InputState,
+  StageObjective,
+  Vec2,
+  ProjectileSpawnRequest,
+} from '../utils/types'
 import {
   INTERACT_RADIUS,
   TILE_SIZE,
@@ -18,18 +24,28 @@ import {
 } from '../utils/constants'
 import { Input } from '../engine/Input'
 import { Bokoblin } from '../entities/Bokoblin'
+import { BokoblinArcher } from '../entities/BokoblinArcher'
 import { Physics } from '../engine/Physics'
 import { Renderer } from '../engine/Renderer'
 import type { Player } from '../entities/Player'
 import type { Enemy } from '../entities/Enemy'
 import type { Effects } from '../engine/Effects'
-import { PLAYER_SPAWN, KEY_BOKOBLIN_SPAWN, PATROL_CONFIGS, CHEST_POS } from '../maps/forest'
+import {
+  PLAYER_SPAWN,
+  BOKOBLIN_SPAWN_POSITIONS,
+  ARCHER_SPAWN_POSITIONS,
+  CHEST_POS,
+  generateRandomPatrolRoute,
+  getRandomKeyPosition,
+  createForestMap,
+} from '../maps/forest'
 import type { IStage } from './IStage'
 import { audio } from '../engine/Audio'
 
 export class Stage1 implements IStage {
   enemies: Enemy[] = []
   private keyBokoblin: Bokoblin | null = null
+  private totalEnemiesDefeated = 0
   keyCollected = false
   chestOpened = false
   gateOpen = false
@@ -45,14 +61,27 @@ export class Stage1 implements IStage {
   ]
 
   constructor() {
-    this.spawnEnemies()
+    // Generate map to get walkable tiles for random route generation
+    const map = createForestMap()
+    this.spawnEnemies(map)
   }
 
-  private spawnEnemies(): void {
-    for (const config of PATROL_CONFIGS) {
-      this.enemies.push(new Bokoblin(config.spawn, config.route))
+  private spawnEnemies(map: TileMap): void {
+    // Spawn melee Bokoblins with randomized patrol routes
+    for (const spawnPos of BOKOBLIN_SPAWN_POSITIONS) {
+      const route = generateRandomPatrolRoute(spawnPos, map)
+      this.enemies.push(new Bokoblin({ ...spawnPos }, route))
     }
-    const keyBok = new Bokoblin(KEY_BOKOBLIN_SPAWN, [], true)
+
+    // Spawn archers with randomized routes (inactive until combat phase)
+    for (const spawnPos of ARCHER_SPAWN_POSITIONS) {
+      const route = generateRandomPatrolRoute(spawnPos, map, 3)
+      this.enemies.push(new BokoblinArcher({ ...spawnPos }, route))
+    }
+
+    // Spawn key Bokoblin at a random position
+    const keyPos = getRandomKeyPosition(map)
+    const keyBok = new Bokoblin(keyPos, [], true)
     this.keyBokoblin = keyBok
     this.enemies.push(keyBok)
   }
@@ -155,7 +184,9 @@ export class Stage1 implements IStage {
       }
     }
 
-    // Cleanup dead enemies
+    // Cleanup dead enemies — count newly dead for cross-stage kill tracking
+    const deadCount = this.enemies.filter((e) => e.isFullyDead()).length
+    this.totalEnemiesDefeated += deadCount
     this.enemies = this.enemies.filter((e) => !e.isFullyDead())
 
     // Mark clear objective when all enemies defeated (defensive; isComplete() also marks it)
@@ -357,7 +388,21 @@ export class Stage1 implements IStage {
   }
 
   getStats(): { enemiesDefeated: number; damageTaken: number } {
-    return { enemiesDefeated: 0, damageTaken: 0 }
+    return { enemiesDefeated: this.totalEnemiesDefeated, damageTaken: 0 }
+  }
+
+  /** Collect pending archer projectile requests for ProjectileManager */
+  getArcherProjectileRequests(): ProjectileSpawnRequest[] {
+    // Only spawn archer projectiles during combat phase
+    if (!this.combatPhaseActive) return []
+    const requests: ProjectileSpawnRequest[] = []
+    for (const enemy of this.enemies) {
+      if (enemy instanceof BokoblinArcher && enemy.isAlive()) {
+        const req = enemy.getProjectileRequest()
+        if (req) requests.push(req)
+      }
+    }
+    return requests
   }
 
   getEnemies(): Enemy[] {

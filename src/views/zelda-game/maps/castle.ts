@@ -4,10 +4,10 @@ import { TILE_SIZE } from '../utils/constants'
 const CHAR_MAP: Record<string, TileType> = {
   '#': 'wall',
   '.': 'ground',
-  'P': 'pillar',
-  'S': 'ground',  // spawn markers are ground tiles
-  'G': 'ground',
-  'Z': 'ground',
+  P: 'pillar',
+  S: 'ground', // spawn markers are ground tiles
+  G: 'ground',
+  Z: 'ground',
 }
 
 // Castle throne room: 25 cols × 19 rows (800×608px)
@@ -43,7 +43,7 @@ const MAP_DATA = `
 
 function parseMap(data: string): TileType[][] {
   const rows = data.split('\n')
-  const tiles = rows.map((row) => [...row].map((ch) => CHAR_MAP[ch] ?? 'empty'))
+  const tiles = rows.map((row) => Array.from(row).map((ch) => CHAR_MAP[ch] ?? 'empty'))
   const width = tiles[0]?.length ?? 0
   if (width === 0 || !tiles.every((row) => row.length === width)) {
     throw new Error(`Castle map rows must all be ${width} chars wide`)
@@ -51,7 +51,10 @@ function parseMap(data: string): TileType[][] {
   return tiles
 }
 
-const tp = (col: number, row: number): Vec2 => ({ x: col * TILE_SIZE + TILE_SIZE / 2, y: row * TILE_SIZE + TILE_SIZE / 2 })
+const tp = (col: number, row: number): Vec2 => ({
+  x: col * TILE_SIZE + TILE_SIZE / 2,
+  y: row * TILE_SIZE + TILE_SIZE / 2,
+})
 
 export const CASTLE_PLAYER_SPAWN: Vec2 = tp(12, 16)
 export const CASTLE_GANON_SPAWN: Vec2 = tp(12, 3)

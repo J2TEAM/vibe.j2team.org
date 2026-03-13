@@ -2,16 +2,13 @@ import { TILE_SIZE } from '../utils/constants'
 import type { AABB, Vec2, TileMap, TileType, Direction } from '../utils/types'
 
 /** Tiles that entities can walk on */
-const WALKABLE_TILES: Set<TileType> = new Set(['empty', 'ground', 'bush'])
+const WALKABLE_TILES: Set<TileType> = new Set(['empty', 'ground', 'bush'] as const)
 
 export class Physics {
   /** Check if two AABBs overlap */
   static overlaps(a: AABB, b: AABB): boolean {
     return (
-      a.x < b.x + b.width &&
-      a.x + a.width > b.x &&
-      a.y < b.y + b.height &&
-      a.y + a.height > b.y
+      a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y
     )
   }
 
@@ -45,12 +42,7 @@ export class Physics {
    * Try full movement first. If blocked, try X-only, then Y-only.
    * Returns the resolved position.
    */
-  static resolveMovement(
-    map: TileMap,
-    currentPos: Vec2,
-    desiredPos: Vec2,
-    size: Vec2,
-  ): Vec2 {
+  static resolveMovement(map: TileMap, currentPos: Vec2, desiredPos: Vec2, size: Vec2): Vec2 {
     const result = { x: currentPos.x, y: currentPos.y }
 
     // Try full movement
@@ -83,11 +75,7 @@ export class Physics {
   }
 
   /** Find all entities within radius of a point */
-  static findEntitiesInRadius(
-    entities: AABB[],
-    center: Vec2,
-    radius: number,
-  ): number[] {
+  static findEntitiesInRadius(entities: AABB[], center: Vec2, radius: number): number[] {
     const indices: number[] = []
     const r2 = radius * radius
     for (let i = 0; i < entities.length; i++) {
@@ -142,13 +130,7 @@ export class Physics {
    * Ray march from (x0,y0) to (x1,y1) checking for blocking tiles.
    * Uses 4px steps. Walls and trees block LOS; bushes do NOT.
    */
-  static isLineOfSightClear(
-    map: TileMap,
-    x0: number,
-    y0: number,
-    x1: number,
-    y1: number,
-  ): boolean {
+  static isLineOfSightClear(map: TileMap, x0: number, y0: number, x1: number, y1: number): boolean {
     const STEP = 4
     const dx = x1 - x0
     const dy = y1 - y0

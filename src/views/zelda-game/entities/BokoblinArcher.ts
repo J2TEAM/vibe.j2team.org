@@ -61,11 +61,12 @@ export class BokoblinArcher extends Enemy {
     }
     this.animation.play('idle', this.direction)
 
-    // RT#12: don't reset fire timer when out of range — patrol instead
+    // When out of firing range — chase the player
     const inRange = dist <= ARCHER_DETECTION_RANGE
     if (!inRange) {
       this.wasInRange = false
-      // Delegate to base Enemy state machine so patrol/alert/chase logic runs
+      // Force chase so archer pursues Link instead of patrolling
+      this.aiState = 'chase'
       super.updateAI(dt, player, map)
       return
     }
@@ -132,16 +133,6 @@ export class BokoblinArcher extends Enemy {
 
     this.drawWithBlink(ctx, (c) => {
       this.drawSprite(c)
-
-      // Red tint overlay for damage flash
-      if (this.getDamageFlashProgress() > 0) {
-        c.save()
-        c.globalAlpha = this.getDamageFlashProgress() * 0.7
-        c.fillStyle = '#ff0000'
-        const offset = (ENEMY_SPRITE_SIZE - ENEMY_SIZE) / 2
-        c.fillRect(this.pos.x - offset, this.pos.y - offset, ENEMY_SPRITE_SIZE, ENEMY_SPRITE_SIZE)
-        c.restore()
-      }
     })
   }
 

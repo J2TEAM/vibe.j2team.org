@@ -27,6 +27,7 @@ import {
   HAPTIC_STAGE_CLEAR,
   HAPTIC_GAME_OVER,
   EFFECTS_DEBUG,
+  DEBUG_OVERLAY,
 } from '../utils/constants'
 import type { GameState, Vec2, HUDState, DialogLine, VictoryStats } from '../utils/types'
 import type { IStage } from '../stages/IStage'
@@ -45,6 +46,12 @@ import { Stage2 } from '../stages/Stage2'
 import { Stage3 } from '../stages/Stage3'
 import { ProjectileManager } from '../systems/ProjectileManager'
 import { Dialog } from '../systems/Dialog'
+import { StartScreenRenderer } from './StartScreenRenderer'
+import { CanvasOverlayRenderer } from './canvas-overlay-renderer'
+import { CanvasMenuRenderer } from './canvas-menu-renderer'
+import type { MenuButton } from './canvas-menu-renderer'
+import { CanvasTouchControlsRenderer } from './canvas-touch-controls-renderer'
+import { toCanvasCoords } from './canvas-utils'
 
 export class Game {
   private canvas: HTMLCanvasElement
@@ -56,13 +63,25 @@ export class Game {
   private frameCount = 0
   state: GameState = 'loading'
 
-  // Phase 3: Vue Overlays
-  public readonly USE_VUE_OVERLAYS = true
   private stats: VictoryStats = { totalTime: 0, enemiesDefeated: 0, damageTaken: 0 }
   private transitionLock = false
 
   private camera = new Camera()
   private renderer = new Renderer()
+  private startScreenRenderer = new StartScreenRenderer()
+  private overlayRenderer = new CanvasOverlayRenderer()
+  private overlayButtons: MenuButton[] = []
+  private overlaySelectedIdx = 0
+  private prevOverlayUp = false
+  private prevOverlayDown = false
+  private overlayClickListener: ((e: PointerEvent) => void) | null = null
+  private missionGuideShown = false
+  private readonly MISSION_GUIDE_LINES: DialogLine[] = [
+    { speaker: 'Link', text: 'Khu rừng này đầy rẫy Bokoblin tuần tra...' },
+    { speaker: 'Link', text: 'Phải lẻn qua chúng. Nếu bị phát hiện, chiến đấu là khó tránh.' },
+    { speaker: 'Link', text: 'Tìm chìa khóa từ tên Bokoblin chỉ huy, mở rương để lấy vũ khí.' },
+    { speaker: 'Link', text: 'Sau đó mở cổng phía Bắc để thoát khỏi khu rừng.' },
+  ]
   private currentMap = createForestMap()
   readonly input: Input
   private player: Player
@@ -87,6 +106,9 @@ export class Game {
   // Victory / navigation
   private homeRequested = false
 
+  // Touch controls (only on coarse-pointer / touch devices)
+  private touchControls: CanvasTouchControlsRenderer | null = null
+
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
     this.canvas.width = CANVAS_WIDTH
@@ -102,6 +124,14 @@ export class Game {
     document.addEventListener('visibilitychange', this.onVisibilityChange)
     window.addEventListener('keydown', this.onAudioGesture)
     canvas.addEventListener('pointerdown', this.onAudioGesture)
+    canvas.addEventListener('pointerdown', this.onStartScreenClick)
+    this.setupOverlayClickListener()
+
+    // Instantiate touch controls on touch devices (coarse pointer = touchscreen)
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      this.touchControls = new CanvasTouchControlsRenderer(this.input)
+      this.setupTouchControlsListeners()
+    }
 
     this.projectileManager.onPlayerHit = (damage: number) => {
       this.effects.screenFlash('rgba(255, 0, 0, 0.3)', SCREEN_FLASH_DURATION)
@@ -211,7 +241,7 @@ export class Game {
 
   start(): void {
     this.running = true
-    this.state = 'playing'
+    this.state = 'start_screen'
     this.transitionLock = false
     this.lastTime = performance.now()
     this.rafId = requestAnimationFrame(this.loop)
@@ -224,6 +254,17 @@ export class Game {
     document.removeEventListener('visibilitychange', this.onVisibilityChange)
     window.removeEventListener('keydown', this.onAudioGesture)
     this.canvas.removeEventListener('pointerdown', this.onAudioGesture)
+    this.canvas.removeEventListener('pointerdown', this.onStartScreenClick)
+    if (this.overlayClickListener) {
+      this.canvas.removeEventListener('pointerdown', this.overlayClickListener)
+    }
+    if (this.touchControls) {
+      this.canvas.removeEventListener('touchstart', this.onTouchStart)
+      this.canvas.removeEventListener('touchmove', this.onTouchMove)
+      this.canvas.removeEventListener('touchend', this.onTouchEnd)
+      this.canvas.removeEventListener('touchcancel', this.onTouchEnd)
+      this.touchControls.reset()
+    }
     audio.reset()
   }
 
@@ -258,6 +299,22 @@ export class Game {
     }
 
     const inputState = this.input.getState()
+
+    // Start screen: any directional/action input transitions to gameplay
+    if (this.state === 'start_screen') {
+      if (
+        inputState.attackJustPressed ||
+        inputState.interactJustPressed ||
+        inputState.pauseJustPressed ||
+        inputState.up ||
+        inputState.down ||
+        inputState.left ||
+        inputState.right
+      ) {
+        this.startGame()
+      }
+      return
+    }
 
     // Dialog system takes priority — pause all game logic while dialog is active
     if (this.dialog.isActive()) {
@@ -318,6 +375,31 @@ export class Game {
       return
     }
 
+    // Overlay keyboard navigation (paused / game_over done / victory)
+    if (
+      this.state === 'paused' ||
+      (this.state === 'game_over' && this.gameOverPhase === 'done') ||
+      this.state === 'victory'
+    ) {
+      if (inputState.up && !this.prevOverlayUp) {
+        this.overlaySelectedIdx = Math.max(0, this.overlaySelectedIdx - 1)
+      }
+      if (inputState.down && !this.prevOverlayDown) {
+        this.overlaySelectedIdx = Math.min(
+          this.overlayButtons.length - 1,
+          this.overlaySelectedIdx + 1,
+        )
+      }
+      this.prevOverlayUp = inputState.up
+      this.prevOverlayDown = inputState.down
+
+      if (inputState.attackJustPressed || inputState.interactJustPressed) {
+        const btn = this.overlayButtons[this.overlaySelectedIdx]
+        if (btn) this.handleOverlayAction(btn.action)
+      }
+      return
+    }
+
     if (this.state !== 'playing') return
 
     // [RED TEAM #13] Block pause during item-get sequence to prevent softlock
@@ -355,8 +437,12 @@ export class Game {
       }
     }
 
-    // Spawn archer projectiles (Stage 2 only)
-    if (this.currentStage instanceof Stage2) {
+    // Spawn archer projectiles (all stages with archers)
+    if (
+      this.currentStage instanceof Stage1 ||
+      this.currentStage instanceof Stage2 ||
+      this.currentStage instanceof Stage3
+    ) {
       const archerRequests = this.currentStage.getArcherProjectileRequests()
       for (const req of archerRequests) {
         this.projectileManager.spawn(req)
@@ -419,45 +505,53 @@ export class Game {
         // Stage 3 is the final stage — handle victory actions
         const stage3 = this.currentStage as Stage3
 
-        if (this.USE_VUE_OVERLAYS) {
-          // Victory sequence: white flash → camera shake → fade to black → victory screen
-          // (Red Team #12: timer-based, no setTimeout)
-          if (this.victoryPhase === 'none') {
-            this.victoryPhase = 'flash'
-            this.effects.screenFlash('#ffffff', VICTORY_FLASH_DURATION)
-            this.camera.addShake(8, 0.5)
-            audio.stopMusic()
-            audio.playVictoryFanfare()
-            Input.vibrate(HAPTIC_STAGE_CLEAR)
-          }
-          if (this.victoryPhase === 'flash' && !this.effects.isFading()) {
-            this.victoryPhase = 'fade'
-            this.effects.screenFade('#000000', 0.8, () => {
-              // midpoint: fully black — show victory screen under fade-out
-              const stageStats = stage3.getStats()
-              this.stats.enemiesDefeated = stageStats.enemiesDefeated
-              this.stats.damageTaken = stageStats.damageTaken
-              this.setState('victory')
-              this.victoryPhase = 'done'
-              this.transitionLock = true
-            })
-          }
-          return
-        } else {
-          // Fallback to canvas
-          stage3.setVictoryScreenEnabled(true)
-
-          const action = stage3.getVictoryAction()
-          if (action === 'play_again') {
-            this.restartFromStage1()
-          } else if (action === 'home') {
-            this.homeRequested = true
-          }
-          return
+        // Victory sequence: white flash → camera shake → fade to black → show overlay
+        // (Red Team #12: timer-based, no setTimeout)
+        if (this.victoryPhase === 'none') {
+          this.victoryPhase = 'flash'
+          this.effects.screenFlash('#ffffff', VICTORY_FLASH_DURATION)
+          this.camera.addShake(8, 0.5)
+          audio.stopMusic()
+          audio.playVictoryFanfare()
+          Input.vibrate(HAPTIC_STAGE_CLEAR)
         }
+        if (this.victoryPhase === 'flash' && !this.effects.isFading()) {
+          this.victoryPhase = 'fade'
+          this.effects.screenFade('#000000', 0.8, () => {
+            // midpoint: fully black — show victory overlay (canvas or Vue)
+            // Accumulate Stage 3 kills on top of kills from previous stages
+            const stageStats = stage3.getStats()
+            this.stats.enemiesDefeated += stageStats.enemiesDefeated
+            this.stats.damageTaken += stageStats.damageTaken
+            this.setState('victory')
+            this.victoryPhase = 'done'
+            this.transitionLock = true
+          })
+        }
+        return
       }
       this.startTransition()
       return
+    }
+  }
+
+  /** Transition from start screen to gameplay; shows one-time mission briefing. */
+  private startGame(): void {
+    this.state = 'playing'
+    if (!audio.isInitialized) {
+      audio.init()
+      audio.playOverworldMusic()
+    }
+    if (!this.missionGuideShown) {
+      this.missionGuideShown = true
+      this.dialog.show(this.MISSION_GUIDE_LINES)
+    }
+  }
+
+  /** Canvas click handler: start game when on start screen. */
+  private onStartScreenClick = (): void => {
+    if (this.state === 'start_screen') {
+      this.startGame()
     }
   }
 
@@ -477,6 +571,12 @@ export class Game {
 
   private render(): void {
     const { ctx } = this
+
+    // Start screen: draw title canvas and skip all game world rendering
+    if (this.state === 'start_screen') {
+      this.startScreenRenderer.draw(ctx, performance.now() / 1000)
+      return
+    }
 
     // Game-over desaturation: apply grayscale filter to entire scene
     if (this.gameOverPhase !== 'none') {
@@ -536,7 +636,9 @@ export class Game {
       }
       this.renderer.drawHUD(ctx, hudState)
     }
-    this.renderer.drawFPS(ctx, this.fps)
+    if (DEBUG_OVERLAY) {
+      this.renderer.drawFPS(ctx, this.fps)
+    }
 
     if (EFFECTS_DEBUG) {
       const stats = this.effects.getPoolStats()
@@ -549,23 +651,30 @@ export class Game {
       )
     }
 
-    const stageStatus = this.currentStage.getStatus()
-    this.renderer.drawDebugInfo(ctx, {
-      entityCount: ((stageStatus['enemyCount'] as number) ?? 0) + 1,
-      playerPos: this.player.pos,
-      playerHealth: this.player.health,
-      playerMaxHealth: this.player.maxHealth,
-      state: this.state,
-      stageStatus:
-        this.currentStageNumber === 1
-          ? (stageStatus as {
-              keyCollected: boolean
-              chestOpened: boolean
-              gateOpen: boolean
-              alertCount: number
-            })
-          : undefined,
-    })
+    if (DEBUG_OVERLAY) {
+      const stageStatus = this.currentStage.getStatus()
+      this.renderer.drawDebugInfo(ctx, {
+        entityCount: ((stageStatus['enemyCount'] as number) ?? 0) + 1,
+        playerPos: this.player.pos,
+        playerHealth: this.player.health,
+        playerMaxHealth: this.player.maxHealth,
+        state: this.state,
+        stageStatus:
+          this.currentStageNumber === 1
+            ? (stageStatus as {
+                keyCollected: boolean
+                chestOpened: boolean
+                gateOpen: boolean
+                alertCount: number
+              })
+            : undefined,
+      })
+    }
+
+    // Touch controls overlay (only on touch devices, only while playing)
+    if (this.state === 'playing' && this.touchControls) {
+      this.touchControls.draw(ctx, this.player.hasWeapon('sword'))
+    }
 
     // Screen effects (popups, flash, fade) — after HUD, before dialog
     this.effects.drawScreen(
@@ -583,8 +692,22 @@ export class Game {
       this.renderer.drawRedVignette(ctx, pulse * LOW_HEALTH_VIGNETTE_MAX)
     }
 
-    if (this.state === 'game_over' && !this.USE_VUE_OVERLAYS) {
-      this.drawGameOver(ctx)
+    // Canvas overlays: pause, game-over, victory
+    const t = performance.now() / 1000
+    if (this.state === 'paused') {
+      this.overlayRenderer.drawPause(ctx, this.overlayButtons, this.overlaySelectedIdx, t)
+    }
+    if (this.state === 'game_over' && this.gameOverPhase === 'done') {
+      this.overlayRenderer.drawGameOver(ctx, this.overlayButtons, this.overlaySelectedIdx, t)
+    }
+    if (this.state === 'victory') {
+      this.overlayRenderer.drawVictory(
+        ctx,
+        this.stats,
+        this.overlayButtons,
+        this.overlaySelectedIdx,
+        t,
+      )
     }
 
     if (this.state === 'stage_transition' && this.transitionPhase === 'banner') {
@@ -604,22 +727,139 @@ export class Game {
     ctx.filter = 'none'
   }
 
-  private drawGameOver(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+  private setupOverlayClickListener(): void {
+    this.overlayClickListener = (e: PointerEvent) => {
+      if (this.state !== 'paused' && this.state !== 'game_over' && this.state !== 'victory') return
+      const coords = toCanvasCoords(e.clientX, e.clientY, this.canvas)
+      const idx = CanvasMenuRenderer.hitTest(this.overlayButtons, coords.x, coords.y)
+      if (idx >= 0) {
+        const btn = this.overlayButtons[idx]
+        if (btn) this.handleOverlayAction(btn.action)
+      }
+    }
+    this.canvas.addEventListener('pointerdown', this.overlayClickListener)
+  }
 
-    ctx.fillStyle = '#EF4444'
-    ctx.font = 'bold 32px monospace'
-    ctx.textAlign = 'center'
-    ctx.fillText('Trò chơi kết thúc', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 20)
+  private setupTouchControlsListeners(): void {
+    this.canvas.addEventListener('touchstart', this.onTouchStart, { passive: false })
+    this.canvas.addEventListener('touchmove', this.onTouchMove, { passive: false })
+    this.canvas.addEventListener('touchend', this.onTouchEnd)
+    this.canvas.addEventListener('touchcancel', this.onTouchEnd)
+  }
 
-    ctx.fillStyle = '#F0EDE6'
-    ctx.font = '14px monospace'
-    ctx.fillText('Nhấn phím bất kỳ để chơi lại', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 20)
-    ctx.textAlign = 'start'
+  private onTouchStart = (e: TouchEvent): void => {
+    if (!this.touchControls || this.state !== 'playing') return
+    e.preventDefault()
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i]
+      if (!touch) continue
+      const coords = toCanvasCoords(touch.clientX, touch.clientY, this.canvas)
+      this.touchControls.handleTouchStart(touch.identifier, coords.x, coords.y)
+    }
+  }
+
+  private onTouchMove = (e: TouchEvent): void => {
+    if (!this.touchControls || this.state !== 'playing') return
+    e.preventDefault()
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i]
+      if (!touch) continue
+      const coords = toCanvasCoords(touch.clientX, touch.clientY, this.canvas)
+      this.touchControls.handleTouchMove(touch.identifier, coords.x, coords.y)
+    }
+  }
+
+  private onTouchEnd = (e: TouchEvent): void => {
+    if (!this.touchControls) return
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i]
+      if (!touch) continue
+      this.touchControls.handleTouchEnd(touch.identifier)
+    }
+  }
+
+  private handleOverlayAction(action: string): void {
+    switch (action) {
+      case 'resume':
+        this.resume()
+        break
+      case 'restart':
+        this.restart()
+        break
+      case 'full_restart':
+        this.fullRestart()
+        break
+      case 'home':
+        this.homeRequested = true
+        break
+    }
+    // Reset selection and nav edge-detect state after any action
+    this.overlaySelectedIdx = 0
+    this.prevOverlayUp = false
+    this.prevOverlayDown = false
+  }
+
+  private buildPauseButtons(): MenuButton[] {
+    const cx = CANVAS_WIDTH / 2
+    const cy = CANVAS_HEIGHT / 2
+    const w = 220
+    const h = 36
+    const gap = 10
+    const startY = cy - 30
+    return [
+      { x: cx - w / 2, y: startY, w, h, label: 'TI\u1EECP T\u1EE4C', action: 'resume' },
+      {
+        x: cx - w / 2,
+        y: startY + h + gap,
+        w,
+        h,
+        label: 'CH\u01A0I L\u1EA0I M\u00C0N N\u00C0Y',
+        action: 'restart',
+      },
+      {
+        x: cx - w / 2,
+        y: startY + (h + gap) * 2,
+        w,
+        h,
+        label: 'V\u1EC0 TRANG CH\u1EE6',
+        action: 'home',
+      },
+    ]
+  }
+
+  private buildGameOverButtons(): MenuButton[] {
+    const cx = CANVAS_WIDTH / 2
+    const cy = CANVAS_HEIGHT / 2
+    const w = 200
+    const h = 36
+    const gap = 10
+    const startY = cy + 30
+    return [
+      { x: cx - w / 2, y: startY, w, h, label: 'TH\u1EEC L\u1EA0I', action: 'restart' },
+      { x: cx - w / 2, y: startY + h + gap, w, h, label: 'V\u1EC0 TRANG CH\u1EE6', action: 'home' },
+    ]
+  }
+
+  private buildVictoryButtons(): MenuButton[] {
+    const cx = CANVAS_WIDTH / 2
+    const cy = CANVAS_HEIGHT / 2
+    const w = 200
+    const h = 36
+    const gap = 10
+    const startY = cy + 80
+    return [
+      { x: cx - w / 2, y: startY, w, h, label: 'CH\u01A0I L\u1EA0I', action: 'full_restart' },
+      { x: cx - w / 2, y: startY + h + gap, w, h, label: 'V\u1EC0 TRANG CH\u1EE6', action: 'home' },
+    ]
   }
 
   private loadStage2(): void {
+    // Accumulate Stage 1 kills into the running total before switching stages
+    const stage1Stats = this.currentStage.getStats?.()
+    if (stage1Stats) {
+      this.stats.enemiesDefeated += stage1Stats.enemiesDefeated
+      this.stats.damageTaken += stage1Stats.damageTaken
+    }
     this.currentStageNumber = 2
     this.currentMap = createBridgeMap()
     this.currentStage = new Stage2()
@@ -640,11 +880,17 @@ export class Game {
   }
 
   private loadStage3(): void {
+    // Accumulate Stage 2 kills into the running total before switching stages
+    const stage2Stats = this.currentStage.getStats?.()
+    if (stage2Stats) {
+      this.stats.enemiesDefeated += stage2Stats.enemiesDefeated
+      this.stats.damageTaken += stage2Stats.damageTaken
+    }
     this.currentStageNumber = 3
     this.currentMap = createCastleMap()
     const stage3 = new Stage3()
     stage3.setDialogCallback((lines, onComplete) => this.showDialog(lines, onComplete))
-    stage3.setVictoryScreenEnabled(!this.USE_VUE_OVERLAYS)
+    stage3.setVictoryScreenEnabled(false) // canvas-overlay-renderer handles victory display
     this.currentStage = stage3
     this.player.setMaxHealth(STAGE2_PLAYER_MAX_HEALTH) // 5 hearts
     const spawnPos = this.findWalkableSpawn(this.currentStage.playerSpawn)
@@ -705,7 +951,7 @@ export class Game {
       this.currentMap = createCastleMap()
       const stage3 = new Stage3()
       stage3.setDialogCallback((lines, onComplete) => this.showDialog(lines, onComplete))
-      stage3.setVictoryScreenEnabled(!this.USE_VUE_OVERLAYS)
+      stage3.setVictoryScreenEnabled(false) // canvas-overlay-renderer handles victory display
       this.currentStage = stage3
       this.player.setMaxHealth(STAGE2_PLAYER_MAX_HEALTH)
     }
@@ -726,6 +972,16 @@ export class Game {
 
   setState(state: GameState): void {
     this.state = state
+    this.overlaySelectedIdx = 0
+    // Pre-build button layout for overlay states so render() just reads cached data
+    if (state === 'paused') this.overlayButtons = this.buildPauseButtons()
+    else if (state === 'game_over') this.overlayButtons = this.buildGameOverButtons()
+    else if (state === 'victory') this.overlayButtons = this.buildVictoryButtons()
+    else this.overlayButtons = []
+    // Reset touch controls when leaving playing state so no stuck inputs
+    if (state !== 'playing' && this.touchControls) {
+      this.touchControls.reset()
+    }
   }
 
   /** Show a dialog overlay. Stages call this via the callback injected at construction. */

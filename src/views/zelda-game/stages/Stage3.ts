@@ -8,6 +8,7 @@ import type {
   DestructiblePillar,
   GanonPhase,
   DialogLine,
+  ProjectileSpawnRequest,
 } from '../utils/types'
 import {
   TILE_SIZE,
@@ -44,6 +45,7 @@ import {
 import { Input } from '../engine/Input'
 import { Ganon } from '../entities/Ganon'
 import { Bokoblin } from '../entities/Bokoblin'
+import { BokoblinArcher } from '../entities/BokoblinArcher'
 import type { Effects } from '../engine/Effects'
 import { Physics } from '../engine/Physics'
 import type { Renderer } from '../engine/Renderer'
@@ -644,10 +646,19 @@ export class Stage3 implements IStage {
   private spawnMinions(): void {
     if (!this.ganon) return
     const positions = this.ganon.getMinionSpawnPositions()
-    for (const pos of positions) {
-      const minion = new Bokoblin({ ...pos }, [])
-      minion.setAggressive()
-      this.minions.push(minion)
+    const config = this.ganon.getMinionConfig()
+
+    // Spawn melee Bokoblins first, then archers
+    for (let i = 0; i < positions.length; i++) {
+      const pos = positions[i]!
+      if (i < config.melee) {
+        const minion = new Bokoblin({ ...pos }, [])
+        minion.setAggressive()
+        this.minions.push(minion)
+      } else {
+        const archer = new BokoblinArcher({ ...pos }, [])
+        this.minions.push(archer)
+      }
     }
   }
 
@@ -1238,5 +1249,17 @@ export class Stage3 implements IStage {
       enemiesDefeated: this.totalEnemiesDefeated,
       damageTaken: this.totalDamageTaken,
     }
+  }
+
+  /** Collect pending archer projectile requests from minion archers */
+  getArcherProjectileRequests(): ProjectileSpawnRequest[] {
+    const requests: ProjectileSpawnRequest[] = []
+    for (const minion of this.minions) {
+      if (minion instanceof BokoblinArcher && minion.isAlive()) {
+        const req = minion.getProjectileRequest()
+        if (req) requests.push(req)
+      }
+    }
+    return requests
   }
 }

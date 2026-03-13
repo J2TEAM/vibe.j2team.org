@@ -10,13 +10,25 @@ import {
   drawFireTile,
 } from '../utils/sprites'
 import {
-  LYNEL_HP, LYNEL_SIZE, LYNEL_SPEED, LYNEL_BERSERK_SPEED,
-  LYNEL_CHARGE_WINDUP_P1, LYNEL_CHARGE_WINDUP_P2, LYNEL_CHARGE_SPEED,
-  LYNEL_STUN_DURATION, LYNEL_SLASH_DAMAGE, LYNEL_SLASH_RANGE,
-  LYNEL_BERSERK_DAMAGE, LYNEL_SLASH_COOLDOWN,
-  LYNEL_FIRE_CONE_RANGE, FIRE_TILE_DURATION,
-  LYNEL_PHASE2_HP, LYNEL_PHASE3_HP,
-  BOSS_ARENA_LEFT, BOSS_ARENA_RIGHT, TILE_SIZE,
+  LYNEL_HP,
+  LYNEL_SIZE,
+  LYNEL_SPEED,
+  LYNEL_BERSERK_SPEED,
+  LYNEL_CHARGE_WINDUP_P1,
+  LYNEL_CHARGE_WINDUP_P2,
+  LYNEL_CHARGE_SPEED,
+  LYNEL_STUN_DURATION,
+  LYNEL_SLASH_DAMAGE,
+  LYNEL_SLASH_RANGE,
+  LYNEL_BERSERK_DAMAGE,
+  LYNEL_SLASH_COOLDOWN,
+  LYNEL_FIRE_CONE_RANGE,
+  FIRE_TILE_DURATION,
+  LYNEL_PHASE2_HP,
+  LYNEL_PHASE3_HP,
+  BOSS_ARENA_LEFT,
+  BOSS_ARENA_RIGHT,
+  TILE_SIZE,
   LYNEL_SPRITE_SIZE,
 } from '../utils/constants'
 
@@ -292,13 +304,23 @@ export class Lynel extends Enemy {
           this.slashHitbox = { x: center.x, y: center.y - width / 2, width: reach, height: width }
           break
         case 'left':
-          this.slashHitbox = { x: center.x - reach, y: center.y - width / 2, width: reach, height: width }
+          this.slashHitbox = {
+            x: center.x - reach,
+            y: center.y - width / 2,
+            width: reach,
+            height: width,
+          }
           break
         case 'down':
           this.slashHitbox = { x: center.x - width / 2, y: center.y, width: width, height: reach }
           break
         case 'up':
-          this.slashHitbox = { x: center.x - width / 2, y: center.y - reach, width: width, height: reach }
+          this.slashHitbox = {
+            x: center.x - width / 2,
+            y: center.y - reach,
+            width: width,
+            height: reach,
+          }
           break
       }
 
@@ -385,9 +407,8 @@ export class Lynel extends Enemy {
 
   private startChargeWindup(player: Player): void {
     this._ai = 'charge_windup'
-    this.chargeWindupDuration = this.phase === 'charge'
-      ? LYNEL_CHARGE_WINDUP_P1
-      : LYNEL_CHARGE_WINDUP_P2
+    this.chargeWindupDuration =
+      this.phase === 'charge' ? LYNEL_CHARGE_WINDUP_P1 : LYNEL_CHARGE_WINDUP_P2
     this.chargeWindupTimer = this.chargeWindupDuration
     this.facePlayer(player)
   }
@@ -552,7 +573,14 @@ export class Lynel extends Enemy {
     if (this._ai === 'fire_breathing') {
       const center = this.getCenter()
       const angle = Physics.directionToAngle(this.direction)
-      drawFireBreathCone(ctx, center.x, center.y, angle, LYNEL_FIRE_CONE_RANGE, FIRE_CONE_HALF_ANGLE)
+      drawFireBreathCone(
+        ctx,
+        center.x,
+        center.y,
+        angle,
+        LYNEL_FIRE_CONE_RANGE,
+        FIRE_CONE_HALF_ANGLE,
+      )
     }
 
     this.drawWithBlink(ctx, () => {
@@ -578,13 +606,6 @@ export class Lynel extends Enemy {
       const frame = this.animation.getCurrentFrame()
       if (frame) {
         frame.draw(ctx, this.pos.x, this.pos.y, LYNEL_SPRITE_SIZE, this.direction)
-      }
-
-      // Damage flash overlay
-      if (this.getDamageFlashProgress() > 0) {
-        ctx.globalCompositeOperation = 'source-atop'
-        ctx.fillStyle = `rgba(255, 0, 0, ${this.getDamageFlashProgress() * 0.5})`
-        ctx.fillRect(this.pos.x, this.pos.y, LYNEL_SPRITE_SIZE, LYNEL_SPRITE_SIZE)
       }
 
       ctx.restore()

@@ -37,6 +37,8 @@ import {
   SPAWN_SMOKE_SIZE,
   HAPTIC_PLAYER_DAMAGE,
   HAPTIC_BOSS_HIT,
+  AMBIENT_DUST_COUNT,
+  AMBIENT_DRIFT_SPEED,
 } from '../utils/constants'
 import { Input } from '../engine/Input'
 import { Bokoblin } from '../entities/Bokoblin'
@@ -50,9 +52,9 @@ import type { Enemy } from '../entities/Enemy'
 import {
   BRIDGE_PLAYER_SPAWN,
   BRIDGE_BOSS_SPAWN,
-  BRIDGE_WAVE_CONFIGS,
-  BRIDGE_WAVE_SPAWN_POSITIONS,
-  BRIDGE_WAVE_ARCHER_PATROL_ROUTES,
+  generateRandomWaveConfigs,
+  generateWaveSpawnPositions,
+  generateArcherPatrolRoute,
 } from '../maps/bridge'
 import { drawHeartPickup, drawBossHealthBar } from '../utils/sprites'
 import type { IStage } from './IStage'
@@ -69,11 +71,15 @@ const BOSS_DEFEATED_TIME = 2.0
 
 export class Stage2 implements IStage {
   // --- Wave state (V3 simplified 3-counter) ---
+  private totalEnemiesDefeated = 0
   private waveIndex = 0
   private waveState: 'idle' | 'spawning' | 'fighting' | 'breather' = 'idle'
   private bossState: 'not_started' | 'intro' | 'fighting' | 'defeated' | 'completed' = 'not_started'
   private stateTimer = 0
   private waveTriggered: boolean[] = [false, false, false]
+
+  // --- Randomized wave configs (generated each game start) ---
+  private waveConfigs = generateRandomWaveConfigs()
 
   // --- Entities ---
   private enemies: Enemy[] = []
@@ -177,11 +183,21 @@ export class Stage2 implements IStage {
     }
     this.pendingSpawnEffects.length = 0
 
-    // Cleanup fully dead enemies
+    // Cleanup fully dead enemies — count newly dead for cross-stage kill tracking
+    const deadCount = this.enemies.filter((e) => e.isFullyDead()).length
+    this.totalEnemiesDefeated += deadCount
     this.enemies = this.enemies.filter((e) => !e.isFullyDead())
 
     // Update heart pickups
     this.updateHeartPickups(dt, player)
+
+    // Ambient bridge dust particles — drifting sand/debris for visual atmosphere
+    effects.emitAmbient(camera, DUST_COLORS, AMBIENT_DUST_COUNT, {
+      speed: AMBIENT_DRIFT_SPEED,
+      life: 4,
+      size: 1.5,
+      gravity: 5,
+    })
   }
 
   // ─── Wave System (V3 if-chain) ─────────────────────────────────────
@@ -201,7 +217,7 @@ export class Stage2 implements IStage {
 
     // Wave idle → check trigger
     if (this.waveState === 'idle' && this.waveIndex < 3 && !this.waveTriggered[this.waveIndex]) {
-      if (player.pos.x > BRIDGE_WAVE_CONFIGS[this.waveIndex]!.triggerX) {
+      if (player.pos.x > this.waveConfigs[this.waveIndex]!.triggerX) {
         this.spawnWave(this.waveIndex)
         this.waveTriggered[this.waveIndex] = true
         this.waveState = 'fighting'
@@ -255,8 +271,9 @@ export class Stage2 implements IStage {
   // ─── Wave Spawning ─────────────────────────────────────────────────
 
   private spawnWave(waveIndex: number): void {
-    const config = BRIDGE_WAVE_CONFIGS[waveIndex]!
-    const spawnPositions = BRIDGE_WAVE_SPAWN_POSITIONS[waveIndex]!
+    const config = this.waveConfigs[waveIndex]!
+    const totalCount = config.bokoblins + config.archers
+    const spawnPositions = generateWaveSpawnPositions(waveIndex, totalCount)
 
     for (let i = 0; i < config.bokoblins; i++) {
       const pos = spawnPositions[i]!
@@ -268,7 +285,7 @@ export class Stage2 implements IStage {
 
     for (let i = 0; i < config.archers; i++) {
       const pos = spawnPositions[config.bokoblins + i]!
-      const patrolRoute = BRIDGE_WAVE_ARCHER_PATROL_ROUTES[waveIndex]?.[i] ?? []
+      const patrolRoute = generateArcherPatrolRoute(pos, waveIndex)
       const archer = new BokoblinArcher({ ...pos }, patrolRoute)
       this.enemies.push(archer)
       this.pendingSpawnEffects.push({ x: pos.x + TILE_SIZE / 2, y: pos.y + TILE_SIZE / 2 })
@@ -326,6 +343,9 @@ export class Stage2 implements IStage {
 
       // Check Lynel defeated
       if (this.lynel.isFullyDead()) {
+        if (this.bossState !== 'defeated' && this.bossState !== 'completed') {
+          this.totalEnemiesDefeated++ // Count Lynel kill
+        }
         this.bossState = 'defeated'
         this.stateTimer = BOSS_DEFEATED_TIME
         this.objectives[3]!.completed = true
@@ -537,8 +557,12 @@ export class Stage2 implements IStage {
       drawHeartPickup(ctx, heart.x, heart.y, floatOffset)
     }
 
-    // 4. Draw wave indicator HUD
-    if (this.bossState === 'not_started' && this.waveState === 'fighting') {
+    // 4. Draw wave indicator HUD — only after first wave is triggered
+    if (
+      this.bossState === 'not_started' &&
+      this.waveState === 'fighting' &&
+      this.waveTriggered[this.waveIndex]
+    ) {
       this.drawWaveIndicator(ctx)
     }
 
@@ -665,6 +689,6 @@ export class Stage2 implements IStage {
   }
 
   getStats(): { enemiesDefeated: number; damageTaken: number } {
-    return { enemiesDefeated: 0, damageTaken: 0 }
+    return { enemiesDefeated: this.totalEnemiesDefeated, damageTaken: 0 }
   }
 }

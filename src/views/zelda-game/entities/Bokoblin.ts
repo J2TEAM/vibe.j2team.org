@@ -1,5 +1,11 @@
 import type { Vec2, TileMap, PatrolRoute } from '../utils/types'
-import { ENEMY_SIZE, ENEMY_SPEED, ENEMY_SPRITE_SIZE, BOKOBLIN_HP, SPRITE_SIZE } from '../utils/constants'
+import {
+  ENEMY_SIZE,
+  ENEMY_SPEED,
+  ENEMY_SPRITE_SIZE,
+  BOKOBLIN_HP,
+  SPRITE_SIZE,
+} from '../utils/constants'
 import { Enemy } from './Enemy'
 import { AnimationController } from '../engine/AnimationController'
 import { getBokoblinAnimations, getBokoblinKeySprite, drawDeathPoof } from '../utils/sprites'
@@ -10,13 +16,7 @@ export class Bokoblin extends Enemy {
   floatTimer = 0
 
   constructor(spawnPos: Vec2, patrolRoute: PatrolRoute, isKeyCarrier = false) {
-    super(
-      spawnPos,
-      patrolRoute,
-      ENEMY_SPEED,
-      BOKOBLIN_HP,
-      { x: ENEMY_SIZE, y: ENEMY_SIZE },
-    )
+    super(spawnPos, patrolRoute, ENEMY_SPEED, BOKOBLIN_HP, { x: ENEMY_SIZE, y: ENEMY_SIZE })
     // MUST be first after super() — BaseEntity.animation uses definite assignment assertion
     this.animation = new AnimationController(getBokoblinAnimations(), 'idle', 'down')
     this.isKeyCarrier = isKeyCarrier
@@ -43,7 +43,7 @@ export class Bokoblin extends Enemy {
       ctx.globalAlpha = Math.max(0, 1 - progress)
       this.drawSprite(ctx)
       ctx.restore()
-      
+
       const c = this.getCenter()
       drawDeathPoof(ctx, c.x, c.y, progress)
       return
@@ -51,17 +51,6 @@ export class Bokoblin extends Enemy {
 
     this.drawWithBlink(ctx, (c) => {
       this.drawSprite(c)
-
-      // Red tint overlay for damage flash
-      if (this.getDamageFlashProgress() > 0) {
-        c.save()
-        c.globalAlpha = this.getDamageFlashProgress() * 0.7
-        c.fillStyle = '#ff0000'
-        const offset = (ENEMY_SPRITE_SIZE - ENEMY_SIZE) / 2
-        // Cover the sprite area
-        c.fillRect(this.pos.x - offset, this.pos.y - offset, ENEMY_SPRITE_SIZE, ENEMY_SPRITE_SIZE)
-        c.restore()
-      }
     })
   }
 

@@ -18,6 +18,7 @@ export type Direction = 'up' | 'down' | 'left' | 'right'
 /** Game state machine states */
 export type GameState =
   | 'loading'
+  | 'start_screen'
   | 'playing'
   | 'paused'
   | 'game_over'
