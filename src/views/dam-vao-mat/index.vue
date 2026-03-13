@@ -135,6 +135,7 @@ watchEffect(() => {
 
 const initMediaPipe = async () => {
   try {
+    // @ts-expect-error - URL import is not recognized by TS but works in Vite
     const vision = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm')
 
     const filesetResolver = await vision.FilesetResolver.forVisionTasks(
@@ -189,7 +190,7 @@ const { resume } = useRafFn(() => {
       const face = detections[Math.floor(Math.random() * detections.length)]
       const containerRect = containerRef.value?.getBoundingClientRect()
 
-      if (containerRect && face.boundingBox) {
+      if (containerRect && face?.boundingBox) {
         const videoWidth = video.videoWidth
         const videoHeight = video.videoHeight
         const videoRatio = videoWidth / videoHeight
@@ -231,9 +232,8 @@ const { resume } = useRafFn(() => {
         const startScale = Math.random() * 1 // Bắt đầu rất to (cảm giác bay từ gần cam vào mặt)
         const rotation = (Math.random() - 0.5) * 60
         const flipX = startX < 0
-        const label = ['BAM!', 'POW!', 'WHACK!', 'SMASH!', 'CHẾT MÀY NÈ!'][
-          Math.floor(Math.random() * 5)
-        ]
+        const labels = ['BAM!', 'POW!', 'WHACK!', 'SMASH!', 'CHẾT MÀY NÈ!']
+        const label = labels[Math.floor(Math.random() * labels.length)] || 'BAM!'
 
         const id = Math.random().toString(36).substring(7)
         const newPunch: Punch = {
