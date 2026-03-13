@@ -15,6 +15,7 @@ const globalError = ref('')
 const stream = ref<MediaStream | null>(null)
 const analyser = ref<AnalyserNode | null>(null)
 const volume = ref(0)
+const isComponentMounted = ref(true)
 const gainLevel = ref(100) // 0-100%, mặc định 100%
 const isRecording = ref(false)
 const audioUrl = ref<string | null>(null)
@@ -23,6 +24,7 @@ let chunks: Blob[] = []
 let animationId: number | null = null
 let audioCtx: AudioContext | null = null
 let gainNode: GainNode | null = null
+let currentRequestId = 0
 
 // Quét danh sách micro
 async function detectMics() {
@@ -67,6 +69,9 @@ async function detectMics() {
 
 // Mở micro được chọn
 async function openMic(deviceId: string) {
+  if (!isComponentMounted.value) return
+
+  const requestId = ++currentRequestId
   // Dừng micro cũ
   stopCurrentMic()
 
@@ -74,6 +79,13 @@ async function openMic(deviceId: string) {
     const s = await navigator.mediaDevices.getUserMedia({
       audio: { deviceId: { exact: deviceId } },
     })
+
+    // Nếu có yêu cầu mới hơn hoặc đã unmount thì tắt ngay stream vừa mở này
+    if (requestId !== currentRequestId || !isComponentMounted.value) {
+      s.getTracks().forEach((t) => t.stop())
+      return
+    }
+
     stream.value = s
 
     // Tạo analyser và gain node để đo/điều chỉnh âm lượng
@@ -91,8 +103,10 @@ async function openMic(deviceId: string) {
     // Bắt đầu cập nhật âm lượng
     startVolumeMonitor()
   } catch {
-    stream.value = null
-    globalError.value = 'Không thể mở micro này'
+    if (requestId === currentRequestId) {
+      stream.value = null
+      globalError.value = 'Không thể mở micro này'
+    }
   }
 }
 
@@ -196,6 +210,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  isComponentMounted.value = false
   stopCurrentMic()
 })
 </script>
