@@ -8,6 +8,9 @@ import type { PageInfo } from '@/types/page'
 import { padIndex } from '@/data/homepage'
 import { categories, type CategoryId } from '@/data/categories'
 import FavoriteButton from '@/components/FavoriteButton.vue'
+import { useFavorites } from '@/composables/useFavorites'
+
+const { isFavorite } = useFavorites()
 
 const vAnimate: Directive<HTMLElement & { __stopObserve?: () => void }, string | undefined> = {
   mounted(el, binding) {
@@ -280,6 +283,7 @@ useEventListener(document, 'keydown', handleKeydown)
       <RouterLink
         v-for="(page, index) in filteredPages"
         :key="page.path"
+        v-memo="[page.path, isFavorite(page.path), index]"
         :to="page.path"
         v-animate="`${(index % 6) * 50}ms`"
         class="group relative flex flex-col border border-border-default bg-bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-l-4 hover:border-l-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5"
