@@ -375,12 +375,8 @@ export class Game {
       return
     }
 
-    // Overlay keyboard navigation (paused / game_over done / victory)
-    if (
-      this.state === 'paused' ||
-      (this.state === 'game_over' && this.gameOverPhase === 'done') ||
-      this.state === 'victory'
-    ) {
+    // Overlay keyboard navigation (paused / victory)
+    if (this.state === 'paused' || this.state === 'victory') {
       if (inputState.up && !this.prevOverlayUp) {
         this.overlaySelectedIdx = Math.max(0, this.overlaySelectedIdx - 1)
       }

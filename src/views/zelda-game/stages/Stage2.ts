@@ -343,9 +343,7 @@ export class Stage2 implements IStage {
 
       // Check Lynel defeated
       if (this.lynel.isFullyDead()) {
-        if (this.bossState !== 'defeated' && this.bossState !== 'completed') {
-          this.totalEnemiesDefeated++ // Count Lynel kill
-        }
+        this.totalEnemiesDefeated++ // Count Lynel kill
         this.bossState = 'defeated'
         this.stateTimer = BOSS_DEFEATED_TIME
         this.objectives[3]!.completed = true
