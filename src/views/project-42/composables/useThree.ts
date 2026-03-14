@@ -100,7 +100,7 @@ export function useThree() {
       scene.add(bioPlane)
 
       // Final Secret: Sample Cat Silhouette (Local Asset)
-      const catSvgUrl = new URL('../assets/cat-simplified.svg', import.meta.url).href
+      const catSvgUrl = '/project-42/cat-simplified.svg'
       sampleCatPositions(catSvgUrl, particlesCount).then((targets) => {
         catTargets = targets
       })

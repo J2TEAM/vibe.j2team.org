@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-import nenGiayImage from '../res/nenGiay.png'
-import vienBuaImage from '../res/vienBua.png'
+const nenGiayImage = '/ve-bua/nenGiay.png'
+const vienBuaImage = '/ve-bua/vienBua.png'
 import type { BrushSettings, DrawingStats, Point01, StrokeRecord } from '../types/drawing'
 import { createRng, randomSeed, type Rng } from '../utils/rng'
 

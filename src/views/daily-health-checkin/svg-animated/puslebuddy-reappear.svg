@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="320" height="320" style="overflow: visible;" id="pulse-buddy-reappear">
+    <style>
+        /* === CSS VARIABLES and BASE === */
+        .stroke-main { stroke: #253549; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+        .fill-base { fill: #F0EDE6; }
+        .fill-accent-sky { fill: #38BDF8; }
+        .fill-accent-amber { fill: #FFB830; }
+        .fill-dark { fill: #253549; }
+
+        /* =========================================
+           ANIMATIONS FOR REAPPEAR (350ms One-shot)
+           ========================================= */
+        #pulse-buddy-wrapper {
+            /* Hiệu ứng Fade in và bung scale nảy nhẹ */
+            opacity: 0;
+            animation: reappear-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            transform-origin: 100px 172px; /* Tâm bung từ mặt đất lên */
+        }
+        #shadow {
+            /* Bóng mờ hiện rõ dần theo nhân vật */
+            opacity: 0;
+            animation: reappear-shadow 0.35s ease-out forwards;
+            transform-origin: 100px 180px;
+        }
+        .pupil-group {
+            /* Bắt đầu với mắt nhắm, sau đó mở to khi hiện ra */
+            animation: blink-open 0.35s ease-in-out forwards;
+        }
+
+        /* =========================================
+           KEYFRAMES
+           ========================================= */
+        @keyframes reappear-pop {
+            0% { transform: scale(0.85) translateY(10px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        
+        @keyframes reappear-shadow {
+            0% { transform: scale(0.85); opacity: 0; }
+            100% { transform: scale(1); opacity: 0.15; }
+        }
+
+        @keyframes blink-open {
+            0% { transform: scaleY(0.1); }
+            50% { transform: scaleY(0.1); } /* Giữ mắt nhắm trong nửa thời gian đầu lúc đang pop lên */
+            100% { transform: scaleY(1); }  /* Mở to tròn rạng rỡ */
+        }
+    </style>
+
+    <!-- BÓNG ĐỔ DƯỚI ĐẤT -->
+    <g id="shadow">
+        <ellipse cx="100" cy="180" rx="45" ry="8" fill="#253549" />
+    </g>
+
+    <!-- WRAPPER CHÍNH (Scale từ 0.85 -> 1 và Fade In) -->
+    <g id="pulse-buddy-wrapper">
+
+        <!-- LEFT ARM -->
+        <g id="leftArm">
+            <!-- Tay hơi giương ra một xíu tạo cảm giác "Tada!" -->
+            <path class="stroke-main fill-base" d="M 52 120 C 30 115, 20 130, 32 145 C 38 152, 48 145, 50 135" />
+        </g>
+
+        <!-- RIGHT ARM -->
+        <g id="rightArm">
+            <path class="stroke-main fill-base" d="M 148 120 C 170 115, 180 130, 168 145 C 162 152, 152 145, 150 135" />
+        </g>
+
+        <!-- THÂN CHÍNH (BODY) -->
+        <g id="body">
+            <path class="stroke-main fill-base" d="M 100 35 C 140 35, 155 80, 155 135 C 155 162, 135 172, 100 172 C 65 172, 45 162, 45 135 C 45 80, 60 35, 100 35 Z" />
+        </g>
+
+        <!-- TRÁI TIM Ở NGỰC (HEART CORE) -->
+        <g id="heartCore">
+            <path class="fill-accent-sky" d="M 100 146 C 100 146, 86 136, 86 128 C 86 122, 91 118, 97 118 C 100 118, 100 121, 100 121 C 100 121, 100 118, 103 118 C 109 118, 114 122, 114 128 C 114 136, 100 146, 100 146 Z" />
+            <path class="stroke-main" fill="none" d="M 100 146 C 100 146, 86 136, 86 128 C 86 122, 91 118, 97 118 C 100 118, 100 121, 100 121 C 100 121, 100 118, 103 118 C 109 118, 114 122, 114 128 C 114 136, 100 146, 100 146 Z" />
+        </g>
+
+        <!-- KHUÔN MẶT (FACE) -->
+        <g id="face">
+            
+            <!-- Má hồng -->
+            <g id="blush">
+                <ellipse cx="68" cy="104" rx="7" ry="3.5" class="fill-accent-amber" opacity="0.6" />
+                <ellipse cx="132" cy="104" rx="7" ry="3.5" class="fill-accent-amber" opacity="0.6" />
+            </g>
+
+            <!-- Kính Nerd -->
+            <g id="glasses">
+                <path class="stroke-main" fill="none" d="M 92 88 Q 100 84 108 88" stroke-width="4" />
+                <circle cx="76" cy="90" r="16" class="stroke-main" fill="none" stroke-width="4.5" />
+                <circle cx="124" cy="90" r="16" class="stroke-main" fill="none" stroke-width="4.5" />
+            </g>
+
+            <!-- MẮT (EYES) -->
+            <g id="eyes">
+                <g class="pupil-group" style="transform-origin: 76px 90px;">
+                    <circle cx="76" cy="90" r="5" class="fill-dark" />
+                    <circle cx="74" cy="88" r="1.5" fill="#ffffff" />
+                </g>
+                <g class="pupil-group" style="transform-origin: 124px 90px;">
+                    <circle cx="124" cy="90" r="5" class="fill-dark" />
+                    <circle cx="122" cy="88" r="1.5" fill="#ffffff" />
+                </g>
+            </g>
+
+            <!-- MIỆNG (MOUTH) -->
+            <g id="mouth">
+                <!-- Miệng cười tươi đón user -->
+                <path class="stroke-main" fill="none" d="M 93 102 Q 100 108 107 102" stroke-width="4" />
+            </g>
+            
+        </g>
+    </g>
+</svg>

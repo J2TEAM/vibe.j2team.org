@@ -1,0 +1,187 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="320" height="320" style="overflow: visible;" id="pulse-buddy-saved-v2">
+    <style>
+        /* === CSS VARIABLES and BASE === */
+        .stroke-main { stroke: #253549; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+        .fill-base { fill: #F0EDE6; }
+        .fill-accent-sky { fill: #38BDF8; }
+        .fill-accent-amber { fill: #FFB830; }
+        .fill-dark { fill: #253549; }
+
+        /* =========================================
+           ANIMATIONS FOR SAVED V2 (0.7s Snappy and Joyful)
+           ========================================= */
+        #pulse-buddy-wrapper {
+            /* Hiệu ứng Squash and Stretch dứt khoát */
+            animation: squash-stretch 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            transform-origin: 100px 172px; /* Tâm ở đáy để nén xuống đất */
+        }
+        #shadow {
+            /* Bóng to ra khi nén và nhỏ đi khi giãn */
+            animation: shadow-squash 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            transform-origin: 100px 180px;
+        }
+        #heartCore {
+            /* Tim chớp flash 2 nhịp nhanh */
+            animation: flash-heart 0.7s ease-in-out forwards;
+            transform-origin: 100px 136px;
+        }
+        .pupil-group {
+            /* Cười tít mắt trong khoảng 0.4s giữa animation */
+            animation: happy-squint 0.7s ease-in-out forwards;
+        }
+        #leftArm {
+            /* Tay vung lên vui sướng */
+            animation: arm-joy-left 0.7s ease-out forwards;
+            transform-origin: 52px 120px;
+        }
+        #rightArm {
+            /* Tay vung lên vui sướng */
+            animation: arm-joy-right 0.7s ease-out forwards;
+            transform-origin: 148px 120px;
+        }
+
+        /* Fan Sparkles (3 tia nổ hình quạt, 0.5s) */
+        .sparkle-l { animation: spark-l 0.5s ease-out 0.1s forwards; opacity: 0; }
+        .sparkle-c { animation: spark-c 0.5s ease-out 0.1s forwards; opacity: 0; }
+        .sparkle-r { animation: spark-r 0.5s ease-out 0.1s forwards; opacity: 0; }
+
+        /* =========================================
+           KEYFRAMES
+           ========================================= */
+        @keyframes squash-stretch {
+            0% { transform: scale(1, 1) translateY(0); }
+            15% { transform: scale(1.15, 0.85) translateY(12px); } /* Squash (Nén) */
+            40% { transform: scale(0.9, 1.1) translateY(-18px); }  /* Stretch (Kéo giãn) */
+            65% { transform: scale(1.05, 0.96) translateY(4px); }  /* Nảy nhẹ đà xuống */
+            100% { transform: scale(1, 1) translateY(0); }         /* Về cân bằng */
+        }
+        
+        @keyframes shadow-squash {
+            0% { transform: scale(1); opacity: 0.15; }
+            15% { transform: scale(1.2); opacity: 0.22; }
+            40% { transform: scale(0.7); opacity: 0.08; }
+            65% { transform: scale(1.05); opacity: 0.16; }
+            100% { transform: scale(1); opacity: 0.15; }
+        }
+
+        @keyframes happy-squint {
+            0%, 14% { transform: scaleY(1); }
+            15% { transform: scaleY(0.1); }  /* Bắt đầu cười tít */
+            75% { transform: scaleY(0.1); }  /* Giữ mắt cười tít ~0.42s */
+            85%, 100% { transform: scaleY(1); } /* Mở lại */
+        }
+
+        @keyframes flash-heart {
+            0% { transform: scale(1); fill: #38BDF8; filter: none; }
+            20% { transform: scale(1.3); fill: #ffffff; filter: drop-shadow(0 0 6px #38BDF8); } /* Nhịp 1 */
+            40% { transform: scale(1); fill: #38BDF8; filter: none; }
+            60% { transform: scale(1.3); fill: #ffffff; filter: drop-shadow(0 0 6px #38BDF8); } /* Nhịp 2 */
+            80%, 100% { transform: scale(1); fill: #38BDF8; filter: none; }
+        }
+
+        @keyframes arm-joy-left {
+            0%, 100% { transform: rotate(0deg) translateX(0); }
+            40% { transform: rotate(45deg) translateX(-6px); } /* Bật tay văng ra ngoài */
+        }
+
+        @keyframes arm-joy-right {
+            0%, 100% { transform: rotate(0deg) translateX(0); }
+            40% { transform: rotate(-45deg) translateX(6px); } /* Bật tay văng ra ngoài */
+        }
+
+        /* Keyframes cho Fan Sparkles */
+        @keyframes spark-l {
+            0% { transform: translate(0, 0) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            60% { transform: translate(-35px, -30px) scale(1) rotate(-20deg); opacity: 1; }
+            100% { transform: translate(-50px, -45px) scale(0) rotate(-40deg); opacity: 0; }
+        }
+        @keyframes spark-c {
+            0% { transform: translate(0, 0) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            60% { transform: translate(0, -45px) scale(1.2); opacity: 1; }
+            100% { transform: translate(0, -65px) scale(0); opacity: 0; }
+        }
+        @keyframes spark-r {
+            0% { transform: translate(0, 0) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            60% { transform: translate(35px, -30px) scale(1) rotate(20deg); opacity: 1; }
+            100% { transform: translate(50px, -45px) scale(0) rotate(40deg); opacity: 0; }
+        }
+    </style>
+
+    <!-- BÓNG ĐỔ DƯỚI ĐẤT -->
+    <g id="shadow">
+        <ellipse cx="100" cy="180" rx="45" ry="8" fill="#253549" />
+    </g>
+
+    <!-- CỤM TIA NỔ HÌNH QUẠT (Fan Sparkles) - Bung ra từ đỉnh đầu -->
+    <g id="fan-sparkles" transform="translate(100, 70)">
+        <!-- Ngôi sao trái -->
+        <path class="fill-accent-sky sparkle-l" d="M 0 -10 Q 0 0 10 0 Q 0 0 0 10 Q 0 0 -10 0 Q 0 0 0 -10 Z" />
+        <!-- Ngôi sao giữa (to hơn chút) -->
+        <path class="fill-accent-sky sparkle-c" d="M 0 -12 Q 0 0 12 0 Q 0 0 0 12 Q 0 0 -12 0 Q 0 0 0 -12 Z" />
+        <!-- Ngôi sao phải -->
+        <path class="fill-accent-sky sparkle-r" d="M 0 -10 Q 0 0 10 0 Q 0 0 0 10 Q 0 0 -10 0 Q 0 0 0 -10 Z" />
+    </g>
+
+    <!-- WRAPPER CHÍNH (Squash and Stretch) -->
+    <g id="pulse-buddy-wrapper">
+
+        <!-- LEFT ARM -->
+        <g id="leftArm">
+            <path class="stroke-main fill-base" d="M 52 120 C 30 115, 20 130, 32 145 C 38 152, 48 145, 50 135" />
+        </g>
+
+        <!-- RIGHT ARM -->
+        <g id="rightArm">
+            <path class="stroke-main fill-base" d="M 148 120 C 170 115, 180 130, 168 145 C 162 152, 152 145, 150 135" />
+        </g>
+
+        <!-- THÂN CHÍNH (BODY) -->
+        <g id="body">
+            <path class="stroke-main fill-base" d="M 100 35 C 140 35, 155 80, 155 135 C 155 162, 135 172, 100 172 C 65 172, 45 162, 45 135 C 45 80, 60 35, 100 35 Z" />
+        </g>
+
+        <!-- TRÁI TIM Ở NGỰC (HEART CORE - SKY BLUE) -->
+        <g id="heartCore">
+            <path class="fill-accent-sky" d="M 100 146 C 100 146, 86 136, 86 128 C 86 122, 91 118, 97 118 C 100 118, 100 121, 100 121 C 100 121, 100 118, 103 118 C 109 118, 114 122, 114 128 C 114 136, 100 146, 100 146 Z" />
+            <path class="stroke-main" fill="none" d="M 100 146 C 100 146, 86 136, 86 128 C 86 122, 91 118, 97 118 C 100 118, 100 121, 100 121 C 100 121, 100 118, 103 118 C 109 118, 114 122, 114 128 C 114 136, 100 146, 100 146 Z" />
+        </g>
+
+        <!-- KHUÔN MẶT (FACE) -->
+        <g id="face">
+            
+            <!-- Má hồng -->
+            <g id="blush">
+                <ellipse cx="68" cy="104" rx="7" ry="3.5" class="fill-accent-amber" opacity="0.6" />
+                <ellipse cx="132" cy="104" rx="7" ry="3.5" class="fill-accent-amber" opacity="0.6" />
+            </g>
+
+            <!-- Kính Nerd -->
+            <g id="glasses">
+                <path class="stroke-main" fill="none" d="M 92 88 Q 100 84 108 88" stroke-width="4" />
+                <circle cx="76" cy="90" r="16" class="stroke-main" fill="none" stroke-width="4.5" />
+                <circle cx="124" cy="90" r="16" class="stroke-main" fill="none" stroke-width="4.5" />
+            </g>
+
+            <!-- MẮT (EYES) -->
+            <g id="eyes">
+                <g class="pupil-group" style="transform-origin: 76px 90px;">
+                    <circle cx="76" cy="90" r="5" class="fill-dark" />
+                    <circle cx="74" cy="88" r="1.5" fill="#ffffff" />
+                </g>
+                <g class="pupil-group" style="transform-origin: 124px 90px;">
+                    <circle cx="124" cy="90" r="5" class="fill-dark" />
+                    <circle cx="122" cy="88" r="1.5" fill="#ffffff" />
+                </g>
+            </g>
+
+            <!-- MIỆNG (MOUTH) - Cười tươi -->
+            <g id="mouth">
+                <path class="stroke-main" fill="none" d="M 93 102 Q 100 108 107 102" stroke-width="4" />
+            </g>
+            
+        </g>
+    </g>
+</svg>
