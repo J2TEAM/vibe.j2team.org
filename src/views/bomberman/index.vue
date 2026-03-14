@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, useTemplateRef, nextTick } from 'vue'
 import { RouterLink } from 'vue-router'
+
+const gameBoard = useTemplateRef<HTMLElement>('gameBoard')
 
 const size = 11
 
@@ -21,7 +23,7 @@ const gameOver = ref(false)
 const won = ref(false)
 
 // ĐỒNG HỒ TRỌNG TÀI - Cố định tốc độ cho cả Bot và Người (ms/bước)
-const GAME_SPEED = 400 
+const GAME_SPEED = 400
 
 let botInterval: ReturnType<typeof setInterval> | null = null
 let botLastBombTime = 0
@@ -38,21 +40,25 @@ const dirs: [number, number][] = [
 ]
 
 function initGame(): void {
-  const newBoard = Array(size).fill(null).map(() => Array(size).fill(0))
+  const newBoard: number[][] = Array.from({ length: size }, () => Array<number>(size).fill(0))
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       if (x % 2 !== 0 && y % 2 !== 0) {
-        newBoard[y][x] = 1
+        newBoard[y]![x] = 1
       } else if (Math.random() < 0.3) {
-        newBoard[y][x] = 2
+        newBoard[y]![x] = 2
       }
     }
   }
 
   // Clear khu vực spawn để không bị kẹt
-  newBoard[0][0] = 0; newBoard[0][1] = 0; newBoard[1][0] = 0;
-  newBoard[size - 1][size - 1] = 0; newBoard[size - 1][size - 2] = 0; newBoard[size - 2][size - 1] = 0;
+  newBoard[0]![0] = 0
+  newBoard[0]![1] = 0
+  newBoard[1]![0] = 0
+  newBoard[size - 1]![size - 1] = 0
+  newBoard[size - 1]![size - 2] = 0
+  newBoard[size - 2]![size - 1] = 0
 
   board.value = newBoard
   player.value = { x: 0, y: 0, alive: true }
@@ -80,28 +86,28 @@ function initGame(): void {
 }
 
 function getEmoji(x: number, y: number, cell: number) {
-  if (cell === 4) return "🔥"
-  if (player.value.alive && player.value.x === x && player.value.y === y) return "🧑‍🚀"
-  if (bot.value.alive && bot.value.x === x && bot.value.y === y) return "🤖"
-  if (cell === 1) return ""
-  if (cell === 2) return "📦"
-  if (cell === 3) return "💣"
-  return ""
+  if (cell === 4) return '🔥'
+  if (player.value.alive && player.value.x === x && player.value.y === y) return '🧑‍🚀'
+  if (bot.value.alive && bot.value.x === x && bot.value.y === y) return '🤖'
+  if (cell === 1) return ''
+  if (cell === 2) return '📦'
+  if (cell === 3) return '💣'
+  return ''
 }
 
 function getTileClass(cell: number) {
-  if (cell === 1) return "bg-gray-700 border-gray-900 shadow-inner"
-  if (cell === 2) return "bg-yellow-800 border-yellow-900"
-  if (cell === 4) return "bg-orange-500 opacity-80"
-  return "bg-gray-800 bg-opacity-40 border-gray-800 border-opacity-50"
+  if (cell === 1) return 'bg-bg-elevated border-border-default shadow-inner'
+  if (cell === 2) return 'bg-amber-900 border-amber-950'
+  if (cell === 4) return 'bg-accent-coral opacity-80'
+  return 'bg-bg-surface/40 border-border-default/50'
 }
 
 function move(dx: number, dy: number) {
   if (gameOver.value) return
-  
+
   // CHỐT CHẶN: Ép người chơi phải tuân thủ GAME_SPEED để công bằng với Bot
   const now = Date.now()
-  if (now - lastPlayerMoveTime < GAME_SPEED) return 
+  if (now - lastPlayerMoveTime < GAME_SPEED) return
 
   const nx = player.value.x + dx
   const ny = player.value.y + dy
@@ -183,7 +189,8 @@ function endGame(win: boolean) {
 
 function processPlayerMove() {
   if (gameOver.value) return
-  let dx = 0, dy = 0
+  let dx = 0,
+    dy = 0
   if (activeKeys.has('ArrowUp') || activeKeys.has('w') || activeKeys.has('W')) dy = -1
   else if (activeKeys.has('ArrowDown') || activeKeys.has('s') || activeKeys.has('S')) dy = 1
   else if (activeKeys.has('ArrowLeft') || activeKeys.has('a') || activeKeys.has('A')) dx = -1
@@ -195,7 +202,22 @@ function processPlayerMove() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (['ArrowUp', 'w', 'W', 'ArrowDown', 's', 'S', 'ArrowLeft', 'a', 'A', 'ArrowRight', 'd', 'D'].includes(e.key)) {
+  if (
+    [
+      'ArrowUp',
+      'w',
+      'W',
+      'ArrowDown',
+      's',
+      'S',
+      'ArrowLeft',
+      'a',
+      'A',
+      'ArrowRight',
+      'd',
+      'D',
+    ].includes(e.key)
+  ) {
     if (!activeKeys.has(e.key)) {
       activeKeys.add(e.key)
       processPlayerMove()
@@ -220,7 +242,8 @@ function botThink() {
 
   if (path.length > 1) {
     const next = path[1]
-    const distanceToPlayer = Math.abs(player.value.x - bot.value.x) + Math.abs(player.value.y - bot.value.y)
+    const distanceToPlayer =
+      Math.abs(player.value.x - bot.value.x) + Math.abs(player.value.y - bot.value.y)
 
     // Đặt bom nếu gần người chơi và đã hết cooldown (3 giây)
     if (distanceToPlayer <= 2 && Date.now() - botLastBombTime > 3000) {
@@ -238,8 +261,10 @@ function botThink() {
     // Kịch bản né bom cơ bản
     const safeMoves = dirs
       .map(([dx, dy]) => ({ x: bot.value.x + dx, y: bot.value.y + dy }))
-      .filter(m => m.x >= 0 && m.x < size && m.y >= 0 && m.y < size && board.value[m.y]![m.x] === 0)
-    
+      .filter(
+        (m) => m.x >= 0 && m.x < size && m.y >= 0 && m.y < size && board.value[m.y]![m.x] === 0,
+      )
+
     if (safeMoves.length > 0) {
       const move = safeMoves[Math.floor(Math.random() * safeMoves.length)]!
       bot.value.x = move.x
@@ -250,12 +275,12 @@ function botThink() {
 }
 
 function findPath(sx: number, sy: number, tx: number, ty: number) {
-  const queue = [{ x: sx, y: sy, path: [] as {x: number, y: number}[] }]
+  const queue = [{ x: sx, y: sy, path: [] as { x: number; y: number }[] }]
   const visited = new Set()
 
   while (queue.length) {
     const node = queue.shift()!
-    const key = node.x + "," + node.y
+    const key = node.x + ',' + node.y
 
     if (visited.has(key)) continue
     visited.add(key)
@@ -288,38 +313,53 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-[100dvh] flex flex-col items-center justify-center text-green-400 bg-gray-900 bg-[linear-gradient(#111827_1px,transparent_1px),linear-gradient(90deg,#111827_1px,transparent_1px)] bg-[size:40px_40px] p-2 sm:p-4">
-    
+  <div
+    class="min-h-[100dvh] flex flex-col items-center justify-center bg-bg-deep text-text-primary p-2 sm:p-4"
+  >
     <div class="w-full max-w-xl">
       <div class="flex items-center justify-between mb-6">
-        <RouterLink to="/" class="border border-green-500 px-3 py-1.5 hover:bg-green-500 hover:text-gray-900 transition-colors text-xs font-bold rounded flex items-center gap-2 bg-gray-900">
+        <RouterLink
+          to="/"
+          class="border border-border-default bg-bg-surface px-3 py-1.5 hover:border-accent-coral hover:text-accent-coral transition-colors text-xs font-bold font-display flex items-center gap-2"
+        >
           <span>←</span> Trang chủ
         </RouterLink>
-        <div class="text-xs sm:text-sm tracking-widest font-bold text-yellow-400 drop-shadow-md">
+        <div class="text-xs sm:text-sm tracking-widest font-bold font-display text-accent-amber">
           BOMBERMAN
         </div>
       </div>
 
-      <div v-if="gameOver" class="mb-4 border-2 p-3 text-center rounded-lg shadow-lg font-bold flex flex-col sm:flex-row items-center justify-center gap-4 z-10" :class="won ? 'border-green-500 text-green-400 bg-green-900/30' : 'border-red-500 text-red-400 bg-red-900/30'">
-        <span class="text-lg">{{ won ? "🏆 MISSION SUCCESS" : "💀 MISSION FAILED" }}</span>
-        <button class="border border-current px-4 py-1.5 rounded hover:bg-white/10 transition-colors" @click="initGame">
+      <div
+        v-if="gameOver"
+        class="mb-4 border-2 p-3 text-center font-bold font-display flex flex-col sm:flex-row items-center justify-center gap-4 z-10"
+        :class="
+          won
+            ? 'border-green-500 text-green-400 bg-green-900/30'
+            : 'border-accent-coral text-accent-coral bg-accent-coral/10'
+        "
+      >
+        <span class="text-lg">{{ won ? '🏆 MISSION SUCCESS' : '💀 MISSION FAILED' }}</span>
+        <button
+          class="border border-current px-4 py-1.5 hover:bg-white/10 transition-colors"
+          @click="initGame"
+        >
           RESTART
         </button>
       </div>
 
       <div class="flex justify-center mb-6">
-        <div 
-          ref="gameBoard" 
-          tabindex="0" 
+        <div
+          ref="gameBoard"
+          tabindex="0"
+          class="bg-bg-surface p-2 sm:p-3 shadow-2xl border-2 border-border-default outline-none focus:border-accent-coral transition-colors"
           @keydown.prevent="handleKeydown"
           @keyup.prevent="handleKeyup"
           @blur="activeKeys.clear()"
-          class="bg-gray-800 p-2 sm:p-3 rounded-xl shadow-2xl border-2 border-gray-700 outline-none focus:border-green-500 transition-colors"
         >
           <div v-for="(row, y) in board" :key="y" class="flex">
-            <div 
-              v-for="(cell, x) in row" 
-              :key="x" 
+            <div
+              v-for="(cell, x) in row"
+              :key="x"
               class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 text-xl sm:text-2xl border border-black/20"
               :class="getTileClass(cell)"
             >
@@ -329,27 +369,56 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="md:hidden flex flex-col items-center gap-4 w-full max-w-[280px] mx-auto bg-gray-800/50 p-4 rounded-2xl border border-gray-700">
+      <div
+        class="md:hidden flex flex-col items-center gap-4 w-full max-w-[280px] mx-auto bg-bg-surface p-4 border border-border-default"
+      >
         <div class="grid grid-cols-3 gap-2 w-full">
           <div></div>
-          <button class="bg-gray-700 h-12 rounded-lg active:bg-gray-600 active:scale-95 transition-all shadow-md flex items-center justify-center text-xl" @click="move(0,-1)">🔼</button>
+          <button
+            class="bg-bg-elevated h-12 border border-border-default active:bg-bg-surface active:scale-95 transition-all shadow-md flex items-center justify-center text-xl"
+            @click="move(0, -1)"
+          >
+            🔼
+          </button>
           <div></div>
-          
-          <button class="bg-gray-700 h-12 rounded-lg active:bg-gray-600 active:scale-95 transition-all shadow-md flex items-center justify-center text-xl" @click="move(-1,0)">◀️</button>
-          <button class="bg-red-900/80 border-2 border-red-500 h-12 rounded-lg active:bg-red-700 active:scale-95 transition-all shadow-lg flex items-center justify-center text-xl animate-pulse" @click="placeBomb(player.x, player.y)">💣</button>
-          <button class="bg-gray-700 h-12 rounded-lg active:bg-gray-600 active:scale-95 transition-all shadow-md flex items-center justify-center text-xl" @click="move(1,0)">▶️</button>
-          
+
+          <button
+            class="bg-bg-elevated h-12 border border-border-default active:bg-bg-surface active:scale-95 transition-all shadow-md flex items-center justify-center text-xl"
+            @click="move(-1, 0)"
+          >
+            ◀️
+          </button>
+          <button
+            class="bg-accent-coral/20 border-2 border-accent-coral h-12 active:bg-accent-coral/40 active:scale-95 transition-all shadow-lg flex items-center justify-center text-xl animate-pulse"
+            @click="placeBomb(player.x, player.y)"
+          >
+            💣
+          </button>
+          <button
+            class="bg-bg-elevated h-12 border border-border-default active:bg-bg-surface active:scale-95 transition-all shadow-md flex items-center justify-center text-xl"
+            @click="move(1, 0)"
+          >
+            ▶️
+          </button>
+
           <div></div>
-          <button class="bg-gray-700 h-12 rounded-lg active:bg-gray-600 active:scale-95 transition-all shadow-md flex items-center justify-center text-xl" @click="move(0,1)">🔽</button>
+          <button
+            class="bg-bg-elevated h-12 border border-border-default active:bg-bg-surface active:scale-95 transition-all shadow-md flex items-center justify-center text-xl"
+            @click="move(0, 1)"
+          >
+            🔽
+          </button>
           <div></div>
         </div>
       </div>
 
-      <p class="hidden md:block text-center text-gray-400 text-sm mt-4">
-        Sử dụng <span class="text-white font-bold">W A S D</span> hoặc <span class="text-white font-bold">Phím mũi tên</span> để di chuyển<br>
-        Nhấn <span class="text-white font-bold">SPACE</span> hoặc <span class="text-white font-bold">ENTER</span> để đặt bom
+      <p class="hidden md:block text-center text-text-secondary text-sm mt-4">
+        Sử dụng
+        <span class="text-text-primary font-bold">W A S D</span> hoặc
+        <span class="text-text-primary font-bold">Phím mũi tên</span> để di chuyển<br />
+        Nhấn <span class="text-text-primary font-bold">SPACE</span> hoặc
+        <span class="text-text-primary font-bold">ENTER</span> để đặt bom
       </p>
-
     </div>
   </div>
 </template>
