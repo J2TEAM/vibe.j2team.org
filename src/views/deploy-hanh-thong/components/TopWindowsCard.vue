@@ -21,7 +21,10 @@ defineProps<{
         class="flex items-center justify-between border border-border-default bg-bg-deep px-3 py-2"
       >
         <span class="inline-flex items-center gap-2 text-text-secondary">
-          <Icon :icon="index === 0 ? 'lucide:crown' : 'lucide:clock-3'" class="size-4 text-accent-amber" />
+          <Icon
+            :icon="index === 0 ? 'lucide:crown' : 'lucide:clock-3'"
+            class="size-4 text-accent-amber"
+          />
           {{ window.label }}
         </span>
         <span class="font-display text-accent-coral">{{ window.score }}</span>

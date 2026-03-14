@@ -39,11 +39,14 @@ const normalized = computed(() => {
         class="group relative h-10 border border-border-default"
         :class="[slot.toneClass, slot.hour === currentHour ? 'ring-1 ring-accent-coral' : '']"
       >
-        <span class="absolute left-1 top-1 font-display text-[10px] text-text-primary">{{ slot.hour }}</span>
+        <span class="absolute left-1 top-1 font-display text-[10px] text-text-primary">{{
+          slot.hour
+        }}</span>
         <div
           class="invisible pointer-events-none absolute -top-9 left-1/2 z-10 w-max -translate-x-1/2 border border-border-default bg-bg-deep px-2 py-1 text-[10px] text-text-secondary group-hover:visible"
         >
-          {{ String(slot.hour).padStart(2, '0') }}:00 - {{ String(slot.hour).padStart(2, '0') }}:59 | {{ slot.score }}
+          {{ String(slot.hour).padStart(2, '0') }}:00 - {{ String(slot.hour).padStart(2, '0') }}:59
+          | {{ slot.score }}
         </div>
       </div>
     </div>

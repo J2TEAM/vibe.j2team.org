@@ -25,17 +25,13 @@ defineProps<{
     <!-- Progress -->
     <div class="flex items-center gap-1.5">
       <span class="text-accent-sky">✅</span>
-      <span class="text-text-primary font-semibold">
-        {{ correctCount }}/{{ totalProvinces }}
-      </span>
+      <span class="text-text-primary font-semibold"> {{ correctCount }}/{{ totalProvinces }} </span>
     </div>
 
     <!-- Score -->
     <div class="flex items-center gap-1.5">
       <span class="text-accent-coral">💯</span>
-      <span class="text-text-primary font-bold">
-        {{ score }}đ
-      </span>
+      <span class="text-text-primary font-bold"> {{ score }}đ </span>
     </div>
 
     <!-- Progress bar -->

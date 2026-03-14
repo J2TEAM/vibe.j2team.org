@@ -35,11 +35,11 @@ function applyDithering(imageData: ImageData, params: EffectParams): ImageData {
       gray[idx] = newVal
       const err = oldVal - newVal
 
-      if (x + 1 < w) gray[idx + 1] = gray[idx + 1]! + err * 7 / 16
+      if (x + 1 < w) gray[idx + 1] = gray[idx + 1]! + (err * 7) / 16
       if (y + 1 < h) {
-        if (x > 0) gray[(y + 1) * w + x - 1] = gray[(y + 1) * w + x - 1]! + err * 3 / 16
-        gray[(y + 1) * w + x] = gray[(y + 1) * w + x]! + err * 5 / 16
-        if (x + 1 < w) gray[(y + 1) * w + x + 1] = gray[(y + 1) * w + x + 1]! + err * 1 / 16
+        if (x > 0) gray[(y + 1) * w + x - 1] = gray[(y + 1) * w + x - 1]! + (err * 3) / 16
+        gray[(y + 1) * w + x] = gray[(y + 1) * w + x]! + (err * 5) / 16
+        if (x + 1 < w) gray[(y + 1) * w + x + 1] = gray[(y + 1) * w + x + 1]! + (err * 1) / 16
       }
     }
   }
@@ -67,7 +67,10 @@ function applyPixelate(imageData: ImageData, params: EffectParams): ImageData {
 
   for (let by = 0; by < height; by += blockSize) {
     for (let bx = 0; bx < width; bx += blockSize) {
-      let r = 0, g = 0, b = 0, count = 0
+      let r = 0,
+        g = 0,
+        b = 0,
+        count = 0
       const bh = Math.min(blockSize, height - by)
       const bw = Math.min(blockSize, width - bx)
 
@@ -144,7 +147,8 @@ function applyEdge(imageData: ImageData, params: EffectParams): ImageData {
 
   for (let y = 1; y < height - 1; y++) {
     for (let x = 1; x < width - 1; x++) {
-      let sumX = 0, sumY = 0
+      let sumX = 0,
+        sumY = 0
       for (let ky = -1; ky <= 1; ky++) {
         for (let kx = -1; kx <= 1; kx++) {
           const i = ((y + ky) * width + (x + kx)) * 4

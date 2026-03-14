@@ -9,12 +9,16 @@ export interface LogLine {
   id: number
   text: string
   level: LogLevel
-  delay: number   // ms từ lần line trước
+  delay: number // ms từ lần line trước
 }
 
 let _id = 0
-const l = (text: string, level: LogLevel = 'info', delay = 280): LogLine =>
-  ({ id: ++_id, text, level, delay })
+const l = (text: string, level: LogLevel = 'info', delay = 280): LogLine => ({
+  id: ++_id,
+  text,
+  level,
+  delay,
+})
 
 // ---------------------------------------------------------------------------
 // Phases — mỗi phase là 1 mảng LogLine

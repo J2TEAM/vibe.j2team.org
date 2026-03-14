@@ -120,7 +120,12 @@ function getHiResTile(
   return offscreen
 }
 
-function renderSingleTileScene(ctx: CanvasRenderingContext2D, w: number, h: number, elapsed: number) {
+function renderSingleTileScene(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  elapsed: number,
+) {
   const sceneTime = elapsed - SCENES[0]!.startTime
 
   ctx.fillStyle = BG_DARK
@@ -148,7 +153,17 @@ function renderSingleTileScene(ctx: CanvasRenderingContext2D, w: number, h: numb
     ctx.translate(w / 2, tileCenterY)
     ctx.rotate(rotation)
     ctx.scale(enterProgress, enterProgress)
-    ctx.drawImage(tile, 0, 0, tile.width, tile.height, -tileSize / 2, -tileSize / 2, tileSize, tileSize)
+    ctx.drawImage(
+      tile,
+      0,
+      0,
+      tile.width,
+      tile.height,
+      -tileSize / 2,
+      -tileSize / 2,
+      tileSize,
+      tileSize,
+    )
     ctx.restore()
   }
 
@@ -222,7 +237,17 @@ function renderSpreadScene(ctx: CanvasRenderingContext2D, w: number, h: number, 
         ctx.globalAlpha = alpha
         ctx.translate(x + tileSize / 2, y + tileSize / 2)
         ctx.scale(scale, scale)
-        ctx.drawImage(tile, 0, 0, tile.width, tile.height, -tileSize / 2, -tileSize / 2, tileSize, tileSize)
+        ctx.drawImage(
+          tile,
+          0,
+          0,
+          tile.width,
+          tile.height,
+          -tileSize / 2,
+          -tileSize / 2,
+          tileSize,
+          tileSize,
+        )
         ctx.restore()
       }
     }
@@ -317,7 +342,12 @@ function renderParallaxScene(ctx: CanvasRenderingContext2D, w: number, h: number
   ctx.fillRect(0, 0, w, h)
 }
 
-function renderTimeMorphScene(ctx: CanvasRenderingContext2D, w: number, h: number, elapsed: number) {
+function renderTimeMorphScene(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  elapsed: number,
+) {
   const sceneTime = elapsed - SCENES[3]!.startTime
   const duration = SCENES[3]!.duration
 
@@ -325,10 +355,44 @@ function renderTimeMorphScene(ctx: CanvasRenderingContext2D, w: number, h: numbe
   ctx.fillRect(0, 0, w, h)
 
   const styles: RenderOptions[] = [
-    { ...BASE_RENDER_OPTIONS, brightness: 1.0, saturation: 1.0, enableBevel: true, bevelSize: 0.03, showGrout: true, groutWidth: 3 },
-    { ...BASE_RENDER_OPTIONS, brightness: 0.9, saturation: 0.85, enableBevel: true, bevelSize: 0.02, showGrout: true, groutWidth: 2 },
-    { ...BASE_RENDER_OPTIONS, brightness: 0.75, saturation: 0.6, enableBevel: true, bevelSize: 0.015, showGrout: true, groutWidth: 2, groutColor: { r: 80, g: 70, b: 55 } },
-    { ...BASE_RENDER_OPTIONS, brightness: 0.55, saturation: 0.35, enableBevel: false, bevelSize: 0, showGrout: true, groutWidth: 1, groutColor: { r: 60, g: 55, b: 45 } },
+    {
+      ...BASE_RENDER_OPTIONS,
+      brightness: 1.0,
+      saturation: 1.0,
+      enableBevel: true,
+      bevelSize: 0.03,
+      showGrout: true,
+      groutWidth: 3,
+    },
+    {
+      ...BASE_RENDER_OPTIONS,
+      brightness: 0.9,
+      saturation: 0.85,
+      enableBevel: true,
+      bevelSize: 0.02,
+      showGrout: true,
+      groutWidth: 2,
+    },
+    {
+      ...BASE_RENDER_OPTIONS,
+      brightness: 0.75,
+      saturation: 0.6,
+      enableBevel: true,
+      bevelSize: 0.015,
+      showGrout: true,
+      groutWidth: 2,
+      groutColor: { r: 80, g: 70, b: 55 },
+    },
+    {
+      ...BASE_RENDER_OPTIONS,
+      brightness: 0.55,
+      saturation: 0.35,
+      enableBevel: false,
+      bevelSize: 0,
+      showGrout: true,
+      groutWidth: 1,
+      groutColor: { r: 60, g: 55, b: 45 },
+    },
   ]
 
   const styleTime = duration / styles.length
@@ -347,7 +411,15 @@ function renderTimeMorphScene(ctx: CanvasRenderingContext2D, w: number, h: numbe
   ctx.globalAlpha = fadeIn
 
   try {
-    props.engine.renderTessellation(ctx, HOA_CHANH_PATTERN, PALETTE_SAIGON_RETRO, cols, rows, tileSize, currentOpts)
+    props.engine.renderTessellation(
+      ctx,
+      HOA_CHANH_PATTERN,
+      PALETTE_SAIGON_RETRO,
+      cols,
+      rows,
+      tileSize,
+      currentOpts,
+    )
   } catch {
     //
   }
@@ -384,7 +456,17 @@ function renderCreditsScene(ctx: CanvasRenderingContext2D, w: number, h: number,
     ctx.globalAlpha = fadeOut * 0.3
     ctx.translate(w / 2, h / 2)
     ctx.rotate(slowRotation)
-    ctx.drawImage(tile, 0, 0, tile.width, tile.height, -tileSize / 2, -tileSize / 2, tileSize, tileSize)
+    ctx.drawImage(
+      tile,
+      0,
+      0,
+      tile.width,
+      tile.height,
+      -tileSize / 2,
+      -tileSize / 2,
+      tileSize,
+      tileSize,
+    )
     ctx.restore()
   }
 
@@ -411,7 +493,13 @@ function getSceneAlpha(scene: { startTime: number; duration: number }, elapsed: 
   return alpha
 }
 
-function renderSceneById(ctx: CanvasRenderingContext2D, id: string, w: number, h: number, elapsed: number) {
+function renderSceneById(
+  ctx: CanvasRenderingContext2D,
+  id: string,
+  w: number,
+  h: number,
+  elapsed: number,
+) {
   switch (id) {
     case 'single-tile':
       renderSingleTileScene(ctx, w, h, elapsed)
@@ -441,7 +529,8 @@ function animate() {
   const now = performance.now() / 1000
   const elapsed = now - startTimeRef.value
 
-  const effectiveDuration = props.totalDuration > SINGLE_PLAY_DURATION ? props.totalDuration : SINGLE_PLAY_DURATION
+  const effectiveDuration =
+    props.totalDuration > SINGLE_PLAY_DURATION ? props.totalDuration : SINGLE_PLAY_DURATION
 
   if (elapsed >= effectiveDuration) {
     finished.value = true
@@ -561,14 +650,16 @@ async function handleReplay() {
 }
 
 const sceneTexts: Record<string, { title?: string; sub?: string }> = {
-  'spread': { sub: '"Hai hình vuông xoay 45° lồng vào nhau"' },
-  'parallax': { title: 'Đường Phố Sài Gòn' },
+  spread: { sub: '"Hai hình vuông xoay 45° lồng vào nhau"' },
+  parallax: { title: 'Đường Phố Sài Gòn' },
   'time-morph': { sub: 'Từ mới tinh... đến rêu phong' },
 }
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 bg-bg-deep overflow-hidden select-none font-body text-text-primary h-screen w-screen">
+  <div
+    class="fixed inset-0 z-50 bg-bg-deep overflow-hidden select-none font-body text-text-primary h-screen w-screen"
+  >
     <!-- Canvas layer -->
     <div
       class="absolute inset-0 flex items-center justify-center -z-10"
@@ -582,7 +673,7 @@ const sceneTexts: Record<string, { title?: string; sub?: string }> = {
     <!-- Vignette -->
     <div
       class="pointer-events-none absolute inset-0 -z-10"
-      style="box-shadow: inset 0 0 150px rgba(13, 10, 8, 0.9);"
+      style="box-shadow: inset 0 0 150px rgba(13, 10, 8, 0.9)"
     />
 
     <!-- Pause overlay -->
@@ -593,7 +684,9 @@ const sceneTexts: Record<string, { title?: string; sub?: string }> = {
     >
       <div class="text-6xl text-white/50 mb-4 tracking-[-8px]">❚❚</div>
       <p class="font-display text-2xl font-bold tracking-[0.2em] text-white">Tạm dừng</p>
-      <p class="font-display text-sm uppercase tracking-widest text-[#D4A574]/60 mt-3">Nhấn để tiếp tục</p>
+      <p class="font-display text-sm uppercase tracking-widest text-[#D4A574]/60 mt-3">
+        Nhấn để tiếp tục
+      </p>
     </div>
 
     <!-- Interactive Overlays -->
@@ -616,13 +709,16 @@ const sceneTexts: Record<string, { title?: string; sub?: string }> = {
         v-if="currentScene !== 'single-tile'"
         class="self-center flex flex-col items-center justify-center text-center max-w-sm px-6 py-3 bg-black/60 backdrop-blur-md border border-white/10 rounded-full"
       >
-        <span v-if="sceneTexts[currentScene]?.title" class="font-display text-xl tracking-widest text-white uppercase mb-1">
+        <span
+          v-if="sceneTexts[currentScene]?.title"
+          class="font-display text-xl tracking-widest text-white uppercase mb-1"
+        >
           {{ sceneTexts[currentScene]!.title }}
         </span>
         <span
           v-if="sceneTexts[currentScene]?.sub"
           class="font-display text-sm text-[#D4A574]/80 tracking-[0.1em]"
-          :class="{ 'italic': currentScene === 'spread' || currentScene === 'time-morph' }"
+          :class="{ italic: currentScene === 'spread' || currentScene === 'time-morph' }"
         >
           {{ sceneTexts[currentScene]!.sub }}
         </span>
@@ -630,7 +726,10 @@ const sceneTexts: Record<string, { title?: string; sub?: string }> = {
     </div>
 
     <!-- Credits -->
-    <div v-if="!paused && !finished && currentScene === 'credits'" class="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between p-8">
+    <div
+      v-if="!paused && !finished && currentScene === 'credits'"
+      class="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between p-8"
+    >
       <button
         class="pointer-events-auto self-end p-2 text-2xl text-white/50 transition hover:text-white"
         @click.stop="handleBack"
@@ -638,20 +737,35 @@ const sceneTexts: Record<string, { title?: string; sub?: string }> = {
         ✕
       </button>
       <div class="flex flex-col items-center justify-center h-full text-center pb-[5vh] gap-3">
-        <p class="font-display text-3xl font-bold text-[#FF6B4A] tracking-widest uppercase">Hoa Chanh</p>
+        <p class="font-display text-3xl font-bold text-[#FF6B4A] tracking-widest uppercase">
+          Hoa Chanh
+        </p>
         <p class="font-display text-lg tracking-widest text-white/40 uppercase">Sài Gòn Retro</p>
         <div class="w-8 h-[1px] bg-white/20 my-2" />
         <p class="font-display text-sm tracking-[0.2em] text-[#D4A574]/80">Ngôi sao 8 cánh</p>
         <p class="font-display text-sm tracking-[0.2em] text-[#D4A574]/80">Vinh quang, rực rỡ</p>
         <div class="w-8 h-[1px] bg-white/20 my-2" />
         <p class="text-2xl animate-pulse">🇻🇳</p>
-        <p class="font-display text-xs tracking-[0.3em] text-white/30 uppercase mt-2">Made with <span class="text-red-500">❤️</span> in Vietnam</p>
-        <p class="font-display text-[10px] tracking-[0.4em] text-white/20 uppercase mt-4">A Yellow Studio Labs product</p>
+        <p class="font-display text-xs tracking-[0.3em] text-white/30 uppercase mt-2">
+          Made with <span class="text-red-500">❤️</span> in Vietnam
+        </p>
+        <p class="font-display text-[10px] tracking-[0.4em] text-white/20 uppercase mt-4">
+          A Yellow Studio Labs product
+        </p>
       </div>
     </div>
 
     <!-- Close button only -->
-    <div v-if="!paused && !finished && !sceneTexts[currentScene] && currentScene !== 'single-tile' && currentScene !== 'credits'" class="pointer-events-none absolute inset-0 z-20 p-8">
+    <div
+      v-if="
+        !paused &&
+        !finished &&
+        !sceneTexts[currentScene] &&
+        currentScene !== 'single-tile' &&
+        currentScene !== 'credits'
+      "
+      class="pointer-events-none absolute inset-0 z-20 p-8"
+    >
       <button
         class="pointer-events-auto float-right p-2 text-2xl text-white/50 transition hover:text-white"
         @click.stop="handleBack"
@@ -661,10 +775,17 @@ const sceneTexts: Record<string, { title?: string; sub?: string }> = {
     </div>
 
     <!-- End screen -->
-    <div v-if="finished" class="absolute inset-0 z-30 flex items-center justify-center bg-bg-deep/90 backdrop-blur-sm p-4">
-      <div class="flex flex-col items-center bg-bg-surface border border-border-default max-w-lg w-full p-10 text-center animate-fade-up shadow-2xl">
+    <div
+      v-if="finished"
+      class="absolute inset-0 z-30 flex items-center justify-center bg-bg-deep/90 backdrop-blur-sm p-4"
+    >
+      <div
+        class="flex flex-col items-center bg-bg-surface border border-border-default max-w-lg w-full p-10 text-center animate-fade-up shadow-2xl"
+      >
         <h2 class="font-display text-4xl font-bold text-accent-coral mb-2">Hoa Chanh</h2>
-        <p class="text-text-secondary tracking-widest uppercase text-sm font-display mb-10">Sài Gòn Retro</p>
+        <p class="text-text-secondary tracking-widest uppercase text-sm font-display mb-10">
+          Sài Gòn Retro
+        </p>
 
         <div class="flex flex-col w-full gap-3 mb-10">
           <button

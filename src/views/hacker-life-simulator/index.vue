@@ -13,8 +13,8 @@
             <span>Mr. Robot Edition</span>
           </h1>
           <p class="page-description">
-            Spam bàn phím để “hack” theo phong cách Hollywood với split terminal,
-            fake intel monitor, popup ACCESS GRANTED và cyberpunk combo sound.
+            Spam bàn phím để “hack” theo phong cách Hollywood với split terminal, fake intel
+            monitor, popup ACCESS GRANTED và cyberpunk combo sound.
           </p>
         </div>
 
@@ -30,7 +30,9 @@
               <div class="led"></div>
               <div>
                 <div class="title">Hacker Life Simulator // Mr. Robot Edition</div>
-                <div class="subtitle">fake split terminal • access escalation • cyberpunk beeps</div>
+                <div class="subtitle">
+                  fake split terminal • access escalation • cyberpunk beeps
+                </div>
               </div>
             </div>
 
@@ -119,8 +121,7 @@
           <div class="left-foot">
             <div>
               Spam bất kỳ phím nào để hack. Nhấn <span class="kbd">R</span> reset,
-              <span class="kbd">M</span> mute,
-              <span class="kbd">C</span> copy kết quả.
+              <span class="kbd">M</span> mute, <span class="kbd">C</span> copy kết quả.
             </div>
             <div>
               LAST KEY:
@@ -234,7 +235,8 @@
 
           <section class="panel card">
             <div class="footer-note">
-              Project giải trí giả lập “hack cho ngầu” theo kiểu phim ảnh. Không thực hiện hành vi xâm nhập thật.
+              Project giải trí giả lập “hack cho ngầu” theo kiểu phim ảnh. Không thực hiện hành vi
+              xâm nhập thật.
             </div>
           </section>
         </aside>
@@ -253,8 +255,8 @@
         <h1>PRESS ANY KEY TO START HACKING</h1>
         <div class="big-kbd">MR. ROBOT MODE // SPLIT TERMINAL ENABLED</div>
         <p>
-          Spam càng nhanh, terminal trái càng cháy, intel monitor bên phải càng báo động,
-          combo sound càng cyberpunk, và khi đủ tiến độ sẽ bật popup
+          Spam càng nhanh, terminal trái càng cháy, intel monitor bên phải càng báo động, combo
+          sound càng cyberpunk, và khi đủ tiến độ sẽ bật popup
           <b>ACCESS GRANTED</b> ở giữa màn hình.
         </p>
         <div class="mini">Mẹo: giữ nhịp 6–10 phím/giây để rank cao và hiệu ứng đẹp hơn.</div>
@@ -1125,14 +1127,13 @@ onBeforeUnmount(() => {
   inset: 0;
   pointer-events: none;
   z-index: 5;
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0.02) 0px,
-      rgba(255, 255, 255, 0.02) 1px,
-      transparent 2px,
-      transparent 4px
-    );
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.02) 0px,
+    rgba(255, 255, 255, 0.02) 1px,
+    transparent 2px,
+    transparent 4px
+  );
   opacity: 0.18;
   mix-blend-mode: screen;
 }
