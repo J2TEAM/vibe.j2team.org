@@ -335,3 +335,22 @@ Default is `true` — the toolbar is shown unless explicitly disabled.
 - Prettier config exists for compatibility (eslint-config-prettier)
 - Commitlint with `@commitlint/config-conventional` — commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/) format (e.g., `feat:`, `fix:`, `chore:`)
 - Pre-commit: `simple-git-hooks` + `lint-staged` runs linters on staged files and auto-optimizes images (`.png`, `.jpg`, `.jpeg`, `.webp`) via `sharp`
+
+### Oxfmt & Vue template expressions
+
+**Do NOT write multiple statements inline in Vue template event handlers** (e.g., `@click`). Oxfmt strips semicolons during formatting, which causes the Vue compiler to fail with a syntax error because the two statements merge into an invalid expression.
+
+```vue
+<!-- BAD — oxfmt strips semicolons → build error -->
+<button @click="doA(); doB()">Click</button>
+
+<!-- GOOD — extract to a function -->
+<button @click="handleClick">Click</button>
+```
+
+```ts
+function handleClick() {
+  doA()
+  doB()
+}
+```
