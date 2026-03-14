@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, type Directive } from 'vue'
-import { useEventListener, useIntersectionObserver, refDebounced } from '@vueuse/core'
+import { ref, computed, onBeforeUnmount, type Directive } from 'vue'
+import { useEventListener, refDebounced } from '@vueuse/core'
 import { RouterLink, useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { pages, featuredPages } from '@/data/pages-loader'
@@ -8,26 +8,35 @@ import type { PageInfo } from '@/types/page'
 import { padIndex } from '@/data/homepage'
 import { categories, type CategoryId } from '@/data/categories'
 import FavoriteButton from '@/components/FavoriteButton.vue'
+import { useFavorites } from '@/composables/useFavorites'
 
-const vAnimate: Directive<HTMLElement & { __stopObserve?: () => void }, string | undefined> = {
+const { isFavorite } = useFavorites()
+
+// Single shared IntersectionObserver for all v-animate elements (instead of one per card)
+const sharedObserver = new IntersectionObserver(
+  (entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        ;(entry.target as HTMLElement).classList.add('animate-fade-up')
+        sharedObserver.unobserve(entry.target)
+      }
+    }
+  },
+  { threshold: 0.1 },
+)
+
+onBeforeUnmount(() => {
+  sharedObserver.disconnect()
+})
+
+const vAnimate: Directive<HTMLElement, string | undefined> = {
   mounted(el, binding) {
     if (binding.value) el.style.animationDelay = binding.value
     el.style.opacity = '0'
-
-    const { stop } = useIntersectionObserver(
-      el,
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          el.classList.add('animate-fade-up')
-          stop()
-        }
-      },
-      { threshold: 0.1 },
-    )
-    el.__stopObserve = stop
+    sharedObserver.observe(el)
   },
   unmounted(el) {
-    el.__stopObserve?.()
+    sharedObserver.unobserve(el)
   },
 }
 
@@ -280,6 +289,7 @@ useEventListener(document, 'keydown', handleKeydown)
       <RouterLink
         v-for="(page, index) in filteredPages"
         :key="page.path"
+        v-memo="[page.path, isFavorite(page.path), index]"
         :to="page.path"
         v-animate="`${(index % 6) * 50}ms`"
         class="group relative flex flex-col border border-border-default bg-bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-l-4 hover:border-l-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5"
@@ -319,7 +329,7 @@ useEventListener(document, 'keydown', handleKeydown)
 
       <!-- Placeholder card -->
       <a
-        v-if="!isFiltering"
+        v-if="!isFiltering && (showAll || hiddenCount <= 0)"
         href="#cach-tham-gia"
         class="flex items-center justify-center border border-dashed border-border-default p-6 text-text-dim animate-pulse-border transition-colors duration-300 hover:border-accent-coral hover:text-accent-coral"
       >

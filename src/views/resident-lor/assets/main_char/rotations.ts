@@ -1,20 +1,14 @@
 import type { Direction } from '../../types'
-import east from './rotations/east.png'
-import north from './rotations/north.png'
-import northEast from './rotations/north-east.png'
-import northWest from './rotations/north-west.png'
-import south from './rotations/south.png'
-import southEast from './rotations/south-east.png'
-import southWest from './rotations/south-west.png'
-import west from './rotations/west.png'
+
+const BASE = '/resident-lor/main_char/rotations'
 
 export const ROTATION_SPRITES: Record<Direction, string> = {
-  south,
-  'south-east': southEast,
-  east,
-  'north-east': northEast,
-  north,
-  'north-west': northWest,
-  west,
-  'south-west': southWest,
+  south: `${BASE}/south.png`,
+  'south-east': `${BASE}/south-east.png`,
+  east: `${BASE}/east.png`,
+  'north-east': `${BASE}/north-east.png`,
+  north: `${BASE}/north.png`,
+  'north-west': `${BASE}/north-west.png`,
+  west: `${BASE}/west.png`,
+  'south-west': `${BASE}/south-west.png`,
 }

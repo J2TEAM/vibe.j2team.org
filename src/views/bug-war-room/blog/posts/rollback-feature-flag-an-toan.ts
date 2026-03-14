@@ -4,15 +4,13 @@ export const rollbackFeatureFlagAnToanPost: BlogPost = {
   id: 'post-rollout-safety-004',
   slug: 'rollback-feature-flag-an-toan',
   title: 'Rollback Và Feature Flag An Toàn: Giảm Rủi Ro Khi Phát Hành Nhanh',
-  excerpt:
-    'Tốc độ phát hành cao chỉ bền vững khi có cơ chế rollback và feature flag rõ ràng. Bài viết trình bày quy trình vận hành thực tế để giảm lỗi sau triển khai.',
+  excerpt: 'Tốc độ phát hành cao chỉ bền vững khi có cơ chế rollback và feature flag rõ ràng. Bài viết trình bày quy trình vận hành thực tế để giảm lỗi sau triển khai.',
   author: 'TranQui004',
   publishedAt: '2026-03-07',
   updatedAt: '2026-03-07',
   tags: ['deployment', 'rollback', 'feature-flag'],
   readMinutes: 15,
-  coverImageUrl:
-    'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1600&q=80',
+  coverImageUrl: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1600&q=80',
   coverImageAlt: 'Màn hình code và pipeline triển khai phần mềm',
   imageLinks: [
     {

@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="320" height="320" style="overflow: visible;" id="pulse-buddy-good-streak-v2">
+    <style>
+        /* === CSS VARIABLES and BASE === */
+        .stroke-main { stroke: #253549; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+        .fill-base { fill: #F0EDE6; }
+        .fill-accent-sky { fill: #38BDF8; }
+        .fill-accent-amber { fill: #FFB830; }
+        .fill-dark { fill: #253549; }
+
+        /* =========================================
+           ANIMATIONS FOR GOOD STREAK V2 (1.2s Loop)
+           ========================================= */
+        #pulse-buddy-wrapper {
+            /* Cú bật nhảy theo quỹ đạo Parabola */
+            animation: jump-parabola 1.2s infinite;
+            transform-origin: 100px 172px; /* Tâm nén ở đáy */
+        }
+        #shadow {
+            /* Bóng co lại khi nhân vật ở trên không */
+            animation: shadow-shrink 1.2s infinite;
+            transform-origin: 100px 180px;
+        }
+        #heart-glow-ring {
+            /* Vòng sáng mở rộng quanh tim (0.8s) */
+            animation: ring-expand 1.2s ease-out infinite;
+            transform-origin: 100px 132px; /* Tâm của trái tim */
+        }
+        #badge-plus-one {
+            /* Huy hiệu +1 Day nảy lên và tan biến */
+            animation: badge-float 1.2s infinite;
+        }
+        #leftArm {
+            /* Tay vung thẳng lên trời tự hào */
+            animation: arm-proud-l 1.2s infinite;
+            transform-origin: 52px 120px;
+        }
+        #rightArm {
+            /* Tay vung thẳng lên trời tự hào */
+            animation: arm-proud-r 1.2s infinite;
+            transform-origin: 148px 120px;
+        }
+
+        /* =========================================
+           KEYFRAMES
+           ========================================= */
+        @keyframes jump-parabola {
+            0% { transform: scale(1, 1) translateY(0); }
+            10% { transform: scale(1.15, 0.85) translateY(6px); animation-timing-function: ease-out; } /* Lấy đà nén xuống */
+            45% { transform: scale(0.95, 1.05) translateY(-28px); animation-timing-function: ease-in; }  /* Đỉnh của cú nhảy */
+            75% { transform: scale(1.08, 0.92) translateY(4px); animation-timing-function: ease-out; }   /* Chạm đất nén mạnh */
+            85% { transform: scale(0.98, 1.02) translateY(-2px); animation-timing-function: ease-in; }   /* Nảy nhẹ lại */
+            100% { transform: scale(1, 1) translateY(0); }
+        }
+        
+        @keyframes shadow-shrink {
+            0% { transform: scale(1); opacity: 0.15; }
+            10% { transform: scale(1.2); opacity: 0.2; animation-timing-function: ease-out; }
+            45% { transform: scale(0.5); opacity: 0.05; animation-timing-function: ease-in; } /* Bóng nhỏ nhất khi trên cao */
+            75% { transform: scale(1.1); opacity: 0.18; animation-timing-function: ease-out; }
+            85% { transform: scale(0.95); opacity: 0.12; animation-timing-function: ease-in; }
+            100% { transform: scale(1); opacity: 0.15; }
+        }
+
+        @keyframes ring-expand {
+            /* Tổng thời gian bung tỏa là 0.8s (từ 10% đến 76% của 1.2s) */
+            0%, 10% { transform: scale(0.8); opacity: 0; stroke-width: 6px; }
+            15% { transform: scale(0.8); opacity: 1; stroke-width: 6px; }
+            76% { transform: scale(2.5); opacity: 0; stroke-width: 1px; } 
+            100% { transform: scale(2.5); opacity: 0; stroke-width: 1px; }
+        }
+
+        @keyframes badge-float {
+            0%, 15% { transform: translate(110px, 60px) scale(0); opacity: 0; }
+            30% { transform: translate(135px, 20px) scale(1.1) rotate(5deg); opacity: 1; } /* Bật nảy ra ngoài */
+            45% { transform: translate(145px, 15px) scale(1) rotate(0deg); opacity: 1; }
+            80% { transform: translate(150px, -5px) scale(1); opacity: 1; }  /* Bay bổng lên nhẹ */
+            100% { transform: translate(150px, -20px) scale(0.8); opacity: 0; } /* Fade out */
+        }
+
+        @keyframes arm-proud-l {
+            0%, 100% { transform: rotate(0deg); }
+            10% { transform: rotate(-20deg); } /* Vung xuống lấy đà */
+            45%, 75% { transform: rotate(110deg); } /* Giơ cao vút lên trời */
+            85% { transform: rotate(-10deg); }
+        }
+
+        @keyframes arm-proud-r {
+            0%, 100% { transform: rotate(0deg); }
+            10% { transform: rotate(20deg); } /* Vung xuống lấy đà */
+            45%, 75% { transform: rotate(-110deg); } /* Giơ cao vút lên trời */
+            85% { transform: rotate(10deg); }
+        }
+    </style>
+
+    <!-- BÓNG ĐỔ DƯỚI ĐẤT -->
+    <g id="shadow">
+        <ellipse cx="100" cy="180" rx="45" ry="8" fill="#253549" />
+    </g>
+
+    <!-- BADGE MINI "+1 DAY" (Nổi bọt ra bên cạnh, nằm ngoài wrapper để bay độc lập) -->
+    <g id="badge-plus-one">
+        <rect x="0" y="0" width="56" height="24" rx="12" fill="#FFB830" class="stroke-main" />
+        <text x="28" y="16.5" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="13" fill="#253549" text-anchor="middle">+1 Day</text>
+    </g>
+
+    <!-- WRAPPER CHÍNH (Xử lý bước nhảy) -->
+    <g id="pulse-buddy-wrapper">
+
+        <!-- LEFT ARM -->
+        <g id="leftArm">
+            <path class="stroke-main fill-base" d="M 52 120 C 30 115, 20 130, 32 145 C 38 152, 48 145, 50 135" />
+        </g>
+
+        <!-- RIGHT ARM -->
+        <g id="rightArm">
+            <path class="stroke-main fill-base" d="M 148 120 C 170 115, 180 130, 168 145 C 162 152, 152 145, 150 135" />
+        </g>
+
+        <!-- THÂN CHÍNH (BODY) -->
+        <g id="body">
+            <path class="stroke-main fill-base" d="M 100 35 C 140 35, 155 80, 155 135 C 155 162, 135 172, 100 172 C 65 172, 45 162, 45 135 C 45 80, 60 35, 100 35 Z" />
+        </g>
+
+        <!-- CỤM TRÁI TIM VÀ GLOW RING -->
+        <g id="heart-group">
+            <!-- Vòng Glow Ring 0.8s nằm lót phía sau -->
+            <circle id="heart-glow-ring" cx="100" cy="132" r="14" fill="none" stroke="#38BDF8" stroke-width="4" />
+            <!-- Trái tim chính -->
+            <g id="heartCore">
+                <path class="fill-accent-sky" d="M 100 146 C 100 146, 86 136, 86 128 C 86 122, 91 118, 97 118 C 100 118, 100 121, 100 121 C 100 121, 100 118, 103 118 C 109 118, 114 122, 114 128 C 114 136, 100 146, 100 146 Z" />
+                <path class="stroke-main" fill="none" d="M 100 146 C 100 146, 86 136, 86 128 C 86 122, 91 118, 97 118 C 100 118, 100 121, 100 121 C 100 121, 100 118, 103 118 C 109 118, 114 122, 114 128 C 114 136, 100 146, 100 146 Z" />
+            </g>
+        </g>
+
+        <!-- KHUÔN MẶT (FACE) -->
+        <g id="face">
+            
+            <!-- Má hồng -->
+            <g id="blush">
+                <ellipse cx="68" cy="102" rx="7" ry="3.5" class="fill-accent-amber" opacity="0.6" />
+                <ellipse cx="132" cy="102" rx="7" ry="3.5" class="fill-accent-amber" opacity="0.6" />
+            </g>
+
+            <!-- Kính Nerd -->
+            <g id="glasses">
+                <path class="stroke-main" fill="none" d="M 92 88 Q 100 84 108 88" stroke-width="4" />
+                <circle cx="76" cy="90" r="16" class="stroke-main" fill="none" stroke-width="4.5" />
+                <circle cx="124" cy="90" r="16" class="stroke-main" fill="none" stroke-width="4.5" />
+            </g>
+
+            <!-- MẮT (Cười tít rạng rỡ) -->
+            <g id="eyes">
+                <path class="stroke-main" fill="none" stroke-width="4.5" d="M 70 92 Q 76 84 82 92" />
+                <path class="stroke-main" fill="none" stroke-width="4.5" d="M 118 92 Q 124 84 130 92" />
+            </g>
+
+            <!-- MIỆNG (Cười hình chữ D tự hào) -->
+            <g id="mouth">
+                <path class="stroke-main fill-dark" d="M 90 102 Q 100 118 110 102 Z" />
+            </g>
+            
+        </g>
+    </g>
+</svg>

@@ -64,17 +64,17 @@ export function getCardImageUrl(card: TarotCard): string {
   if (card.arcana === 'major') {
     const base = MAJOR_ARCANA_FILENAMES[card.id]
     if (!base) return ''
-    return `${BASE}/majorArcana/${base}.png`
+    return `${BASE}/majorArcana/${base}.webp`
   }
 
   if (!card.suit || !card.number) return ''
   const rank = RANK_NAMES[card.number]
   const suitSuffix = SUIT_FILE_SUFFIXES[card.suit]
   if (!rank || !suitSuffix) return ''
-  return `${BASE}/${card.suit}/${rank}_of_${suitSuffix}.png`
+  return `${BASE}/${card.suit}/${rank}_of_${suitSuffix}.webp`
 }
 
 /** Get the public URL for the card back image */
 export function getCardBackUrl(): string {
-  return `${BASE}/CardBacks.png`
+  return `${BASE}/CardBacks.webp`
 }
