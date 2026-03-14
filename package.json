@@ -89,6 +89,7 @@
   "packageManager": "pnpm@10.31.0",
   "pnpm": {
     "onlyBuiltDependencies": [
+      "esbuild",
       "sharp",
       "simple-git-hooks"
     ]
