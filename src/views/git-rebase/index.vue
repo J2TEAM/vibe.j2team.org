@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useHead } from '@unhead/vue'
 import { Icon } from '@iconify/vue'
 import { useGitEngine } from './composables/useGitEngine'
@@ -17,19 +17,38 @@ const {
   history,
   currentLevel,
   executeCommand,
-  resetLevel,
-  nextLevel,
+  resetLevel: engineReset,
+  nextLevel: engineNext,
   goToLevel,
   isWin,
   hasNextLevel,
   allLevels,
 } = useGitEngine()
 
+const resetLevel = () => {
+  engineReset()
+  winDismissed.value = false
+}
+
+const nextLevel = () => {
+  engineNext()
+  winDismissed.value = false
+}
+
 const showMenu = ref(false)
+const winDismissed = ref(false)
+
+const showWinModal = computed(() => isWin.value && !winDismissed.value)
 
 const selectLevel = (idx: number) => {
   goToLevel(idx)
   showMenu.value = false
+  winDismissed.value = false
+}
+
+const handleSelectOther = () => {
+  showMenu.value = true
+  winDismissed.value = true
 }
 
 const onCommand = (cmd: string) => {
@@ -170,7 +189,7 @@ const onCommand = (cmd: string) => {
         leave-to-class="opacity-0"
       >
         <div
-          v-if="isWin"
+          v-if="showWinModal"
           class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-bg-deep/80 backdrop-blur-md text-text-primary"
         >
           <div
@@ -196,10 +215,7 @@ const onCommand = (cmd: string) => {
                 Bạn đã phá đảo! (Coming Soon)
               </div>
               <button
-                @click="
-                  showMenu = true
-                  isWin = false
-                "
+                @click="handleSelectOther"
                 class="border border-border-default hover:border-accent-sky px-8 py-4 font-display font-bold text-sm tracking-widest uppercase transition-all text-text-dim hover:text-accent-sky"
               >
                 Chọn màn khác
