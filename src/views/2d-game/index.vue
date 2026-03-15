@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
-import type { Platform, Particle, FloatingText, Monster, MonsterType, Player, Chest, ItemType, WeaponType, WeaponDrop, Projectile, SkillType, EquipmentConfig, EquipmentDrop, EquipSlot, ConsumableType, ConsumableItem } from './types'
+import type { Platform, Particle, FloatingText, Monster, MonsterType, Player, Chest, ItemType, WeaponType, WeaponDrop, Projectile, SkillType, EquipmentConfig, EquipmentDrop, EquipSlot, ConsumableType, ConsumableItem, PassiveType } from './types'
 // Engine
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, MAP_WIDTH,
@@ -36,21 +36,30 @@ import {
 import { rectCollide, resolveGravity } from './engine/physics'
 import { sfxAttack, sfxHit, sfxKill, sfxPlayerHurt, sfxJump, sfxLevelUp, sfxChestOpen, sfxItem, sfxGameOver, sfxMenuSelect, initAudio } from './engine/sound'
 // Entities
-import { createMonster as _createMonster, getSpawnPool, pickRandomType } from './entities/monsters'
+import { createMonster as _createMonster } from './entities/monsters'
 import { createChest, drawChest, ITEM_COLORS, ITEM_NAMES, ITEM_DURATIONS } from './entities/items'
 import { WEAPONS, createWeaponDrop, drawWeaponDrop } from './entities/weapons'
 import { SKILLS, getUltimateName, createWeaponProjectile, createUltimateProjectile, drawProjectile, drawSkillBar } from './entities/skills'
 import { getRandomEquipment, createEquipmentDrop, drawEquipmentDrop, calcEquipmentBonuses, RARITY_COLORS, RARITY_NAMES, upgradeEquipment, canUpgrade, findUpgradeMaterials, getActivePassives, PASSIVE_NAMES } from './entities/equipment'
+import { MATERIALS, monsterGoldDrop, rollMaterialDrop, stonesNeeded, upgradeSuccessRate, rollUpgradeSuccess } from './entities/materials'
+import type { MaterialInventory, MaterialType } from './entities/materials'
+import { WINGS, getRandomWingDrop, drawWings } from './entities/wings'
+import type { WingType, WingConfig } from './entities/wings'
+import { drawNPC, drawShopUI, drawUpgradeUI } from './entities/npc'
+import type { NPC } from './entities/npc'
 // Rendering
 import { spawnParticles as _spawnParticles, spawnFloatingText as _spawnFloatingText, updateParticles as _updateParticles, updateFloatingTexts as _updateFloatingTexts, drawParticles as _drawParticles, drawFloatingTexts as _drawFloatingTexts } from './rendering/particles'
 // World
-import { generateMap as _generateMap, generateBackground } from './world/map'
-import { getBiomeConfig, getBiomeForLevel } from './world/biomes'
+import { generateBackground } from './world/map'
+import { getBiomeConfig, getBiomeForLevel, BIOMES } from './world/biomes'
+import { MAP_CONFIGS, BATTLE_MAPS, generateMapPlatforms, generateHubNPCs, drawPortal, drawMapSelection, getPlayerZone, drawZoneIndicator, drawZoneBoundaries } from './world/maps'
+import type { MapId } from './world/maps'
 // UI
 import { saveScore, isHighScore, drawLeaderboard } from './ui/leaderboard'
+import { drawGoldHUD, drawWingHUD } from './ui/shop-upgrade'
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
-const gameState = ref<'menu' | 'playing' | 'gameover'>('menu')
+const gameState = ref<'menu' | 'naming' | 'playing' | 'gameover'>('menu')
 const score = ref(0)
 const level = ref(1)
 const playerHp = ref(PLAYER_MAX_HP)
@@ -63,6 +72,13 @@ const playerMaxMp = ref(PLAYER_MAX_MP)
 const killCount = ref(0)
 const showInventory = ref(false)
 
+// === PLAYER NAME & ADMIN ===
+const playerName = ref('Ninja')
+let nameInput = ''
+let nameBlinkTimer = 0
+let isAdmin = false
+const ADMIN_NAME = 'nmdung.dev'
+
 let animationId = 0
 let ctx: CanvasRenderingContext2D | null = null
 let W = CANVAS_WIDTH
@@ -71,14 +87,19 @@ let H = CANVAS_HEIGHT
 const keys: Record<string, boolean> = {}
 const keyJustPressed: Record<string, boolean> = {}
 function onKeyDown(e: KeyboardEvent) {
+  // Skip game controls during naming input
+  if (gameState.value === 'naming') {
+    if (e.code === 'Enter' || e.code === 'Space') initAudio()
+    return
+  }
   if (!keys[e.code]) keyJustPressed[e.code] = true
   keys[e.code] = true
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault()
   if (e.code === 'Enter' || e.code === 'Space') initAudio()
   // Inventory toggle
   if (e.code === 'KeyB' && gameState.value === 'playing') showInventory.value = !showInventory.value
-  // Tab switch in inventory
-  if (e.code === 'Tab' && showInventory.value) { e.preventDefault(); invTab = (invTab + 1) % 3 }
+  // Tab switch in inventory (4 tabs: weapons, equipment, consumables, wings)
+  if (e.code === 'Tab' && showInventory.value) { e.preventDefault(); invTab = (invTab + 1) % 4 }
   // Quick equip 1-6
   if (gameState.value === 'playing' && !showInventory.value) {
     const weaponKeys: WeaponType[] = ['sword', 'dual_swords', 'axe', 'bow', 'shuriken', 'hammer']
@@ -120,6 +141,39 @@ function onKeyDown(e: KeyboardEvent) {
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') equipSelectedSlot = Math.max(0, equipSelectedSlot - 1)
     if (e.code === 'ArrowRight' || e.code === 'KeyD') equipSelectedSlot = Math.min(5, equipSelectedSlot + 1)
   }
+  // NPC blacksmith keyboard controls
+  if (activeNPC?.type === 'blacksmith') {
+    if (e.code === 'Escape') { upgradeSelectedEquip = null; upgradeResult = 'none' }
+    if (e.code === 'KeyD') { upgradeUseRefineDust = !upgradeUseRefineDust && materialInventory.refine_dust > 0 }
+    if (e.code === 'KeyF') { upgradeUseProtection = !upgradeUseProtection && materialInventory.protection_scroll > 0 }
+    if (!upgradeSelectedEquip) {
+      const allUpgradeable = getAllUpgradeableItems()
+      if (e.code === 'ArrowUp') upgradeListIdx = Math.max(0, upgradeListIdx - 1)
+      if (e.code === 'ArrowDown') upgradeListIdx = Math.min(allUpgradeable.length - 1, upgradeListIdx + 1)
+      if (e.code === 'Enter' && allUpgradeable[upgradeListIdx]) {
+        upgradeSelectedEquip = allUpgradeable[upgradeListIdx]!
+      }
+    } else if (e.code === 'Enter') { performUpgrade() }
+  }
+  // NPC merchant keyboard controls
+  if (activeNPC?.type === 'merchant') {
+    if (e.code === 'ArrowUp') shopSelectedIdx = Math.max(0, shopSelectedIdx - 1)
+    if (e.code === 'ArrowDown') shopSelectedIdx = Math.min(2, shopSelectedIdx + 1)
+    if (e.code === 'Enter') {
+      const items: { mat: MaterialType; price: number }[] = [
+        { mat: 'upgrade_stone', price: 100 },
+        { mat: 'refine_dust', price: 250 },
+        { mat: 'protection_scroll', price: 500 },
+      ]
+      const item = items[shopSelectedIdx]
+      if (item && playerGold.value >= item.price) {
+        playerGold.value -= item.price
+        materialInventory[item.mat]++
+        sfxChestOpen()
+        spawnFloatingText(player.x + player.w / 2, player.y - 20, `${MATERIALS[item.mat].icon} +1`, MATERIALS[item.mat].color, 14)
+      } else { sfxPlayerHurt() }
+    }
+  }
 }
 function onKeyUp(e: KeyboardEvent) { keys[e.code] = false }
 
@@ -137,15 +191,90 @@ function onCanvasClick(e: MouseEvent) {
     initAudio(); startGame(); return
   }
 
+  // NPC interaction clicks (merchant shop, blacksmith upgrade)
+  if (activeNPC?.type === 'merchant') {
+    const panelW = 360, panelH = 300
+    const px = (W - panelW) / 2, py = H - panelH - 50
+    const items: { mat: MaterialType; price: number }[] = [
+      { mat: 'upgrade_stone', price: 100 },
+      { mat: 'refine_dust', price: 250 },
+      { mat: 'protection_scroll', price: 500 },
+    ]
+    items.forEach((item, i) => {
+      const iy = py + 54 + i * 68
+      const btnX = px + panelW - 88, btnY2 = iy + 14, bw = 70, bh = 28
+      if (mx >= btnX && mx <= btnX + bw && my >= btnY2 && my <= btnY2 + bh) {
+        if (playerGold.value >= item.price) {
+          playerGold.value -= item.price
+          materialInventory[item.mat]++
+          sfxChestOpen()
+          spawnFloatingText(player.x + player.w / 2, player.y - 20, `${MATERIALS[item.mat].icon} +1`, MATERIALS[item.mat].color, 14)
+        } else { sfxPlayerHurt() }
+      }
+    })
+    return
+  }
+
+  if (activeNPC?.type === 'blacksmith') {
+    const panelW = 420, panelH = 360
+    const px = (W - panelW) / 2, py = H - panelH - 50
+    if (!upgradeSelectedEquip) {
+      // Click to select equipment
+      const allItems = getAllUpgradeableItems()
+      const maxVisible = 7
+      const startI = Math.max(0, upgradeListIdx - 3)
+      for (let i = startI; i < Math.min(allItems.length, startI + maxVisible); i++) {
+        const iy = py + 56 + (i - startI) * 40
+        if (mx >= px + 12 && mx <= px + panelW - 12 && my >= iy && my <= iy + 34) {
+          upgradeSelectedEquip = allItems[i]!; upgradeListIdx = i; sfxItem(); return
+        }
+      }
+    } else {
+      // Click upgrade button
+      upgradeSuccessRate(upgradeSelectedEquip.level, upgradeUseRefineDust)
+      const optY = py + 38 + 60 + 18 + 40 + 6 + 18 + 28
+      const btnY = optY + 36
+      if (mx >= px + panelW / 2 - 90 && mx <= px + panelW / 2 + 90 && my >= btnY && my <= btnY + 34) {
+        performUpgrade(); return
+      }
+      // Click refine dust toggle
+      if (mx >= px + 16 && mx <= px + 16 + (panelW - 40) / 2 - 4 && my >= optY && my <= optY + 26) {
+        upgradeUseRefineDust = !upgradeUseRefineDust && materialInventory.refine_dust > 0; return
+      }
+      // Click protection toggle
+      const optX2 = px + 16 + (panelW - 40) / 2 + 4
+      if (mx >= optX2 && mx <= optX2 + (panelW - 40) / 2 - 4 && my >= optY && my <= optY + 26) {
+        upgradeUseProtection = !upgradeUseProtection && materialInventory.protection_scroll > 0; return
+      }
+    }
+    return
+  }
+
+  // Map selection clicks
+  if (showMapSelection) {
+    const panelW = 400, panelH = 320
+    const px = (W - panelW) / 2, py = H - panelH - 50
+    for (let i = 0; i < BATTLE_MAPS.length; i++) {
+      const iy = py + 40 + i * 62
+      if (mx >= px + 12 && mx <= px + panelW - 12 && my >= iy && my <= iy + 52) {
+        const targetMap = BATTLE_MAPS[i]
+        if (targetMap && unlockedMaps.value.includes(targetMap)) {
+          switchMap(targetMap); return
+        }
+      }
+    }
+    return
+  }
+
   if (!showInventory.value) return
 
   const panelW = 480, panelH = 380
   const px = (W - panelW) / 2, py = (H - panelH) / 2
 
   // Tab clicks
-  const tabW = panelW / 3
+  const tabW = panelW / 4
   if (my >= py && my <= py + 24) {
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       if (mx >= px + i * tabW && mx < px + (i + 1) * tabW) {
         invTab = i; sfxItem(); return
       }
@@ -279,6 +408,16 @@ function onCanvasClick(e: MouseEvent) {
         return
       }
     }
+  } else if (invTab === 3) {
+    // Wings tab click - equip/unequip wings
+    ownedWings.forEach((wt, i) => {
+      const col = i % 4, row = Math.floor(i / 4)
+      const wx = px + 20 + col * 110
+      const wy = py + 66 + row * 80
+      if (mx >= wx && mx <= wx + 100 && my >= wy && my <= wy + 66) {
+        equipWing(wt); return
+      }
+    })
   }
 }
 
@@ -310,11 +449,37 @@ const consumables: ConsumableItem[] = [
   { type: 'hp_potion', count: INITIAL_HP_POTIONS },
   { type: 'mp_potion', count: INITIAL_MP_POTIONS },
 ]
-let invTab = 0 // 0=weapons, 1=equipment, 2=consumables
+let invTab = 0 // 0=weapons, 1=equipment, 2=consumables, 3=shop, 4=upgrade
 let equipSelectedSlot = 0
 
+// === GOLD & MATERIALS ===
+const playerGold = ref(0)
+const materialInventory: MaterialInventory = {
+  upgrade_stone: 0, refine_dust: 0, protection_scroll: 0,
+}
+// === WINGS ===
+const ownedWings: WingType[] = []
+let equippedWing: WingConfig | null = null
+let flyTimer = 0 // frames of hover remaining
+// === SHOP & UPGRADE STATE ===
+let shopSelectedIdx = 0
+let upgradeSelectedEquip: EquipmentConfig | null = null
+let upgradeUseRefineDust = false
+let upgradeUseProtection = false
+let upgradeResult: 'none' | 'success' | 'fail' = 'none'
+let upgradeAnim = 0
+let upgradeListIdx = 0  // index in the combined list for selecting equipment
 
-let spawnTimer = 0
+// === MAP SYSTEM ===
+const currentMapId = ref<MapId>('hub')
+const npcs: NPC[] = []
+const unlockedMaps = ref<MapId[]>(['forest'])  // start with forest unlocked
+let showMapSelection = false
+let mapSelectIdx = 0
+let activeNPC: NPC | null = null  // currently interacting NPC
+
+
+
 let spawnRate = INITIAL_SPAWN_RATE
 let maxMonsters = INITIAL_MAX_MONSTERS
 let chestSpawnTimer = 0
@@ -361,6 +526,102 @@ function resetPlayer() {
   consumables.length = 0
   consumables.push({ type: 'hp_potion', count: INITIAL_HP_POTIONS }, { type: 'mp_potion', count: INITIAL_MP_POTIONS })
   showInventory.value = false; invTab = 0
+  // Reset gold, materials, wings
+  playerGold.value = 0
+  materialInventory.upgrade_stone = 0
+  materialInventory.refine_dust = 0
+  materialInventory.protection_scroll = 0
+  ownedWings.length = 0
+  equippedWing = null; flyTimer = 0
+  shopSelectedIdx = 0; upgradeSelectedEquip = null
+  upgradeUseRefineDust = false; upgradeUseProtection = false
+  upgradeResult = 'none'; upgradeAnim = 0
+}
+
+// === WINGS ===
+function equipWing(wingType: WingType) {
+  const cfg = WINGS[wingType]
+  if (equippedWing?.id === wingType) {
+    // Unequip
+    player.maxJumps = MAX_JUMPS
+    equippedWing = null
+    spawnFloatingText(player.x + player.w / 2, player.y - 20, 'Gỡ cánh', '#ef4444', 14)
+  } else {
+    equippedWing = cfg
+    player.maxJumps = MAX_JUMPS + cfg.extraJumps
+    spawnFloatingText(player.x + player.w / 2, player.y - 20, `${cfg.icon} ${cfg.name}`, cfg.color, 16)
+    spawnParticles(player.x + player.w / 2, player.y + player.h / 2, cfg.color, 15, 5)
+  }
+  sfxItem()
+}
+
+// === UPGRADE SYSTEM ===
+function getAllUpgradeableItems(): EquipmentConfig[] {
+  const items: EquipmentConfig[] = []
+  const slots: EquipSlot[] = ['head', 'chest', 'legs', 'gloves', 'boots', 'accessory']
+  for (const slot of slots) {
+    const eq = player.equipment[slot]
+    if (eq) items.push(eq)
+  }
+  for (const eq of equipInventory) items.push(eq)
+  return items
+}
+
+function performUpgrade() {
+  if (!upgradeSelectedEquip) return
+  const eq = upgradeSelectedEquip
+  if (eq.level >= 10) return
+
+  const needed = stonesNeeded(eq.level)
+  if (materialInventory.upgrade_stone < needed) {
+    spawnFloatingText(player.x + player.w / 2, player.y - 20, 'Thiếu Đá Nâng Cấp!', '#ef4444', 14)
+    sfxPlayerHurt(); return
+  }
+
+  // Consume materials
+  materialInventory.upgrade_stone -= needed
+  if (upgradeUseRefineDust && materialInventory.refine_dust > 0) materialInventory.refine_dust--
+  if (upgradeUseProtection && materialInventory.protection_scroll > 0) materialInventory.protection_scroll--
+
+  // Roll success
+  const success = rollUpgradeSuccess(eq.level, upgradeUseRefineDust)
+  upgradeAnim = 60
+
+  if (success) {
+    upgradeResult = 'success'
+    // Upgrade stats in-place
+    const newLevel = Math.min(10, eq.level + 1)
+    const boost = 1 + (newLevel - 1) * 0.15
+    const prevBoost = 1 + (eq.level - 1) * 0.15
+    if (eq.stats.hp) eq.stats.hp = Math.round(eq.stats.hp / prevBoost * boost)
+    if (eq.stats.atk) eq.stats.atk = Math.round(eq.stats.atk / prevBoost * boost)
+    if (eq.stats.def) eq.stats.def = Math.round(eq.stats.def / prevBoost * boost)
+    if (eq.stats.speed) eq.stats.speed = Math.round(eq.stats.speed / prevBoost * boost * 100) / 100
+    if (eq.stats.critChance) eq.stats.critChance = Math.round(eq.stats.critChance / prevBoost * boost)
+    eq.level = newLevel
+    eq.name = eq.name.replace(/ \+\d+$/, '') + (newLevel > 1 ? ` +${newLevel - 1}` : '')
+    sfxLevelUp()
+    spawnFloatingText(player.x + player.w / 2, player.y - 40, `${eq.icon} Nâng cấp thành công!`, '#4ade80', 18)
+    spawnParticles(player.x + player.w / 2, player.y + player.h / 2, '#4ade80', 25, 6)
+  } else {
+    upgradeResult = 'fail'
+    sfxPlayerHurt()
+    // Fail penalty: lose 1 level unless protected
+    if (!upgradeUseProtection && eq.level > 1) {
+      const prevLevel = eq.level - 1
+      const prevBoost = 1 + (prevLevel - 1) * 0.15
+      const curBoost = 1 + (eq.level - 1) * 0.15
+      if (eq.stats.hp) eq.stats.hp = Math.round(eq.stats.hp / curBoost * prevBoost)
+      if (eq.stats.atk) eq.stats.atk = Math.round(eq.stats.atk / curBoost * prevBoost)
+      if (eq.stats.def) eq.stats.def = Math.round(eq.stats.def / curBoost * prevBoost)
+      eq.level = prevLevel
+      eq.name = eq.name.replace(/ \+\d+$/, '') + (prevLevel > 1 ? ` +${prevLevel - 1}` : '')
+      spawnFloatingText(player.x + player.w / 2, player.y - 40, `${eq.icon} Thất bại! -1 Lv`, '#ef4444', 18)
+    } else {
+      spawnFloatingText(player.x + player.w / 2, player.y - 40, `${eq.icon} Thất bại! (Được bảo vệ)`, '#fbbf24', 16)
+    }
+    spawnParticles(player.x + player.w / 2, player.y + player.h / 2, '#ef4444', 15, 4)
+  }
 }
 
 function tryUseSkill(skill: SkillType) {
@@ -407,22 +668,65 @@ function spawnParticles(x: number, y: number, color: string, count: number, spre
 function spawnFloatingText(x: number, y: number, text: string, color: string, size = 16) {
   _spawnFloatingText(floatingTexts, x, y, text, color, size)
 }
-function generateMap() { _generateMap(platforms, H) }
-function createMonster(type: MonsterType, x: number): Monster { return _createMonster(type, x, level.value, H) }
+function generateMap() {
+
+  platforms.length = 0
+  const newPlatforms = generateMapPlatforms(currentMapId.value, H)
+  for (const p of newPlatforms) platforms.push(p)
+  // Generate NPCs for hub
+  npcs.length = 0
+  if (currentMapId.value === 'hub') {
+    const hubNPCs = generateHubNPCs(H)
+    for (const n of hubNPCs) npcs.push(n)
+  }
+}
+function createMonster(type: MonsterType, x: number): Monster {
+  const biome = MAP_CONFIGS[currentMapId.value].biome
+  return _createMonster(type, x, level.value, H, biome)
+}
+// Zone spawn timers - mỗi zone có timer riêng
+const zoneSpawnTimers: Record<string, number> = {}
+
 function spawnMonster() {
-  if (monsters.length >= maxMonsters) return
-  const pool = getSpawnPool(level.value, monsters.some(m => m.type === 'boss'))
-  const type = pickRandomType(pool)
-  const side = Math.random() > 0.5 ? 1 : -1
-  monsters.push(createMonster(type, side > 0 ? camera.x + W + 100 : camera.x - 100))
+  const mapCfg = MAP_CONFIGS[currentMapId.value]
+  if (mapCfg.zones.length === 0) return  // No zones (hub)
+
+  // Spawn theo từng zone
+  for (const zone of mapCfg.zones) {
+    const zoneKey = `${mapCfg.id}_${zone.name}`
+    if (!zoneSpawnTimers[zoneKey]) zoneSpawnTimers[zoneKey] = 0
+    zoneSpawnTimers[zoneKey]++
+
+    if (zoneSpawnTimers[zoneKey]! < zone.spawnRate) continue
+    zoneSpawnTimers[zoneKey] = 0
+
+    // Đếm quái trong zone
+    const zoneMonsters = monsters.filter(m =>
+      !m.dead && m.x >= zone.xStart - 100 && m.x <= zone.xEnd + 100
+    )
+    if (zoneMonsters.length >= zone.maxMonsters) continue
+
+    // Spawn quái tại vị trí random trong zone
+    const spawnX = zone.xStart + Math.random() * (zone.xEnd - zone.xStart)
+    monsters.push(createMonster(zone.monsterType, spawnX))
+  }
+
+  // Boss spawn logic (toàn map)
+  const hasBoss = monsters.some(m => m.type === 'boss')
+  if (mapCfg.bossType && level.value >= mapCfg.minLevel + 2 && !hasBoss && Math.random() < 0.003) {
+    // Boss spawn ở giữa map
+    const bossX = mapCfg.width / 2
+    monsters.push(createMonster(mapCfg.bossType, bossX))
+  }
 }
 
 // ===== COLLISION (uses imported rectCollide from physics.ts) =====
 // resolveGravity wrapper adds map bounds
 function _resolveGravity(e: { x: number; y: number; vx: number; vy: number; w: number; h: number; onGround: boolean }) {
   resolveGravity(e, platforms)
+  const mapWidth = MAP_CONFIGS[currentMapId.value].width
   if (e.x < 0) e.x = 0
-  if (e.x + e.w > MAP_WIDTH) e.x = MAP_WIDTH - e.w
+  if (e.x + e.w > mapWidth) e.x = mapWidth - e.w
 }
 
 // ===== DRAW CHARACTER (improved) =====
@@ -457,6 +761,12 @@ function drawPixelChar(x: number, y: number, f: 1 | -1, state: string, frame: nu
     ctx.translate(-w / 2, -h / 2)
   } else {
     if (f < 0) { ctx.translate(cx + w, cy); ctx.scale(-1, 1) } else { ctx.translate(cx, cy) }
+  }
+
+  // === WINGS (behind character) ===
+  if (equippedWing) {
+    const isFlying = !player.onGround || state === 'jump'
+    drawWings(ctx!, equippedWing, w, h, player.facing, player.animFrame, isFlying)
   }
 
   // Shadow
@@ -660,6 +970,8 @@ function drawPixelChar(x: number, y: number, f: 1 | -1, state: string, frame: nu
     }
   }
 
+
+
   // Dash glow
   if (player.dashing) {
     ctx.strokeStyle = `rgba(56,189,248,${0.5 + Math.sin(Date.now() * 0.02) * 0.3})`
@@ -683,6 +995,7 @@ function drawMonster(m: Monster) {
   if (!ctx) return
   const cx = m.x - camera.x, cy = m.y - camera.y
   if (cx + m.w < -50 || cx > W + 50) return
+  const biome = MAP_CONFIGS[currentMapId.value].biome
   ctx.save()
   if (m.facing < 0) { ctx.translate(cx + m.w, cy); ctx.scale(-1, 1) } else { ctx.translate(cx, cy) }
   if (m.hurtTimer > 0) ctx.globalAlpha = 0.6 + Math.sin(m.hurtTimer) * 0.4
@@ -694,80 +1007,407 @@ function drawMonster(m: Monster) {
     ctx.ellipse(m.w / 2, m.h - 4, m.w / 2 * squash, m.h / 2 / squash, 0, 0, Math.PI * 2)
     ctx.fill()
     ctx.fillStyle = '#1a1a2e'
-    ctx.fillRect(6, m.h / 2 - 6, 3, 4)
-    ctx.fillRect(m.w - 10, m.h / 2 - 6, 3, 4)
-    ctx.fillStyle = 'rgba(255,255,255,0.3)'
-    ctx.fillRect(8, m.h / 2 - 10, 4, 3)
+    ctx.fillRect(6, m.h / 2 - 6, 3, 4); ctx.fillRect(m.w - 10, m.h / 2 - 6, 3, 4)
+    ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(8, m.h / 2 - 10, 4, 3)
+    if (biome === 'desert') {
+      ctx.fillStyle = '#92400e'
+      ctx.fillRect(m.w / 2 - 1, m.h / 2 - 12, 2, 6)
+      ctx.fillRect(m.w / 2 + 4, m.h / 2 - 10, 2, 5)
+      ctx.fillRect(m.w / 2 - 6, m.h / 2 - 10, 2, 5)
+    } else if (biome === 'ice') {
+      ctx.fillStyle = '#e0f2fe'
+      ctx.fillRect(m.w / 2 - 3, m.h / 2 - 13, 2, 7)
+      ctx.fillRect(m.w / 2 + 1, m.h / 2 - 11, 2, 5)
+      ctx.fillStyle = 'rgba(147,197,253,0.4)'
+      ctx.beginPath(); ctx.ellipse(m.w / 2, m.h - 4, m.w / 2 * squash + 2, m.h / 2 / squash + 1, 0, 0, Math.PI * 2); ctx.fill()
+    } else if (biome === 'volcano') {
+      ctx.fillStyle = 'rgba(251,146,60,0.4)'
+      ctx.beginPath(); ctx.ellipse(m.w / 2, m.h - 4, m.w / 2 * squash + 3, m.h / 2 / squash + 2, 0, 0, Math.PI * 2); ctx.fill()
+      const ft = Date.now() * 0.01
+      ctx.fillStyle = '#fbbf24'
+      ctx.fillRect(m.w / 2 + Math.sin(ft) * 6, m.h / 2 - 10 + Math.cos(ft) * 2, 2, 3)
+    }
   } else if (m.type === 'skeleton') {
     ctx.fillStyle = m.color
-    ctx.fillRect(6, 6, m.w - 12, 14)
-    ctx.fillRect(8, 20, m.w - 16, 12)
-    ctx.fillStyle = '#94a3b8'
+    ctx.fillRect(6, 6, m.w - 12, 14); ctx.fillRect(8, 20, m.w - 16, 12)
+    const ribColor = biome === 'desert' ? '#c2a23d' : biome === 'ice' ? '#93c5fd' : biome === 'volcano' ? '#64748b' : '#94a3b8'
+    ctx.fillStyle = ribColor
     for (let i = 0; i < 3; i++) ctx.fillRect(9, 22 + i * 3, m.w - 18, 1)
-    ctx.fillStyle = '#ef4444'
-    ctx.fillRect(9, 10, 3, 3); ctx.fillRect(m.w - 13, 10, 3, 3)
+    const eyeColor = biome === 'desert' ? '#f59e0b' : biome === 'ice' ? '#38bdf8' : biome === 'volcano' ? '#ef4444' : '#ef4444'
+    ctx.fillStyle = eyeColor; ctx.fillRect(9, 10, 3, 3); ctx.fillRect(m.w - 13, 10, 3, 3)
     const lOff = Math.sin(m.animFrame * 0.2) * 3
     ctx.fillStyle = m.color
     ctx.fillRect(8, 32, 4, 6 + lOff); ctx.fillRect(m.w - 12, 32, 4, 6 - lOff)
-    ctx.fillStyle = '#64748b'
-    ctx.fillRect(m.w - 4, 14, 3, 20)
+    const weaponColor = biome === 'desert' ? '#b45309' : biome === 'ice' ? '#60a5fa' : biome === 'volcano' ? '#dc2626' : '#64748b'
+    ctx.fillStyle = weaponColor; ctx.fillRect(m.w - 4, 14, 3, 20)
+    if (biome === 'desert') {
+      ctx.fillStyle = '#f59e0b'; ctx.fillRect(5, 3, m.w - 10, 5); ctx.fillRect(8, 0, 4, 5)
+    } else if (biome === 'ice') {
+      ctx.fillStyle = '#bae6fd'; ctx.fillRect(6, 18, m.w - 12, 3)
+      ctx.fillStyle = 'rgba(147,197,253,0.5)'; ctx.fillRect(4, 8, 2, 8); ctx.fillRect(m.w - 6, 8, 2, 8)
+    } else if (biome === 'volcano') {
+      ctx.fillStyle = '#f97316'; ctx.fillRect(10, 12, 2, 6); ctx.fillRect(m.w - 13, 14, 2, 4)
+      const ft = Date.now() * 0.008
+      ctx.fillStyle = '#ef4444'; ctx.fillRect(m.w / 2 + Math.sin(ft) * 5, -2 + Math.cos(ft * 1.5) * 2, 2, 2)
+    }
   } else if (m.type === 'demon') {
     ctx.fillStyle = m.color; ctx.fillRect(4, 8, m.w - 8, m.h - 12)
-    ctx.fillStyle = '#7f1d1d'; ctx.fillRect(4, 0, 4, 10); ctx.fillRect(m.w - 8, 0, 4, 10)
-    ctx.fillStyle = '#fbbf24'; ctx.fillRect(10, 14, 4, 4); ctx.fillRect(m.w - 14, 14, 4, 4)
-    ctx.fillStyle = 'rgba(248,113,113,0.5)'; ctx.fillRect(-8, 12, 12, 16); ctx.fillRect(m.w - 4, 12, 12, 16)
-    ctx.fillStyle = '#991b1b'; ctx.fillRect(8, m.h - 6, 6, 6); ctx.fillRect(m.w - 14, m.h - 6, 6, 6)
+    const hornColor = biome === 'ice' ? '#3b82f6' : biome === 'volcano' ? '#1a1a2e' : '#7f1d1d'
+    ctx.fillStyle = hornColor; ctx.fillRect(4, 0, 4, 10); ctx.fillRect(m.w - 8, 0, 4, 10)
+    if (biome === 'volcano') { ctx.fillRect(2, -2, 3, 6); ctx.fillRect(m.w - 5, -2, 3, 6) }
+    const demonEyeColor = biome === 'ice' ? '#93c5fd' : '#fbbf24'
+    ctx.fillStyle = demonEyeColor; ctx.fillRect(10, 14, 4, 4); ctx.fillRect(m.w - 14, 14, 4, 4)
+    const wingColor = biome === 'ice' ? '99,102,241' : biome === 'volcano' ? '239,68,68' : '248,113,113'
+    const wingAlpha = biome === 'volcano' ? '0.7' : '0.5'
+    ctx.fillStyle = `rgba(${wingColor},${wingAlpha})`
+    ctx.fillRect(-8, 12, 12, 16); ctx.fillRect(m.w - 4, 12, 12, 16)
+    const feetColor = biome === 'ice' ? '#312e81' : biome === 'volcano' ? '#450a0a' : '#991b1b'
+    ctx.fillStyle = feetColor; ctx.fillRect(8, m.h - 6, 6, 6); ctx.fillRect(m.w - 14, m.h - 6, 6, 6)
+    if (biome === 'ice') {
+      ctx.strokeStyle = 'rgba(147,197,253,0.3)'; ctx.lineWidth = 1
+      ctx.beginPath(); ctx.ellipse(m.w / 2, m.h / 2, m.w / 2 + 4, m.h / 2 + 2, 0, 0, Math.PI * 2); ctx.stroke()
+    } else if (biome === 'volcano') {
+      const ft = Date.now() * 0.006; ctx.fillStyle = '#fbbf24'
+      for (let i = 0; i < 3; i++) {
+        ctx.fillRect(m.w / 2 + Math.sin(ft + i * 2) * (m.w / 2 + 6), m.h / 3 + Math.cos(ft + i * 2.5) * 8, 2, 3)
+      }
+    }
   } else if (m.type === 'boss') {
     ctx.fillStyle = m.color; ctx.fillRect(6, 10, m.w - 12, m.h - 16)
-    ctx.fillStyle = '#fbbf24'
+    const crownColor = biome === 'desert' ? '#f59e0b' : biome === 'ice' ? '#93c5fd' : biome === 'volcano' ? '#ef4444' : '#fbbf24'
+    ctx.fillStyle = crownColor
     ctx.fillRect(10, 0, m.w - 20, 6); ctx.fillRect(10, -4, 4, 6)
     ctx.fillRect(m.w / 2 - 2, -6, 4, 8); ctx.fillRect(m.w - 14, -4, 4, 6)
     ctx.fillStyle = '#1a1a2e'; ctx.fillRect(14, 18, 6, 6); ctx.fillRect(m.w - 20, 18, 6, 6)
     ctx.fillStyle = '#ef4444'; ctx.fillRect(16, 30, m.w - 32, 4)
-    ctx.strokeStyle = 'rgba(168,85,247,0.4)'; ctx.lineWidth = 2
+    const auraColor = biome === 'desert' ? 'rgba(245,158,11,0.4)' : biome === 'ice' ? 'rgba(59,130,246,0.4)' : biome === 'volcano' ? 'rgba(239,68,68,0.5)' : 'rgba(168,85,247,0.4)'
+    ctx.strokeStyle = auraColor; ctx.lineWidth = 2
     ctx.beginPath(); ctx.ellipse(m.w / 2, m.h / 2, m.w / 2 + 6 + Math.sin(Date.now() * 0.005) * 4, m.h / 2 + 4, 0, 0, Math.PI * 2); ctx.stroke()
+    if (biome === 'desert') {
+      ctx.fillStyle = '#f59e0b'; ctx.fillRect(4, 4, 4, 14); ctx.fillRect(m.w - 8, 4, 4, 14)
+      ctx.fillStyle = '#b45309'; ctx.fillRect(8, 8, m.w - 16, 2)
+    } else if (biome === 'ice') {
+      ctx.fillStyle = '#e0f2fe'; ctx.fillRect(m.w / 2 - 1, -10, 2, 6); ctx.fillRect(m.w / 2 - 6, -7, 2, 5); ctx.fillRect(m.w / 2 + 4, -7, 2, 5)
+    } else if (biome === 'volcano') {
+      ctx.fillStyle = '#fb923c'; ctx.fillRect(10, 14, 3, m.h - 24); ctx.fillRect(m.w - 13, 18, 3, m.h - 28)
+      const ft = Date.now() * 0.005
+      for (let i = 0; i < 5; i++) {
+        ctx.fillStyle = i % 2 === 0 ? '#fbbf24' : '#ef4444'
+        ctx.fillRect(m.w / 2 + Math.sin(ft + i * 1.3) * (m.w / 2 + 10), m.h / 3 + Math.cos(ft + i * 1.7) * 12, 2, 3)
+      }
+    }
   } else if (m.type === 'bat') {
-    // Bat body
     ctx.fillStyle = m.color
     ctx.beginPath(); ctx.ellipse(m.w / 2, m.h / 2 + 2, 6, 5, 0, 0, Math.PI * 2); ctx.fill()
-    // Wings flapping
     const wingAngle = Math.sin(m.animFrame * 0.3) * 0.6
-    ctx.save(); ctx.translate(m.w / 2 - 5, m.h / 2)
-    ctx.rotate(-wingAngle)
-    ctx.fillStyle = m.color; ctx.fillRect(-12, -3, 12, 6)
+    const wingSize = biome === 'volcano' ? 14 : biome === 'ice' ? 13 : 12
+    ctx.save(); ctx.translate(m.w / 2 - 5, m.h / 2); ctx.rotate(-wingAngle)
+    ctx.fillStyle = m.color; ctx.fillRect(-wingSize, -3, wingSize, 6)
+    if (biome === 'desert') { ctx.fillStyle = 'rgba(146,64,14,0.4)'; ctx.fillRect(-wingSize + 2, -1, wingSize - 4, 2) }
+    else if (biome === 'volcano') { ctx.fillStyle = 'rgba(251,146,60,0.5)'; ctx.fillRect(-wingSize + 1, -2, wingSize - 2, 4) }
     ctx.restore()
-    ctx.save(); ctx.translate(m.w / 2 + 5, m.h / 2)
-    ctx.rotate(wingAngle)
-    ctx.fillStyle = m.color; ctx.fillRect(0, -3, 12, 6)
+    ctx.save(); ctx.translate(m.w / 2 + 5, m.h / 2); ctx.rotate(wingAngle)
+    ctx.fillStyle = m.color; ctx.fillRect(0, -3, wingSize, 6)
+    if (biome === 'desert') { ctx.fillStyle = 'rgba(146,64,14,0.4)'; ctx.fillRect(2, -1, wingSize - 4, 2) }
+    else if (biome === 'volcano') { ctx.fillStyle = 'rgba(251,146,60,0.5)'; ctx.fillRect(1, -2, wingSize - 2, 4) }
     ctx.restore()
-    // Eyes
-    ctx.fillStyle = '#fbbf24'; ctx.fillRect(m.w / 2 - 4, m.h / 2 - 2, 2, 2); ctx.fillRect(m.w / 2 + 2, m.h / 2 - 2, 2, 2)
-    // Fangs
+    const batEyeColor = biome === 'desert' ? '#f59e0b' : biome === 'ice' ? '#93c5fd' : biome === 'volcano' ? '#ef4444' : '#fbbf24'
+    ctx.fillStyle = batEyeColor; ctx.fillRect(m.w / 2 - 4, m.h / 2 - 2, 2, 2); ctx.fillRect(m.w / 2 + 2, m.h / 2 - 2, 2, 2)
     ctx.fillStyle = '#fff'; ctx.fillRect(m.w / 2 - 2, m.h / 2 + 4, 1, 2); ctx.fillRect(m.w / 2 + 1, m.h / 2 + 4, 1, 2)
+    if (biome === 'ice') { ctx.fillStyle = 'rgba(186,230,253,0.3)'; ctx.fillRect(m.w / 2 - 8, m.h / 2 + 5, 16, 2) }
   } else if (m.type === 'ghost') {
-    // Ghost - transparent wavy
+    const ghostAlpha = biome === 'ice' ? 0.45 : biome === 'volcano' ? 0.7 : 0.6
     const wave = Math.sin(Date.now() * 0.003 + m.x * 0.01) * 3
-    ctx.globalAlpha = 0.6 + Math.sin(Date.now() * 0.004) * 0.15
+    ctx.globalAlpha = ghostAlpha + Math.sin(Date.now() * 0.004) * 0.15
     ctx.fillStyle = m.color
-    ctx.beginPath()
-    ctx.ellipse(m.w / 2, m.h / 3, m.w / 2, m.h / 3, 0, Math.PI, 0)
-    ctx.rect(0, m.h / 3, m.w, m.h / 2)
-    ctx.fill()
-    // Wavy bottom
+    ctx.beginPath(); ctx.ellipse(m.w / 2, m.h / 3, m.w / 2, m.h / 3, 0, Math.PI, 0)
+    ctx.rect(0, m.h / 3, m.w, m.h / 2); ctx.fill()
     ctx.beginPath()
     for (let i = 0; i <= m.w; i += 4) {
       const yy = m.h - 2 + Math.sin(i * 0.5 + Date.now() * 0.005) * 3
       if (i === 0) ctx.moveTo(i, yy); else ctx.lineTo(i, yy)
     }
     ctx.lineTo(m.w, m.h / 2); ctx.lineTo(0, m.h / 2); ctx.fill()
-    // Eyes
-    ctx.fillStyle = '#1a1a2e'
+    const ghostEyeColor = biome === 'desert' ? '#f59e0b' : biome === 'volcano' ? '#ef4444' : '#1a1a2e'
+    ctx.fillStyle = ghostEyeColor
     ctx.beginPath(); ctx.ellipse(m.w / 3, m.h / 3 + 2 + wave * 0.3, 3, 4, 0, 0, Math.PI * 2); ctx.fill()
     ctx.beginPath(); ctx.ellipse(m.w * 2 / 3, m.h / 3 + 2 + wave * 0.3, 3, 4, 0, 0, Math.PI * 2); ctx.fill()
-    // Mouth
     ctx.beginPath(); ctx.ellipse(m.w / 2, m.h / 2 + wave * 0.3, 4, 3, 0, 0, Math.PI); ctx.fill()
     ctx.globalAlpha = 1
+    if (biome === 'ice') {
+      ctx.fillStyle = '#e0f2fe'; const ft = Date.now() * 0.003
+      ctx.fillRect(m.w / 2 + Math.sin(ft) * 10, m.h / 4 + Math.cos(ft) * 6, 2, 2)
+      ctx.fillRect(m.w / 2 + Math.cos(ft) * 8, m.h / 2 + Math.sin(ft) * 5, 2, 2)
+    } else if (biome === 'volcano') {
+      ctx.fillStyle = '#fb923c'; const ft = Date.now() * 0.006
+      ctx.fillRect(m.w / 2 + Math.sin(ft) * 8, -4 + Math.cos(ft) * 3, 2, 3)
+    }
   }
+
+  // === DESERT MONSTERS ===
+  else if (m.type === 'scorpion') {
+    // Body segments
+    ctx.fillStyle = m.color
+    ctx.beginPath(); ctx.ellipse(m.w / 2, m.h - 4, m.w / 2 - 2, 6, 0, 0, Math.PI * 2); ctx.fill()
+    // Claws
+    const clawAnim = Math.sin(m.animFrame * 0.2) * 3
+    ctx.fillStyle = '#b45309'
+    ctx.fillRect(2, m.h / 2 - 6 + clawAnim, 6, 4); ctx.fillRect(0, m.h / 2 - 8 + clawAnim, 3, 3)
+    ctx.fillRect(m.w - 8, m.h / 2 - 6 - clawAnim, 6, 4); ctx.fillRect(m.w - 3, m.h / 2 - 8 - clawAnim, 3, 3)
+    // Tail (curved up)
+    const tailSway = Math.sin(m.animFrame * 0.15) * 2
+    ctx.fillStyle = '#d97706'
+    ctx.fillRect(m.w / 2 - 1, m.h / 2 - 8, 2, 8)
+    ctx.fillRect(m.w / 2 - 2 + tailSway, m.h / 2 - 14, 2, 7)
+    ctx.fillStyle = '#ef4444'; ctx.fillRect(m.w / 2 - 2 + tailSway, m.h / 2 - 16, 3, 3) // stinger
+    // Eyes
+    ctx.fillStyle = '#1a1a2e'; ctx.fillRect(m.w / 2 - 5, m.h - 8, 2, 2); ctx.fillRect(m.w / 2 + 3, m.h - 8, 2, 2)
+    // Legs
+    ctx.fillStyle = '#92400e'
+    for (let i = 0; i < 3; i++) {
+      const lOff = Math.sin(m.animFrame * 0.25 + i) * 2
+      ctx.fillRect(5 + i * 4, m.h - 2 + lOff, 2, 3 + lOff)
+      ctx.fillRect(m.w - 7 - i * 4, m.h - 2 - lOff, 2, 3 - lOff)
+    }
+  } else if (m.type === 'mummy') {
+    // Body wrap
+    ctx.fillStyle = m.color
+    ctx.fillRect(6, 8, m.w - 12, m.h - 12)
+    // Bandage lines
+    ctx.fillStyle = '#78716c'
+    for (let i = 0; i < 6; i++) {
+      const bOff = Math.sin(i * 1.2 + m.animFrame * 0.05) * 1
+      ctx.fillRect(6 + bOff, 10 + i * 5, m.w - 12, 1)
+    }
+    // Head shape
+    ctx.fillStyle = '#d6d3d1'; ctx.fillRect(8, 4, m.w - 16, 10)
+    // Glowing eyes
+    const eyeGlow = 0.6 + Math.sin(Date.now() * 0.005) * 0.4
+    ctx.fillStyle = `rgba(251,191,36,${eyeGlow})`
+    ctx.fillRect(10, 8, 3, 3); ctx.fillRect(m.w - 13, 8, 3, 3)
+    // Dangling bandages
+    const dangle = Math.sin(Date.now() * 0.004 + m.x) * 3
+    ctx.fillStyle = '#a8a29e'
+    ctx.fillRect(4, 12, 3, 10 + dangle); ctx.fillRect(m.w - 7, 16, 3, 8 - dangle)
+    // Arms reaching forward
+    const armSwing = Math.sin(m.animFrame * 0.15) * 4
+    ctx.fillStyle = '#d6d3d1'
+    ctx.fillRect(m.w - 2, 14 + armSwing, 8, 4); ctx.fillRect(m.w + 4, 12 + armSwing, 3, 3)
+    // Legs shuffle
+    const lOff = Math.sin(m.animFrame * 0.12) * 3
+    ctx.fillStyle = m.color
+    ctx.fillRect(8, m.h - 6, 5, 6 + lOff); ctx.fillRect(m.w - 13, m.h - 6, 5, 6 - lOff)
+  } else if (m.type === 'sand_worm') {
+    // Segmented worm body
+    const segments = 5
+    const seg = m.w / segments
+    for (let i = 0; i < segments; i++) {
+      const sy = Math.sin(m.animFrame * 0.2 + i * 0.8) * 4
+      const segColor = i === 0 ? '#a16207' : i % 2 === 0 ? m.color : '#b45309'
+      ctx.fillStyle = segColor
+      ctx.beginPath()
+      ctx.ellipse(seg * i + seg / 2, m.h / 2 + sy, seg / 2 + 1, m.h / 2 - 2, 0, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    // Head (first segment)
+    ctx.fillStyle = '#78350f'
+    ctx.beginPath(); ctx.ellipse(seg / 2, m.h / 2 + Math.sin(m.animFrame * 0.2) * 4, seg / 2 + 3, m.h / 2, 0, 0, Math.PI * 2); ctx.fill()
+    // Mouth
+    ctx.fillStyle = '#ef4444'
+    ctx.beginPath(); ctx.arc(2, m.h / 2 + Math.sin(m.animFrame * 0.2) * 4, 4, -0.8, 0.8); ctx.fill()
+    // Eyes
+    ctx.fillStyle = '#fbbf24'; ctx.fillRect(4, m.h / 2 - 5 + Math.sin(m.animFrame * 0.2) * 4, 2, 2)
+    // Sand particles around
+    ctx.fillStyle = 'rgba(202,138,4,0.4)'
+    const ft = Date.now() * 0.008
+    ctx.fillRect(m.w / 2 + Math.sin(ft) * m.w / 2, m.h + 2, 3, 2)
+    ctx.fillRect(m.w / 3 + Math.cos(ft) * 6, m.h + 1, 2, 2)
+  }
+
+  // === ICE MONSTERS ===
+  else if (m.type === 'ice_golem') {
+    // Blocky body
+    ctx.fillStyle = m.color
+    ctx.fillRect(4, 12, m.w - 8, m.h - 16)
+    // Frost crystal head
+    ctx.fillStyle = '#bfdbfe'; ctx.fillRect(6, 2, m.w - 12, 14)
+    ctx.fillStyle = '#dbeafe'; ctx.fillRect(8, 0, 4, 6); ctx.fillRect(m.w - 12, 0, 4, 6)
+    // Crystal crown
+    ctx.fillStyle = '#e0f2fe'
+    ctx.fillRect(m.w / 2 - 2, -6, 4, 8); ctx.fillRect(m.w / 2 - 6, -3, 3, 5); ctx.fillRect(m.w / 2 + 3, -3, 3, 5)
+    // Eyes (glowing blue)
+    const iceGlow = 0.7 + Math.sin(Date.now() * 0.004) * 0.3
+    ctx.fillStyle = `rgba(59,130,246,${iceGlow})`
+    ctx.fillRect(10, 8, 4, 4); ctx.fillRect(m.w - 14, 8, 4, 4)
+    // Ice texture lines
+    ctx.fillStyle = 'rgba(219,234,254,0.4)'
+    ctx.fillRect(8, 18, m.w - 16, 1); ctx.fillRect(10, 26, m.w - 20, 1); ctx.fillRect(8, 34, m.w - 16, 1)
+    // Arms (blocky)
+    const armSwing2 = Math.sin(m.animFrame * 0.1) * 3
+    ctx.fillStyle = '#93c5fd'
+    ctx.fillRect(-4, 16 + armSwing2, 8, 6); ctx.fillRect(m.w - 4, 16 - armSwing2, 8, 6)
+    ctx.fillStyle = '#60a5fa'; ctx.fillRect(-2, 20 + armSwing2, 6, 8); ctx.fillRect(m.w - 4, 20 - armSwing2, 6, 8)
+    // Legs
+    ctx.fillStyle = m.color
+    ctx.fillRect(8, m.h - 6, 6, 6); ctx.fillRect(m.w - 14, m.h - 6, 6, 6)
+    // Frost particles
+    ctx.fillStyle = '#e0f2fe'
+    const ift = Date.now() * 0.003
+    for (let i = 0; i < 3; i++) {
+      ctx.fillRect(m.w / 2 + Math.sin(ift + i * 2) * (m.w / 2 + 4), Math.cos(ift + i * 2) * m.h / 2 + m.h / 3, 2, 2)
+    }
+  } else if (m.type === 'yeti') {
+    // Furry body
+    ctx.fillStyle = m.color
+    ctx.fillRect(4, 10, m.w - 8, m.h - 14)
+    // Fur texture
+    ctx.fillStyle = '#f1f5f9'
+    for (let i = 0; i < 5; i++) {
+      ctx.fillRect(6 + i * 5, 12, 2, m.h - 20)
+    }
+    // Head
+    ctx.fillStyle = '#e2e8f0'; ctx.fillRect(6, 2, m.w - 12, 14)
+    // Horns
+    ctx.fillStyle = '#94a3b8'; ctx.fillRect(4, -2, 4, 8); ctx.fillRect(m.w - 8, -2, 4, 8)
+    // Angry eyes
+    ctx.fillStyle = '#ef4444'; ctx.fillRect(10, 6, 4, 3); ctx.fillRect(m.w - 14, 6, 4, 3)
+    ctx.fillStyle = '#1a1a2e'; ctx.fillRect(11, 7, 2, 2); ctx.fillRect(m.w - 13, 7, 2, 2)
+    // Mouth/roar
+    const roar = Math.sin(m.animFrame * 0.15) > 0.5
+    if (roar) {
+      ctx.fillStyle = '#1a1a2e'; ctx.fillRect(12, 12, m.w - 24, 3)
+      ctx.fillStyle = '#fff'; ctx.fillRect(13, 12, 2, 2); ctx.fillRect(m.w - 15, 12, 2, 2) // fangs
+    }
+    // Big arms
+    const yArmSwing = Math.sin(m.animFrame * 0.15) * 5
+    ctx.fillStyle = '#d1d5db'
+    ctx.fillRect(-4, 14 + yArmSwing, 8, 12); ctx.fillRect(m.w - 4, 14 - yArmSwing, 8, 12)
+    ctx.fillStyle = '#e2e8f0'; ctx.fillRect(-2, 24 + yArmSwing, 6, 5); ctx.fillRect(m.w - 4, 24 - yArmSwing, 6, 5) // fists
+    // Legs
+    const yLeg = Math.sin(m.animFrame * 0.15) * 3
+    ctx.fillStyle = '#d1d5db'
+    ctx.fillRect(8, m.h - 6, 7, 6 + yLeg); ctx.fillRect(m.w - 15, m.h - 6, 7, 6 - yLeg)
+    // Snow dust
+    if (m.state === 'chase') {
+      ctx.fillStyle = 'rgba(241,245,249,0.5)'
+      ctx.fillRect(m.w / 2 - 4 + Math.random() * 8, m.h + 1, 2, 2)
+    }
+  } else if (m.type === 'frost_spirit') {
+    // Ethereal ice form
+    const wave = Math.sin(Date.now() * 0.004 + m.x * 0.01) * 3
+    ctx.globalAlpha = 0.5 + Math.sin(Date.now() * 0.005) * 0.2
+    // Core body glow
+    ctx.fillStyle = 'rgba(191,219,254,0.6)'
+    ctx.beginPath(); ctx.ellipse(m.w / 2, m.h / 2 + wave, m.w / 2 + 4, m.h / 2 + 2, 0, 0, Math.PI * 2); ctx.fill()
+    // Inner core
+    ctx.fillStyle = m.color
+    ctx.beginPath(); ctx.ellipse(m.w / 2, m.h / 2 + wave, m.w / 3, m.h / 3, 0, 0, Math.PI * 2); ctx.fill()
+    // Ice crystal core
+    ctx.fillStyle = '#e0f2fe'
+    ctx.fillRect(m.w / 2 - 2, m.h / 3 + wave - 4, 4, 8); ctx.fillRect(m.w / 2 - 4, m.h / 3 + wave - 1, 8, 3)
+    // Eyes
+    ctx.fillStyle = '#3b82f6'
+    ctx.fillRect(m.w / 3, m.h / 3 + wave, 3, 3); ctx.fillRect(m.w * 2 / 3 - 2, m.h / 3 + wave, 3, 3)
+    // Floating ice shards
+    const ft2 = Date.now() * 0.004
+    ctx.fillStyle = '#bfdbfe'
+    for (let i = 0; i < 4; i++) {
+      const sx = m.w / 2 + Math.cos(ft2 + i * 1.6) * (m.w / 2 + 6)
+      const sy = m.h / 2 + Math.sin(ft2 + i * 1.6) * (m.h / 2 + 4) + wave
+      ctx.fillRect(sx - 1, sy - 1, 2, 3)
+    }
+    ctx.globalAlpha = 1
+  }
+
+  // === VOLCANO MONSTERS ===
+  else if (m.type === 'lava_snake') {
+    // Segmented snake
+    const segments2 = 6
+    const segW = m.w / segments2
+    for (let i = 0; i < segments2; i++) {
+      const sy2 = Math.sin(m.animFrame * 0.25 + i * 0.7) * 3
+      ctx.fillStyle = i % 2 === 0 ? m.color : '#dc2626'
+      ctx.beginPath(); ctx.ellipse(segW * i + segW / 2, m.h / 2 + sy2, segW / 2 + 1, m.h / 2 - 1, 0, 0, Math.PI * 2); ctx.fill()
+    }
+    // Head
+    ctx.fillStyle = '#b91c1c'
+    ctx.beginPath(); ctx.ellipse(segW / 2, m.h / 2 + Math.sin(m.animFrame * 0.25) * 3, segW / 2 + 3, m.h / 2 + 1, 0, 0, Math.PI * 2); ctx.fill()
+    // Flame eyes
+    const fGlow = 0.7 + Math.sin(Date.now() * 0.008) * 0.3
+    ctx.fillStyle = `rgba(251,191,36,${fGlow})`
+    ctx.fillRect(4, m.h / 2 - 4 + Math.sin(m.animFrame * 0.25) * 3, 3, 3)
+    ctx.fillRect(4, m.h / 2 + 1 + Math.sin(m.animFrame * 0.25) * 3, 3, 2)
+    // Tongue
+    ctx.fillStyle = '#fbbf24'
+    const tongueLen = Math.sin(m.animFrame * 0.3) * 4 + 3
+    ctx.fillRect(-tongueLen, m.h / 2 - 1 + Math.sin(m.animFrame * 0.25) * 3, tongueLen, 1)
+    // Fire trail
+    ctx.fillStyle = 'rgba(251,146,60,0.4)'
+    const lft = Date.now() * 0.01
+    ctx.fillRect(m.w - 2 + Math.sin(lft) * 3, m.h / 2 - 2, 3, 4)
+    ctx.fillRect(m.w + Math.cos(lft) * 2, m.h / 2, 2, 3)
+  } else if (m.type === 'fire_elemental') {
+    // Flame body (animated)
+    const flameTime = Date.now() * 0.008
+    ctx.fillStyle = m.color
+    ctx.beginPath(); ctx.ellipse(m.w / 2, m.h / 2 + 4, m.w / 2 - 2, m.h / 2 - 4, 0, 0, Math.PI * 2); ctx.fill()
+    // Inner flame
+    ctx.fillStyle = '#fbbf24'
+    ctx.beginPath(); ctx.ellipse(m.w / 2, m.h / 2 + 2, m.w / 3, m.h / 3, 0, 0, Math.PI * 2); ctx.fill()
+    // Core
+    ctx.fillStyle = '#fef3c7'
+    ctx.beginPath(); ctx.ellipse(m.w / 2, m.h / 2, m.w / 5, m.h / 5, 0, 0, Math.PI * 2); ctx.fill()
+    // Flame tips on top
+    for (let i = 0; i < 4; i++) {
+      const fx = m.w / 5 + i * (m.w / 5)
+      const fh = 6 + Math.sin(flameTime + i * 1.5) * 5
+      ctx.fillStyle = i % 2 === 0 ? '#ef4444' : '#f97316'
+      ctx.fillRect(fx - 1, 2 - fh, 3, fh)
+    }
+    // Eyes (dark)
+    ctx.fillStyle = '#1a1a2e'
+    ctx.fillRect(m.w / 3, m.h / 3 + 2, 3, 4); ctx.fillRect(m.w * 2 / 3 - 2, m.h / 3 + 2, 3, 4)
+    // Ember particles
+    ctx.fillStyle = '#fbbf24'
+    for (let i = 0; i < 4; i++) {
+      const ex = m.w / 2 + Math.sin(flameTime + i * 1.7) * (m.w / 2 + 8)
+      const ey = m.h / 4 + Math.cos(flameTime + i * 2.1) * m.h / 3
+      ctx.fillRect(ex - 1, ey - 1, 2, 2)
+    }
+  } else if (m.type === 'magma_golem') {
+    // Large rocky body
+    ctx.fillStyle = m.color
+    ctx.fillRect(4, 10, m.w - 8, m.h - 14)
+    // Rock texture
+    ctx.fillStyle = '#44403c'
+    ctx.fillRect(8, 14, 6, 6); ctx.fillRect(m.w - 14, 20, 5, 5); ctx.fillRect(12, 30, 7, 5)
+    // Head
+    ctx.fillStyle = '#292524'; ctx.fillRect(8, 2, m.w - 16, 12)
+    // Lava cracks (glowing)
+    const lavaGlow = 0.6 + Math.sin(Date.now() * 0.003) * 0.4
+    ctx.fillStyle = `rgba(251,146,60,${lavaGlow})`
+    ctx.fillRect(10, 8, m.w - 20, 2) // face crack
+    ctx.fillRect(6, 20, 2, m.h - 28); ctx.fillRect(m.w - 8, 18, 2, m.h - 26) // body cracks
+    ctx.fillRect(12, 28, m.w - 24, 2); ctx.fillRect(10, 38, m.w - 20, 2) // horizontal cracks
+    // Lava eyes
+    ctx.fillStyle = `rgba(239,68,68,${lavaGlow})`
+    ctx.fillRect(12, 5, 5, 4); ctx.fillRect(m.w - 17, 5, 5, 4)
+    // Fists
+    const mgArmSwing = Math.sin(m.animFrame * 0.1) * 4
+    ctx.fillStyle = '#1c1917'
+    ctx.fillRect(-6, 14 + mgArmSwing, 10, 10)
+    ctx.fillRect(m.w - 4, 14 - mgArmSwing, 10, 10)
+    ctx.fillStyle = `rgba(251,146,60,${lavaGlow * 0.5})`
+    ctx.fillRect(-4, 18 + mgArmSwing, 6, 3); ctx.fillRect(m.w - 2, 18 - mgArmSwing, 6, 3)
+    // Legs
+    ctx.fillStyle = '#292524'
+    ctx.fillRect(8, m.h - 6, 8, 6); ctx.fillRect(m.w - 16, m.h - 6, 8, 6)
+    // Molten drips
+    ctx.fillStyle = '#fb923c'
+    const mft = Date.now() * 0.004
+    ctx.fillRect(m.w / 2 + Math.sin(mft) * 4, m.h - 2, 2, 3 + Math.sin(mft) * 2)
+  }
+
   ctx.restore()
 
   // HP bar
@@ -791,7 +1431,7 @@ function initBackground() {
 
 function drawBackground() {
   if (!ctx) return
-  const biome = getBiomeConfig(level.value)
+  const biome = BIOMES[MAP_CONFIGS[currentMapId.value].biome]
   const skyGrad = ctx.createLinearGradient(0, 0, 0, H)
   biome.skyColors.forEach((c, i) => skyGrad.addColorStop(i / (biome.skyColors.length - 1), c))
   ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, W, H)
@@ -837,7 +1477,7 @@ function drawBackground() {
 
 function drawPlatforms() {
   if (!ctx) return
-  const biome = getBiomeConfig(level.value)
+  const biome = BIOMES[MAP_CONFIGS[currentMapId.value].biome]
   for (const p of platforms) {
     const px = p.x - camera.x, py = p.y - camera.y
     if (px + p.w < -10 || px > W + 10) continue
@@ -867,14 +1507,21 @@ function updatePlayer() {
   else if (keys['ArrowRight'] || keys['KeyD']) { player.vx = spd; player.facing = 1; moving = true }
   else { player.vx *= 0.7; if (Math.abs(player.vx) < 0.1) player.vx = 0 }
 
-  // Double jump
+  // Double jump + Wings
   if (keyJustPressed['ArrowUp'] || keyJustPressed['KeyW'] || keyJustPressed['Space']) {
     if (player.jumpCount < player.maxJumps && !player.attacking) {
-      player.vy = player.jumpPower
+      // Wings reduce gravity on extra jumps
+      let jumpForce = player.jumpPower
+      if (equippedWing && player.jumpCount >= MAX_JUMPS) {
+        jumpForce = player.jumpPower * (1 - equippedWing.floatReduction * 0.5)
+        flyTimer = equippedWing.flyDuration
+        spawnParticles(player.x + player.w / 2, player.y + player.h, equippedWing.color, 8, 3)
+      }
+      player.vy = jumpForce
       player.onGround = false
       player.jumpCount++
       sfxJump()
-      if (player.jumpCount === 2) {
+      if (player.jumpCount >= 2) {
         spawnParticles(player.x + player.w / 2, player.y + player.h, '#94a3b8', 5, 2)
       }
     }
@@ -883,7 +1530,13 @@ function updatePlayer() {
   for (const k in keyJustPressed) delete keyJustPressed[k]
 
   // Reset jump count when on ground
-  if (player.onGround) player.jumpCount = 0
+  if (player.onGround) { player.jumpCount = 0; flyTimer = 0 }
+
+  // Wing hover: reduce gravity while flying
+  if (flyTimer > 0 && !player.onGround) {
+    flyTimer--
+    if (player.vy > 0) player.vy *= (1 - (equippedWing?.floatReduction ?? 0))
+  }
 
   // Attack with weapon stats
   const wCfg = WEAPONS[player.weapon]
@@ -954,6 +1607,37 @@ function updatePlayer() {
             if (existing) existing.count++
             else consumables.push({ type: cType as ConsumableType, count: 1 })
             spawnFloatingText(m.x + m.w / 2, m.y, cType === 'hp_potion' ? '❤️ +1 HP Potion' : '💙 +1 MP Potion', cType === 'hp_potion' ? '#ef4444' : '#3b82f6', 12)
+          }
+          // === GOLD DROP ===
+          const goldAmount = monsterGoldDrop(m.type, level.value)
+          playerGold.value += goldAmount
+          spawnFloatingText(m.x + m.w / 2, m.y - 30, `+${goldAmount}💰`, '#fbbf24', 11)
+          // === MATERIAL DROP ===
+          const matDrop = rollMaterialDrop(m.type)
+          if (matDrop) {
+            materialInventory[matDrop]++
+            spawnFloatingText(m.x + m.w / 2, m.y - 45, `${MATERIALS[matDrop].icon} +1`, MATERIALS[matDrop].color, 13)
+          }
+          // === WING DROP ===
+          const wingDrop = getRandomWingDrop(m.type)
+          if (wingDrop && !ownedWings.includes(wingDrop)) {
+            ownedWings.push(wingDrop)
+            const wCfg = WINGS[wingDrop]
+            spawnFloatingText(m.x + m.w / 2, m.y - 60, `${wCfg.icon} ${wCfg.name}!`, wCfg.color, 16)
+            spawnParticles(m.x + m.w / 2, m.y, wCfg.color, 20, 6)
+          }
+          // === MAP UNLOCK ON BOSS KILL ===
+          if (m.type === 'boss' && currentMapId.value !== 'hub') {
+            const mapUnlockOrder: MapId[] = ['forest', 'desert', 'ice', 'volcano']
+            const currentIdx = mapUnlockOrder.indexOf(currentMapId.value)
+            if (currentIdx >= 0 && currentIdx < mapUnlockOrder.length - 1) {
+              const nextMap = mapUnlockOrder[currentIdx + 1]!
+              if (!unlockedMaps.value.includes(nextMap)) {
+                unlockedMaps.value.push(nextMap)
+                const nextCfg = MAP_CONFIGS[nextMap]
+                spawnFloatingText(player.x + player.w / 2, player.y - 80, `🔓 ${nextCfg.name} đã mở!`, '#818cf8', 20)
+              }
+            }
           }
           if (playerExp.value >= playerExpMax.value) levelUp()
         }
@@ -1035,8 +1719,8 @@ function updatePlayer() {
 }
 
 function updateMonsters() {
-  spawnTimer++
-  if (spawnTimer >= spawnRate) { spawnTimer = 0; spawnMonster() }
+  // Zone-based spawn - mỗi zone quản lý timer riêng
+  spawnMonster()
   for (let i = monsters.length - 1; i >= 0; i--) {
     const m = monsters[i]!
     if (m.dead) { monsters.splice(i, 1); continue }
@@ -1068,16 +1752,22 @@ function updateMonsters() {
           const absorbed = Math.floor(dmg * MANA_SHIELD_REDUCTION); dmg -= absorbed
           playerMp.value = Math.max(0, playerMp.value - absorbed * MANA_SHIELD_COST_MULT)
         }
-        playerHp.value -= dmg; player.invincible = INVINCIBLE_FRAMES; player.vx = -m.facing * KNOCKBACK_VX; player.vy = KNOCKBACK_VY
-        spawnParticles(player.x + player.w / 2, player.y + player.h / 2, '#ef4444', 10, 5)
-        spawnFloatingText(player.x + player.w / 2, player.y - 10, `-${dmg}`, '#ef4444', 16)
-        sfxPlayerHurt(); screenShake.intensity = SHAKE_INTENSITY_CRIT
+        if (!isAdmin) {
+          playerHp.value -= dmg; player.invincible = INVINCIBLE_FRAMES; player.vx = -m.facing * KNOCKBACK_VX; player.vy = KNOCKBACK_VY
+          spawnParticles(player.x + player.w / 2, player.y + player.h / 2, '#ef4444', 10, 5)
+          spawnFloatingText(player.x + player.w / 2, player.y - 10, `-${dmg}`, '#ef4444', 16)
+          sfxPlayerHurt(); screenShake.intensity = SHAKE_INTENSITY_CRIT
+        } else {
+          // Admin: bất tử - chỉ hiệu ứng visual
+          player.invincible = 10
+          spawnFloatingText(player.x + player.w / 2, player.y - 10, '🛡️ Bất Tử!', '#fbbf24', 12)
+        }
         if (passives.includes('thorns') && !m.dead) {
           const thornsDmg = Math.max(1, Math.floor(rawDmg * THORNS_PERCENT))
           m.hp -= thornsDmg; m.hurtTimer = MINOR_HURT_TIMER
           spawnFloatingText(m.x + m.w / 2, m.y - 10, `🌵 ${thornsDmg}`, '#4ade80', 12)
         }
-        if (playerHp.value <= 0) { playerHp.value = 0; gameState.value = 'gameover'; sfxGameOver(); handleGameOver() }
+        if (!isAdmin && playerHp.value <= 0) { playerHp.value = 0; gameState.value = 'gameover'; sfxGameOver(); handleGameOver() }
       } else {
         m.state = 'chase'; m.vx = m.facing * m.speed * phaseSpeedMult
         if (m.attackCooldown > 0) m.attackCooldown--
@@ -1098,18 +1788,23 @@ function updateMonsters() {
           playerMp.value = Math.max(0, playerMp.value - absorbed * MANA_SHIELD_COST_MULT)
           spawnFloatingText(player.x + player.w / 2, player.y, `🛡 -${absorbed}`, '#818cf8', 10)
         }
-        playerHp.value -= dmg; player.invincible = INVINCIBLE_FRAMES; player.vx = -m.facing * KNOCKBACK_VX; player.vy = KNOCKBACK_VY
-        spawnParticles(player.x + player.w / 2, player.y + player.h / 2, '#ef4444', 10, 5)
-        spawnFloatingText(player.x + player.w / 2, player.y - 10, `-${dmg}`, player.shield > 0 ? '#a855f7' : '#ef4444', 16)
-        sfxPlayerHurt()
-        screenShake.intensity = SHAKE_INTENSITY_CRIT // player hurt = big shake
+        if (!isAdmin) {
+          playerHp.value -= dmg; player.invincible = INVINCIBLE_FRAMES; player.vx = -m.facing * KNOCKBACK_VX; player.vy = KNOCKBACK_VY
+          spawnParticles(player.x + player.w / 2, player.y + player.h / 2, '#ef4444', 10, 5)
+          spawnFloatingText(player.x + player.w / 2, player.y - 10, `-${dmg}`, player.shield > 0 ? '#a855f7' : '#ef4444', 16)
+          sfxPlayerHurt()
+          screenShake.intensity = SHAKE_INTENSITY_CRIT
+        } else {
+          player.invincible = 10
+          spawnFloatingText(player.x + player.w / 2, player.y - 10, '🛡️ Bất Tử!', '#fbbf24', 12)
+        }
         // Thorns passive: reflect 20% damage
         if (passives.includes('thorns') && !m.dead) {
           const thornsDmg = Math.max(1, Math.floor(rawDmg * THORNS_PERCENT))
           m.hp -= thornsDmg; m.hurtTimer = MINOR_HURT_TIMER
           spawnFloatingText(m.x + m.w / 2, m.y - 10, `🌵 ${thornsDmg}`, '#4ade80', 12)
         }
-        if (playerHp.value <= 0) { playerHp.value = 0; gameState.value = 'gameover'; sfxGameOver(); handleGameOver() }
+        if (!isAdmin && playerHp.value <= 0) { playerHp.value = 0; gameState.value = 'gameover'; sfxGameOver(); handleGameOver() }
       }
     } else {
       // Chase - flying vs ground
@@ -1196,7 +1891,7 @@ function levelUp() {
   spawnFloatingText(player.x + player.w / 2, player.y - 40, 'LEVEL UP!', '#e879f9', 24)
   spawnParticles(player.x + player.w / 2, player.y + player.h / 2, '#e879f9', 30, 8)
   // Biome change notification
-  const newBiome = getBiomeConfig(level.value)
+  const newBiome = BIOMES[MAP_CONFIGS[currentMapId.value].biome]
   const prevBiome = getBiomeConfig(level.value - 1)
   if (newBiome.name !== prevBiome.name) {
     setTimeout(() => spawnFloatingText(player.x + player.w / 2, player.y - 60, `🗺️ ${newBiome.name}`, '#fbbf24', 20), 500)
@@ -1207,7 +1902,7 @@ function levelUp() {
 
 function handleGameOver() {
   if (!scoreSaved && score.value > 0) {
-    saveScore({ name: 'NINJA', score: score.value, level: level.value, kills: killCount.value, date: new Date().toLocaleDateString() })
+    saveScore({ name: playerName.value, score: score.value, level: level.value, kills: killCount.value, date: new Date().toLocaleDateString() })
     scoreSaved = true
   }
   // Clear auto-save on death
@@ -1253,7 +1948,8 @@ function updateParticles() { _updateParticles(particles) }
 function updateFloatingTexts() { _updateFloatingTexts(floatingTexts) }
 function updateCamera() {
   camera.x += (player.x - W / 3 - camera.x) * 0.08
-  camera.x = Math.max(0, Math.min(MAP_WIDTH - W, camera.x))
+  const mapWidth = MAP_CONFIGS[currentMapId.value].width
+  camera.x = Math.max(0, Math.min(mapWidth - W, camera.x))
 }
 
 function updateWeaponDrops() {
@@ -1372,15 +2068,21 @@ function drawBossHPBar(boss: Monster) {
 
 function drawUI() {
   if (!ctx) return
-  const biome = getBiomeConfig(level.value)
+
 
   // Player panel
   ctx.fillStyle = 'rgba(15,15,35,0.85)'; ctx.fillRect(12, 12, 208, 84)
   ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 1; ctx.strokeRect(12, 12, 208, 84)
 
-  ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 11px monospace'; ctx.fillText('NINJA', 18, 28)
+  // Tên + admin badge
+  if (isAdmin) {
+    ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 11px monospace'; ctx.fillText(`👑 ${playerName.value}`, 18, 28)
+    ctx.fillStyle = '#ef4444'; ctx.font = '8px monospace'; ctx.fillText('ADMIN', 18, 92)
+  } else {
+    ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 11px monospace'; ctx.fillText(playerName.value, 18, 28)
+  }
   ctx.fillStyle = '#fbbf24'; ctx.font = '10px monospace'; ctx.fillText(`Lv.${level.value}`, 110, 28)
-  ctx.fillStyle = '#94a3b8'; ctx.font = '9px monospace'; ctx.fillText(biome.name, 140, 28)
+  ctx.fillStyle = '#94a3b8'; ctx.font = '9px monospace'; ctx.fillText(MAP_CONFIGS[currentMapId.value].name, 140, 28)
 
   // HP
   ctx.fillStyle = '#1a1a2e'; ctx.fillRect(18, 34, 196, 16)
@@ -1463,6 +2165,11 @@ function drawUI() {
   // Skill bar (bottom right)
   drawSkillBar(ctx!, W, H, playerMp.value, playerMaxMp.value, player.skillCooldowns)
 
+  // Gold indicator
+  drawGoldHUD(ctx!, playerGold.value, W - 170, 66)
+  // Wing indicator
+  drawWingHUD(ctx!, equippedWing, W - 170, 92)
+
   ctx.fillStyle = 'rgba(255,255,255,0.2)'; ctx.font = '7px monospace'
   ctx.fillText('← → Di chuyển | ↑ Nhảy | Z/J Tấn công | Q/E/R Kỹ năng | F/G Thuốc | B Túi đồ', 16, H - 42)
 }
@@ -1507,6 +2214,89 @@ function drawMenu() {
   ctx.textAlign = 'left'
 }
 
+// === NAME INPUT SCREEN ===
+function drawNameInput() {
+  if (!ctx) return
+  drawBackground()
+  ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, W, H)
+
+  // Panel
+  const panelW = 420, panelH = 200
+  const px = (W - panelW) / 2, py = (H - panelH) / 2
+
+  ctx.fillStyle = 'rgba(15,15,35,0.95)'; ctx.fillRect(px, py, panelW, panelH)
+  ctx.strokeStyle = '#818cf8'; ctx.lineWidth = 2; ctx.strokeRect(px, py, panelW, panelH)
+
+  // Title
+  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 20px monospace'; ctx.textAlign = 'center'
+  ctx.fillText('⚔️ NINJA QUEST ⚔️', W / 2, py + 35)
+
+  // Subtitle
+  ctx.fillStyle = '#94a3b8'; ctx.font = '12px monospace'
+  ctx.fillText('Hãy đặt tên cho ninja của bạn', W / 2, py + 58)
+
+  // Input box
+  const inputW = 300, inputH = 36
+  const ix = (W - inputW) / 2, iy = py + 75
+  ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(ix, iy, inputW, inputH)
+  ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 2; ctx.strokeRect(ix, iy, inputW, inputH)
+
+  // Input text + cursor blink
+  nameBlinkTimer++
+  const showCursor = Math.floor(nameBlinkTimer / 30) % 2 === 0
+  const displayText = nameInput + (showCursor ? '▌' : '')
+  ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 18px monospace'
+  ctx.fillText(displayText || (showCursor ? '▌' : ''), W / 2, iy + 24)
+
+  // Placeholder hint
+  if (nameInput.length === 0 && !showCursor) {
+    ctx.fillStyle = '#4b5563'; ctx.font = '14px monospace'
+    ctx.fillText('Nhập tên...', W / 2, iy + 24)
+  }
+
+  // Submit hint
+  if (nameInput.length > 0) {
+    ctx.fillStyle = '#4ade80'; ctx.font = 'bold 14px monospace'
+    ctx.fillText('Nhấn ENTER để bắt đầu', W / 2, iy + 60)
+  } else {
+    ctx.fillStyle = '#64748b'; ctx.font = '11px monospace'
+    ctx.fillText('Tối đa 15 ký tự', W / 2, iy + 60)
+  }
+
+  // Admin hint (easter egg style - subtle)
+  ctx.fillStyle = '#1e1e3a'; ctx.font = '8px monospace'
+  ctx.fillText('💡 Nhập tên đặc biệt để mở khoá bí mật...', W / 2, py + panelH - 12)
+
+  ctx.textAlign = 'left'
+}
+
+function handleNameKeyInput(e: KeyboardEvent) {
+  if (gameState.value !== 'naming') return
+
+  if (e.code === 'Enter' && nameInput.length > 0) {
+    playerName.value = nameInput
+    isAdmin = nameInput === ADMIN_NAME
+    actualStartGame()
+    return
+  }
+
+  if (e.code === 'Backspace') {
+    nameInput = nameInput.slice(0, -1)
+    return
+  }
+
+  if (e.code === 'Escape') {
+    gameState.value = 'menu'
+    nameInput = ''
+    return
+  }
+
+  // Only allow printable chars
+  if (e.key.length === 1 && nameInput.length < 15) {
+    nameInput += e.key
+  }
+}
+
 function drawGameOver() {
   if (!ctx) return
   ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, W, H)
@@ -1514,7 +2304,7 @@ function drawGameOver() {
   ctx.fillStyle = '#ef4444'; ctx.font = 'bold 48px monospace'; ctx.fillText('GAME OVER', W / 2, H / 2 - 80)
   ctx.fillStyle = '#fbbf24'; ctx.font = '20px monospace'; ctx.fillText(`Score: ${score.value}`, W / 2, H / 2 - 30)
   ctx.fillStyle = '#94a3b8'; ctx.font = '14px monospace'
-  ctx.fillText(`Level: ${level.value} | Kills: ${killCount.value} | Biome: ${getBiomeConfig(level.value).name}`, W / 2, H / 2)
+  ctx.fillText(`Level: ${level.value} | Kills: ${killCount.value} | Map: ${MAP_CONFIGS[currentMapId.value].name}`, W / 2, H / 2)
   if (isHighScore(score.value)) {
     ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 16px monospace'; ctx.fillText('🏆 NEW HIGH SCORE! 🏆', W / 2, H / 2 + 30)
   }
@@ -1528,10 +2318,127 @@ function drawGameOver() {
 
 // ===== GAME LOOP =====
 function startGame() {
+  // Show naming screen first
+  gameState.value = 'naming'
+  nameInput = ''
+  nameBlinkTimer = 0
+}
+
+function setupAdminMode() {
+  // Admin: bất tử, full trang bị legendary +9, full vũ khí, max stats
+  level.value = 50
+  playerMaxHp.value = 9999; playerHp.value = 9999
+  playerMaxMp.value = 9999; playerMp.value = 9999
+  player.baseAtk = 999
+  player.speed = PLAYER_BASE_SPEED + 3
+  player.critChance = 80
+  player.defense = 200
+  player.maxJumps = 5
+  playerGold.value = 99999
+  materialInventory.upgrade_stone = 999
+  materialInventory.refine_dust = 999
+  materialInventory.protection_scroll = 999
+
+  // Full vũ khí
+  const allWeapons: WeaponType[] = ['sword', 'dual_swords', 'axe', 'bow', 'shuriken', 'hammer']
+  inventory.length = 0
+  for (const w of allWeapons) inventory.push(w)
+  player.weapon = 'hammer' // vũ khí mạnh nhất
+
+  // Full trang bị legendary +9 (level 10)
+  const legendaryEquips: { id: string; slot: EquipSlot; name: string; icon: string; passive: PassiveType; stats: EquipmentConfig['stats'] }[] = [
+    { id: 'shadow_hood', slot: 'head', name: 'Mũ Trùm Bóng Tối +9', icon: '🌑', passive: 'crit_burst', stats: { hp: 200, atk: 30, critChance: 40 } },
+    { id: 'divine_robe', slot: 'chest', name: 'Áo Thần Thánh +9', icon: '✨', passive: 'mana_shield', stats: { def: 80, hp: 150, manaRegen: 0.15 } },
+    { id: 'wind_hakama', slot: 'legs', name: 'Hakama Gió +9', icon: '🌪️', passive: 'speed_aura', stats: { speed: 4, def: 30, jumpPower: -5 } },
+    { id: 'god_fists', slot: 'gloves', name: 'Nắm Đấm Thần +9', icon: '💥', passive: 'lightning', stats: { atk: 90, critChance: 40, def: 12 } },
+    { id: 'celestial_step', slot: 'boots', name: 'Bước Chân Tiên +9', icon: '🌟', passive: 'lifesteal', stats: { speed: 3, jumpPower: -6, manaRegen: 0.1 } },
+    { id: 'dragon_heart', slot: 'accessory', name: 'Tim Rồng +9', icon: '❤️‍🔥', passive: 'lifesteal', stats: { hp: 200, atk: 50, def: 25, critChance: 25 } },
+  ]
+
+  for (const eq of legendaryEquips) {
+    player.equipment[eq.slot] = {
+      id: eq.id, uid: Math.floor(Math.random() * 100000),
+      name: eq.name, slot: eq.slot, rarity: 'legendary', icon: eq.icon,
+      level: 10, stats: eq.stats, passive: eq.passive,
+      passiveDesc: eq.passive !== 'none' ? `Admin passive` : undefined,
+      description: '👑 Admin Equipment', color: '#fb923c',
+    }
+  }
+
+  // Full cánh - celestial
+  const allWings: WingType[] = ['wood_wings', 'angel_wings', 'dragon_wings', 'shadow_wings', 'celestial_wings']
+  ownedWings.length = 0
+  for (const w of allWings) ownedWings.push(w)
+  equipWing('celestial_wings')
+
+  // Full consumables
+  consumables.length = 0
+  consumables.push({ type: 'hp_potion', count: 999 }, { type: 'mp_potion', count: 999 })
+
+  // Unlock all maps
+  unlockedMaps.value = ['forest', 'desert', 'ice', 'volcano']
+
+  spawnFloatingText(player.x + player.w / 2, player.y - 50, '👑 ADMIN MODE ACTIVATED!', '#fbbf24', 22)
+  spawnFloatingText(player.x + player.w / 2, player.y - 30, '🛡️ Bất tử | ⚔️ Full trang bị', '#fb923c', 14)
+}
+
+function actualStartGame() {
   gameState.value = 'playing'; scoreSaved = false
+  currentMapId.value = 'hub'  // Start in hub town!
   resetPlayer(); generateMap(); monsters.length = 0; particles.length = 0
-  floatingTexts.length = 0; chests.length = 0; spawnTimer = 0; spawnRate = INITIAL_SPAWN_RATE; maxMonsters = INITIAL_MAX_MONSTERS
+  floatingTexts.length = 0; chests.length = 0; for (const k in zoneSpawnTimers) delete zoneSpawnTimers[k]; spawnRate = INITIAL_SPAWN_RATE; maxMonsters = INITIAL_MAX_MONSTERS
+  activeNPC = null; showMapSelection = false
   sfxMenuSelect()
+
+  // Admin mode setup
+  if (isAdmin) {
+    setupAdminMode()
+  }
+
+  spawnFloatingText(player.x + player.w / 2, player.y - 30, `🏘️ Chào mừng ${playerName.value} đến Làng Ninja!`, '#fbbf24', 16)
+}
+
+function switchMap(targetMap: MapId) {
+  currentMapId.value = targetMap
+  // Clear combat state
+  monsters.length = 0; chests.length = 0; weaponDrops.length = 0
+  equipmentDrops.length = 0; projectiles.length = 0; particles.length = 0
+  floatingTexts.length = 0
+  // Generate new map
+  generateMap()
+  initBackground()
+  // Reset player position
+  player.x = 100; player.y = H - 100; player.vx = 0; player.vy = 0
+  player.onGround = false; player.invincible = 60
+  // Reset zone spawn timers
+  for (const k in zoneSpawnTimers) delete zoneSpawnTimers[k]
+  activeNPC = null; showMapSelection = false
+  showInventory.value = false
+  const mapCfg = MAP_CONFIGS[targetMap]
+  spawnFloatingText(player.x + player.w / 2, player.y - 30, `${mapCfg.icon} ${mapCfg.name}`, '#818cf8', 18)
+  sfxMenuSelect()
+}
+
+// NPC interaction check
+function checkNPCInteraction() {
+  if (currentMapId.value !== 'hub') return
+  if (activeNPC) return // Already interacting
+
+  for (const npc of npcs) {
+    if (Math.abs(player.x + player.w / 2 - npc.x - npc.w / 2) < 50 &&
+        Math.abs(player.y - npc.y) < 60) {
+      // Check ↑ to interact
+      if (keyJustPressed['ArrowUp'] || keyJustPressed['KeyW']) {
+        if (npc.type === 'portal') {
+          showMapSelection = true; mapSelectIdx = 0
+        } else {
+          activeNPC = npc; npc.interacting = true
+        }
+        sfxChestOpen()
+        return
+      }
+    }
+  }
 }
 
 function gameLoop() {
@@ -1546,22 +2453,69 @@ function gameLoop() {
       if (loadSave()) {
         gameState.value = 'playing'; scoreSaved = false
         generateMap(); monsters.length = 0; particles.length = 0
-        floatingTexts.length = 0; chests.length = 0; spawnTimer = 0
+        floatingTexts.length = 0; chests.length = 0; for (const k in zoneSpawnTimers) delete zoneSpawnTimers[k]
         spawnRate = Math.max(MIN_SPAWN_RATE, INITIAL_SPAWN_RATE - level.value * SPAWN_RATE_DECREASE)
         maxMonsters = Math.min(MAX_MAX_MONSTERS, INITIAL_MAX_MONSTERS + level.value)
         sfxMenuSelect()
         spawnFloatingText(player.x + player.w / 2, player.y - 30, '💾 Đã tải game!', '#4ade80', 18)
       }
     }
+  } else if (gameState.value === 'naming') {
+    drawNameInput()
   } else if (gameState.value === 'playing') {
-    if (!showInventory.value) {
+    const isInteracting = activeNPC !== null || showMapSelection
+
+    // NPC & portal checks BEFORE updatePlayer (keyJustPressed cleared in updatePlayer)
+    if (!showInventory.value && !isInteracting) {
+      if (currentMapId.value === 'hub') checkNPCInteraction()
+      if (currentMapId.value !== 'hub' && keyJustPressed['KeyH']) {
+        switchMap('hub')
+      }
+      // Battle map portal check
+      if (currentMapId.value !== 'hub') {
+        const mapCfg2 = MAP_CONFIGS[currentMapId.value]
+        if (Math.abs(player.x - mapCfg2.portalX) < 40 && (keyJustPressed['ArrowUp'] || keyJustPressed['KeyW'])) {
+          switchMap('hub')
+        }
+      }
+    }
+
+    if (!showInventory.value && !isInteracting) {
       updatePlayer(); updateMonsters(); updateChests(); updateWeaponDrops()
       updateProjectiles(); updateEquipmentDrops()
       updateParticles(); updateFloatingTexts(); updateCamera()
       autoSave()
+    } else if (!showInventory.value && isInteracting) {
+      // Still update particles/text during NPC interaction
+      updateParticles(); updateFloatingTexts()
     }
 
-    // === SCREEN SHAKE: apply camera offset ===
+    // Close NPC interaction with ↓ or B or Escape
+    if (activeNPC && (keyJustPressed['ArrowDown'] || keyJustPressed['KeyS'] || keyJustPressed['KeyB'] || keyJustPressed['Escape'])) {
+      activeNPC.interacting = false; activeNPC = null
+      upgradeSelectedEquip = null; upgradeResult = 'none'
+    }
+    // Map selection controls
+    if (showMapSelection) {
+      if (keyJustPressed['ArrowUp']) mapSelectIdx = Math.max(0, mapSelectIdx - 1)
+      if (keyJustPressed['ArrowDown']) mapSelectIdx = Math.min(BATTLE_MAPS.length - 1, mapSelectIdx + 1)
+      if (keyJustPressed['Enter']) {
+        const targetMap = BATTLE_MAPS[mapSelectIdx]
+        if (targetMap && unlockedMaps.value.includes(targetMap)) {
+          switchMap(targetMap)
+        }
+      }
+      if (keyJustPressed['KeyB'] || keyJustPressed['Escape']) {
+        showMapSelection = false
+      }
+    }
+
+    // Clear just pressed in interaction mode
+    if (isInteracting) {
+      for (const k in keyJustPressed) delete keyJustPressed[k]
+    }
+
+    // === SCREEN SHAKE ===
     if (screenShake.intensity > 0.5) {
       screenShake.x = (Math.random() - 0.5) * screenShake.intensity * 2
       screenShake.y = (Math.random() - 0.5) * screenShake.intensity * 2
@@ -1574,6 +2528,17 @@ function gameLoop() {
     ctx.translate(screenShake.x, screenShake.y)
 
     drawBackground(); drawPlatforms()
+    // Draw zone boundaries
+    if (currentMapId.value !== 'hub') {
+      drawZoneBoundaries(ctx!, currentMapId.value, camera.x, H)
+    }
+    // Draw NPCs
+    for (const npc of npcs) drawNPC(ctx!, npc, camera.x, player.x)
+    // Draw portal at map edge for battle maps
+    if (currentMapId.value !== 'hub') {
+      const mapCfg = MAP_CONFIGS[currentMapId.value]
+      drawPortal(ctx!, mapCfg.portalX, H - 48 - 30, camera.x, '🏘️ Về Làng')
+    }
     for (const c of chests) drawChest(ctx!, c, camera.x)
     for (const d of weaponDrops) drawWeaponDrop(ctx!, d, camera.x)
     for (const d of equipmentDrops) drawEquipmentDrop(ctx!, d, camera.x)
@@ -1582,8 +2547,22 @@ function gameLoop() {
     drawPixelChar(player.x, player.y, player.facing, player.state, player.animFrame, player.invincible > 0)
     drawParticles(); drawFloatingTexts()
 
-    ctx.restore() // remove shake before drawing UI
+    ctx.restore()
     drawUI()
+
+    // Map name indicator + zone indicator
+    const mapCfg = MAP_CONFIGS[currentMapId.value]
+    if (currentMapId.value !== 'hub') {
+      const currentZone = getPlayerZone(currentMapId.value, player.x)
+      drawZoneIndicator(ctx!, currentZone, W)
+      ctx.fillStyle = '#64748b'; ctx.font = '7px monospace'; ctx.textAlign = 'center'
+      ctx.fillText('[H] Về Làng', W / 2, 34)
+      ctx.textAlign = 'left'
+    } else {
+      ctx.fillStyle = 'rgba(15,15,35,0.7)'; ctx.font = '9px monospace'; ctx.textAlign = 'center'
+      ctx.fillText(`${mapCfg.icon} ${mapCfg.name}`, W / 2, 18)
+      ctx.textAlign = 'left'
+    }
 
     // === BOSS HP BAR ===
     const activeBoss = monsters.find(m => m.type === 'boss' && !m.dead)
@@ -1591,7 +2570,35 @@ function gameLoop() {
       drawBossHPBar(activeBoss)
     }
 
-    // Inventory overlay - tabbed
+    // NPC interaction overlays
+    if (activeNPC?.type === 'merchant') {
+      drawShopUI(ctx!, W, H, playerGold.value, materialInventory)
+    } else if (activeNPC?.type === 'blacksmith') {
+      if (upgradeAnim > 0) upgradeAnim--
+      drawUpgradeUI(ctx!, W, H, upgradeSelectedEquip, materialInventory, upgradeUseRefineDust, upgradeUseProtection, getAllUpgradeableItems(), upgradeResult, upgradeAnim, upgradeListIdx)
+    } else if (activeNPC?.type === 'elder') {
+      // Elder dialog
+      const panelW = 360, panelH = 120
+      const px = (W - panelW) / 2, py = H - panelH - 50
+      ctx.fillStyle = 'rgba(15,15,35,0.92)'; ctx.fillRect(px, py, panelW, panelH)
+      ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 2; ctx.strokeRect(px, py, panelW, panelH)
+      ctx.fillStyle = '#a78bfa'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center'
+      ctx.fillText('👴 Trưởng Làng', px + panelW / 2, py + 22)
+      ctx.fillStyle = '#e2e8f0'; ctx.font = '10px monospace'
+      ctx.fillText('Chào mừng đến Làng Ninja!', px + panelW / 2, py + 46)
+      ctx.fillStyle = '#94a3b8'; ctx.font = '9px monospace'
+      ctx.fillText('Hãy mua đồ, nâng cấp rồi ra ngoài đánh quái!', px + panelW / 2, py + 66)
+      ctx.fillStyle = '#64748b'; ctx.font = '8px monospace'
+      ctx.fillText('Nhấn ↓ hoặc B để đóng', px + panelW / 2, py + panelH - 10)
+      ctx.textAlign = 'left'
+    }
+
+    // Map selection
+    if (showMapSelection) {
+      drawMapSelection(ctx!, W, H, unlockedMaps.value, mapSelectIdx)
+    }
+
+    // Inventory overlay
     if (showInventory.value) {
       drawTabbedInventory()
     }
@@ -1618,8 +2625,8 @@ function drawTabbedInventory() {
   ctx.strokeRect(px, py, panelW, panelH)
 
   // Tabs
-  const tabs = ['⚔ Vũ Khí', '🛡 Trang Bị', '🧪 Vật Phẩm']
-  const tabW = panelW / 3
+  const tabs = ['⚔ Vũ Khí', '🛡 Trang Bị', '🧪 Vật Phẩm', '🪽 Cánh']
+  const tabW = panelW / 4
   tabs.forEach((t, i) => {
     const tx = px + i * tabW
     ctx!.fillStyle = invTab === i ? 'rgba(251,191,36,0.2)' : 'rgba(255,255,255,0.05)'
@@ -1628,7 +2635,7 @@ function drawTabbedInventory() {
     ctx!.lineWidth = 1
     ctx!.strokeRect(tx, py, tabW, 24)
     ctx!.fillStyle = invTab === i ? '#fbbf24' : '#94a3b8'
-    ctx!.font = 'bold 10px monospace'
+    ctx!.font = 'bold 9px monospace'
     ctx!.textAlign = 'center'
     ctx!.fillText(t, tx + tabW / 2, py + 16)
   })
@@ -1873,6 +2880,55 @@ function drawTabbedInventory() {
     // EXP gems
     ctx.fillStyle = '#94a3b8'; ctx.font = '10px monospace'
     ctx.fillText('💡 Dùng F/G để uống thuốc ngoài giao diện này', px + 40, py + panelH - 30)
+  } else if (invTab === 3) {
+    // WINGS TAB
+    ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center'
+    ctx.fillText('🪽 CÁNH', px + panelW / 2, py + 50)
+    ctx.textAlign = 'left'
+
+    if (ownedWings.length === 0) {
+      ctx.fillStyle = '#4b5563'; ctx.font = '10px monospace'; ctx.textAlign = 'center'
+      ctx.fillText('Chưa có cánh nào!', px + panelW / 2, py + 120)
+      ctx.fillText('Giết quái có cơ hội rơi cánh', px + panelW / 2, py + 140)
+      ctx.textAlign = 'left'
+    } else {
+      ownedWings.forEach((wt, i) => {
+        const wCfg = WINGS[wt]
+        const col = i % 4, row = Math.floor(i / 4)
+        const wx = px + 20 + col * 110
+        const wy = py + 66 + row * 80
+        const isEquipped = equippedWing?.id === wt
+        ctx!.fillStyle = isEquipped ? 'rgba(251,191,36,0.2)' : 'rgba(255,255,255,0.05)'
+        ctx!.fillRect(wx, wy, 100, 66)
+        ctx!.strokeStyle = isEquipped ? '#fbbf24' : RARITY_COLORS[wCfg.rarity]
+        ctx!.lineWidth = isEquipped ? 2 : 1
+        ctx!.strokeRect(wx, wy, 100, 66)
+        ctx!.font = '18px monospace'; ctx!.textAlign = 'center'
+        ctx!.fillText(wCfg.icon, wx + 50, wy + 24)
+        ctx!.fillStyle = RARITY_COLORS[wCfg.rarity]; ctx!.font = 'bold 8px monospace'
+        ctx!.fillText(wCfg.name, wx + 50, wy + 40)
+        ctx!.fillStyle = '#94a3b8'; ctx!.font = '7px monospace'
+        ctx!.fillText(`+${wCfg.extraJumps} Jump`, wx + 50, wy + 52)
+        if (isEquipped) {
+          ctx!.fillStyle = '#fbbf24'; ctx!.font = 'bold 7px monospace'
+          ctx!.fillText('ĐANG ĐEO', wx + 50, wy + 62)
+        } else {
+          ctx!.fillStyle = '#64748b'; ctx!.font = '7px monospace'
+          ctx!.fillText('Click đeo', wx + 50, wy + 62)
+        }
+        ctx!.textAlign = 'left'
+      })
+    }
+
+    // Equipped wing info
+    if (equippedWing) {
+      ctx.fillStyle = 'rgba(251,191,36,0.08)'; ctx.fillRect(px + 20, py + panelH - 60, panelW - 40, 40)
+      ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 1; ctx.strokeRect(px + 20, py + panelH - 60, panelW - 40, 40)
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 10px monospace'
+      ctx.fillText(`Đang đeo: ${equippedWing.icon} ${equippedWing.name}`, px + 30, py + panelH - 42)
+      ctx.fillStyle = '#94a3b8'; ctx.font = '9px monospace'
+      ctx.fillText(`+${equippedWing.extraJumps} nhảy | Giảm ${Math.round(equippedWing.floatReduction * 100)}% trọng lực | Bay ${(equippedWing.flyDuration / 60).toFixed(1)}s`, px + 30, py + panelH - 28)
+    }
   }
 }
 
@@ -1893,6 +2949,7 @@ onMounted(() => {
   ctx.imageSmoothingEnabled = false
   resizeCanvas(); initBackground(); generateMap()
   window.addEventListener('keydown', onKeyDown)
+  window.addEventListener('keydown', handleNameKeyInput)
   window.addEventListener('keyup', onKeyUp)
   window.addEventListener('resize', resizeCanvas)
   canvasRef.value.addEventListener('click', onCanvasClick)
@@ -1903,6 +2960,7 @@ onMounted(() => {
 onUnmounted(() => {
   cancelAnimationFrame(animationId)
   window.removeEventListener('keydown', onKeyDown)
+  window.removeEventListener('keydown', handleNameKeyInput)
   window.removeEventListener('keyup', onKeyUp)
   window.removeEventListener('resize', resizeCanvas)
   canvasRef.value?.removeEventListener('click', onCanvasClick)

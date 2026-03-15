@@ -105,8 +105,8 @@ export const SHAKE_INTENSITY_HIT = 2
 export const SHAKE_INTENSITY_CRIT = 4
 export const SHAKE_INTENSITY_BOSS = 8
 export const SHAKE_DECAY = 0.8
-export const HITSTOP_FRAMES_NORMAL = 0 // no freeze on normal hits
-export const HITSTOP_FRAMES_CRIT = 2 // tiny freeze on crit only
+export const HITSTOP_FRAMES_NORMAL = 0  // no freeze on normal hits
+export const HITSTOP_FRAMES_CRIT = 2    // tiny freeze on crit only
 export const HITSTOP_FRAMES_BOSS_PHASE = 8 // brief freeze on boss phase change
 
 // Combo System
