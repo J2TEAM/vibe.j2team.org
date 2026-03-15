@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { createHead } from '@unhead/vue/client'
+import VueKonva from 'vue-konva'
 
 import App from './App.vue'
 import './assets/main.css'
@@ -14,6 +15,7 @@ app.config.errorHandler = (err, _instance, info) => {
 
 app.use(createPinia())
 app.use(createHead())
+app.use(VueKonva)
 app.use(router)
 
 app.mount('#app')

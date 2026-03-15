@@ -26,8 +26,10 @@
     "@unhead/vue": "^2.1.12",
     "@vueuse/core": "^14.2.1",
     "html-to-image": "^1.11.13",
+    "matter-js": "^0.20.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.30",
+    "vue-konva": "^3.4.0",
     "vue-router": "^5.0.3"
   },
   "devDependencies": {
@@ -36,6 +38,7 @@
     "@tailwindcss/vite": "^4.2.1",
     "@tsconfig/node24": "^24.0.4",
     "@types/jsdom": "^28.0.0",
+    "@types/matter-js": "^0.20.2",
     "@types/node": "^24.11.0",
     "@vitejs/plugin-vue": "^6.0.4",
     "@vitest/eslint-plugin": "^1.6.9",
