@@ -5,7 +5,7 @@ const meta: PageMeta = {
   description: 'vibe.j2team.org ở một vũ trụ khác',
   author: 'hidang',
   facebook: 'https://www.facebook.com/khanhdang.cd',
-  category: 'creative',
+  category: 'fun',
 }
 
 export default meta
