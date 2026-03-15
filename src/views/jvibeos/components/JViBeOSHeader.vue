@@ -47,7 +47,17 @@ const allCategories = computed(() => [{ id: 'all' as const, label: 'Home' }, ...
     <div class="header-content">
       <!-- Logo -->
       <RouterLink to="/jvibeos" class="logo">
-        <span class="logo-icon">▶</span>
+        <span class="logo-icon">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <polygon points="5 3 19 12 5 21" />
+          </svg>
+        </span>
         <span class="logo-text">JViBeOS</span>
       </RouterLink>
 

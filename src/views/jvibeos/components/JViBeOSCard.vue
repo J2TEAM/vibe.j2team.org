@@ -48,7 +48,17 @@ const stars = [1, 2, 3, 4, 5]
       </div>
 
       <div v-else class="thumbnail-overlay">
-        <div class="play-icon">▶</div>
+        <div class="play-icon">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <polygon points="5 3 19 12 5 21" />
+          </svg>
+        </div>
       </div>
       <span class="duration">{{ formatDuration(app.duration) }}</span>
     </div>
@@ -159,11 +169,15 @@ const stars = [1, 2, 3, 4, 5]
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
   color: white;
   opacity: 0;
   transform: scale(0.8);
   transition: all 0.2s;
+}
+
+.play-icon svg {
+  width: 20px;
+  height: 20px;
 }
 
 .video-card:hover .play-icon {

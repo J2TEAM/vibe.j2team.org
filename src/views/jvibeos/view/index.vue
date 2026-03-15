@@ -95,23 +95,36 @@ const togglePlay = () => {
   }
 }
 
-// 0 = default, 1 = expanded height (800px), 2 = fullscreen
+// 0 = default, 1 = expanded height (800px), 2 = fullscreen (desktop only)
 const fullscreenState = ref(0)
+const isMobile = ref(false)
 
-const toggleFullscreen = () => {
+onMounted(() => {
+  isMobile.value = window.innerWidth <= 768
+  window.addEventListener('resize', () => {
+    isMobile.value = window.innerWidth <= 768
+  })
+})
+
+// Click on fullscreen/expand button
+const toggleExpand = () => {
   const container = document.querySelector('.iframe-container') as HTMLElement
 
   if (fullscreenState.value === 0) {
-    // First click: expand height to 800px
+    // First click: expand height
     container?.classList.add('expanded-height')
     fullscreenState.value = 1
   } else if (fullscreenState.value === 1) {
-    // Second click: true fullscreen
+    // Second click: back to default (or fullscreen on desktop)
     container?.classList.remove('expanded-height')
-    container?.requestFullscreen()
-    fullscreenState.value = 2
+    if (!isMobile.value) {
+      container?.requestFullscreen()
+      fullscreenState.value = 2
+    } else {
+      fullscreenState.value = 0
+    }
   } else {
-    // Third click: back to default
+    // Third click (desktop only): back to default
     if (document.fullscreenElement) {
       document.exitFullscreen()
     }
@@ -287,7 +300,7 @@ const shareApp = async () => {
                   />
                 </svg>
               </button>
-              <button class="ctrl-btn fullscreen-btn" @click="toggleFullscreen">
+              <button class="ctrl-btn fullscreen-btn" @click="toggleExpand">
                 <!-- State 0: default - expand icon -->
                 <svg
                   v-if="fullscreenState === 0"
@@ -565,6 +578,14 @@ const shareApp = async () => {
 
 .iframe-container.expanded-height {
   height: 800px;
+  aspect-ratio: auto;
+}
+
+/* Mobile: expanded height */
+@media (max-width: 768px) {
+  .iframe-container.expanded-height {
+    height: 60vh;
+  }
 }
 
 .app-iframe {
@@ -590,6 +611,13 @@ const shareApp = async () => {
 
 .iframe-container:hover .video-controller {
   opacity: 1;
+}
+
+/* Mobile: always show video controller */
+@media (max-width: 768px) {
+  .video-controller {
+    opacity: 1;
+  }
 }
 
 .controller-left,
