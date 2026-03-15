@@ -1,198 +1,58 @@
-import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { useMousePressed, useMagicKeys } from '@vueuse/core'
-import { GAME_WIDTH, GAME_HEIGHT, SHIP_SPEED, FIRE_RATE, WEAPON_TYPES } from './config'
+import { watch, onMounted, onUnmounted } from 'vue'
+import { GAME_WIDTH, GAME_HEIGHT, SHIP_SPEED, FIRE_RATE, WEAPON_TYPES } from '../utils/config'
+import type { Enemy, Boss } from '../utils/types'
+import { sfx } from '../utils/audio'
+import {
+  checkCollision,
+  getWeaponStats,
+  arrangeFormation,
+  getRotationForWave,
+} from '../utils/utils'
+import type { GameState } from './useGameState'
+import type { useControls } from './useControls'
 
-export interface GameObject {
-  x: number
-  y: number
-  width: number
-  height: number
-}
-export interface Bullet extends GameObject {
-  id: string | number
-  dx: number
-  dy: number
-  color: string
-  shape: string
-  damage: number
-  rotation: number
-  hitTargets: Set<string | number>
-  isAttached?: boolean
-  attachedId?: number
-  lastTick?: number
-}
-export interface Enemy extends GameObject {
-  id: string | number
-  hp: number
-  maxHp: number
-  isMeteor?: boolean
-  isFallingChicken?: boolean
-  isHazard?: boolean
-  isStash?: boolean
-  hue?: number
-  targetY?: number
-  dx?: number
-  dy?: number
-  targetOffsetX?: number
-  targetOffsetY?: number
-}
-export interface Boss extends Enemy {
-  bossType: number
-  direction: number
-  state: 'idle' | 'dash' | 'burst' | 'laser_warning' | 'laser_firing'
-  stateTimer: number
-  burstCount?: number
-  laserTimer?: number
-  laserX?: number
-}
-export interface Egg extends GameObject {
-  id: string | number
-  isBossEgg?: boolean
-  isMeteor?: boolean
-  dx?: number
-  dy?: number
-}
-export interface PowerUp extends GameObject {
-  id: string | number
-  wType: number
-}
-export interface ActiveDot {
-  targetId: string | number
-  damagePerTick: number
-  endTime: number
-  lastTick: number
-}
+export function useGameEngine(state: GameState, controls: ReturnType<typeof useControls>) {
+  const {
+    gameState,
+    gamePhase,
+    currentWave,
+    weaponType,
+    weaponLevel,
+    bgHue,
+    boardRotation,
+    isRotating,
+    activeWidth,
+    activeHeight,
+    isMuted,
+    hiddenEventWavesLeft,
+    resumingCountdown,
+    player,
+    score,
+    lives,
+    bullets,
+    enemyBullets,
+    enemies,
+    powerUps,
+    bosses,
+    waveAnnouncement,
+    activeDots,
+  } = state
 
-class RetroAudio {
-  ctx: AudioContext | null = null
-  isMuted = false
-  init() {
-    if (!this.ctx) {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-      if (AudioCtx) this.ctx = new AudioCtx()
-    }
-    if (this.ctx?.state === 'suspended') this.ctx.resume()
-  }
-  playTone(freqStart: number, freqEnd: number, type: OscillatorType, dur: number, vol: number) {
-    if (this.isMuted || !this.ctx) return
-    const osc = this.ctx.createOscillator()
-    const gain = this.ctx.createGain()
-    osc.type = type
-    osc.frequency.setValueAtTime(freqStart, this.ctx.currentTime)
-    if (freqStart !== freqEnd)
-      osc.frequency.exponentialRampToValueAtTime(freqEnd, this.ctx.currentTime + dur)
-    gain.gain.setValueAtTime(vol, this.ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + dur)
-    osc.connect(gain)
-    gain.connect(this.ctx.destination)
-    osc.start()
-    osc.stop(this.ctx.currentTime + dur)
-  }
-  shoot() {
-    this.playTone(800, 200, 'square', 0.1, 0.05)
-  }
-  hit() {
-    this.playTone(300, 100, 'sawtooth', 0.1, 0.05)
-  }
-  explode() {
-    this.playTone(150, 40, 'square', 0.4, 0.1)
-  }
-  damage() {
-    this.playTone(200, 50, 'sawtooth', 0.5, 0.3)
-  }
-  powerup() {
-    this.playTone(400, 400, 'sine', 0.1, 0.1)
-    setTimeout(() => this.playTone(600, 600, 'sine', 0.1, 0.1), 100)
-    setTimeout(() => this.playTone(800, 800, 'sine', 0.2, 0.1), 200)
-  }
-}
-export const sfx = new RetroAudio()
-
-export function useGame() {
-  const gameState = ref<'menu' | 'starting' | 'playing' | 'gameover' | 'paused' | 'resuming'>(
-    'menu',
-  )
-  const gamePhase = ref<'minions' | 'meteors' | 'boss'>('minions')
-  const currentWave = ref(1)
-  const weaponType = ref(0)
-  const weaponLevel = ref(1)
-  const bgHue = ref(0)
-
-  const boardRotation = ref(0)
-  const isRotating = ref(false)
-  const activeWidth = ref(GAME_WIDTH)
-  const activeHeight = ref(GAME_HEIGHT)
-
-  const isMuted = ref(false)
-  const hiddenEventWavesLeft = ref(0)
-
-  const resumingCountdown = ref(0)
-  let resumeInterval: ReturnType<typeof setInterval> | null = null
-
-  const player = ref({
-    x: activeWidth.value / 2 - 30,
-    y: activeHeight.value - 90,
-    width: 60,
-    height: 60,
-    invulnerable: 0,
-  })
-  const score = ref(0)
-  const lives = ref(3)
-
-  const bullets = ref<Bullet[]>([])
-  const enemyBullets = ref<Egg[]>([])
-  const enemies = ref<Enemy[]>([])
-  const powerUps = ref<PowerUp[]>([])
-
-  const bosses = ref<Boss[]>([])
-  const waveAnnouncement = ref('')
-
-  const activeDots = ref<ActiveDot[]>([])
-  const mobileKeys = ref({ left: false, right: false, fire: false })
-
-  const pointerState = ref({ isDown: false })
-  const setPointerState = (clientX?: number, clientY?: number, isDown?: boolean) => {
-    if (isDown !== undefined) pointerState.value.isDown = isDown
-    if (gameState.value !== 'playing' && gameState.value !== 'starting') return
-
-    if (clientX !== undefined && clientY !== undefined && clientX !== -1) {
-      const boardEl = document.getElementById('touch-layer')
-      if (!boardEl) return
-      const rect = boardEl.getBoundingClientRect()
-
-      const localX = ((clientX - rect.left) / rect.width) * GAME_WIDTH
-      const localY = ((clientY - rect.top) / rect.height) * GAME_HEIGHT
-
-      const cx = GAME_WIDTH / 2
-      const cy = GAME_HEIGHT / 2
-      const dx = localX - cx
-      const dy = localY - cy
-
-      const theta = (boardRotation.value * Math.PI) / 180
-      const local_dx = dx * Math.cos(-theta) - dy * Math.sin(-theta)
-      const local_dy = dx * Math.sin(-theta) + dy * Math.cos(-theta)
-
-      const logical_cx = activeWidth.value / 2
-      const logical_cy = activeHeight.value / 2
-
-      player.value.x = Math.max(
-        0,
-        Math.min(
-          logical_cx + local_dx - player.value.width / 2,
-          activeWidth.value - player.value.width,
-        ),
-      )
-      player.value.y = Math.max(
-        0,
-        Math.min(
-          logical_cy + local_dy - player.value.height / 2,
-          activeHeight.value - player.value.height,
-        ),
-      )
-    }
-  }
+  const {
+    w,
+    a,
+    s,
+    d,
+    ArrowUp,
+    ArrowDown,
+    ArrowLeft,
+    ArrowRight,
+    space,
+    mousePressed,
+    mobileKeys,
+    pointerState,
+    Escape,
+  } = controls
 
   let pendingSpawns: Enemy[] = []
   let hazardSpawnCooldown = 0
@@ -207,10 +67,9 @@ export function useGame() {
   let isTransitioningWave = false
   let waveEnemySpeed = 1.5
   let waveEggFireRate = 0.005
-  const EGG_SPEED = 2.0 // Đã đổi thành 2.0
+  const EGG_SPEED = 2.0
 
-  const { w, a, s, d, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, space, Escape } = useMagicKeys()
-  const { pressed: mousePressed } = useMousePressed()
+  let resumeInterval: ReturnType<typeof setInterval> | null = null
 
   const resumeGame = () => {
     if (gameState.value !== 'paused') return
@@ -266,23 +125,40 @@ export function useGame() {
     },
   )
 
+  const setPointerState = (clientX?: number, clientY?: number, isDown?: boolean) => {
+    if (isDown !== undefined) pointerState.value.isDown = isDown
+    if (gameState.value !== 'playing' && gameState.value !== 'starting') return
+
+    if (clientX !== undefined && clientY !== undefined && clientX !== -1) {
+      const translated = controls.getTranslatedPointer(clientX, clientY, boardRotation.value)
+      if (translated) {
+        const logical_cx = activeWidth.value / 2
+        const logical_cy = activeHeight.value / 2
+
+        player.value.x = Math.max(
+          0,
+          Math.min(
+            logical_cx + translated.local_dx - player.value.width / 2,
+            activeWidth.value - player.value.width,
+          ),
+        )
+        player.value.y = Math.max(
+          0,
+          Math.min(
+            logical_cy + translated.local_dy - player.value.height / 2,
+            activeHeight.value - player.value.height,
+          ),
+        )
+      }
+    }
+  }
+
   const handleBoardPointerDown = (e: PointerEvent) => {
     if (gameState.value === 'paused' && e.pointerType === 'mouse') {
       resumeGame()
     } else {
       setPointerState(e.clientX, e.clientY, true)
     }
-  }
-
-  const checkCollision = (rect1?: GameObject, rect2?: GameObject) => {
-    if (!rect1 || !rect2) return false
-    const padding = 5
-    return (
-      rect1.x < rect2.x + rect2.width - padding &&
-      rect1.x + rect1.width > rect2.x + padding &&
-      rect1.y < rect2.y + rect2.height - padding &&
-      rect1.y + rect1.height > rect2.y + padding
-    )
   }
 
   const addScore = (pts: number) => {
@@ -304,86 +180,6 @@ export function useGame() {
     if (lives.value <= 0) gameState.value = 'gameover'
   }
 
-  const getWeaponStats = (typeId: number, level: number) => {
-    let rays = 1,
-      damage = 10
-    if (typeId === 0) {
-      rays = 1
-      damage = 15 + level * 5
-    } else if (typeId === 1) {
-      rays = Math.min(1 + Math.floor(level / 2), 20)
-      damage = 8 + level * 3
-    } else if (typeId === 2) {
-      rays = Math.min(1 + Math.floor(level / 2), 7)
-      damage = 15 + level * 5
-    } else if (typeId === 3) {
-      rays = Math.min(level, 5)
-      damage = 12 + level * 4
-    } else if (typeId === 4) {
-      rays = Math.min(1 + Math.floor(level / 3), 10)
-      damage = 25 + level * 7
-    } else if (typeId === 5) {
-      rays = level < 10 ? 1 : level < 20 ? 2 : 3
-      damage = 12 + level * 3
-    } else if (typeId === 6) {
-      rays = 1
-      damage = 15 + level * 4
-    } else if (typeId === 7) {
-      rays = Math.min(1 + Math.floor(level / 4), 6)
-      damage = 14 + level * 5
-    } else if (typeId === 8) {
-      rays = 1
-      damage = 40 + level * 15
-    }
-    return { rays, damage }
-  }
-
-  const arrangeFormation = (list: Enemy[], type: number) => {
-    if (type === 0) {
-      let idx = 0
-      for (let r = 0; r < 5; r++) {
-        for (let c = 0; c <= r; c++) {
-          const enemy = list[idx]
-          if (enemy) {
-            enemy.targetOffsetX = (c - r / 2) * 55
-            enemy.targetOffsetY = r * 45 - 60
-          }
-          idx++
-        }
-      }
-    } else if (type === 1) {
-      list.forEach((e, i) => {
-        const angle = (Math.PI * 2 * i) / list.length
-        e.targetOffsetX = Math.cos(angle) * 120
-        e.targetOffsetY = Math.sin(angle) * 120
-      })
-    } else if (type === 2) {
-      list.forEach((e, i) => {
-        if (i === 0) {
-          e.targetOffsetX = 0
-          e.targetOffsetY = -100
-        } else if (i <= 7) {
-          e.targetOffsetX = -i * 35
-          e.targetOffsetY = -100 + i * 35
-        } else {
-          const j = i - 7
-          e.targetOffsetX = j * 35
-          e.targetOffsetY = -100 + j * 35
-        }
-      })
-    }
-  }
-
-  const getRotationForWave = (wave: number) => {
-    const h = Math.floor((wave - 1) / 100)
-    const t = ((wave - 1) % 100) + 1
-    if ((h - 3) % 5 === 0) return 180
-    if (h % 2 === 1 && t >= 51 && t <= 60) return 180
-    if (t >= 21 && t <= 30) return -90
-    if (t >= 81 && t <= 90) return 90
-    return 0
-  }
-
   const startWave = (wave: number) => {
     bullets.value = []
     enemyBullets.value = []
@@ -394,9 +190,8 @@ export function useGame() {
     const numColors = Math.min(1 + Math.floor((wave - 1) / 10), 6)
 
     if (hiddenEventWavesLeft.value > 0) hiddenEventWavesLeft.value--
-    if (hiddenEventWavesLeft.value === 0 && wave > 30 && wave % 10 === 6 && Math.random() < 0.1) {
+    if (hiddenEventWavesLeft.value === 0 && wave > 30 && wave % 10 === 6 && Math.random() < 0.1)
       hiddenEventWavesLeft.value = 4
-    }
 
     const isMeteorZone = wave % 100 >= 71 && wave % 100 <= 79
     const isFallingChickenZone = wave % 10 === 8 && !isMeteorZone
@@ -476,8 +271,8 @@ export function useGame() {
 
       for (let i = 0; i < count; i++) {
         const size = isFallingChickenZone ? 45 : 40 + Math.random() * 40
-        let dx = 0
-        let dy = waveEnemySpeed * 1.4
+        let dx = 0,
+          dy = waveEnemySpeed * 1.4
         if (isMeteorZone) {
           const rand = Math.random()
           if (rand < 0.33) dx = -(waveEnemySpeed * 1.0)
@@ -514,8 +309,7 @@ export function useGame() {
     const generatedMinions: Enemy[] = []
 
     if (wave % 10 === 6) {
-      const count = 15
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < 15; i++)
         generatedMinions.push({
           id: `dyn-${objCounter++}`,
           x: activeWidth.value / 2,
@@ -529,7 +323,6 @@ export function useGame() {
           targetOffsetX: 0,
           targetOffsetY: 0,
         })
-      }
       formationType = 0
       formationTimer = 200
       formationCenter.x = activeWidth.value / 2
@@ -543,7 +336,7 @@ export function useGame() {
       for (let r = 0; r < size; r++) {
         for (let c = 0; c < size; c++) {
           if (isX) {
-            if (r === c || r + c === size - 1) {
+            if (r === c || r + c === size - 1)
               generatedMinions.push({
                 id: `enemy-${objCounter++}`,
                 x: startX + (c - size / 2) * 60,
@@ -555,12 +348,11 @@ export function useGame() {
                 maxHp: minionHp,
                 hue: Math.floor(Math.random() * numColors) * 60,
               })
-            }
           } else {
             if (
               Math.abs(r - Math.floor(size / 2)) + Math.abs(c - Math.floor(size / 2)) <=
               Math.floor(size / 2) + 1
-            ) {
+            )
               generatedMinions.push({
                 id: `enemy-${objCounter++}`,
                 x: startX + (c - size / 2) * 60,
@@ -572,32 +364,26 @@ export function useGame() {
                 maxHp: minionHp,
                 hue: Math.floor(Math.random() * numColors) * 60,
               })
-            }
           }
         }
       }
-      const firstMinion = generatedMinions[0]
-      if (firstMinion) firstMinion.isStash = true
+      if (generatedMinions[0]) generatedMinions[0].isStash = true
     } else if (wave % 10 === 3) {
-      const isCircle = Math.random() > 0.5
-      if (isCircle) {
-        const r = 160
-        for (let i = 0; i < 14; i++) {
-          const angle = (Math.PI * 2 * i) / 14
+      if (Math.random() > 0.5) {
+        for (let i = 0; i < 14; i++)
           generatedMinions.push({
             id: `enemy-${objCounter++}`,
-            x: activeWidth.value / 2 - 20 + r * Math.cos(angle),
+            x: activeWidth.value / 2 - 20 + 160 * Math.cos((Math.PI * 2 * i) / 14),
             y: -200 - i * 30,
-            targetY: 240 + r * Math.sin(angle),
+            targetY: 240 + 160 * Math.sin((Math.PI * 2 * i) / 14),
             width: 40,
             height: 40,
             hp: minionHp,
             maxHp: minionHp,
             hue: Math.floor(Math.random() * numColors) * 60,
           })
-        }
       } else {
-        for (let i = 0; i < 11; i++) {
+        for (let i = 0; i < 11; i++)
           generatedMinions.push({
             id: `enemy-${objCounter++}`,
             x: activeWidth.value / 2 - 20 + (i - 5) * 65,
@@ -609,21 +395,16 @@ export function useGame() {
             maxHp: minionHp,
             hue: Math.floor(Math.random() * numColors) * 60,
           })
-        }
       }
     } else {
       const rows = Math.min(3 + Math.floor(wave / 4), 5)
       const cols = Math.min(8 + Math.floor(wave / 3), 12)
-      const startX = (activeWidth.value - cols * 50) / 2
-      const centerRow = Math.floor(rows / 2)
-      const centerCol = Math.floor(cols / 2)
-
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
-          if (wave % 10 === 7 && row === centerRow && col === centerCol) {
+          if (wave % 10 === 7 && row === Math.floor(rows / 2) && col === Math.floor(cols / 2)) {
             generatedMinions.push({
               id: `stash-${objCounter++}`,
-              x: startX + col * 50,
+              x: (activeWidth.value - cols * 50) / 2 + col * 50,
               y: -100 - (rows - row) * 80,
               targetY: 60 + row * 45,
               width: 90,
@@ -637,13 +418,13 @@ export function useGame() {
           }
           if (
             wave % 10 === 7 &&
-            (row === centerRow || row === centerRow + 1) &&
-            (col === centerCol || col === centerCol + 1)
+            (row === Math.floor(rows / 2) || row === Math.floor(rows / 2) + 1) &&
+            (col === Math.floor(cols / 2) || col === Math.floor(cols / 2) + 1)
           )
             continue
           generatedMinions.push({
             id: `enemy-${objCounter++}`,
-            x: startX + col * 50,
+            x: (activeWidth.value - cols * 50) / 2 + col * 50,
             y: -100 - (rows - row) * 80,
             targetY: 60 + row * 45,
             width: 40,
@@ -682,21 +463,17 @@ export function useGame() {
     enemyBullets.value = []
     powerUps.value = []
     pendingSpawns = []
-
     isRotating.value = false
     boardRotation.value = getRotationForWave(1)
     activeWidth.value = GAME_WIDTH
     activeHeight.value = GAME_HEIGHT
-
     player.value.x = activeWidth.value / 2 - 30
     player.value.y = activeHeight.value - 90
     player.value.invulnerable = 0
-
     isTransitioningWave = false
     waveAnnouncement.value = ''
     hiddenEventWavesLeft.value = 0
     activeDots.value = []
-
     startGame()
   }
 
@@ -722,22 +499,22 @@ export function useGame() {
     sfx.shoot()
     const cx = player.value.x + player.value.width / 2
     const cy = player.value.y
-    const w = WEAPON_TYPES[wType]
-    if (!w) return
+    const wConfig = WEAPON_TYPES[wType]
+    if (!wConfig) return
 
     const { rays, damage } = getWeaponStats(wType, weaponLevel.value)
 
     for (let i = 0; i < rays; i++) {
       const offsetIndex = i - (rays - 1) / 2
       let dx = 0,
-        dy = -(w.speed || 10),
+        dy = -(wConfig.speed || 10),
         offsetX = 0,
-        bulletWidth = w.size || 10,
+        bulletWidth = wConfig.size || 10,
         bulletHeight = 20,
         bulletY = cy,
         rotation = 0
 
-      switch (w.type) {
+      switch (wConfig.type) {
         case 'yellow':
           dx = 0
           offsetX = 0
@@ -754,7 +531,7 @@ export function useGame() {
           rotation = offsetIndex * 6
           dx = offsetIndex * 1.5
           offsetX = offsetIndex * 6
-          bulletHeight = (w.size || 10) * 2
+          bulletHeight = (wConfig.size || 10) * 2
           break
         case 'green':
           dx = 0
@@ -793,13 +570,13 @@ export function useGame() {
         height: bulletHeight,
         dx,
         dy,
-        color: w.color || '',
-        shape: w.shape || '',
+        color: wConfig.color || '',
+        shape: wConfig.shape || '',
         damage,
         rotation,
         hitTargets: new Set(),
       })
-      if (w.type === 'yellow' || w.type === 'orange') break
+      if (wConfig.type === 'yellow' || wConfig.type === 'orange') break
     }
     lastFireTime = Date.now()
   }
@@ -816,8 +593,7 @@ export function useGame() {
         wType: -1,
       })
     } else if (!enemy.isHazard) {
-      const dropRate = enemy.isMeteor ? 0.012 : 0.12
-      if (Math.random() < dropRate) {
+      if (Math.random() < (enemy.isMeteor ? 0.012 : 0.12))
         powerUps.value.push({
           id: objCounter++,
           x: enemy.x,
@@ -826,7 +602,6 @@ export function useGame() {
           height: 32,
           wType: Math.random() < 0.4 ? -1 : Math.floor(Math.random() * WEAPON_TYPES.length),
         })
-      }
     }
     const idx = enemies.value.findIndex((e) => e.id === enemy.id)
     if (idx !== -1) enemies.value.splice(idx, 1)
@@ -871,27 +646,28 @@ export function useGame() {
     if (isFiring && (weaponType.value === 6 || weaponType.value === 5)) {
       sfx.init()
       if (!wasSpaceDown) sfx.shoot()
-      const w = WEAPON_TYPES[weaponType.value]
-      if (w) {
+      const wp = WEAPON_TYPES[weaponType.value]
+      if (wp) {
         const { rays, damage } = getWeaponStats(weaponType.value, weaponLevel.value)
         const currentAttached = bullets.value.filter((b) => b.isAttached)
         if (
           currentAttached.length > 0 &&
-          (currentAttached.length !== rays || currentAttached[0]?.shape !== w.shape)
+          (currentAttached.length !== rays || currentAttached[0]?.shape !== wp.shape)
         ) {
           bullets.value = bullets.value.filter((b) => !b.isAttached)
         }
 
         for (let i = 0; i < rays; i++) {
           const offsetIndex = i - (rays - 1) / 2
-          const bw = (w.size || 10) + Math.min(weaponLevel.value, 20) * (w.type === 'pink' ? 2 : 1)
-          const offsetX = offsetIndex * (w.type === 'lightning' ? 30 : 0)
-          const rotation = offsetIndex * (w.type === 'lightning' ? 8 : 0)
+          const bw =
+            (wp.size || 10) + Math.min(weaponLevel.value, 20) * (wp.type === 'pink' ? 2 : 1)
+          const offsetX = offsetIndex * (wp.type === 'lightning' ? 30 : 0)
+          const rotation = offsetIndex * (wp.type === 'lightning' ? 8 : 0)
 
           const beamX = player.value.x + player.value.width / 2 + offsetX - bw / 2
           let targetY = -100
 
-          if (w.type === 'lightning') {
+          if (wp.type === 'lightning') {
             const hitBoxX = beamX - Math.abs(rotation) * 2
             const hitBoxW = bw + Math.abs(rotation) * 4
             const checkBlock = (target: Enemy | Boss) => {
@@ -924,8 +700,8 @@ export function useGame() {
               height: beamHeight,
               dx: 0,
               dy: 0,
-              color: w.color || '',
-              shape: w.shape || '',
+              color: wp.color || '',
+              shape: wp.shape || '',
               damage,
               rotation,
               hitTargets: new Set(),
@@ -979,9 +755,8 @@ export function useGame() {
         if (target && target.hp > 0) {
           target.hp -= dot.damagePerTick
           dot.lastTick = now
-          if (target.hp <= 0 && !bosses.value.some((b) => b.id === target?.id)) {
+          if (target.hp <= 0 && !bosses.value.some((b) => b.id === target?.id))
             handleEnemyDeath(target as Enemy, ptMult)
-          }
         } else {
           activeDots.value.splice(i, 1)
         }
@@ -1025,7 +800,6 @@ export function useGame() {
       if (!egg) continue
       egg.y += egg.dy !== undefined ? egg.dy : EGG_SPEED
       egg.x += egg.dx || 0
-
       if (checkCollision(egg, player.value)) {
         enemyBullets.value.splice(i, 1)
         takeDamage()
@@ -1062,12 +836,10 @@ export function useGame() {
 
       if (gamePhase.value === 'minions') {
         const isDynamicWave = currentWave.value % 10 === 6
-
         if (isDynamicWave) {
           formationCenter.x += formationCenter.dx * waveEnemySpeed
           if (formationCenter.x < 150 || formationCenter.x > activeWidth.value - 150)
             formationCenter.dx *= -1
-
           formationTimer--
           if (formationTimer <= 0) {
             formationTimer = 250
@@ -1139,7 +911,6 @@ export function useGame() {
             if (hitWall) {
               enemyDirection *= -1
               enemies.value.forEach((enemy) => {
-                // Yêu cầu 2: Đổi 20 thành 10
                 if (!enemy.isHazard) {
                   enemy.y += 10
                   if (enemy.targetY !== undefined) enemy.targetY += 10
@@ -1196,7 +967,6 @@ export function useGame() {
           meteor.y += meteor.dy || waveEnemySpeed * 1.5
           if (meteor.dx) meteor.x += meteor.dx
         })
-
         if (
           Math.random() < waveEggFireRate * 1.5 &&
           enemies.value.length > 0 &&
@@ -1227,11 +997,9 @@ export function useGame() {
         let bulletHit = false
         const bullet = bullets.value[bIndex]
         if (!bullet) continue
-
         for (let eIndex = enemies.value.length - 1; eIndex >= 0; eIndex--) {
           const enemy = enemies.value[eIndex]
           if (!enemy) continue
-
           if (checkCollision(bullet, enemy)) {
             if (bullet.hitTargets.has(enemy.id)) continue
             enemy.hp -= bullet.damage
@@ -1271,7 +1039,6 @@ export function useGame() {
       for (let i = enemies.value.length - 1; i >= 0; i--) {
         const enemy = enemies.value[i]
         if (!enemy) continue
-
         if (checkCollision(enemy, player.value)) {
           takeDamage()
           enemies.value.splice(i, 1)
@@ -1292,7 +1059,6 @@ export function useGame() {
       if (activeEnemies.length === 0 && pendingSpawns.length === 0 && !isTransitioningWave) {
         isTransitioningWave = true
         addScore(1000 * ptMult)
-
         const nextW = currentWave.value + 1
         const nextRot = getRotationForWave(nextW)
         const willRotate = boardRotation.value !== nextRot
@@ -1304,7 +1070,6 @@ export function useGame() {
           powerUps.value = []
           activeDots.value = []
           enemies.value = []
-
           isRotating.value = true
           boardRotation.value = nextRot
           if (Math.abs(nextRot % 180) === 90) {
@@ -1316,7 +1081,6 @@ export function useGame() {
           }
           player.value.x = activeWidth.value / 2 - player.value.width / 2
           player.value.y = activeHeight.value - 90
-
           setTimeout(() => {
             isRotating.value = false
             setTimeout(() => {
@@ -1406,7 +1170,6 @@ export function useGame() {
             let bSpeed = waveEnemySpeed * 0.8
             if (b.state === 'dash') bSpeed = waveEnemySpeed + 3
             if (b.state === 'burst') bSpeed = waveEnemySpeed * 0.2
-
             b.x += bSpeed * b.direction
             if (b.x <= 0 || b.x + b.width >= activeWidth.value) {
               b.direction *= -1
@@ -1528,11 +1291,9 @@ export function useGame() {
       for (let bIndex = bullets.value.length - 1; bIndex >= 0; bIndex--) {
         const bullet = bullets.value[bIndex]
         if (!bullet) continue
-
         for (let i = 0; i < bosses.value.length; i++) {
           const b = bosses.value[i]
           if ((b && b.hp <= 0) || !b) continue
-
           if (checkCollision(bullet, b)) {
             if (bullet.hitTargets.has(b.id)) continue
             b.hp -= bullet.damage
@@ -1570,7 +1331,6 @@ export function useGame() {
         sfx.explode()
         isTransitioningWave = true
         addScore(1000 * ptMult)
-
         const nextW = currentWave.value + 1
         const nextRot = getRotationForWave(nextW)
         const willRotate = boardRotation.value !== nextRot
@@ -1582,7 +1342,6 @@ export function useGame() {
           powerUps.value = []
           activeDots.value = []
           enemies.value = []
-
           isRotating.value = true
           boardRotation.value = nextRot
           if (Math.abs(nextRot % 180) === 90) {
@@ -1626,33 +1385,11 @@ export function useGame() {
   })
 
   return {
-    gameState,
-    gamePhase,
-    currentWave,
-    weaponType,
-    weaponLevel,
-    mobileKeys,
     togglePause,
-    bgHue,
-    isMuted,
     toggleMute,
-    boardRotation,
-    activeWidth,
-    activeHeight,
     setPointerState,
-    isRotating,
-    startGame,
-    resumingCountdown,
     handleBoardPointerDown,
-    player,
-    score,
-    lives,
-    bullets,
-    enemyBullets,
-    enemies,
-    powerUps,
-    bosses,
-    waveAnnouncement,
+    startGame,
     initGame,
   }
 }
