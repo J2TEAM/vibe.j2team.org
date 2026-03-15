@@ -28,6 +28,7 @@
     "@unhead/vue": "^2.1.12",
     "@vueuse/core": "^14.2.1",
     "html-to-image": "^1.11.13",
+    "mathjs": "^15.1.1",
     "pinia": "^3.0.4",
     "shiki": "^4.0.2",
     "vue": "^3.5.30",
