@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import cowLv1Url from './cow_lv1.png'
-import cowLv2Url from './cow_lv2.png'
-import cowLv3Url from './cow_lv3.png'
-import cowLv4Url from './cow_lv4.png'
-import cowLv5Url from './cow_lv5.png'
 
 type StepKey = 'market' | 'problem' | 'solution' | 'pricing' | 'channel'
 
@@ -1166,11 +1161,11 @@ const cowLevel = computed(() => Math.min(5, Math.floor(cowXp.value / 40) + 1))
 const cowLevelProgress = computed(() => Math.max(0, Math.min(100, (cowXp.value % 40) * 2.5)))
 
 const currentCowUrl = computed(() => {
-  if (cowLevel.value >= 5) return cowLv5Url
-  if (cowLevel.value === 4) return cowLv4Url
-  if (cowLevel.value === 3) return cowLv3Url
-  if (cowLevel.value === 2) return cowLv2Url
-  return cowLv1Url
+  if (cowLevel.value >= 5) return '/startup-in-5-minutes/cow_lv5.png'
+  if (cowLevel.value === 4) return '/startup-in-5-minutes/cow_lv4.png'
+  if (cowLevel.value === 3) return '/startup-in-5-minutes/cow_lv3.png'
+  if (cowLevel.value === 2) return '/startup-in-5-minutes/cow_lv2.png'
+  return '/startup-in-5-minutes/cow_lv1.png'
 })
 
 const cowMood = computed(() => {

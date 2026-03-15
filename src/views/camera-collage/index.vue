@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref } from "vue";
 import { Icon } from "@iconify/vue";
-
+import frameFunny from "./images/khung-anh-funy.png";
 // --- Cấu hình Khung Mặc Định ---
 const DEFAULT_FRAME = {
   id: "funny",
   name: "Vui vẻ",
-  url: "/src/views/camera-collage/images/khung-anh-funy.png",
+  url: frameFunny,
   target: { x: 0.15, y: 0.15, w: 0.7, h: 0.65 },
 };
 
@@ -23,7 +23,7 @@ const errorMessage = ref("");
 
 // --- Điều hướng ---
 function goToHome() {
-  window.location.href = "/"; // Thay đổi route tùy theo dự án của bạn
+  window.location.href = "/";
 }
 
 // --- Camera Logic ---
@@ -41,7 +41,7 @@ async function startCamera() {
       await videoRef.value.play();
     }
   } catch (error) {
-    console.error(error)
+    console.error(error);
     errorMessage.value = "Không thể truy cập camera. Vui lòng kiểm tra quyền thiết bị.";
   } finally {
     isStarting.value = false;
@@ -97,7 +97,7 @@ async function processMerge(photoBase64: string) {
     ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
     mergedPreview.value = canvas.toDataURL("image/png", 1.0);
   } catch (err) {
-    console.error(err)
+    console.error(err);
     errorMessage.value = "Lỗi xử lý hình ảnh Photobooth.";
   } finally {
     isProcessing.value = false;

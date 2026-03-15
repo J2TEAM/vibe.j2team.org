@@ -83,13 +83,14 @@ const rankStyle = computed(() => {
               </a>
               <span v-else>{{ author.author }}</span>
 
-              <span
+              <RouterLink
                 v-if="author.rank"
-                class="inline-flex items-center px-3 py-0.5 font-display text-sm font-bold"
+                to="/leaderboard"
+                class="inline-flex items-center px-3 py-0.5 font-display text-sm font-bold transition-opacity hover:opacity-80"
                 :class="rankStyle.badge"
               >
                 #{{ author.rank }} leaderboard
-              </span>
+              </RouterLink>
             </h1>
           </div>
 

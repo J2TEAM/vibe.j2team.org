@@ -59,12 +59,25 @@ function batteryColor(level: number, charging: boolean): string {
   return 'bg-accent-coral'
 }
 
+const showTroubleshooting = ref(false)
+const copiedTrouble = ref(false)
+
 // Copy lệnh PowerShell
 async function copyCommand() {
   try {
     await navigator.clipboard.writeText('irm j2c.cc/batterycheck | iex')
     copied.value = true
     setTimeout(() => (copied.value = false), 2000)
+  } catch {
+    // fallback
+  }
+}
+
+async function copyTroubleCommand(cmd: string) {
+  try {
+    await navigator.clipboard.writeText(cmd)
+    copiedTrouble.value = true
+    setTimeout(() => (copiedTrouble.value = false), 2000)
   } catch {
     // fallback
   }
@@ -303,22 +316,90 @@ onUnmounted(() => {
       </div>
 
       <!-- Hướng dẫn -->
-      <div class="space-y-2 text-sm text-text-secondary">
-        <p class="font-display text-[10px] uppercase tracking-widest text-text-dim">Cách chạy</p>
-        <p>
-          1. Nhấn
-          <kbd
-            class="px-1.5 py-0.5 bg-bg-deep border border-border-default text-text-dim text-xs font-display"
-            >Win</kbd
+      <div class="space-y-4 text-sm text-text-secondary">
+        <div>
+          <p class="font-display text-[10px] uppercase tracking-widest text-text-dim mb-2">
+            Cách chạy
+          </p>
+          <div class="space-y-2">
+            <p>
+              1. Nhấn
+              <kbd
+                class="px-1.5 py-0.5 bg-bg-deep border border-border-default text-text-dim text-xs font-display"
+                >Win</kbd
+              >
+              +
+              <kbd
+                class="px-1.5 py-0.5 bg-bg-deep border border-border-default text-text-dim text-xs font-display"
+                >R</kbd
+              >, gõ <code class="text-accent-sky">powershell</code> rồi nhấn Enter
+            </p>
+            <p>2. Dán lệnh trên vào cửa sổ PowerShell và nhấn Enter</p>
+            <p>3. Chờ script tải và hiển thị sức khỏe của pin</p>
+          </div>
+        </div>
+
+        <!-- 🛠 Hướng dẫn khắc phục lỗi (Troubleshooting) -->
+        <div class="pt-6 border-t border-border-default/30">
+          <button
+            @click="showTroubleshooting = !showTroubleshooting"
+            class="flex items-center gap-2 text-[10px] uppercase tracking-widest font-display text-accent-sky hover:text-accent-sky/80 transition-colors group"
           >
-          +
-          <kbd
-            class="px-1.5 py-0.5 bg-bg-deep border border-border-default text-text-dim text-xs font-display"
-            >R</kbd
-          >, gõ <code class="text-accent-sky">powershell</code> rồi nhấn Enter
-        </p>
-        <p>2. Dán lệnh trên vào cửa sổ PowerShell và nhấn Enter</p>
-        <p>3. Chờ script tải và hiển thị báo cáo chi tiết</p>
+            <span>{{ showTroubleshooting ? '▼' : '▶' }} Gặp lỗi khi chạy lệnh?</span>
+            <span class="h-px flex-1 bg-accent-sky/20 group-hover:bg-accent-sky/40"></span>
+          </button>
+
+          <div v-if="showTroubleshooting" class="mt-4 space-y-6 animate-fade-down">
+            <!-- Case 1: Bị nhà mạng chặn -->
+            <div class="space-y-2">
+              <p class="font-bold text-text-primary text-xs tracking-tight">
+                1. Nếu lệnh bị chặn do nhà mạng hoặc DNS:
+              </p>
+              <p class="text-xs text-text-dim italic">Sử dụng lệnh này để bỏ qua chặn DNS trước:</p>
+              <div class="bg-bg-deep border border-border-default p-3 flex items-center gap-2">
+                <code class="flex-1 text-[11px] text-accent-amber break-all leading-relaxed">
+                  iex (curl.exe -s --doh-url https://1.1.1.1/dns-query https://get.activated.win |
+                  Out-String)
+                </code>
+                <button
+                  @click="
+                    copyTroubleCommand(
+                      'iex (curl.exe -s --doh-url https://1.1.1.1/dns-query https://get.activated.win | Out-String)',
+                    )
+                  "
+                  class="text-[10px] uppercase tracking-widest text-accent-sky hover:underline whitespace-nowrap"
+                >
+                  Sao chép
+                </button>
+              </div>
+            </div>
+
+            <!-- Case 2: Lỗi TLS/SSL -->
+            <div class="space-y-2">
+              <p class="font-bold text-text-primary text-xs tracking-tight">
+                2. Nếu gặp lỗi TLS/SSL do Windows cũ:
+              </p>
+              <p class="text-xs text-text-dim italic">
+                Nếu bạn dùng Windows 8.1 hoặc Win 10 bản cũ, hãy chạy lệnh này trước:
+              </p>
+              <div class="bg-bg-deep border border-border-default p-3 flex items-center gap-2">
+                <code class="flex-1 text-[11px] text-accent-amber break-all leading-relaxed">
+                  [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12
+                </code>
+                <button
+                  @click="
+                    copyTroubleCommand(
+                      '[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12',
+                    )
+                  "
+                  class="text-[10px] uppercase tracking-widest text-accent-sky hover:underline whitespace-nowrap"
+                >
+                  Sao chép
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
