@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description:
     'Bạn đóng vai Senior Review Code nhưng gặp phải những đoạn code tệ hại nhất lịch sử.',
   author: 'PhucNDH',
+  facebook: 'https://www.facebook.com/NDang.HoangPhuc/',
   category: 'fun',
 }
 
