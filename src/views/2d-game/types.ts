@@ -14,6 +14,9 @@ export interface FloatingText {
 }
 
 export type MonsterType = 'slime' | 'skeleton' | 'demon' | 'boss' | 'bat' | 'ghost'
+  | 'scorpion' | 'mummy' | 'sand_worm'
+  | 'ice_golem' | 'yeti' | 'frost_spirit'
+  | 'lava_snake' | 'fire_elemental' | 'magma_golem'
 
 export interface Monster {
     x: number; y: number; vx: number; vy: number
