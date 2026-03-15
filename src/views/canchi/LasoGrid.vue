@@ -22,18 +22,18 @@ const showLegend = ref(false)
 const GRID_FIXED_WIDTH = 960
 
 const CUNG_EDGE_POINT: Record<number, { x: number; y: number }> = {
-  1: { x: 62.5, y: 100 },
-  2: { x: 37.5, y: 100 },
-  3: { x: 0, y: 87.5 },
-  4: { x: 0, y: 62.5 },
-  5: { x: 0, y: 37.5 },
-  6: { x: 0, y: 12.5 },
-  7: { x: 37.5, y: 0 },
-  8: { x: 62.5, y: 0 },
-  9: { x: 100, y: 12.5 },
-  10: { x: 100, y: 37.5 },
-  11: { x: 100, y: 62.5 },
-  12: { x: 100, y: 87.5 },
+  1: { x: 75, y: 100 },
+  2: { x: 25, y: 100 },
+  3: { x: 0, y: 100 },
+  4: { x: 0, y: 75 },
+  5: { x: 0, y: 25 },
+  6: { x: 0, y: 0 },
+  7: { x: 25, y: 0 },
+  8: { x: 75, y: 0 },
+  9: { x: 100, y: 0 },
+  10: { x: 100, y: 25 },
+  11: { x: 100, y: 75 },
+  12: { x: 100, y: 100 },
 }
 
 const GRID_POSITIONS: Record<number, [number, number]> = {
