@@ -271,6 +271,11 @@ function finishSubmit() {
   isExamFinished.value = true
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
+
+function doBackHome() {
+  isExamFinished.value = false
+  isExamStarted.value = false
+}
 </script>
 
 <template>
@@ -447,10 +452,7 @@ function finishSubmit() {
             Làm đề khác
           </button>
           <button
-            @click="
-              isExamFinished = false
-              isExamStarted = false
-            "
+            @click="doBackHome()"
             class="px-6 py-4 bg-bg-deep border border-border-default text-text-primary font-display font-black uppercase tracking-widest hover:border-accent-coral transition-all cursor-pointer"
           >
             Trang chủ

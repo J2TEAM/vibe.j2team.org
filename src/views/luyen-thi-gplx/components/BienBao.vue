@@ -81,6 +81,11 @@ function openSignDetails(sign: Sign) {
     footer: `BIỂN SỐ ${sign.id}`,
   })
 }
+
+function doCleanSearch() {
+  clearSearch()
+  setCategory('all')
+}
 </script>
 
 <template>
@@ -237,10 +242,7 @@ function openSignDetails(sign: Sign) {
           Chúng tôi không tìm thấy kết quả nào phù hợp với "{{ searchQuery }}"
         </p>
         <button
-          @click="
-            clearSearch()
-            setCategory('all')
-          "
+          @click="doCleanSearch()"
           class="inline-flex items-center gap-2 px-6 py-3 bg-accent-sky text-bg-deep font-display font-bold text-sm tracking-widest uppercase hover:bg-white transition-colors cursor-pointer"
         >
           <Icon icon="lucide:refresh-cw" class="size-4" />
