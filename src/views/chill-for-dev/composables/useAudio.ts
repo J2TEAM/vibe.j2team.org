@@ -7,7 +7,7 @@ export function useAudio(src: string | string[]) {
   function tryNext() {
     currentIndex += 1
     if (currentIndex < sources.length && sources[currentIndex]) {
-      audio.src = sources[currentIndex]
+      audio.src = sources[currentIndex] ?? ''
       audio.load()
     }
   }
