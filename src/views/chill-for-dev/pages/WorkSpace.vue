@@ -417,11 +417,7 @@ function toggleWorkspaceOptions() {
                 ? 'border-accent-sky bg-bg-elevated text-accent-sky'
                 : 'border-border-default bg-bg-elevated text-text-secondary hover:border-accent-sky hover:text-accent-sky'
             "
-            @click="
-              showVisualsPopup = !showVisualsPopup
-              showChillMusicPopup = false
-              showSoundsPopup = false
-            "
+            @click="toggleWorkspaceOptions"
           >
             <Icon icon="lucide:image" class="size-5" />
             {{ t.visuals }}
@@ -461,11 +457,7 @@ function toggleWorkspaceOptions() {
                 ? 'border-accent-amber bg-bg-elevated text-accent-amber'
                 : 'border-border-default bg-bg-elevated text-text-secondary hover:border-accent-amber hover:text-accent-amber'
             "
-            @click="
-              showSoundsPopup = !showSoundsPopup
-              showChillMusicPopup = false
-              showVisualsPopup = false
-            "
+            @click="toggleWorkspaceOptions"
           >
             <Icon icon="lucide:waves" class="size-5" />
             {{ t.sounds }}
