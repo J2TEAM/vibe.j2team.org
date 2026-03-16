@@ -41,10 +41,7 @@ const categories = [
           <button
             v-for="inst in INSTRUMENT_LIBRARY.filter((i) => i.category === cat.id)"
             :key="inst.id"
-            @click="
-              emit('add', inst.id)
-              emit('close')
-            "
+            @click="(emit('add', inst.id), emit('close'))"
             class="flex items-center gap-2 p-3 bg-bg-elevated border border-border-default text-left transition-all hover:border-accent-coral group"
           >
             <div
