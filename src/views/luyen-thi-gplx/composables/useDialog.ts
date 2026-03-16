@@ -1,25 +1,25 @@
-import { ref } from "vue";
+import { ref } from 'vue'
 
 export type DialogOptions = {
-  type: "alert" | "confirm" | "info";
-  title: string;
-  message: string;
-  imageUrl?: string;
-  footer?: string;
-  onConfirm?: () => void;
-  onCancel?: () => void;
-};
+  type: 'alert' | 'confirm' | 'info'
+  title: string
+  message: string
+  imageUrl?: string
+  footer?: string
+  onConfirm?: () => void
+  onCancel?: () => void
+}
 
 const dialogState = ref({
   isOpen: false,
-  title: "",
-  message: "",
-  imageUrl: "",
-  footer: "",
-  type: "alert" as "alert" | "confirm" | "info",
+  title: '',
+  message: '',
+  imageUrl: '',
+  footer: '',
+  type: 'alert' as 'alert' | 'confirm' | 'info',
   onConfirm: () => {},
-  onCancel: () => {}
-});
+  onCancel: () => {},
+})
 
 export function useDialog() {
   function showDialog(options: DialogOptions) {
@@ -27,26 +27,26 @@ export function useDialog() {
       isOpen: true,
       title: options.title,
       message: options.message,
-      imageUrl: options.imageUrl || "",
-      footer: options.footer || "",
+      imageUrl: options.imageUrl || '',
+      footer: options.footer || '',
       type: options.type,
       onConfirm: options.onConfirm || (() => {}),
-      onCancel: options.onCancel || (() => {})
-    };
+      onCancel: options.onCancel || (() => {}),
+    }
   }
 
   function closeDialog(isConfirm: boolean) {
-    dialogState.value.isOpen = false;
+    dialogState.value.isOpen = false
     if (isConfirm) {
-      dialogState.value.onConfirm();
+      dialogState.value.onConfirm()
     } else {
-      dialogState.value.onCancel();
+      dialogState.value.onCancel()
     }
   }
 
   return {
     dialogState,
     showDialog,
-    closeDialog
-  };
+    closeDialog,
+  }
 }

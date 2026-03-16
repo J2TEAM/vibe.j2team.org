@@ -1,43 +1,43 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { Icon } from "@iconify/vue";
-import { useIntervalFn } from "@vueuse/core";
-import { useDialog } from "../composables/useDialog";
-import otoQuestions from "../data/otoQuestions";
-import motoQuestions from "../data/motoQuestions";
-import { resolveImageUrl } from "../utils/urlUtil";
+import { ref, computed } from 'vue'
+import { Icon } from '@iconify/vue'
+import { useIntervalFn } from '@vueuse/core'
+import { useDialog } from '../composables/useDialog'
+import otoQuestions from '../data/otoQuestions'
+import motoQuestions from '../data/motoQuestions'
+import { resolveImageUrl } from '../utils/urlUtil'
 
 type Question = {
-  id: number;
-  text: string;
-  category: string;
-  answers: { text: string; correct: boolean }[];
-  explanation: string | null;
-  imageUrl: string | null;
-  isCritical?: boolean;
-};
+  id: number
+  text: string
+  category: string
+  answers: { text: string; correct: boolean }[]
+  explanation: string | null
+  imageUrl: string | null
+  isCritical?: boolean
+}
 
 const props = defineProps<{
-  vehicleType: "oto" | "xemay";
-}>();
+  vehicleType: 'oto' | 'xemay'
+}>()
 
 const emit = defineEmits<{
-  (e: "back"): void;
-}>();
+  (e: 'back'): void
+}>()
 
-const isExamStarted = ref(false);
-const examQuestions = ref<Question[]>([]);
-const selectedLicense = ref<LicenseClass>(props.vehicleType === "oto" ? "b" : "a1");
-const isExamFinished = ref(false);
+const isExamStarted = ref(false)
+const examQuestions = ref<Question[]>([])
+const selectedLicense = ref<LicenseClass>(props.vehicleType === 'oto' ? 'b' : 'a1')
+const isExamFinished = ref(false)
 const examResult = ref<{
-  score: number;
-  total: number;
-  passed: boolean;
-  failedOnCritical: boolean;
-  lowScore: boolean;
-} | null>(null);
+  score: number
+  total: number
+  passed: boolean
+  failedOnCritical: boolean
+  lowScore: boolean
+} | null>(null)
 
-type LicenseClass = "a1" | "a" | "b" | "c" | "c1";
+type LicenseClass = 'a1' | 'a' | 'b' | 'c' | 'c1'
 
 const examConfig: Record<
   LicenseClass,
@@ -48,173 +48,228 @@ const examConfig: Record<
   b: { count: 35, timeMinutes: 22, passThreshold: 32 },
   c: { count: 40, timeMinutes: 24, passThreshold: 36 },
   c1: { count: 40, timeMinutes: 24, passThreshold: 36 },
-};
+}
 
-const remainingSeconds = ref(0);
+const remainingSeconds = ref(0)
 
 const formattedTime = computed(() => {
-  const m = Math.floor(remainingSeconds.value / 60);
-  const s = remainingSeconds.value % 60;
-  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-});
+  const m = Math.floor(remainingSeconds.value / 60)
+  const s = remainingSeconds.value % 60
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+})
 
 const { pause, resume } = useIntervalFn(
   () => {
     if (remainingSeconds.value > 0) {
-      remainingSeconds.value--;
+      remainingSeconds.value--
     } else {
-      pause();
+      pause()
       showDialog({
-        type: "alert",
-        title: "HẾT GiỜ!",
-        message: "Hết thời gian làm bài! Hệ thống tự động nộp bài.",
+        type: 'alert',
+        title: 'HẾT GiỜ!',
+        message: 'Hết thời gian làm bài! Hệ thống tự động nộp bài.',
         onConfirm: () => {
-          submitExam(true);
+          submitExam(true)
         },
-      });
+      })
     }
   },
   1000,
   { immediate: false },
-);
+)
 
 function startRandomExam() {
-  const config = examConfig[selectedLicense.value];
-  const sourceQuestions = selectedLicense.value.startsWith("a") ? motoQuestions : otoQuestions;
+  const config = examConfig[selectedLicense.value]
+  const sourceQuestions = selectedLicense.value.startsWith('a') ? motoQuestions : otoQuestions
 
   // Question Pickers
-  const pickedIds = new Set<number>();
+  const pickedIds = new Set<number>()
   const pick = (list: Question[], count: number) => {
-    const available = list.filter((q) => !pickedIds.has(q.id));
-    const result = [...available].sort(() => 0.5 - Math.random()).slice(0, count);
-    result.forEach((q) => pickedIds.add(q.id));
-    return result;
-  };
+    const available = list.filter((q) => !pickedIds.has(q.id))
+    const result = [...available].sort(() => 0.5 - Math.random()).slice(0, count)
+    result.forEach((q) => pickedIds.add(q.id))
+    return result
+  }
 
-  const selected: Question[] = [];
+  const selected: Question[] = []
 
   // 1. Always pick exactly 1 critical question
-  const critical = pick(sourceQuestions.filter(q => q.isCritical), 1);
-  selected.push(...critical);
+  const critical = pick(
+    sourceQuestions.filter((q) => q.isCritical),
+    1,
+  )
+  selected.push(...critical)
 
   // 2. Pick categories based on license type
-  if (selectedLicense.value.startsWith("a")) {
+  if (selectedLicense.value.startsWith('a')) {
     // A1/A: Rules(10), Signs(5), Situations(5), Others(4)
-    selected.push(...pick(sourceQuestions.filter(q => !q.isCritical && q.category === "khai-niem"), 10));
-    selected.push(...pick(sourceQuestions.filter(q => !q.isCritical && q.category === "bien-bao"), 5));
-    selected.push(...pick(sourceQuestions.filter(q => !q.isCritical && q.category === "tinh-huong"), 5));
-    selected.push(...pick(sourceQuestions.filter(q => !q.isCritical && (q.category === "khai-niem" || q.category === "van-hoa")), 4));
+    selected.push(
+      ...pick(
+        sourceQuestions.filter((q) => !q.isCritical && q.category === 'khai-niem'),
+        10,
+      ),
+    )
+    selected.push(
+      ...pick(
+        sourceQuestions.filter((q) => !q.isCritical && q.category === 'bien-bao'),
+        5,
+      ),
+    )
+    selected.push(
+      ...pick(
+        sourceQuestions.filter((q) => !q.isCritical && q.category === 'tinh-huong'),
+        5,
+      ),
+    )
+    selected.push(
+      ...pick(
+        sourceQuestions.filter(
+          (q) => !q.isCritical && (q.category === 'khai-niem' || q.category === 'van-hoa'),
+        ),
+        4,
+      ),
+    )
   } else {
     // Car: Rules(12/14), Signs(6/7), Situations(8/9), Techniques(5/6), Culture(3)
-    const isBigCar = selectedLicense.value === "c" || selectedLicense.value === "c1";
-    selected.push(...pick(sourceQuestions.filter(q => !q.isCritical && q.category === "khai-niem"), isBigCar ? 14 : 12));
-    selected.push(...pick(sourceQuestions.filter(q => !q.isCritical && q.category === "bien-bao"), isBigCar ? 7 : 6));
-    selected.push(...pick(sourceQuestions.filter(q => !q.isCritical && q.category === "tinh-huong"), isBigCar ? 9 : 8));
-    selected.push(...pick(sourceQuestions.filter(q => !q.isCritical && (q.category === "ky-thuat" || q.category === "cau-tao")), isBigCar ? 6 : 5));
-    selected.push(...pick(sourceQuestions.filter(q => !q.isCritical && q.category === "van-hoa"), 3));
+    const isBigCar = selectedLicense.value === 'c' || selectedLicense.value === 'c1'
+    selected.push(
+      ...pick(
+        sourceQuestions.filter((q) => !q.isCritical && q.category === 'khai-niem'),
+        isBigCar ? 14 : 12,
+      ),
+    )
+    selected.push(
+      ...pick(
+        sourceQuestions.filter((q) => !q.isCritical && q.category === 'bien-bao'),
+        isBigCar ? 7 : 6,
+      ),
+    )
+    selected.push(
+      ...pick(
+        sourceQuestions.filter((q) => !q.isCritical && q.category === 'tinh-huong'),
+        isBigCar ? 9 : 8,
+      ),
+    )
+    selected.push(
+      ...pick(
+        sourceQuestions.filter(
+          (q) => !q.isCritical && (q.category === 'ky-thuat' || q.category === 'cau-tao'),
+        ),
+        isBigCar ? 6 : 5,
+      ),
+    )
+    selected.push(
+      ...pick(
+        sourceQuestions.filter((q) => !q.isCritical && q.category === 'van-hoa'),
+        3,
+      ),
+    )
   }
 
   // 3. Dynamic filler: if still under count due to missing categories, fill from all remaining questions
   if (selected.length < config.count) {
-    const remaining = config.count - selected.length;
-    const filler = pick(sourceQuestions.filter(q => !q.isCritical), remaining);
-    selected.push(...filler);
+    const remaining = config.count - selected.length
+    const filler = pick(
+      sourceQuestions.filter((q) => !q.isCritical),
+      remaining,
+    )
+    selected.push(...filler)
   }
 
   // 4. Final safety: Shuffle and trim and set to examQuestions
-  examQuestions.value = selected.slice(0, config.count).sort(() => 0.5 - Math.random());
+  examQuestions.value = selected.slice(0, config.count).sort(() => 0.5 - Math.random())
 
   // Reset state
-  userAnswers.value = {};
-  remainingSeconds.value = config.timeMinutes * 60;
-  isExamFinished.value = false;
-  examResult.value = null;
-  resume();
-  isExamStarted.value = true;
+  userAnswers.value = {}
+  remainingSeconds.value = config.timeMinutes * 60
+  isExamFinished.value = false
+  examResult.value = null
+  resume()
+  isExamStarted.value = true
 }
 
-const userAnswers = ref<Record<number, string>>({});
+const userAnswers = ref<Record<number, string>>({})
 
 function scrollToQuestion(index: number) {
-  const el = document.getElementById(`question-${index}`);
+  const el = document.getElementById(`question-${index}`)
   if (el) {
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 }
 
-const { showDialog } = useDialog();
+const { showDialog } = useDialog()
 
 function handleBack() {
   if (isExamStarted.value) {
     showDialog({
-      type: "confirm",
-      title: "XÁC NHẬN THOÁT",
+      type: 'confirm',
+      title: 'XÁC NHẬN THOÁT',
       message:
-        "Bạn có chắc chắn muốn thoát khi đang làm bài thi? Tiến độ của bạn sẽ không được lưu.",
+        'Bạn có chắc chắn muốn thoát khi đang làm bài thi? Tiến độ của bạn sẽ không được lưu.',
       onConfirm: () => {
-        pause();
-        isExamStarted.value = false;
+        pause()
+        isExamStarted.value = false
       },
-    });
+    })
   } else {
-    emit("back");
+    emit('back')
   }
 }
 
 function submitExam(e?: Event | boolean) {
-  const isAuto = typeof e === "boolean" ? e : false;
+  const isAuto = typeof e === 'boolean' ? e : false
 
   if (!isAuto) {
-    const answeredCount = Object.keys(userAnswers.value).length;
-    const totalCount = examQuestions.value.length;
-    const unansweredCount = totalCount - answeredCount;
+    const answeredCount = Object.keys(userAnswers.value).length
+    const totalCount = examQuestions.value.length
+    const unansweredCount = totalCount - answeredCount
 
     showDialog({
-      type: "confirm",
-      title: "NỘP BÀI THI?",
+      type: 'confirm',
+      title: 'NỘP BÀI THI?',
       message:
         unansweredCount > 0
           ? `Bạn còn ${unansweredCount} câu chưa trả lời. Bạn chắc chắn muốn nộp bài?`
-          : "Bạn đã hoàn thiện bài thi. Bạn chắc chắn muốn nộp bài chứ?",
+          : 'Bạn đã hoàn thiện bài thi. Bạn chắc chắn muốn nộp bài chứ?',
       onConfirm: finishSubmit,
-    });
+    })
   } else {
-    finishSubmit();
+    finishSubmit()
   }
 }
 
 function finishSubmit() {
-  pause();
+  pause()
 
-  let score = 0;
-  let failedOnCritical = false;
+  let score = 0
+  let failedOnCritical = false
 
   examQuestions.value.forEach((q) => {
-    const userAnswerValue = userAnswers.value[q.id];
-    const correctAnswerValue = q.answers.find((ans) => ans.correct)?.text;
+    const userAnswerValue = userAnswers.value[q.id]
+    const correctAnswerValue = q.answers.find((ans) => ans.correct)?.text
 
     if (userAnswerValue === correctAnswerValue) {
-      score++;
+      score++
     } else if (q.isCritical) {
       // Sai câu điểm liệt (bao gồm cả không làm) -> Trượt
-      failedOnCritical = true;
+      failedOnCritical = true
     }
-  });
+  })
 
-  const config = examConfig[selectedLicense.value];
-  const passed = !failedOnCritical && score >= config.passThreshold;
+  const config = examConfig[selectedLicense.value]
+  const passed = !failedOnCritical && score >= config.passThreshold
 
   examResult.value = {
     score,
     total: examQuestions.value.length,
     passed,
     failedOnCritical,
-    lowScore: score < config.passThreshold
-  };
+    lowScore: score < config.passThreshold,
+  }
 
-  isExamStarted.value = false;
-  isExamFinished.value = true;
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  isExamStarted.value = false
+  isExamFinished.value = true
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 </script>
 
@@ -230,7 +285,7 @@ function finishSubmit() {
         Quay lại
       </button>
       <div class="font-display text-text-dim text-sm tracking-widest uppercase">
-        THI THỬ - {{ vehicleType === "oto" ? "Ô TÔ" : "XE MÁY" }}
+        THI THỬ - {{ vehicleType === 'oto' ? 'Ô TÔ' : 'XE MÁY' }}
       </div>
     </div>
 
@@ -362,7 +417,7 @@ function finishSubmit() {
           class="font-display text-4xl font-black mb-2 uppercase tracking-tighter"
           :class="examResult.passed ? 'text-accent-sky' : 'text-accent-coral'"
         >
-          {{ examResult.passed ? "ĐẠT" : "TRƯỢT" }}
+          {{ examResult.passed ? 'ĐẠT' : 'TRƯỢT' }}
         </h2>
 
         <p class="text-text-primary text-xl font-bold mb-6">
@@ -375,7 +430,9 @@ function finishSubmit() {
         >
           <Icon icon="lucide:alert-triangle" class="inline-block size-4 mr-2 mb-0.5" />
           <span v-if="examResult.lowScore">
-            Bạn KHÔNG ĐẠT do chưa đủ số câu điểm ({{ examResult.score }}/{{ examConfig[selectedLicense].passThreshold }})
+            Bạn KHÔNG ĐẠT do chưa đủ số câu điểm ({{ examResult.score }}/{{
+              examConfig[selectedLicense].passThreshold
+            }})
           </span>
           <span v-else-if="examResult.failedOnCritical">
             Bạn đã trả lời sai câu hỏi ĐIỂM LIỆT!
@@ -391,8 +448,8 @@ function finishSubmit() {
           </button>
           <button
             @click="
-              isExamFinished = false;
-              isExamStarted = false;
+              isExamFinished = false
+              isExamStarted = false
             "
             class="px-6 py-4 bg-bg-deep border border-border-default text-text-primary font-display font-black uppercase tracking-widest hover:border-accent-coral transition-all cursor-pointer"
           >

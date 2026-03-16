@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { Icon } from "@iconify/vue";
-import meoThiData from "../data/meoThiData";
+import { computed } from 'vue'
+import { Icon } from '@iconify/vue'
+import meoThiData from '../data/meoThiData'
 
 const props = defineProps<{
-  vehicleType: "oto" | "xemay";
-}>();
+  vehicleType: 'oto' | 'xemay'
+}>()
 
 defineEmits<{
-  (e: "back"): void;
-}>();
+  (e: 'back'): void
+}>()
 
 const currentTips = computed(() => {
-  const data = meoThiData.find((item) => item.vehicleType === props.vehicleType);
-  return data ? data.tips : [];
-});
+  const data = meoThiData.find((item) => item.vehicleType === props.vehicleType)
+  return data ? data.tips : []
+})
 </script>
 
 <template>
@@ -29,7 +29,7 @@ const currentTips = computed(() => {
         Quay lại
       </button>
       <div class="font-display text-text-dim text-sm tracking-widest uppercase">
-        MẸO THI LÝ THUYẾT - {{ vehicleType === "oto" ? "Ô TÔ" : "XE MÁY" }}
+        MẸO THI LÝ THUYẾT - {{ vehicleType === 'oto' ? 'Ô TÔ' : 'XE MÁY' }}
       </div>
     </div>
 
@@ -39,8 +39,8 @@ const currentTips = computed(() => {
         <Icon icon="lucide:lightbulb" class="size-16 mx-auto text-accent-coral/30 mb-4" />
         <h2 class="font-display text-3xl font-bold text-text-primary mb-3">Tổng hợp mẹo thi</h2>
         <p class="text-text-secondary max-w-xl mx-auto leading-relaxed">
-          Các mẹo ghi nhớ nhanh để chọn ngay đáp án đúng trong bài thi tổng hợp, giúp bạn tự tin chốt
-          chắc điểm và tiết kiệm thời gian.
+          Các mẹo ghi nhớ nhanh để chọn ngay đáp án đúng trong bài thi tổng hợp, giúp bạn tự tin
+          chốt chắc điểm và tiết kiệm thời gian.
         </p>
       </div>
 
@@ -54,7 +54,7 @@ const currentTips = computed(() => {
           <span
             class="absolute -top-4 -right-4 font-display text-9xl font-bold text-accent-coral/5 select-none pointer-events-none transition-all group-hover:text-accent-coral/10 group-hover:scale-110"
           >
-            {{ String(index + 1).padStart(2, "0") }}
+            {{ String(index + 1).padStart(2, '0') }}
           </span>
 
           <div class="flex items-start gap-5 relative z-10">
