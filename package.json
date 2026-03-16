@@ -8,7 +8,7 @@
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "test:unit": "vitest",
-    "build-only": "vite build",
+    "build-only": "vite build && node scripts/generate-og-pages.mjs",
     "type-check": "vue-tsc --build",
     "lint": "run-s lint:*",
     "lint:oxlint": "oxlint . --fix",
@@ -18,15 +18,16 @@
     "lint:ci:oxlint": "oxlint .",
     "lint:ci:eslint": "eslint . --cache",
     "prepare": "simple-git-hooks",
-    "optimize:images": "node scripts/optimize-image.mjs"
+    "optimize:images": "node scripts/optimize-image.mjs",
+    "create:page": "node scripts/create-page.mjs"
   },
   "dependencies": {
     "@iconify/vue": "^5.0.0",
-    "@unhead/vue": "^2.1.10",
+    "@unhead/vue": "^2.1.12",
     "@vueuse/core": "^14.2.1",
     "html-to-image": "^1.11.13",
     "pinia": "^3.0.4",
-    "vue": "^3.5.29",
+    "vue": "^3.5.30",
     "vue-router": "^5.0.3"
   },
   "devDependencies": {
@@ -49,8 +50,8 @@
     "jsdom": "^28.1.0",
     "lint-staged": "^16.3.2",
     "npm-run-all2": "^8.0.4",
-    "oxfmt": "^0.35.0",
-    "oxlint": "~1.50.0",
+    "oxfmt": "^0.37.0",
+    "oxlint": "~1.52.0",
     "sharp": "^0.34.5",
     "simple-git-hooks": "^2.13.1",
     "tailwindcss": "^4.2.1",

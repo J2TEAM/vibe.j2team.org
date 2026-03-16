@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="320" height="320" style="overflow: visible;" id="pulse-buddy-annoyed-v1">
+    <style>
+        /* === CSS VARIABLES and BASE === */
+        .stroke-main { stroke: #253549; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+        .fill-base { fill: #F0EDE6; }
+        .fill-accent-sky { fill: #38BDF8; }
+        .fill-accent-amber { fill: #FFB830; }
+        .fill-accent-coral { fill: #FF6B4A; } /* Màu cảnh báo nhẹ */
+        .fill-dark { fill: #253549; }
+
+        /* =========================================
+           DEV SPECS and ANIMATION CONFIG
+           - Duration: 2500ms (One-shot)
+           - Trigger: Click spam (e.g., > 5 clicks in 2s)
+           - Priority: High (Overrides idle, talk)
+           ========================================= */
+
+        #pulse-buddy-wrapper {
+            /* Lắc bần bật do bị chọc, sau đó thở dài (squash) */
+            animation: annoyed-shake 2.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            transform-origin: 100px 172px;
+        }
+        #shadow {
+            animation: shadow-shake 2.5s ease-in-out forwards;
+            transform-origin: 100px 180px;
+        }
+        #heartCore {
+            /* Tim đập dồn dập và đổi màu Coral */
+            animation: annoyed-heart 2.5s ease-in-out forwards;
+            transform-origin: 100px 136px;
+        }
+        #speech-bubble {
+            /* Bong bóng thoại hiện ra cằn nhằn rồi biến mất */
+            opacity: 0;
+            animation: bubble-annoyed 2.5s ease-in-out forwards;
+            transform-origin: 75px 60px;
+        }
+        #leftArm {
+            /* Tay rủ xuống buông xuôi bất lực */
+            animation: arm-drop-l 2.5s ease-in-out forwards;
+            transform-origin: 52px 120px;
+        }
+        #rightArm {
+            /* Tay rủ xuống buông xuôi bất lực */
+            animation: arm-drop-r 2.5s ease-in-out forwards;
+            transform-origin: 148px 120px;
+        }
+
+        /* =========================================
+           KEYFRAMES
+           ========================================= */
+        @keyframes annoyed-shake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            4%, 12% { transform: translate(-4px, 0) rotate(-3deg); } /* Lắc mạnh qua trái */
+            8%, 16% { transform: translate(4px, 0) rotate(3deg); }  /* Lắc mạnh qua phải */
+            20% { transform: scale(1.06, 0.9) translateY(12px); }   /* Nén người thở dài (Sigh) */
+            25%, 90% { transform: scale(1, 1) translateY(0); }      /* Đứng trân trân nhìn user */
+            100% { transform: scale(1, 1) translateY(0); }
+        }
+
+        @keyframes shadow-shake {
+            0% { transform: scale(1); }
+            4%, 16% { transform: scale(0.95); }
+            20% { transform: scale(1.1); }
+            25%, 100% { transform: scale(1); }
+        }
+
+        @keyframes annoyed-heart {
+            0%, 100% { transform: scale(1); }
+            25%, 45%, 65%, 85% { transform: scale(1.15); } /* Đập từng nhịp dồn */
+            35%, 55%, 75% { transform: scale(1); }
+        }
+
+        @keyframes bubble-annoyed {
+            0%, 20% { transform: translateY(10px); opacity: 0; }
+            25%, 90% { transform: translateY(0); opacity: 1; } /* Hiện rõ trong lúc đang trân trân */
+            95%, 100% { transform: translateY(-5px); opacity: 0; }
+        }
+
+        @keyframes arm-drop-l {
+            0% { transform: rotate(0deg); }
+            20% { transform: rotate(15deg); } /* Rủ xuống sát thân */
+            90% { transform: rotate(15deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        @keyframes arm-drop-r {
+            0% { transform: rotate(0deg); }
+            20% { transform: rotate(-15deg); } /* Rủ xuống sát thân */
+            90% { transform: rotate(-15deg); }
+            100% { transform: rotate(0deg); }
+        }
+    </style>
+
+    <!-- BÓNG ĐỔ DƯỚI ĐẤT -->
+    <g id="shadow">
+        <ellipse cx="100" cy="180" rx="45" ry="8" fill="#253549" />
+    </g>
+
+    <!-- WRAPPER CHÍNH -->
+    <g id="pulse-buddy-wrapper">
+
+        <!-- LEFT ARM -->
+        <g id="leftArm">
+            <!-- Tay rủ xuôi xuống, không cong vui vẻ nữa -->
+            <path class="stroke-main fill-base" d="M 52 120 C 35 120, 25 140, 32 150 C 38 155, 48 147, 50 135" />
+        </g>
+
+        <!-- RIGHT ARM -->
+        <g id="rightArm">
+            <!-- Tay rủ xuôi xuống -->
+            <path class="stroke-main fill-base" d="M 148 120 C 165 120, 175 140, 168 150 C 162 155, 152 147, 150 135" />
+        </g>
+
+        <!-- THÂN CHÍNH (BODY) -->
+        <g id="body">
+            <path class="stroke-main fill-base" d="M 100 35 C 140 35, 155 80, 155 135 C 155 162, 135 172, 100 172 C 65 172, 45 162, 45 135 C 45 80, 60 35, 100 35 Z" />
+        </g>
+
+        <!-- TRÁI TIM Ở NGỰC (HEART CORE - MÀU CORAL CẢNH BÁO) -->
+        <g id="heartCore">
+            <path class="fill-accent-coral" d="M 100 146 C 100 146, 86 136, 86 128 C 86 122, 91 118, 97 118 C 100 118, 100 121, 100 121 C 100 121, 100 118, 103 118 C 109 118, 114 122, 114 128 C 114 136, 100 146, 100 146 Z" />
+            <path class="stroke-main" fill="none" d="M 100 146 C 100 146, 86 136, 86 128 C 86 122, 91 118, 97 118 C 100 118, 100 121, 100 121 C 100 121, 100 118, 103 118 C 109 118, 114 122, 114 128 C 114 136, 100 146, 100 146 Z" />
+        </g>
+
+        <!-- KHUÔN MẶT (FACE) -->
+        <g id="face">
+            
+            <!-- Má hồng (Mờ đi một chút do đang bực) -->
+            <g id="blush">
+                <ellipse cx="68" cy="104" rx="7" ry="3.5" class="fill-accent-coral" opacity="0.4" />
+                <ellipse cx="132" cy="104" rx="7" ry="3.5" class="fill-accent-coral" opacity="0.4" />
+            </g>
+
+            <!-- Kính Nerd -->
+            <g id="glasses">
+                <path class="stroke-main" fill="none" d="M 92 88 Q 100 84 108 88" stroke-width="4" />
+                <circle cx="76" cy="90" r="16" class="stroke-main" fill="none" stroke-width="4.5" />
+                <circle cx="124" cy="90" r="16" class="stroke-main" fill="none" stroke-width="4.5" />
+            </g>
+
+            <!-- MẮT PHÁN XÉT (Unamused Flat Lines) -->
+            <!-- Chuyển từ mắt tròn sang mí mắt sụp ngang -->
+            <g id="eyes">
+                <path class="stroke-main" fill="none" stroke-width="5" stroke-linecap="round" d="M 70 89 L 82 89" />
+                <path class="stroke-main" fill="none" stroke-width="5" stroke-linecap="round" d="M 118 89 L 130 89" />
+            </g>
+
+            <!-- MIỆNG (Squiggly Frown - Méch xệch bất lực) -->
+            <g id="mouth">
+                <path class="stroke-main" fill="none" d="M 94 106 L 106 104" stroke-width="4" stroke-linecap="round" />
+            </g>
+            
+        </g>
+    </g>
+
+    <!-- POSITIONING WRAPPER CHO SPEECH BUBBLE -->
+    <g transform="translate(25, 10) scale(0.9)">
+        <!-- SPEECH BUBBLE CHÍNH -->
+        <g id="speech-bubble">
+            <!-- Box Bong bóng thoại -->
+            <path class="stroke-main" fill="#ffffff" d="M 15 0 L 135 0 C 143 0 150 7 150 15 L 150 45 C 150 53 143 60 135 60 L 95 60 L 80 75 L 85 60 L 15 60 C 7 60 0 53 0 45 L 0 15 C 0 7 7 0 15 0 Z" />
+            
+            <!-- Giọt mồ hôi chảy (Sweat Drop) thay cho tia lấp lánh -->
+            <path fill="#38BDF8" d="M 16 20 C 18 20 20 18 20 16 C 20 13 16 10 16 10 C 16 10 12 13 12 16 C 12 18 14 20 16 20 Z" />
+            
+            <!-- Nội dung Text -->
+            <text x="26" y="26" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="12" fill="#253549">Click gì mà</text>
+            <text x="26" y="44" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="12" fill="#253549">nhiều dữ vậy...</text>
+        </g>
+    </g>
+
+</svg>

@@ -112,6 +112,10 @@ export function useRhythmEngine() {
     isPlaying.value = false
   }
 
+  function resume() {
+    isPlaying.value = true
+  }
+
   function reset() {
     startTime.value = 0
     currentTime.value = 0
@@ -136,6 +140,7 @@ export function useRhythmEngine() {
     evaluateTap,
     advanceBeat,
     stop,
+    resume,
     reset,
   }
 }

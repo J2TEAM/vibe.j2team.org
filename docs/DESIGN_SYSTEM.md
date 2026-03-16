@@ -240,6 +240,20 @@ When creating a new page in `src/views/<your-page>/index.vue`, follow these rule
 
 ---
 
+## Edge Toolbar
+
+The EdgeToolbar (`src/components/EdgeToolbar.vue`) is a global component displayed on all sub-pages. It follows the design system:
+
+- **Colors**: `bg-bg-elevated/90`, `text-text-secondary`, `border-border-default`, `text-accent-coral` (for favorited state)
+- **Typography**: Labels use `font-display tracking-wide` (metadata pattern)
+- **Corners**: Sharp corners (no border-radius) — consistent with the editorial design
+- **Hover**: `text-text-primary` + `bg-bg-deep` on button hover
+- **Opacity**: `opacity-50` when idle, `opacity-100` on hover — non-intrusive by default
+
+Authors can disable the toolbar via `showToolbar: false` in `meta.ts` if it interferes with their page layout.
+
+---
+
 ## Reference Files
 
 | File | Contents |

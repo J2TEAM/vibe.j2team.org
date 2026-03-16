@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useClipboard } from '@vueuse/core'
 
 const regexInput = ref<string>('')
 const testString = ref<string>('')
@@ -344,11 +345,13 @@ const loadExample = () => {
   }
 }
 
+const { copy } = useClipboard()
+
 const shareURL = () => {
   const url = new URL(window.location.href)
   url.searchParams.set('regex', encodeURIComponent(regexInput.value))
   url.searchParams.set('text', encodeURIComponent(testString.value))
-  navigator.clipboard.writeText(url.toString())
+  copy(url.toString())
   shareCopied.value = true
   setTimeout(() => (shareCopied.value = false), 2000)
 }

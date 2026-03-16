@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watchEffect, onMounted } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { useClipboard } from '@vueuse/core'
 import { useWebrtcPeerConnection } from './use-webrtc-peer-connection'
 import PeerCallGuidelineModal from './peer-call-guideline-modal.vue'
 
@@ -88,9 +89,11 @@ function generateShareLink(base64Sdp: string): string {
   return `${window.location.origin}${route.path}#offer=${encodeURIComponent(base64Sdp)}`
 }
 
+const { copy: clipboardCopy } = useClipboard()
+
 async function safeCopy(text: string): Promise<boolean> {
   try {
-    await navigator.clipboard.writeText(text)
+    await clipboardCopy(text)
     return true
   } catch {
     return false

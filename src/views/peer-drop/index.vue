@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { useClipboard } from '@vueuse/core'
 import { useWebrtcFileTransfer, formatBytes } from './use-webrtc-file-transfer'
 import PeerDropGuidelineModal from './peer-drop-guideline-modal.vue'
 
@@ -99,9 +100,11 @@ function generateShareLink(base64Sdp: string): string {
   return `${window.location.origin}${route.path}#offer=${encodeURIComponent(base64Sdp)}&files=${filesParam}`
 }
 
+const { copy: clipboardCopy } = useClipboard()
+
 async function safeCopy(text: string): Promise<boolean> {
   try {
-    await navigator.clipboard.writeText(text)
+    await clipboardCopy(text)
     return true
   } catch {
     return false

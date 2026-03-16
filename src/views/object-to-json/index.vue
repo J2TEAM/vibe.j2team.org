@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useClipboard } from '@vueuse/core'
 
 // --- Types ---
 type FieldType = 'string' | 'number' | 'boolean' | 'null' | 'array' | 'object'
@@ -277,11 +278,12 @@ const generateOutput = computed(() => {
 })
 
 // --- Shared output/copy ---
+const { copy } = useClipboard()
 const copiedParse = ref(false)
 const copiedGen = ref(false)
 
 async function copyParse() {
-  await navigator.clipboard.writeText(parseJsonOutput.value)
+  await copy(parseJsonOutput.value)
   copiedParse.value = true
   setTimeout(() => {
     copiedParse.value = false
@@ -289,7 +291,7 @@ async function copyParse() {
 }
 
 async function copyGen() {
-  await navigator.clipboard.writeText(generateOutput.value)
+  await copy(generateOutput.value)
   copiedGen.value = true
   setTimeout(() => {
     copiedGen.value = false

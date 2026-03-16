@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
-import { useEventListener } from '@vueuse/core'
+import { useClipboard, useEventListener } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 
 // --- State ---
@@ -155,13 +155,11 @@ watch([resolution, contrast, customCharset, lang], () => {
   if (sourceImage.value) processImage()
 })
 
+const { copy } = useClipboard()
+
 const copyToClipboard = async () => {
-  try {
-    await navigator.clipboard.writeText(asciiResult.value)
-    alert(t.value.copied)
-  } catch (err) {
-    console.error('Lỗi khi copy:', err)
-  }
+  await copy(asciiResult.value)
+  alert(t.value.copied)
 }
 
 const downloadAscii = () => {

@@ -61,6 +61,21 @@ src/utils/shared/          # Hàm tiện ích dùng chung
 
 Các trang có thể import từ đây nhưng không bắt buộc. Mỗi trang vẫn hoạt động độc lập.
 
+## Edge Toolbar
+
+Mỗi trang con mặc định sẽ hiển thị một **Edge Toolbar** ở cạnh phải màn hình, cung cấp các nút: xem mã nguồn, yêu thích, và về trang chủ.
+
+Nếu toolbar ảnh hưởng đến trang của bạn (ví dụ: game toàn màn hình), bạn có thể tắt nó bằng cách thêm `showToolbar: false` vào `meta.ts`:
+
+```ts
+const meta: PageMeta = {
+  // ...các trường khác
+  showToolbar: false,
+}
+```
+
+Mặc định là `true` — toolbar sẽ hiển thị nếu không khai báo.
+
 ## Quy tắc code
 
 - Sử dụng `<script setup lang="ts">` cho tất cả Vue component

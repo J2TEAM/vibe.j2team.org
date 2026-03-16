@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useClipboard } from '@vueuse/core'
 import { useHead } from '@unhead/vue'
 
 // ── Types ──────────────────────────────────────────────
@@ -301,17 +302,10 @@ function resetToInput() {
   repos.value = []
   router.replace({ query: {} })
 }
+const { copy: clipboardCopy } = useClipboard()
+
 async function copyShareLink() {
-  try {
-    await navigator.clipboard.writeText(shareUrl.value)
-  } catch {
-    const el = document.createElement('textarea')
-    el.value = shareUrl.value
-    document.body.appendChild(el)
-    el.select()
-    document.execCommand('copy')
-    document.body.removeChild(el)
-  }
+  await clipboardCopy(shareUrl.value)
   copied.value = true
   setTimeout(() => {
     copied.value = false

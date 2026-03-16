@@ -5,12 +5,12 @@
  * and custom shaders for atmospheric scattering effects.
  */
 export function createEarth(THREE: any) {
-  const textureLoader = new THREE.TextureLoader();
-  const earthTexture = textureLoader.load(new URL("../assets/earth.png", import.meta.url).href);
-  const cloudTexture = textureLoader.load(new URL("../assets/clouds.png", import.meta.url).href);
+  const textureLoader = new THREE.TextureLoader()
+  const earthTexture = textureLoader.load(new URL('../assets/earth.png', import.meta.url).href)
+  const cloudTexture = textureLoader.load(new URL('../assets/clouds.png', import.meta.url).href)
 
   // --- Layer 1: Planetary Surface (Base Mesh) ---
-  const earthGeo = new THREE.SphereGeometry(6.5, 128, 128);
+  const earthGeo = new THREE.SphereGeometry(6.5, 128, 128)
   const earthMat = new THREE.MeshStandardMaterial({
     map: earthTexture,
     transparent: true,
@@ -18,12 +18,12 @@ export function createEarth(THREE: any) {
     roughness: 0.8,
     metalness: 0.1,
     color: new THREE.Color(0xffffff),
-  });
-  const earth = new THREE.Mesh(earthGeo, earthMat);
-  earth.rotation.y = Math.PI * 1.5;
+  })
+  const earth = new THREE.Mesh(earthGeo, earthMat)
+  earth.rotation.y = Math.PI * 1.5
 
   // --- Layer 2: Meteorological Clouds (Secondary Mesh) ---
-  const cloudGeo = new THREE.SphereGeometry(6.6, 128, 128);
+  const cloudGeo = new THREE.SphereGeometry(6.6, 128, 128)
   const cloudMat = new THREE.MeshStandardMaterial({
     map: cloudTexture,
     transparent: true,
@@ -32,14 +32,14 @@ export function createEarth(THREE: any) {
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     side: THREE.DoubleSide,
-  });
-  const clouds = new THREE.Mesh(cloudGeo, cloudMat);
-  clouds.name = "clouds";
-  earth.add(clouds);
+  })
+  const clouds = new THREE.Mesh(cloudGeo, cloudMat)
+  clouds.name = 'clouds'
+  earth.add(clouds)
 
   // --- Layer 3: Atmospheric Scattering (Custom Shader Mesh) ---
   // Implements a Fresnel-based rim light and light-biased glow.
-  const atmosphereGeo = new THREE.SphereGeometry(6.75, 128, 128);
+  const atmosphereGeo = new THREE.SphereGeometry(6.75, 128, 128)
   const atmosphereMat = new THREE.ShaderMaterial({
     transparent: true,
     side: THREE.BackSide,
@@ -69,10 +69,10 @@ export function createEarth(THREE: any) {
         gl_FragColor = vec4(uColor, finalGlow);
       }
     `,
-  });
-  const atmosphere = new THREE.Mesh(atmosphereGeo, atmosphereMat);
-  atmosphere.name = "atmosphere";
-  earth.add(atmosphere);
+  })
+  const atmosphere = new THREE.Mesh(atmosphereGeo, atmosphereMat)
+  atmosphere.name = 'atmosphere'
+  earth.add(atmosphere)
 
-  return earth;
+  return earth
 }

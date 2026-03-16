@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useClipboard } from '@vueuse/core'
 import {
   useWebrtcGameConnection,
   type GameMessage,
@@ -25,9 +26,7 @@ const showCanvas = computed(() => conn.state.value === 'connected')
 
 /** Current player label */
 const playerLabel = computed(() => (isHost.value ? 'Player 1 (Coral)' : 'Player 2 (Sky)'))
-const playerColor = computed(() =>
-  isHost.value ? PLAYER_COLORS.p1.hex : PLAYER_COLORS.p2.hex,
-)
+const playerColor = computed(() => (isHost.value ? PLAYER_COLORS.p1.hex : PLAYER_COLORS.p2.hex))
 
 /** Round result text */
 const roundResultText = computed(() => {
@@ -99,8 +98,10 @@ function handleNewMatch() {
   game.startRound()
 }
 
+const { copy } = useClipboard()
+
 async function copyToClipboard(text: string) {
-  await navigator.clipboard.writeText(text)
+  await copy(text)
   copied.value = true
   setTimeout(() => (copied.value = false), 2000)
 }
@@ -111,7 +112,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col items-center px-4 py-8">
+  <div
+    class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col items-center px-4 py-8"
+  >
     <!-- Header -->
     <div class="w-full max-w-2xl animate-fade-up">
       <RouterLink
@@ -124,13 +127,14 @@ onMounted(() => {
       <h1 class="mt-6 font-display text-4xl sm:text-5xl font-bold text-accent-coral">
         Sketch Wars
       </h1>
-      <p class="mt-2 text-text-secondary">
-        Vẽ đối kháng real-time — chiếm lãnh thổ bằng màu sắc!
-      </p>
+      <p class="mt-2 text-text-secondary">Vẽ đối kháng real-time — chiếm lãnh thổ bằng màu sắc!</p>
     </div>
 
     <!-- Connection Setup -->
-    <div v-if="!isConnected" class="w-full max-w-2xl mt-8 space-y-6 animate-fade-up animate-delay-2">
+    <div
+      v-if="!isConnected"
+      class="w-full max-w-2xl mt-8 space-y-6 animate-fade-up animate-delay-2"
+    >
       <!-- Create or Join -->
       <div v-if="conn.state.value === 'idle'" class="flex flex-col sm:flex-row gap-4">
         <button
@@ -162,9 +166,7 @@ onMounted(() => {
 
       <!-- Host: Show offer code -->
       <div v-if="conn.state.value === 'waiting-answer'" class="space-y-4">
-        <p class="text-text-secondary text-sm">
-          Gửi mã mời này cho đối thủ:
-        </p>
+        <p class="text-text-secondary text-sm">Gửi mã mời này cho đối thủ:</p>
         <textarea
           :value="conn.offerSdp.value"
           readonly
@@ -176,9 +178,7 @@ onMounted(() => {
         >
           {{ copied ? '✓ Đã copy mã mời!' : 'Copy mã mời' }}
         </button>
-        <p class="text-text-secondary text-sm">
-          Sau đó dán mã trả lời từ đối thủ:
-        </p>
+        <p class="text-text-secondary text-sm">Sau đó dán mã trả lời từ đối thủ:</p>
         <input
           v-model="answerInput"
           placeholder="Dán mã trả lời..."
@@ -195,9 +195,7 @@ onMounted(() => {
 
       <!-- Guest: Show answer code -->
       <div v-if="conn.state.value === 'joining' && conn.answerSdp.value" class="space-y-4">
-        <p class="text-text-secondary text-sm">
-          Gửi mã trả lời này cho người tạo phòng:
-        </p>
+        <p class="text-text-secondary text-sm">Gửi mã trả lời này cho người tạo phòng:</p>
         <textarea
           :value="conn.answerSdp.value"
           readonly
@@ -221,12 +219,11 @@ onMounted(() => {
     <!-- Game Area -->
     <div v-if="showCanvas" class="w-full max-w-2xl mt-8 space-y-4 animate-fade-up">
       <!-- Game Info Bar -->
-      <div class="flex items-center justify-between border border-border-default bg-bg-surface px-4 py-3">
+      <div
+        class="flex items-center justify-between border border-border-default bg-bg-surface px-4 py-3"
+      >
         <div class="flex items-center gap-3">
-          <span
-            class="w-3 h-3 inline-block"
-            :style="{ backgroundColor: playerColor }"
-          />
+          <span class="w-3 h-3 inline-block" :style="{ backgroundColor: playerColor }" />
           <span class="font-display text-sm font-semibold">{{ playerLabel }}</span>
         </div>
         <div class="font-display text-sm text-text-secondary">
@@ -271,7 +268,13 @@ onMounted(() => {
       <div class="text-center space-y-4">
         <!-- Before game starts -->
         <button
-          v-if="canStart && !game.isPlaying.value && !game.winner.value && game.round.value === 1 && game.scores.value.p1 === 0"
+          v-if="
+            canStart &&
+            !game.isPlaying.value &&
+            !game.winner.value &&
+            game.round.value === 1 &&
+            game.scores.value.p1 === 0
+          "
           class="border border-accent-coral bg-accent-coral/10 px-8 py-3 font-display font-bold text-accent-coral transition hover:bg-accent-coral/20"
           @click="handleStartGame"
         >
@@ -280,18 +283,27 @@ onMounted(() => {
 
         <!-- Waiting for host to start (guest view) -->
         <p
-          v-if="!isHost && !game.isPlaying.value && !game.winner.value && game.round.value === 1 && game.scores.value.p1 === 0"
+          v-if="
+            !isHost &&
+            !game.isPlaying.value &&
+            !game.winner.value &&
+            game.round.value === 1 &&
+            game.scores.value.p1 === 0
+          "
           class="text-text-secondary text-sm"
         >
           Chờ Player 1 bắt đầu trận đấu...
         </p>
 
         <!-- Round result -->
-        <div v-if="!game.isPlaying.value && roundResultText && !game.winner.value" class="space-y-3">
+        <div
+          v-if="!game.isPlaying.value && roundResultText && !game.winner.value"
+          class="space-y-3"
+        >
           <p class="font-display text-xl font-bold text-accent-amber">{{ roundResultText }}</p>
           <p class="text-text-secondary text-sm">
-            Coral: {{ game.scores.value.p1.toLocaleString() }} px —
-            Sky: {{ game.scores.value.p2.toLocaleString() }} px
+            Coral: {{ game.scores.value.p1.toLocaleString() }} px — Sky:
+            {{ game.scores.value.p2.toLocaleString() }} px
           </p>
           <button
             v-if="isHost"
@@ -305,7 +317,16 @@ onMounted(() => {
 
         <!-- Match winner -->
         <div v-if="game.winner.value" class="space-y-3">
-          <p class="font-display text-2xl font-bold" :class="game.winner.value === 'p1' ? 'text-accent-coral' : game.winner.value === 'p2' ? 'text-accent-sky' : 'text-accent-amber'">
+          <p
+            class="font-display text-2xl font-bold"
+            :class="
+              game.winner.value === 'p1'
+                ? 'text-accent-coral'
+                : game.winner.value === 'p2'
+                  ? 'text-accent-sky'
+                  : 'text-accent-amber'
+            "
+          >
             {{ matchResultText }}
           </p>
           <p class="text-text-secondary text-sm">
@@ -341,15 +362,21 @@ onMounted(() => {
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="border border-border-default bg-bg-surface p-4">
           <p class="font-display text-sm font-semibold text-accent-coral mb-2">1. Kết nối</p>
-          <p class="text-text-secondary text-sm">Player 1 tạo phòng, gửi mã mời cho Player 2. Player 2 dán mã và gửi lại mã trả lời.</p>
+          <p class="text-text-secondary text-sm">
+            Player 1 tạo phòng, gửi mã mời cho Player 2. Player 2 dán mã và gửi lại mã trả lời.
+          </p>
         </div>
         <div class="border border-border-default bg-bg-surface p-4">
           <p class="font-display text-sm font-semibold text-accent-sky mb-2">2. Vẽ</p>
-          <p class="text-text-secondary text-sm">Mỗi người có 60 giây để vẽ và chiếm lãnh thổ trên canvas bằng màu của mình.</p>
+          <p class="text-text-secondary text-sm">
+            Mỗi người có 60 giây để vẽ và chiếm lãnh thổ trên canvas bằng màu của mình.
+          </p>
         </div>
         <div class="border border-border-default bg-bg-surface p-4">
           <p class="font-display text-sm font-semibold text-accent-amber mb-2">3. Tính điểm</p>
-          <p class="text-text-secondary text-sm">Hết giờ, hệ thống đếm pixel. Ai có nhiều pixel hơn thắng round đó.</p>
+          <p class="text-text-secondary text-sm">
+            Hết giờ, hệ thống đếm pixel. Ai có nhiều pixel hơn thắng round đó.
+          </p>
         </div>
         <div class="border border-border-default bg-bg-surface p-4">
           <p class="font-display text-sm font-semibold text-text-primary mb-2">4. Best of 3</p>

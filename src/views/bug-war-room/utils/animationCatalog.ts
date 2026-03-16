@@ -30,8 +30,12 @@ export function createAnimationCatalogItems(options: {
   slimeClickReactionDurationMs: number
   assets: AnimationCatalogAssets
 }): AnimationCatalogItem[] {
-  const { slimeSpamWindowMs, slimeSpamAnnoyedThreshold, slimeClickReactionDurationMs, assets } =
-    options
+  const {
+    slimeSpamWindowMs,
+    slimeSpamAnnoyedThreshold,
+    slimeClickReactionDurationMs,
+    assets,
+  } = options
 
   return [
     {
@@ -39,8 +43,7 @@ export function createAnimationCatalogItems(options: {
       title: 'Slime Idle',
       fileName: 'slime-idle.svg',
       description: 'Trạng thái quan sát mặc định khi hệ thống bình ổn.',
-      triggerCondition:
-        'Hiển thị mặc định khi không có hiệu ứng tạm thời và hệ thống chưa vào warning/critical/victory/defeat.',
+      triggerCondition: 'Hiển thị mặc định khi không có hiệu ứng tạm thời và hệ thống chưa vào warning/critical/victory/defeat.',
       asset: assets.slimeIdleSvg,
     },
     {
@@ -56,8 +59,7 @@ export function createAnimationCatalogItems(options: {
       title: 'Slime Click Reaction',
       fileName: 'slime-click-reaction.svg',
       description: 'Hiệu ứng click phản hồi tức thì cho thao tác operator.',
-      triggerCondition:
-        'Xuất hiện khi người chơi click/tap trực tiếp vào Slime Operator và không bị override bởi trạng thái annoyed.',
+      triggerCondition: 'Xuất hiện khi người chơi click/tap trực tiếp vào Slime Operator và không bị override bởi trạng thái annoyed.',
       operatorHint: `Mỗi lần click nên chờ khoảng ${Math.ceil(slimeClickReactionDurationMs / 1000)} giây để animation chạy trọn vẹn rồi hãy click tiếp.`,
       asset: assets.slimeClickReactionSvg,
     },
@@ -66,8 +68,7 @@ export function createAnimationCatalogItems(options: {
       title: 'Action Confirm',
       fileName: 'action-confirm.svg',
       description: 'Xác nhận một quyết định vừa được thực thi.',
-      triggerCondition:
-        'Xuất hiện sau khi chọn một incident action có tác động trung tính hoặc không rơi vào các nhánh trust-up/stability-up/chaos-up/energy-low.',
+      triggerCondition: 'Xuất hiện sau khi chọn một incident action có tác động trung tính hoặc không rơi vào các nhánh trust-up/stability-up/chaos-up/energy-low.',
       asset: assets.actionConfirmSvg,
     },
     {
@@ -91,8 +92,7 @@ export function createAnimationCatalogItems(options: {
       title: 'Chaos Up',
       fileName: 'chaos-up.svg',
       description: 'Cảnh báo chaos tăng nhanh sau lựa chọn rủi ro.',
-      triggerCondition:
-        'Xuất hiện khi action làm chaos tăng mạnh (chaosDelta >= 12) hoặc random event làm chaos tăng đáng kể.',
+      triggerCondition: 'Xuất hiện khi action làm chaos tăng mạnh (chaosDelta >= 12) hoặc random event làm chaos tăng đáng kể.',
       asset: assets.chaosUpSvg,
     },
     {
@@ -100,8 +100,7 @@ export function createAnimationCatalogItems(options: {
       title: 'Energy Low',
       fileName: 'energy-low.svg',
       description: 'Trạng thái team suy kiệt năng lượng khi xử lý kéo dài.',
-      triggerCondition:
-        'Xuất hiện khi action làm tiêu hao năng lượng sâu (E <= -10) hoặc Energy hiện tại xuống mức thấp (<= 35).',
+      triggerCondition: 'Xuất hiện khi action làm tiêu hao năng lượng sâu (E <= -10) hoặc Energy hiện tại xuống mức thấp (<= 35).',
       asset: assets.energyLowSvg,
     },
     {

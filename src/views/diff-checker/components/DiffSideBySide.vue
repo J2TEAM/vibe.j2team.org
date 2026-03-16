@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useClipboard } from '@vueuse/core'
 import type { TwoPanelData } from '../composables/useDiff'
 
 const props = defineProps<{
@@ -13,9 +14,7 @@ const emit = defineEmits<{
   swap: []
 }>()
 
-function copyToClipboard(text: string) {
-  void navigator.clipboard.writeText(text).catch(() => {})
-}
+const { copy: copyToClipboard } = useClipboard()
 
 function leftTotalLines(): number {
   return props.oldText === '' ? 0 : props.oldText.split(/\r\n|\r|\n/).length

@@ -6,6 +6,9 @@ declare module 'vue-router' {
   interface RouteMeta {
     title?: string
     description?: string
+    author?: string
+    showToolbar?: boolean
+    pagePath?: string
   }
 }
 
@@ -13,6 +16,7 @@ const HomePage = () => import('@/views/HomePage.vue')
 const ContentPolicy = () => import('@/views/ContentPolicy.vue')
 const LeaderboardPage = () => import('@/views/LeaderboardPage.vue')
 const BookmarksPage = () => import('@/views/BookmarksPage.vue')
+const AuthorPage = () => import('@/views/AuthorPage.vue')
 const NotFound = () => import('@/views/NotFound.vue')
 
 const pageRoutes: RouteRecordRaw[] = pages.map((page) => {
@@ -28,6 +32,9 @@ const pageRoutes: RouteRecordRaw[] = pages.map((page) => {
     meta: {
       title: `${page.name} - vibe.j2team.org`,
       description: page.description,
+      author: page.author,
+      showToolbar: page.showToolbar !== false,
+      pagePath: page.path,
     },
   }
 })
@@ -71,6 +78,15 @@ const router = createRouter({
       meta: {
         title: 'Yêu thích - vibe.j2team.org',
         description: 'Danh sách các ứng dụng yêu thích của bạn.',
+      },
+    },
+    {
+      path: '/author/:slug',
+      name: 'author',
+      component: AuthorPage,
+      meta: {
+        title: 'Tác giả - vibe.j2team.org',
+        description: 'Trang cá nhân tác giả trên vibe.j2team.org.',
       },
     },
     {
