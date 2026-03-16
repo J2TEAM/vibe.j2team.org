@@ -305,9 +305,9 @@ onUnmounted(() => {
                 </span>
                 <span class="text-xs font-bold font-display text-text-primary">{{ volume }}%</span>
               </div>
-              <div class="w-full h-4 bg-bg-deep rounded-full overflow-hidden">
+              <div class="w-full h-4 bg-bg-deep overflow-hidden">
                 <div
-                  class="h-full rounded-full transition-all duration-75"
+                  class="h-full transition-all duration-75"
                   :class="volumeColor(volume)"
                   :style="{ width: `${volume}%` }"
                 />

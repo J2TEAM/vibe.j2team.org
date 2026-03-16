@@ -264,7 +264,7 @@ onUnmounted(() => {
           <div
             v-for="i in 24"
             :key="i"
-            class="flex-1 bg-accent-coral/60 rounded-sm animate-pulse"
+            class="flex-1 bg-accent-coral/60 animate-pulse"
             :style="{
               height: `${Math.abs(Math.sin(i * 0.6)) * 100}%`,
               animationDelay: `${i * 40}ms`,
