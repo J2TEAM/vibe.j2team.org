@@ -76,7 +76,7 @@ const sensitivityValue = computed(() =>
   Math.min(MAX_SENSITIVITY, Math.max(MIN_SENSITIVITY, sensitivity.value)),
 )
 const gameHeightPx = computed(() => Math.max(120, gameHeight.value))
-const gameWidthPx = computed(() => Math.min(1200, Math.max(240, gameWidth.value)))
+const gameWidthPx = computed(() => Math.max(240, gameWidth.value))
 const gameHeightSlider = computed({
   get: () => Math.min(MAX_GAME_HEIGHT, Math.max(MIN_GAME_HEIGHT, gameHeight.value)),
   set: (value: number) => {
