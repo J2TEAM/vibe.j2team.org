@@ -11,11 +11,11 @@ export function useCgCalculator(params: Ref<WingParams>, parts: Ref<Part[]>) {
       fuseWidth: rawFuseWidth,
       chassisCog: rawChassisCog,
       chassisWeight: rawChassisWeight,
-      targetCgPercent: rawTargetCgPercent
+      targetCgPercent: rawTargetCgPercent,
     } = params.value
 
     // Safe number helper - ensure it ALWAYS returns a finite number
-    const n = (val: any, def = 0): number => {
+    const n = (val: unknown, def = 0): number => {
       if (val === null || val === undefined || val === '') return def
       const num = typeof val === 'number' ? val : Number(val)
       return isFinite(num) ? num : def
@@ -32,19 +32,21 @@ export function useCgCalculator(params: Ref<WingParams>, parts: Ref<Part[]>) {
 
     // Semi-span of the swept panel
     const semiSpanPanel = Math.max(0.1, (span - fuseWidth) / 2)
-    
+
     // Panel Area (trapezoid)
-    const panelAreaCm2 = ((rootChord + tipChord) / 2) * semiSpanPanel / 100
+    const panelAreaCm2 = (((rootChord + tipChord) / 2) * semiSpanPanel) / 100
     const fuseAreaCm2 = (fuseWidth * rootChord) / 100
-    const totalAreaCm2 = (2 * panelAreaCm2) + fuseAreaCm2
+    const totalAreaCm2 = 2 * panelAreaCm2 + fuseAreaCm2
     const totalAreaDm2 = Math.max(0.001, totalAreaCm2 / 100)
 
     // MAC Length of the panel
     const chordSum = rootChord + tipChord
-    const macLength = chordSum > 0 ? (2 / 3) * (rootChord + tipChord - (rootChord * tipChord) / chordSum) : 0
+    const macLength =
+      chordSum > 0 ? (2 / 3) * (rootChord + tipChord - (rootChord * tipChord) / chordSum) : 0
 
     // MAC Distance (Y position from the edge of the fuselage)
-    const macYFromFuse = chordSum > 0 ? (semiSpanPanel / 3) * (rootChord + 2 * tipChord) / chordSum : 0
+    const macYFromFuse =
+      chordSum > 0 ? ((semiSpanPanel / 3) * (rootChord + 2 * tipChord)) / chordSum : 0
     const macDistance = macYFromFuse
 
     // MAC Leading Edge X position relative to Root Leading Edge
@@ -53,9 +55,10 @@ export function useCgCalculator(params: Ref<WingParams>, parts: Ref<Part[]>) {
     // Aerodynamic Center (AC) of total wing
     const acFuseX = rootChord * 0.25
     const acPanelX = macLeX + macLength * 0.25
-    
+
     // Weighted average AC (Neutral Point)
-    const neutralPointX = totalAreaCm2 > 0 ? (fuseAreaCm2 * acFuseX + 2 * panelAreaCm2 * acPanelX) / totalAreaCm2 : 0
+    const _neutralPointX =
+      totalAreaCm2 > 0 ? (fuseAreaCm2 * acFuseX + 2 * panelAreaCm2 * acPanelX) / totalAreaCm2 : 0
 
     const targetCgDist = macLeX + (targetCgPercent / 100) * macLength
 
@@ -63,7 +66,7 @@ export function useCgCalculator(params: Ref<WingParams>, parts: Ref<Part[]>) {
     let totalMoments = chassisWeight * chassisCog
     let totalWeight = chassisWeight
 
-    parts.value.forEach(part => {
+    parts.value.forEach((part) => {
       const pw = n(part.weight)
       const px = n(part.x)
       totalMoments += pw * px
@@ -87,11 +90,11 @@ export function useCgCalculator(params: Ref<WingParams>, parts: Ref<Part[]>) {
       totalWeight: Number(totalWeight.toFixed(2)),
       wingLoading: Number(wingLoading.toFixed(2)),
       stallSpeed: Number(stallSpeed.toFixed(0)),
-      actualCgDist: Number(actualCgDist.toFixed(2))
+      actualCgDist: Number(actualCgDist.toFixed(2)),
     }
   })
 
   return {
-    results
+    results,
   }
 }
