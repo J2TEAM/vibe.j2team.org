@@ -40,7 +40,7 @@ function addPart() {
     width: 20,
     length: 50,
     weight: 10,
-    x: params.value.rootChord / 2,
+    x: (params.value.rootChord ?? 0) / 2,
     y: 0,
     rotation: 0,
     color: '#FFB830',
@@ -55,9 +55,9 @@ function removePart(id: string) {
 async function captureImage() {
   if (!mainArea.value) return
   try {
-    const dataUrl = await toPng(mainArea.value, { 
+    const dataUrl = await toPng(mainArea.value, {
       backgroundColor: '#0F1923',
-      pixelRatio: 2
+      pixelRatio: 2,
     })
     const link = document.createElement('a')
     link.download = `cg-calculator-${Date.now()}.png`
@@ -123,14 +123,19 @@ function resetParams() {
               THÔNG SỐ CÁNH
             </h2>
             <div class="space-y-4">
-              <div v-for="(val, key) in { 
-                span: 'Sải cánh (mm)', 
-                rootChord: 'Dây cung gốc (mm)', 
-                tipChord: 'Dây cung đầu cánh (mm)',
-                sweep: 'Độ quét (mm)',
-                fuseWidth: 'Chiều rộng thân (mm)' 
-              }" :key="key">
-                <label class="block text-text-dim text-xs mb-1 uppercase tracking-wider">{{ val }}</label>
+              <div
+                v-for="(val, key) in {
+                  span: 'Sải cánh (mm)',
+                  rootChord: 'Dây cung gốc (mm)',
+                  tipChord: 'Dây cung đầu cánh (mm)',
+                  sweep: 'Độ quét (mm)',
+                  fuseWidth: 'Chiều rộng thân (mm)',
+                }"
+                :key="key"
+              >
+                <label class="block text-text-dim text-xs mb-1 uppercase tracking-wider">{{
+                  val
+                }}</label>
                 <input
                   v-model.number="params[key as keyof WingParams]"
                   type="number"
@@ -151,7 +156,11 @@ function resetParams() {
                 v-for="opt in cgOptions"
                 :key="opt.value"
                 class="flex items-center gap-3 p-3 border cursor-pointer transition"
-                :class="params.targetCgPercent === opt.value ? 'border-accent-amber bg-accent-amber/5' : 'border-border-default hover:bg-bg-elevated'"
+                :class="
+                  params.targetCgPercent === opt.value
+                    ? 'border-accent-amber bg-accent-amber/5'
+                    : 'border-border-default hover:bg-bg-elevated'
+                "
               >
                 <input
                   type="radio"
@@ -159,14 +168,21 @@ function resetParams() {
                   v-model="params.targetCgPercent"
                   class="sr-only"
                 />
-                <div class="size-4 border border-accent-amber rounded-full flex items-center justify-center">
-                  <div v-if="params.targetCgPercent === opt.value" class="size-2 bg-accent-amber rounded-full"></div>
+                <div
+                  class="size-4 border border-accent-amber rounded-full flex items-center justify-center"
+                >
+                  <div
+                    v-if="params.targetCgPercent === opt.value"
+                    class="size-2 bg-accent-amber rounded-full"
+                  ></div>
                 </div>
                 <span class="text-sm">{{ opt.label }}</span>
               </label>
-              
+
               <div class="pt-2">
-                <label class="block text-text-dim text-xs mb-1 uppercase tracking-wider">Khác (%)</label>
+                <label class="block text-text-dim text-xs mb-1 uppercase tracking-wider"
+                  >Khác (%)</label
+                >
                 <input
                   v-model.number="params.targetCgPercent"
                   type="number"
@@ -207,51 +223,69 @@ function resetParams() {
         <!-- Main Content: Visualization & Results -->
         <main class="lg:col-span-8 space-y-6">
           <!-- Visualization -->
-          <div class="border border-border-default bg-bg-surface p-6 shadow-sm min-h-[500px] flex flex-col items-center justify-center relative overflow-hidden">
-             <WingVisualizer :params="params" :parts="parts" :results="results" />
-             
-             <!-- Floating Badge -->
-             <div class="absolute top-4 right-4 bg-accent-coral text-bg-deep font-display font-bold text-xs tracking-widest px-3 py-1.5 rotate-3">
-               BẢN V3.0
-             </div>
+          <div
+            class="border border-border-default bg-bg-surface p-6 shadow-sm min-h-[500px] flex flex-col items-center justify-center relative overflow-hidden"
+          >
+            <WingVisualizer :params="params" :parts="parts" :results="results" />
+
+            <!-- Floating Badge -->
+            <div
+              class="absolute top-4 right-4 bg-accent-coral text-bg-deep font-display font-bold text-xs tracking-widest px-3 py-1.5 rotate-3"
+            >
+              BẢN V3.0
+            </div>
           </div>
 
           <!-- Outputs -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="border border-border-default bg-bg-surface p-5 text-center">
               <div class="text-text-dim text-xs mb-1">DIỆN TÍCH CÁNH</div>
-              <div class="font-display text-3xl font-bold text-accent-coral">{{ results.wingAreaLabel }} <span class="text-lg font-normal">dm²</span></div>
+              <div class="font-display text-3xl font-bold text-accent-coral">
+                {{ results.wingAreaLabel }} <span class="text-lg font-normal">dm²</span>
+              </div>
             </div>
             <div class="border border-border-default bg-bg-surface p-5 text-center">
               <div class="text-text-dim text-xs mb-1">TẢI TRỌNG CÁNH</div>
-              <div class="font-display text-3xl font-bold text-accent-amber">{{ results.wingLoading }} <span class="text-lg font-normal">g/dm²</span></div>
+              <div class="font-display text-3xl font-bold text-accent-amber">
+                {{ results.wingLoading }} <span class="text-lg font-normal">g/dm²</span>
+              </div>
             </div>
             <div class="border border-border-default bg-bg-surface p-5 text-center">
               <div class="text-text-dim text-xs mb-1">TỐC ĐỘ THẤT TỐC</div>
-              <div class="font-display text-3xl font-bold text-accent-sky">~{{ results.stallSpeed }} <span class="text-lg font-normal">km/h</span></div>
+              <div class="font-display text-3xl font-bold text-accent-sky">
+                ~{{ results.stallSpeed }} <span class="text-lg font-normal">km/h</span>
+              </div>
             </div>
           </div>
 
           <!-- Detailed Results -->
           <div class="border border-border-default bg-bg-surface p-6 shadow-sm">
-             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div>
-                   <div class="text-text-dim text-[10px] uppercase font-bold">Vị trí MAC (Y)</div>
-                   <div class="text-lg font-semibold">{{ results.macDistance }} mm</div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div>
+                <div class="text-text-dim text-[10px] uppercase font-bold">Vị trí MAC (Y)</div>
+                <div class="text-lg font-semibold">{{ results.macDistance }} mm</div>
+              </div>
+              <div>
+                <div class="text-text-dim text-[10px] uppercase font-bold">Chiều dài MAC</div>
+                <div class="text-lg font-semibold">{{ results.macLength }} mm</div>
+              </div>
+              <div>
+                <div class="text-text-dim text-[10px] uppercase font-bold">CG Mục tiêu (X)</div>
+                <div
+                  class="text-lg font-semibold text-accent-amber border-b-2 border-accent-amber/30 inline-block"
+                >
+                  {{ results.targetCgDist }} mm
                 </div>
-                <div>
-                   <div class="text-text-dim text-[10px] uppercase font-bold">Chiều dài MAC</div>
-                   <div class="text-lg font-semibold">{{ results.macLength }} mm</div>
+              </div>
+              <div>
+                <div class="text-text-dim text-[10px] uppercase font-bold">CG Thực tế (X)</div>
+                <div
+                  class="text-lg font-semibold text-accent-coral border-b-2 border-accent-coral/30 inline-block"
+                >
+                  {{ results.actualCgDist }} mm
                 </div>
-                <div>
-                   <div class="text-text-dim text-[10px] uppercase font-bold">CG Mục tiêu (X)</div>
-                   <div class="text-lg font-semibold text-accent-amber border-b-2 border-accent-amber/30 inline-block">{{ results.targetCgDist }} mm</div>
-                </div>
-                <div>
-                   <div class="text-text-dim text-[10px] uppercase font-bold">CG Thực tế (X)</div>
-                   <div class="text-lg font-semibold text-accent-coral border-b-2 border-accent-coral/30 inline-block">{{ results.actualCgDist }} mm</div>
-                </div>
-             </div>
+              </div>
+            </div>
           </div>
 
           <!-- Parts List -->
@@ -270,42 +304,74 @@ function resetParams() {
               </button>
             </div>
 
-            <div v-if="parts.length === 0" class="text-center py-12 text-text-dim border border-dashed border-border-default">
+            <div
+              v-if="parts.length === 0"
+              class="text-center py-12 text-text-dim border border-dashed border-border-default"
+            >
               Chưa có linh kiện nào. Thêm pin, ESC, hoặc motor để tính toán CG thực tế.
             </div>
 
             <div v-else class="space-y-4">
-              <div v-for="part in parts" :key="part.id" class="grid grid-cols-2 md:grid-cols-6 gap-3 items-end bg-bg-elevated/50 p-4 border border-border-default hover:border-accent-amber transition group">
+              <div
+                v-for="part in parts"
+                :key="part.id"
+                class="grid grid-cols-2 md:grid-cols-6 gap-3 items-end bg-bg-elevated/50 p-4 border border-border-default hover:border-accent-amber transition group"
+              >
                 <div class="col-span-2 md:col-span-1">
                   <label class="block text-text-dim text-[10px] mb-1">TÊN</label>
-                  <input v-model="part.name" class="w-full bg-bg-deep border border-border-default px-2 py-1 text-xs" />
+                  <input
+                    v-model="part.name"
+                    class="w-full bg-bg-deep border border-border-default px-2 py-1 text-xs"
+                  />
                 </div>
                 <div>
                   <label class="block text-text-dim text-[10px] mb-1">NẶNG(g)</label>
-                  <input v-model.number="part.weight" type="number" class="w-full bg-bg-deep border border-border-default px-2 py-1 text-xs" />
+                  <input
+                    v-model.number="part.weight"
+                    type="number"
+                    class="w-full bg-bg-deep border border-border-default px-2 py-1 text-xs"
+                  />
                 </div>
                 <div>
                   <label class="block text-text-dim text-[10px] mb-1">VỊ TRÍ X(mm)</label>
-                  <input v-model.number="part.x" type="number" class="w-full bg-bg-deep border border-border-default px-2 py-1 text-xs" />
+                  <input
+                    v-model.number="part.x"
+                    type="number"
+                    class="w-full bg-bg-deep border border-border-default px-2 py-1 text-xs"
+                  />
                 </div>
                 <div class="hidden md:block">
                   <label class="block text-text-dim text-[10px] mb-1">RỘNG(mm)</label>
-                  <input v-model.number="part.width" type="number" class="w-full bg-bg-deep border border-border-default px-2 py-1 text-xs" />
+                  <input
+                    v-model.number="part.width"
+                    type="number"
+                    class="w-full bg-bg-deep border border-border-default px-2 py-1 text-xs"
+                  />
                 </div>
                 <div class="hidden md:block">
                   <label class="block text-text-dim text-[10px] mb-1">DÀI(mm)</label>
-                  <input v-model.number="part.length" type="number" class="w-full bg-bg-deep border border-border-default px-2 py-1 text-xs" />
+                  <input
+                    v-model.number="part.length"
+                    type="number"
+                    class="w-full bg-bg-deep border border-border-default px-2 py-1 text-xs"
+                  />
                 </div>
                 <div class="flex justify-end">
-                  <button @click="removePart(part.id)" class="text-text-dim hover:text-accent-coral p-1">
+                  <button
+                    @click="removePart(part.id)"
+                    class="text-text-dim hover:text-accent-coral p-1"
+                  >
                     <Icon icon="lucide:trash-2" class="size-4" />
                   </button>
                 </div>
               </div>
-              
+
               <div class="pt-4 flex justify-between items-center border-t border-border-default">
-                 <div class="text-sm text-text-secondary">Tổng trọng lượng: <span class="font-bold text-text-primary">{{ results.totalWeight }}g</span></div>
-                 <div class="text-xs text-text-dim">X pos tính từ mũi (LE center)</div>
+                <div class="text-sm text-text-secondary">
+                  Tổng trọng lượng:
+                  <span class="font-bold text-text-primary">{{ results.totalWeight }}g</span>
+                </div>
+                <div class="text-xs text-text-dim">X pos tính từ mũi (LE center)</div>
               </div>
             </div>
           </div>
@@ -323,7 +389,7 @@ input::-webkit-inner-spin-button {
   appearance: none;
   margin: 0;
 }
-input[type=number] {
+input[type='number'] {
   -webkit-appearance: none;
   -moz-appearance: textfield;
   appearance: none;
