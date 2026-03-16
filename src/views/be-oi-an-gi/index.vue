@@ -520,7 +520,7 @@ const database = [
   { name: "Bánh Mì Chảo Hàng Quyên", dish: "Bánh mì chảo", type: "Bánh mì", addr: "268 Trương Công Định", dist: "Vũng Tàu", time: "06:00 - 13:00", price: "35k - 50k" }
 ]
 
-const allDistricts = [...new Set(database.map(item => item.dist))].sort()
+const allDistricts = Array.from(new Set(database.map(item => item.dist))).sort()
 const selectedDistricts = ref<string[]>([...allDistricts])
 const showModal = ref(false)
 const isFlipped = ref(false)
@@ -545,9 +545,9 @@ const mascotIcon = computed(() => {
   const combined = (result.value.dish + " " + result.value.type).toLowerCase()
   const icons: Record<string, string> = {
     'bánh mì': '🥖', 'cơm': '🍚', 'phở': '🍜', 'bún': '🍜', 'hủ tiếu': '🍜', 'mì': '🍜',
-    'lẩu': '🥘', 'nướng': '🥩', 'bò': '🥩', 'steak': '🥩', 'ăn vặt': '🍡', 
+    'lẩu': '🥘', 'nướng': '🥩', 'bò': '🥩', 'steak': '🥩', 'ăn vặt': '🍡',
     'trà sữa': '🧋', 'cafe': '☕', 'tráng miệng': '🍮', 'chè': '🍧', 'kem': '🍦',
-    'ốc': '🐚', 'hàn': '🇰🇷', 'nhật': '🍣', 'sushi': '🍣', 'chay': '🥗', 
+    'ốc': '🐚', 'hàn': '🇰🇷', 'nhật': '🍣', 'sushi': '🍣', 'chay': '🥗',
     'pizza': '🍕', 'gà': '🍗', 'xôi': '🍙', 'bánh canh': '🍜', 'cháo': '🥣',
     'nem': '🌯', 'cuốn': '🌯', 'hàu': '🦪', 'dimsum': '🥟', 'há cảo': '🥟', 'sủi cảo': '🥟'
   }
@@ -583,8 +583,9 @@ function updateData() {
     alert("Không tìm thấy quán nào ở khu vực bạn chọn.")
     return
   }
-  
-  const item = filteredData[Math.floor(Math.random() * filteredData.length)]
+
+  const item = filteredData[Math.floor(Math.random() * filteredData.length)]!
+
   result.value = {
     dish: item.dish,
     name: item.name,
@@ -593,7 +594,7 @@ function updateData() {
     time: item.time,
     price: item.price && item.price.trim() !== "" ? item.price : "Bình dân",
     type: item.type,
-    mapLink: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name + ' ' + item.addr + ' ' + item.dist)}`
+    mapLink: `http://googleusercontent.com/maps.google.com/${encodeURIComponent(item.name + ' ' + item.addr + ' ' + item.dist)}`
   }
   isFlipped.value = true
 }
@@ -628,10 +629,10 @@ function pickFood() {
       <div class="modal-content">
         <div class="modal-header">Chọn Khu Vực</div>
         <div class="filter-list">
-          <label 
-            v-for="dist in allDistricts" 
-            :key="dist" 
-            class="filter-item" 
+          <label
+            v-for="dist in allDistricts"
+            :key="dist"
+            class="filter-item"
             :class="{ active: selectedDistricts.includes(dist) }"
           >
             <input type="checkbox" :value="dist" v-model="selectedDistricts">
@@ -639,7 +640,7 @@ function pickFood() {
           </label>
         </div>
         <div class="modal-footer">
-          <button class="btn-modal btn-cancel" @click="toggleAll">Bỏ Chọn</button>
+          <button class="btn-modal btn-cancel" @click="toggleAll">Chọn Hết</button>
           <button class="btn-modal btn-apply" @click="showModal = false">Xong</button>
         </div>
       </div>
@@ -650,7 +651,7 @@ function pickFood() {
         <div class="card-face card-back">
           <div class="card-hint">www.mtdes23.id.vn</div>
         </div>
-        
+
         <div class="card-face card-front">
           <div class="card-content-scroll">
             <div class="mascot-area">{{ mascotIcon }}</div>
@@ -700,7 +701,7 @@ function pickFood() {
   background-color: #fff5f8;
   background-image: repeating-linear-gradient(45deg, #fff0f5 25%, transparent 25%, transparent 75%, #fff0f5 75%, #fff0f5), repeating-linear-gradient(45deg, #fff0f5 25%, #fff5f8 25%, #fff5f8 75%, #fff0f5 75%, #fff0f5);
   background-size: 20px 20px;
-  
+
   display: flex;
   flex-direction: column;
   align-items: center;
