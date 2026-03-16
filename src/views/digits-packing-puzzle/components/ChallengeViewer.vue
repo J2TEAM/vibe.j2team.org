@@ -73,7 +73,7 @@ watch(currentPage, () => {
       >
         <div class="text-center">
           <div
-            class="animate-spin w-8 h-8 border-2 border-accent-coral border-t-transparent rounded-full mx-auto mb-2"
+            class="animate-spin w-8 h-8 border-2 border-accent-coral border-t-transparent mx-auto mb-2"
           ></div>
           <div class="text-sm">Đang tải PDF...</div>
         </div>
@@ -100,7 +100,7 @@ watch(currentPage, () => {
           <div class="text-sm mb-4">Trình duyệt có thể không hỗ trợ hiển thị PDF</div>
           <button
             @click="openPdfInNewTab"
-            class="px-4 py-2 bg-accent-coral text-white rounded hover:brightness-110 transition-all"
+            class="px-4 py-2 bg-accent-coral text-white hover:brightness-110 transition-all"
           >
             Mở PDF trong tab mới
           </button>

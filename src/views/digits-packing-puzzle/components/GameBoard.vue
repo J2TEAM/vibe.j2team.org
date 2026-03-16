@@ -356,7 +356,7 @@ const handlePointerDown = (piece: Piece, position: BoardPosition, event: Pointer
       v-if="isLoading"
       class="w-full max-w-[650px] aspect-[650/540] bg-bg-deep border-2 border-border-default shadow-inner flex items-center justify-center p-6"
     >
-      <div class="w-full h-full bg-white/5 rounded-lg animate-pulse"></div>
+      <div class="w-full h-full bg-white/5 animate-pulse"></div>
     </div>
 
     <div
