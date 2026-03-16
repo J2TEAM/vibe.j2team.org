@@ -424,8 +424,10 @@ async function importData(event: Event) {
                 type="button"
                 class="flex w-full items-center gap-2 border border-transparent px-2 py-2 text-left text-sm text-text-primary transition hover:border-accent-coral hover:bg-bg-elevated"
                 @click="
-                  form.statusId = status.id
-                  isStatusDropdownOpen = false
+                  () => {
+                    form.statusId = status.id
+                    isStatusDropdownOpen = false
+                  }
                 "
               >
                 <span class="size-2.5" :style="{ backgroundColor: status.color }" />
