@@ -25,24 +25,32 @@ export function drawStars(
   _h: number,
   elapsed: number,
   stars: Star[],
+  dpr: number = 1,
 ) {
   stars.forEach((star) => {
     const twinkle = Math.sin(elapsed * star.twinkleSpeed + star.twinkleOffset) * 0.3 + 0.7
     const alpha = star.brightness * twinkle
 
-    const gradient = ctx.createRadialGradient(star.x, star.y, 0, star.x, star.y, star.size * 3)
+    const gradient = ctx.createRadialGradient(
+      star.x,
+      star.y,
+      0,
+      star.x,
+      star.y,
+      star.size * 3 * dpr,
+    )
     gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`)
     gradient.addColorStop(0.5, `rgba(255, 255, 255, ${alpha * 0.3})`)
     gradient.addColorStop(1, 'rgba(255, 255, 255, 0)')
 
     ctx.fillStyle = gradient
     ctx.beginPath()
-    ctx.arc(star.x, star.y, star.size * 3, 0, Math.PI * 2)
+    ctx.arc(star.x, star.y, star.size * 3 * dpr, 0, Math.PI * 2)
     ctx.fill()
 
     ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`
     ctx.beginPath()
-    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
+    ctx.arc(star.x, star.y, star.size * dpr, 0, Math.PI * 2)
     ctx.fill()
   })
 }
@@ -102,6 +110,7 @@ export function drawProducts(
   ctx: CanvasRenderingContext2D,
   productTiles: ProductItem[],
   isMobile: boolean,
+  dpr: number = 1,
 ) {
   productTiles.forEach((tile) => {
     const cardWidth = isMobile ? 140 : 180
@@ -111,7 +120,7 @@ export function drawProducts(
 
     ctx.fillStyle = COLORS.coral
     ctx.beginPath()
-    ctx.arc(tile.x, tile.y, 4, 0, Math.PI * 2)
+    ctx.arc(tile.x, tile.y, 4 * dpr, 0, Math.PI * 2)
     ctx.fill()
 
     ctx.fillStyle = 'rgba(22, 34, 50, 0.9)'
@@ -124,13 +133,13 @@ export function drawProducts(
     ctx.fill()
 
     ctx.strokeStyle = COLORS.border
-    ctx.lineWidth = 1
+    ctx.lineWidth = dpr
     ctx.stroke()
 
     ctx.fillStyle = COLORS.coral
-    ctx.fillRect(cardX, tile.y, cardWidth, 3)
+    ctx.fillRect(cardX, tile.y, cardWidth, 3 * dpr)
 
-    ctx.font = `600 ${isMobile ? 12 : 14}px "Anybody", sans-serif`
+    ctx.font = `600 ${(isMobile ? 12 : 14) * dpr}px "Anybody", sans-serif`
     ctx.textAlign = 'left'
     ctx.textBaseline = 'middle'
     ctx.fillStyle = COLORS.textPrimary
@@ -141,11 +150,11 @@ export function drawProducts(
     }
     if (displayName !== tile.name) displayName += '...'
 
-    ctx.fillText(displayName, cardX + padding, tile.y + 20)
+    ctx.fillText(displayName, cardX + padding, tile.y + 20 * dpr)
 
-    ctx.font = `${isMobile ? 8 : 10}px "Be Vietnam Pro", sans-serif`
+    ctx.font = `${(isMobile ? 8 : 10) * dpr}px "Be Vietnam Pro", sans-serif`
     ctx.fillStyle = COLORS.coral
-    ctx.fillText(tile.category.toUpperCase(), cardX + padding, tile.y + 38)
+    ctx.fillText(tile.category.toUpperCase(), cardX + padding, tile.y + 38 * dpr)
 
     ctx.fillStyle = COLORS.textDim
     let displayAuthor = 'by ' + (tile.author || '')
@@ -157,7 +166,7 @@ export function drawProducts(
     }
     if (displayAuthor !== 'by ' + (tile.author || '')) displayAuthor += '...'
 
-    ctx.fillText(displayAuthor, cardX + padding, tile.y + cardHeight - 12)
+    ctx.fillText(displayAuthor, cardX + padding, tile.y + cardHeight - 12 * dpr)
   })
 }
 
@@ -194,7 +203,11 @@ export function createProductTiles(
   return tiles
 }
 
-export function updateProductPositions(productTiles: ProductItem[], isMobileFlag: boolean) {
+export function updateProductPositions(
+  productTiles: ProductItem[],
+  isMobileFlag: boolean,
+  _dpr: number = 1,
+) {
   const w = typeof window !== 'undefined' ? window.innerWidth || 800 : 800
   const h = typeof window !== 'undefined' ? window.innerHeight || 600 : 600
   const cardWidth = isMobileFlag ? 140 : 180
@@ -254,11 +267,12 @@ export function drawCenterText(
   w: number,
   h: number,
   isMobile: boolean,
+  dpr: number = 1,
 ) {
   const textY = h / 2
   const textX = w / 2
-  const fontSize = isMobile ? 20 : 30
-  const welcomeFontSize = isMobile ? 10 : 12
+  const fontSize = (isMobile ? 20 : 30) * dpr
+  const welcomeFontSize = (isMobile ? 10 : 12) * dpr
 
   ctx.save()
   ctx.textAlign = 'center'
