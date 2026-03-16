@@ -4,49 +4,59 @@ import type { WingParams, Part, CalculationResult } from '../types'
 export function useCgCalculator(params: Ref<WingParams>, parts: Ref<Part[]>) {
   const results = computed((): CalculationResult => {
     const {
-      span,
-      rootChord,
-      tipChord,
-      sweep,
-      fuseWidth,
-      chassisCog,
-      chassisWeight,
-      targetCgPercent
+      span: rawSpan,
+      rootChord: rawRootChord,
+      tipChord: rawTipChord,
+      sweep: rawSweep,
+      fuseWidth: rawFuseWidth,
+      chassisCog: rawChassisCog,
+      chassisWeight: rawChassisWeight,
+      targetCgPercent: rawTargetCgPercent
     } = params.value
 
+    // Safe number helper - ensure it ALWAYS returns a finite number
+    const n = (val: any, def = 0): number => {
+      if (val === null || val === undefined || val === '') return def
+      const num = typeof val === 'number' ? val : Number(val)
+      return isFinite(num) ? num : def
+    }
+
+    const span = n(rawSpan)
+    const rootChord = n(rawRootChord)
+    const tipChord = n(rawTipChord)
+    const sweep = n(rawSweep)
+    const fuseWidth = n(rawFuseWidth)
+    const chassisCog = n(rawChassisCog)
+    const chassisWeight = n(rawChassisWeight)
+    const targetCgPercent = n(rawTargetCgPercent)
+
     // Semi-span of the swept panel
-    const semiSpanPanel = (span - fuseWidth) / 2
+    const semiSpanPanel = Math.max(0.1, (span - fuseWidth) / 2)
     
     // Panel Area (trapezoid)
     const panelAreaCm2 = ((rootChord + tipChord) / 2) * semiSpanPanel / 100
     const fuseAreaCm2 = (fuseWidth * rootChord) / 100
     const totalAreaCm2 = (2 * panelAreaCm2) + fuseAreaCm2
-    const totalAreaDm2 = totalAreaCm2 / 100
+    const totalAreaDm2 = Math.max(0.001, totalAreaCm2 / 100)
 
     // MAC Length of the panel
-    const macLength = (2 / 3) * (rootChord + tipChord - (rootChord * tipChord) / (rootChord + tipChord))
+    const chordSum = rootChord + tipChord
+    const macLength = chordSum > 0 ? (2 / 3) * (rootChord + tipChord - (rootChord * tipChord) / chordSum) : 0
 
     // MAC Distance (Y position from the edge of the fuselage)
-    const macYFromFuse = (semiSpanPanel / 3) * (rootChord + 2 * tipChord) / (rootChord + tipChord)
-    const macDistance = macYFromFuse // Relative to fuse edge? Or total? 
-    // Example says 182.96 which is exactly macYFromFuse (380/3 * 910/630)
+    const macYFromFuse = chordSum > 0 ? (semiSpanPanel / 3) * (rootChord + 2 * tipChord) / chordSum : 0
+    const macDistance = macYFromFuse
 
     // MAC Leading Edge X position relative to Root Leading Edge
-    const macLeX = sweep * (macYFromFuse / semiSpanPanel)
+    const macLeX = semiSpanPanel > 0 ? sweep * (macYFromFuse / semiSpanPanel) : 0
 
     // Aerodynamic Center (AC) of total wing
-    // AC of fuse rectangle is at 25% chord
     const acFuseX = rootChord * 0.25
-    // AC of swept panel is at 25% of its MAC
     const acPanelX = macLeX + macLength * 0.25
     
     // Weighted average AC (Neutral Point)
-    const neutralPointX = (fuseAreaCm2 * acFuseX + 2 * panelAreaCm2 * acPanelX) / totalAreaCm2
+    const neutralPointX = totalAreaCm2 > 0 ? (fuseAreaCm2 * acFuseX + 2 * panelAreaCm2 * acPanelX) / totalAreaCm2 : 0
 
-    // Target CG based on % of MAC distance from center LE
-    // usually Target CG = macLeX + (targetCgPercent / 100) * macLength
-    // But the tool seems to relate it to the MAC. 
-    // Let's use the standard: CG = macLeX + (percent) * macLength
     const targetCgDist = macLeX + (targetCgPercent / 100) * macLength
 
     // Weight and Balance for Parts
@@ -54,8 +64,10 @@ export function useCgCalculator(params: Ref<WingParams>, parts: Ref<Part[]>) {
     let totalWeight = chassisWeight
 
     parts.value.forEach(part => {
-      totalMoments += part.weight * part.x
-      totalWeight += part.weight
+      const pw = n(part.weight)
+      const px = n(part.x)
+      totalMoments += pw * px
+      totalWeight += pw
     })
 
     const actualCgDist = totalWeight > 0 ? totalMoments / totalWeight : 0
@@ -64,16 +76,14 @@ export function useCgCalculator(params: Ref<WingParams>, parts: Ref<Part[]>) {
     const wingLoading = totalWeight / totalAreaDm2
 
     // Stall Speed (Rough estimation)
-    // Formula from similar tools: V_stall = sqrt(WingLoading) * 2.7 (approx for km/h)
-    // Or simplified: let's try to match the "7" from 6.77
-    const stallSpeed = Math.sqrt(wingLoading) * 2.7 // 2.7 is a magic constant here
+    const stallSpeed = wingLoading > 0 ? Math.sqrt(wingLoading) * 2.7 : 0
 
     return {
       wingAreaLabel: totalAreaDm2.toFixed(2),
       macDistance: Number(macDistance.toFixed(2)),
       macLength: Number(macLength.toFixed(2)),
       targetCgDist: Number(targetCgDist.toFixed(2)),
-      chassisCentroid: 0, // Not sure how they calc this, maybe geo center
+      chassisCentroid: 0,
       totalWeight: Number(totalWeight.toFixed(2)),
       wingLoading: Number(wingLoading.toFixed(2)),
       stallSpeed: Number(stallSpeed.toFixed(0)),
