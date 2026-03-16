@@ -140,7 +140,7 @@ describe('getBestMove', () => {
     // X is about to win at index 2 — AI must block
     const b = board(
       `X X .
-       O O .
+       O . .
        . . .`,
       3,
     )
