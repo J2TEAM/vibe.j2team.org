@@ -188,6 +188,12 @@ function loadListCardPosition() {
     // ignore
   }
 }
+
+function toggleWorkspaceOptions() {
+  showChillMusicPopup.value = !showChillMusicPopup.value
+  showVisualsPopup.value = false
+  showSoundsPopup.value = false
+}
 </script>
 
 <template>
@@ -227,7 +233,7 @@ function loadListCardPosition() {
           {{ t.backToHome }}
         </RouterLink>
         <h1
-          class="font-display text-lg font-bold tracking-tight text-accent-coral shrink-0 order-first w-full sm:order-none sm:w-auto sm:flex-1 sm:text-center"
+          class="font-display text-lg font-bold tracking-tight text-accent-coral shrink-0 order-first w-full sm:order-0 sm:w-auto sm:flex-1 sm:text-center"
         >
           {{ t.title }}
         </h1>
@@ -311,11 +317,7 @@ function loadListCardPosition() {
       <main class="flex-1" aria-hidden />
 
       <!-- Card Danh sách: mặc định giữa màn hình, kéo để di chuyển -->
-      <div
-        ref="listCardRef"
-        class="fixed z-30 w-full max-w-[340px] select-none"
-        :style="listCardStyle"
-      >
+      <div ref="listCardRef" class="fixed z-30 w-full max-w-85 select-none" :style="listCardStyle">
         <TrackListCard>
           <template #header>
             <div
@@ -347,11 +349,7 @@ function loadListCardPosition() {
                 ? 'border-accent-coral bg-bg-elevated text-accent-coral'
                 : 'border-border-default bg-bg-elevated text-text-secondary hover:border-accent-coral hover:text-accent-coral'
             "
-            @click="
-              showChillMusicPopup = !showChillMusicPopup
-              showVisualsPopup = false
-              showSoundsPopup = false
-            "
+            @click="toggleWorkspaceOptions"
           >
             <Icon icon="lucide:music" class="size-5" />
             {{ t.chillMusic }}
