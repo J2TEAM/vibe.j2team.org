@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
-import { useLocalStorage } from '@vueuse/core'
+import { useEventListener, useLocalStorage } from '@vueuse/core'
 import { RouterLink } from 'vue-router'
 
 type GameState = 'idle' | 'playing' | 'finished'
@@ -18,13 +18,21 @@ const MIN_TARGET_SIZE = 30
 const MAX_TARGET_SIZE = 90
 const MIN_DURATION = 10
 const MAX_DURATION = 120
+const MIN_SENSITIVITY = 0.5
+const MAX_SENSITIVITY = 2.5
 
 const gameArea = ref<HTMLElement | null>(null)
+const cursorX = ref(0)
+const cursorY = ref(0)
+const lastPointerX = ref<number | null>(null)
+const lastPointerY = ref<number | null>(null)
+const isPointerLocked = ref(false)
 const state = ref<GameState>('idle')
 const score = ref(0)
 const totalClicks = ref(0)
 const targetSize = useLocalStorage<number>('aim-trainer-target-size', 50)
 const durationSec = useLocalStorage<number>('aim-trainer-duration-sec', 30)
+const sensitivity = useLocalStorage<number>('aim-trainer-sensitivity', 1)
 const timeLeft = ref(durationSec.value)
 const reactionSum = ref(0)
 
@@ -56,6 +64,9 @@ const targetSizePx = computed(() =>
 )
 const gameDurationMs = computed(
   () => Math.min(MAX_DURATION, Math.max(MIN_DURATION, durationSec.value)) * 1000,
+)
+const sensitivityValue = computed(() =>
+  Math.min(MAX_SENSITIVITY, Math.max(MIN_SENSITIVITY, sensitivity.value)),
 )
 
 let rafId = 0
@@ -92,8 +103,14 @@ function spawnTarget() {
   const maxY = Math.max(0, el.clientHeight - targetSizePx.value)
 
   targetVisible.value = false
-  targetX.value = Math.random() * maxX
-  targetY.value = Math.random() * maxY
+  const centerX = maxX / 2
+  const centerY = maxY / 2
+  const rangeX = centerX * sensitivityValue.value
+  const rangeY = centerY * sensitivityValue.value
+  const nextX = centerX + (Math.random() * 2 - 1) * rangeX
+  const nextY = centerY + (Math.random() * 2 - 1) * rangeY
+  targetX.value = Math.min(maxX, Math.max(0, nextX))
+  targetY.value = Math.min(maxY, Math.max(0, nextY))
   targetKey.value += 1
   spawnedAt.value = performance.now()
   hitLocked.value = false
@@ -108,6 +125,7 @@ function finishGame() {
   targetVisible.value = false
   cancelAnimationFrame(rafId)
   timeLeft.value = 0
+  if (document.pointerLockElement) document.exitPointerLock()
   saveRun()
   if (score.value > bestScore.value) {
     bestScore.value = score.value
@@ -136,27 +154,73 @@ function startGame() {
   reactionSum.value = 0
   timeLeft.value = durationSec.value
   hitLocked.value = false
+  lastPointerX.value = null
+  lastPointerY.value = null
 
   nextTick(() => {
+    const el = gameArea.value
+    if (el) {
+      cursorX.value = el.clientWidth / 2
+      cursorY.value = el.clientHeight / 2
+      try {
+        el.requestPointerLock()
+      } catch {}
+    }
     spawnTarget()
     endAt = performance.now() + gameDurationMs.value
     rafId = requestAnimationFrame(tick)
   })
 }
 
-function handleMissClick() {
+function handlePointerMove(e: PointerEvent) {
   if (state.value !== 'playing') return
-  totalClicks.value += 1
+  if (e.pointerType !== 'mouse') return
+  const el = gameArea.value
+  if (!el) return
+
+  const rect = el.getBoundingClientRect()
+  let dx = 0
+  let dy = 0
+
+  if (isPointerLocked.value) {
+    dx = e.movementX * sensitivityValue.value
+    dy = e.movementY * sensitivityValue.value
+  } else {
+    if (lastPointerX.value === null || lastPointerY.value === null) {
+      lastPointerX.value = e.clientX
+      lastPointerY.value = e.clientY
+      return
+    }
+    dx = (e.clientX - lastPointerX.value) * sensitivityValue.value
+    dy = (e.clientY - lastPointerY.value) * sensitivityValue.value
+    lastPointerX.value = e.clientX
+    lastPointerY.value = e.clientY
+  }
+
+  const nextX = cursorX.value + dx
+  const nextY = cursorY.value + dy
+  cursorX.value = Math.min(rect.width, Math.max(0, nextX))
+  cursorY.value = Math.min(rect.height, Math.max(0, nextY))
 }
 
-function handleTargetHit() {
+function handleShot() {
   if (state.value !== 'playing' || hitLocked.value || !targetVisible.value) return
 
   hitLocked.value = true
   totalClicks.value += 1
-  score.value += 1
-  reactionSum.value += performance.now() - spawnedAt.value
-  targetVisible.value = false
+
+  const targetCenterX = targetX.value + targetSizePx.value / 2
+  const targetCenterY = targetY.value + targetSizePx.value / 2
+  const dx = cursorX.value - targetCenterX
+  const dy = cursorY.value - targetCenterY
+  const distance = Math.hypot(dx, dy)
+  const hitRadius = targetSizePx.value / 2
+
+  if (distance <= hitRadius) {
+    score.value += 1
+    reactionSum.value += performance.now() - spawnedAt.value
+    targetVisible.value = false
+  }
 
   setTimeout(() => {
     if (state.value === 'playing') {
@@ -165,8 +229,19 @@ function handleTargetHit() {
   }, 60)
 }
 
+useEventListener(document, 'pointermove', handlePointerMove)
+useEventListener(document, 'pointerrawupdate', handlePointerMove, { passive: true })
+useEventListener(document, 'pointerlockchange', () => {
+  isPointerLocked.value = document.pointerLockElement === gameArea.value
+  if (!isPointerLocked.value) {
+    lastPointerX.value = null
+    lastPointerY.value = null
+  }
+})
+
 onBeforeUnmount(() => {
   cancelAnimationFrame(rafId)
+  if (document.pointerLockElement) document.exitPointerLock()
 })
 </script>
 
@@ -213,21 +288,34 @@ onBeforeUnmount(() => {
       <div
         ref="gameArea"
         class="relative min-h-[300px] flex-1 overflow-hidden border border-border-default bg-bg-surface animate-fade-up animate-delay-2"
-        @pointerdown="handleMissClick"
+        :class="state === 'playing' ? 'cursor-none' : ''"
+        @pointerdown="handleShot"
+        @pointermove="handlePointerMove"
       >
-        <button
+        <div
           v-if="state === 'playing' && targetVisible"
           :key="targetKey"
-          class="target-pop absolute touch-none rounded-full border-2 border-bg-deep bg-accent-coral active:scale-95"
+          class="target-pop absolute rounded-full border-2 border-bg-deep bg-accent-coral"
           :style="{
             left: `${targetX}px`,
             top: `${targetY}px`,
             width: `${targetSizePx}px`,
             height: `${targetSizePx}px`,
           }"
-          aria-label="Target"
-          @pointerdown.stop.prevent="handleTargetHit"
         />
+
+        <div
+          v-if="state === 'playing'"
+          class="pointer-events-none absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-amber bg-accent-amber/20"
+          :style="{ left: `${cursorX}px`, top: `${cursorY}px` }"
+        >
+          <span
+            class="absolute left-1/2 top-1/2 h-5 w-0.5 -translate-x-1/2 -translate-y-1/2 bg-accent-amber/60"
+          />
+          <span
+            class="absolute left-1/2 top-1/2 h-0.5 w-5 -translate-x-1/2 -translate-y-1/2 bg-accent-amber/60"
+          />
+        </div>
 
         <div
           v-if="state !== 'playing'"
@@ -262,6 +350,18 @@ onBeforeUnmount(() => {
               :max="MAX_DURATION"
               type="range"
               class="w-full accent-accent-amber"
+            />
+
+            <label class="block text-xs text-text-secondary">
+              Sensitivity: <span class="text-text-primary">{{ sensitivityValue.toFixed(2) }}x</span>
+            </label>
+            <input
+              v-model.number="sensitivity"
+              :min="MIN_SENSITIVITY"
+              :max="MAX_SENSITIVITY"
+              step="0.05"
+              type="range"
+              class="w-full accent-accent-sky"
             />
           </div>
 
