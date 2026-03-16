@@ -377,7 +377,6 @@ const BOKOBLIN_SLEEPING: readonly string[] = [
   '................',
 ]
 
-
 // ────────────────────────────────────────────────────────────────────
 // Canvas helpers
 // ────────────────────────────────────────────────────────────────────
@@ -389,7 +388,11 @@ function createCanvas(): HTMLCanvasElement {
   return canvas
 }
 
-function drawPixelArt(ctx: CanvasRenderingContext2D, data: readonly string[], colorMap: Record<string, string> = PIXEL_MAP): void {
+function drawPixelArt(
+  ctx: CanvasRenderingContext2D,
+  data: readonly string[],
+  colorMap: Record<string, string> = PIXEL_MAP,
+): void {
   for (let y = 0; y < data.length; y++) {
     const row = data[y]!
     for (let x = 0; x < row.length; x++) {
@@ -490,7 +493,12 @@ function createPlayerSprites(): PlayerSprites {
 }
 
 /** Draw sword arc visual — call after drawing player sprite. x,y = sprite draw origin (pos - SPRITE_OFFSET). */
-export function drawSwordArc(ctx: CanvasRenderingContext2D, x: number, y: number, direction: Direction): void {
+export function drawSwordArc(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  direction: Direction,
+): void {
   ctx.save()
   ctx.strokeStyle = '#E0E8FF'
   ctx.lineWidth = 3
@@ -506,19 +514,18 @@ export function drawSwordArc(ctx: CanvasRenderingContext2D, x: number, y: number
       ctx.arc(cx, cy, r, -Math.PI / 4, Math.PI / 4)
       break
     case 'left':
-      ctx.arc(cx, cy, r, Math.PI * 3 / 4, Math.PI * 5 / 4)
+      ctx.arc(cx, cy, r, (Math.PI * 3) / 4, (Math.PI * 5) / 4)
       break
     case 'up':
-      ctx.arc(cx, cy, r, -Math.PI * 3 / 4, -Math.PI / 4)
+      ctx.arc(cx, cy, r, (-Math.PI * 3) / 4, -Math.PI / 4)
       break
     case 'down':
-      ctx.arc(cx, cy, r, Math.PI / 4, Math.PI * 3 / 4)
+      ctx.arc(cx, cy, r, Math.PI / 4, (Math.PI * 3) / 4)
       break
   }
   ctx.stroke()
   ctx.restore()
 }
-
 
 export function getPlayerSprites(): PlayerSprites {
   if (!cachedSprites) {
@@ -747,7 +754,12 @@ export function drawShieldIndicator(
 /**
  * Draw enemy death poof animation (expanding particles)
  */
-export function drawDeathPoof(ctx: CanvasRenderingContext2D, cx: number, cy: number, progress: number): void {
+export function drawDeathPoof(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  progress: number,
+): void {
   // Expanding circle of particles
   const numParticles = 8
   const maxRadius = 24
@@ -760,11 +772,11 @@ export function drawDeathPoof(ctx: CanvasRenderingContext2D, cx: number, cy: num
     const angle = (i / numParticles) * Math.PI * 2
     const px = cx + Math.cos(angle) * radius
     const py = cy + Math.sin(angle) * radius
-    const size = 4 * (1 - progress)  // shrink as they expand
+    const size = 4 * (1 - progress) // shrink as they expand
 
     // Alternating orange/yellow particles
     ctx.fillStyle = i % 2 === 0 ? '#ffaa00' : '#ff6600'
-    ctx.fillRect(px - size/2, py - size/2, size, size)
+    ctx.fillRect(px - size / 2, py - size / 2, size, size)
   }
 
   // Central flash
@@ -785,35 +797,35 @@ export function drawDeathPoof(ctx: CanvasRenderingContext2D, cx: number, cy: num
 
 // --- Lynel color palette ---
 const LYNEL_PIXEL_COLORS: Record<string, string> = {
-  A: '#8B2500',  // dark red body
-  a: '#C0392B',  // lighter red accent
-  M: '#D2691E',  // mane (orange-brown)
-  H: '#A0522D',  // horse body (sienna)
-  W: '#FFFFFF',  // eye white
-  p: '#1A1A1A',  // pupil
-  S: '#C0C0C0',  // sword silver
-  G: '#D4A017',  // gold armor trim
+  A: '#8B2500', // dark red body
+  a: '#C0392B', // lighter red accent
+  M: '#D2691E', // mane (orange-brown)
+  H: '#A0522D', // horse body (sienna)
+  W: '#FFFFFF', // eye white
+  p: '#1A1A1A', // pupil
+  S: '#C0C0C0', // sword silver
+  G: '#D4A017', // gold armor trim
 }
 
 // Lynel pixel art — 16×16 logical px rendered at 3× scale = 48px
 
 const LYNEL_DOWN_IDLE: readonly string[] = [
   '................', // 0
-  '....SSSSS.......',  // 1 horns/sword
-  '....AAAAA.......',  // 2 head top
-  '...AAAAAaA......',  // 3 head wide
-  '...AWpWpAA......',  // 4 eyes
-  '...AAAAAaA......',  // 5 face
-  '..GAAAAAaAG.....',  // 6 shoulders + gold trim
-  '..AAAAAAAAa.....',  // 7 upper body
-  '..HHHHHHHH......',  // 8 horse body top
-  '.HHHHHHHHHa.....',  // 9 horse body
-  '.HHHHHHHHHa.....',  // 10 horse belly
-  '.HH..HHHH.......',  // 11 legs
-  '.HH..HHHH.......',  // 12 legs
-  '..H...HH........',  // 13 hooves
-  '................',  // 14
-  '................',  // 15
+  '....SSSSS.......', // 1 horns/sword
+  '....AAAAA.......', // 2 head top
+  '...AAAAAaA......', // 3 head wide
+  '...AWpWpAA......', // 4 eyes
+  '...AAAAAaA......', // 5 face
+  '..GAAAAAaAG.....', // 6 shoulders + gold trim
+  '..AAAAAAAAa.....', // 7 upper body
+  '..HHHHHHHH......', // 8 horse body top
+  '.HHHHHHHHHa.....', // 9 horse body
+  '.HHHHHHHHHa.....', // 10 horse belly
+  '.HH..HHHH.......', // 11 legs
+  '.HH..HHHH.......', // 12 legs
+  '..H...HH........', // 13 hooves
+  '................', // 14
+  '................', // 15
 ]
 
 const LYNEL_DOWN_WALK: readonly string[] = [
@@ -828,8 +840,8 @@ const LYNEL_DOWN_WALK: readonly string[] = [
   '..HHHHHHHH......',
   '.HHHHHHHHHa.....',
   '.HHHHHHHHHa.....',
-  '..HH.HHHH.......',  // legs shifted
-  '.HH...HHH.......',  // legs shifted
+  '..HH.HHHH.......', // legs shifted
+  '.HH...HHH.......', // legs shifted
   '..H...HH........',
   '................',
   '................',
@@ -837,14 +849,14 @@ const LYNEL_DOWN_WALK: readonly string[] = [
 
 const LYNEL_UP_IDLE: readonly string[] = [
   '................',
-  '....MMMMM.......',  // mane top
-  '....AAAAA.......',  // head back
-  '...AAAAAAAAA....',  // wider
-  '...AAAAAAAA.....',  // upper
-  '....MMMMM.......',  // mane at neck
-  '..GAAAAAaAG.....',  // shoulders
-  '..AAAAAAAAa.....',  // upper body
-  '..HHHHHHHH......',  // horse body
+  '....MMMMM.......', // mane top
+  '....AAAAA.......', // head back
+  '...AAAAAAAAA....', // wider
+  '...AAAAAAAA.....', // upper
+  '....MMMMM.......', // mane at neck
+  '..GAAAAAaAG.....', // shoulders
+  '..AAAAAAAAa.....', // upper body
+  '..HHHHHHHH......', // horse body
   '.HHHHHHHHHa.....',
   '.HHHHHHHHHa.....',
   '.HH..HHHH.......',
@@ -875,18 +887,18 @@ const LYNEL_UP_WALK: readonly string[] = [
 
 const LYNEL_LEFT_IDLE: readonly string[] = [
   '................',
-  '...MMMMM........',  // mane
-  '...AAAAA........',  // head profile
-  '...AAWPA........',  // eye (W=white, P=pupil)
-  '...AAAAA........',  // face
-  '..SAAAAAa.......',  // sword in front + body
-  '..AAAAAAAAa.....',  // body
-  '..HHHHHHH.......',  // horse body
-  '.HHHHHHHHa......',  // horse body wide
-  '.HHHHHHHHa......',  // belly
-  '.HH..HHH........',  // legs
-  '.HH..HHH........',  // legs
-  '..H...H.........',  // hooves
+  '...MMMMM........', // mane
+  '...AAAAA........', // head profile
+  '...AAWPA........', // eye (W=white, P=pupil)
+  '...AAAAA........', // face
+  '..SAAAAAa.......', // sword in front + body
+  '..AAAAAAAAa.....', // body
+  '..HHHHHHH.......', // horse body
+  '.HHHHHHHHa......', // horse body wide
+  '.HHHHHHHHa......', // belly
+  '.HH..HHH........', // legs
+  '.HH..HHH........', // legs
+  '..H...H.........', // hooves
   '................',
   '................',
   '................',
@@ -903,8 +915,8 @@ const LYNEL_LEFT_WALK: readonly string[] = [
   '..HHHHHHH.......',
   '.HHHHHHHHa......',
   '.HHHHHHHHa......',
-  '..HH.HHH........',  // leg shifted
-  '.HH...HH........',  // leg shifted
+  '..HH.HHH........', // leg shifted
+  '.HH...HH........', // leg shifted
   '..H...H.........',
   '................',
   '................',
@@ -914,7 +926,7 @@ const LYNEL_LEFT_WALK: readonly string[] = [
 // --- Bokoblin Archer color palette (extends Bokoblin with bow color) ---
 const ARCHER_COLORS: Record<string, string> = {
   ...BOKOBLIN_COLORS,
-  A: '#8B6914',  // bow (lighter brown/gold)
+  A: '#8B6914', // bow (lighter brown/gold)
 }
 
 const ARCHER_DOWN_IDLE: readonly string[] = [
@@ -926,7 +938,7 @@ const ARCHER_DOWN_IDLE: readonly string[] = [
   '...RRRRRRRR.....',
   '....RRrrRR......',
   '....RRRRRR......',
-  '..AARRRRRRAA....',  // bow held horizontally (A=bow)
+  '..AARRRRRRAA....', // bow held horizontally (A=bow)
   '...RRrrrRRR.....',
   '...RRBBBRRR.....',
   '....RBBBR.......',
@@ -964,7 +976,7 @@ const ARCHER_UP_IDLE: readonly string[] = [
   '...RRRRRRRR.....',
   '....RRRRRR......',
   '....RRRRRR......',
-  '...RRrrrRRA.....',  // bow on right side
+  '...RRrrrRRA.....', // bow on right side
   '...RRrrrRRA.....',
   '...RRBBBRRA.....',
   '....RBBBR.......',
@@ -999,11 +1011,11 @@ const ARCHER_LEFT_IDLE: readonly string[] = [
   '....RRRRR.......',
   '...RWRRRR.......',
   '...RPRRRR.......',
-  '..ARRRRRR.......',  // bow arc (A) at front
-  '..ARRRRRRR......',  // bow curve
-  '..ARRRRRR.......',  // bow arc
-  '..ARRRRRR.......',  // bow arc
-  '..ARRRrrr.......',  // bow base
+  '..ARRRRRR.......', // bow arc (A) at front
+  '..ARRRRRRR......', // bow curve
+  '..ARRRRRR.......', // bow arc
+  '..ARRRRRR.......', // bow arc
+  '..ARRRrrr.......', // bow base
   '...RRBBBR.......',
   '....RBBBR.......',
   '....RR.RR.......',
@@ -1059,7 +1071,7 @@ function drawPixelArtScaled(
   }
 }
 
-const LYNEL_RENDER_SCALE = 3  // 16×16 grid × 3 = 48px
+const LYNEL_RENDER_SCALE = 3 // 16×16 grid × 3 = 48px
 
 function renderLynelSprite(data: readonly string[]): CachedSprite {
   const canvas = createSizedCanvas(LYNEL_SPRITE_SIZE)
@@ -1435,10 +1447,14 @@ export function drawBossHealthBar(
 
 function directionToAngle(dir: Direction): number {
   switch (dir) {
-    case 'right': return 0
-    case 'down': return Math.PI / 2
-    case 'left': return Math.PI
-    case 'up': return -Math.PI / 2
+    case 'right':
+      return 0
+    case 'down':
+      return Math.PI / 2
+    case 'left':
+      return Math.PI
+    case 'up':
+      return -Math.PI / 2
   }
 }
 
@@ -1509,7 +1525,7 @@ function createGanonSprite(direction: Direction, frameIndex: number): CachedSpri
     ctx.quadraticCurveTo(cx - 16, cy - 26 + bob, cx - 20, cy - 22 + bob)
     ctx.lineTo(cx - 10, cy - 14 + bob)
     ctx.fill()
-    
+
     ctx.beginPath()
     ctx.moveTo(cx + 8, cy - 18 + bob)
     ctx.quadraticCurveTo(cx + 16, cy - 26 + bob, cx + 20, cy - 22 + bob)
@@ -1523,7 +1539,8 @@ function createGanonSprite(direction: Direction, frameIndex: number): CachedSpri
     if (direction === 'down') {
       ctx.fillRect(cx - 6, cy - 14 + bob, 4, 2)
       ctx.fillRect(cx + 2, cy - 14 + bob, 4, 2)
-    } else { // side
+    } else {
+      // side
       const dir = direction === 'left' ? -1 : 1
       ctx.fillRect(cx + 4 * dir, cy - 14 + bob, 4, 2)
     }
@@ -1595,7 +1612,8 @@ export function getGanonAnimations(): AnimationMap {
 
 export function drawDarkOrb(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number,
+  x: number,
+  y: number,
   size: number,
   reflected: boolean,
 ): void {
@@ -1605,7 +1623,7 @@ export function drawDarkOrb(
   gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
   ctx.fillStyle = gradient
   ctx.fillRect(x - size * 2, y - size * 2, size * 4, size * 4)
-  
+
   ctx.fillStyle = reflected ? '#93C5FD' : '#7C3AED'
   ctx.beginPath()
   ctx.arc(x, y, size / 2, 0, Math.PI * 2)
@@ -1615,7 +1633,8 @@ export function drawDarkOrb(
 
 export function drawDarkSlashArc(
   ctx: CanvasRenderingContext2D,
-  cx: number, cy: number,
+  cx: number,
+  cy: number,
   direction: Direction,
   progress: number,
   range: number,
@@ -1639,7 +1658,8 @@ export function drawDarkSlashArc(
 
 export function drawGroundSlamCharge(
   ctx: CanvasRenderingContext2D,
-  cx: number, cy: number,
+  cx: number,
+  cy: number,
   maxRadius: number,
   progress: number,
 ): void {
@@ -1651,11 +1671,11 @@ export function drawGroundSlamCharge(
   ctx.beginPath()
   ctx.arc(cx, cy, radius, 0, Math.PI * 2)
   ctx.fill()
-  
+
   ctx.strokeStyle = `rgba(239, 68, 68, ${0.5 + pulseAlpha})`
   ctx.lineWidth = 2
   ctx.stroke()
-  
+
   ctx.fillStyle = `rgba(255, 255, 255, ${0.3 * progress})`
   ctx.beginPath()
   ctx.arc(cx, cy, 8, 0, Math.PI * 2)
@@ -1665,7 +1685,8 @@ export function drawGroundSlamCharge(
 
 export function drawGroundSlamImpact(
   ctx: CanvasRenderingContext2D,
-  cx: number, cy: number,
+  cx: number,
+  cy: number,
   progress: number,
 ): void {
   const radius = GROUND_SLAM_RADIUS * 1.5 * progress
@@ -1682,7 +1703,8 @@ export function drawGroundSlamImpact(
 
 export function drawTeleportSmoke(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number,
+  x: number,
+  y: number,
   progress: number,
   entitySize: number,
 ): void {
@@ -1707,7 +1729,8 @@ export function drawTeleportSmoke(
 
 export function drawPillarShockwave(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number,
+  x: number,
+  y: number,
   progress: number,
 ): void {
   const radius = PILLAR_SHOCKWAVE_RADIUS * progress
@@ -1731,10 +1754,7 @@ export function drawPillarShockwave(
   ctx.restore()
 }
 
-export function drawCrystalPrison(
-  ctx: CanvasRenderingContext2D,
-  x: number, y: number,
-): void {
+export function drawCrystalPrison(ctx: CanvasRenderingContext2D, x: number, y: number): void {
   ctx.save()
   ctx.fillStyle = '#6366F1'
   ctx.beginPath()
@@ -1762,11 +1782,21 @@ export function drawCrystalPrison(
 
 export function drawCrystalShatter(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number,
+  x: number,
+  y: number,
   progress: number,
 ): void {
   const fragmentCount = 8
-  const colors = ['#3B82F6', '#7C3AED', '#A78BFA', '#93C5FD', '#6366F1', '#818CF8', '#C4B5FD', '#DBEAFE']
+  const colors = [
+    '#3B82F6',
+    '#7C3AED',
+    '#A78BFA',
+    '#93C5FD',
+    '#6366F1',
+    '#818CF8',
+    '#C4B5FD',
+    '#DBEAFE',
+  ]
 
   ctx.save()
   for (let i = 0; i < fragmentCount; i++) {
@@ -1791,7 +1821,8 @@ export function drawCrystalShatter(
 
 export function drawGanonDissolve(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number,
+  x: number,
+  y: number,
   entitySize: number,
   progress: number,
 ): void {
@@ -1805,7 +1836,7 @@ export function drawGanonDissolve(
   ctx.save()
   for (let i = 0; i < particleCount; i++) {
     const seed = i * 73.13
-    const angle = (seed % (Math.PI * 2))
+    const angle = seed % (Math.PI * 2)
     const dist = progress * 60 * (0.5 + (seed % 1))
     const px = x + Math.cos(angle) * dist * 0.5
     const py = y - progress * 40 + Math.sin(angle) * dist * 0.3

@@ -1,64 +1,64 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { onMounted, onUnmounted, watch } from "vue";
-import { RouterLink } from "vue-router";
-import { useThree } from "./composables/useThree";
-import { preloadAudio, initAudio, tickAudio, cleanupAudio } from "./audio";
-import NarrativeLayer from "./components/NarrativeLayer.vue";
+import { onMounted, onUnmounted, watch } from 'vue'
+import { RouterLink } from 'vue-router'
+import { useThree } from './composables/useThree'
+import { preloadAudio, initAudio, tickAudio, cleanupAudio } from './audio'
+import NarrativeLayer from './components/NarrativeLayer.vue'
 
 const { canvasRef, isLoading, loadingProgress, currentScene, scrollProgress, init, cleanup } =
-  useThree();
+  useThree()
 
-let _audioStarted = false;
+let _audioStarted = false
 
 const startAudio = () => {
-  if (_audioStarted || loadingProgress.value < 100) return;
+  if (_audioStarted || loadingProgress.value < 100) return
 
-  const ToneLib = (window as unknown as { Tone: any }).Tone;
-  if (!ToneLib) return;
+  const ToneLib = (window as unknown as { Tone: any }).Tone
+  if (!ToneLib) return
 
-  _audioStarted = true;
+  _audioStarted = true
 
   ToneLib.start().then(() => {
     initAudio().then(() => {
-      tickAudio(scrollProgress.value);
-    });
-  });
+      tickAudio(scrollProgress.value)
+    })
+  })
 
-  window.removeEventListener("click", startAudio);
-  window.removeEventListener("keydown", startAudio);
-  window.removeEventListener("wheel", startAudio);
-  window.removeEventListener("touchstart", startAudio);
-};
+  window.removeEventListener('click', startAudio)
+  window.removeEventListener('keydown', startAudio)
+  window.removeEventListener('wheel', startAudio)
+  window.removeEventListener('touchstart', startAudio)
+}
 
-window.addEventListener("click", startAudio);
-window.addEventListener("keydown", startAudio);
-window.addEventListener("wheel", startAudio);
-window.addEventListener("touchstart", startAudio);
+window.addEventListener('click', startAudio)
+window.addEventListener('keydown', startAudio)
+window.addEventListener('wheel', startAudio)
+window.addEventListener('touchstart', startAudio)
 
 const handleBegin = () => {
-  startAudio();
+  startAudio()
   setTimeout(() => {
-    isLoading.value = false;
-  }, 400);
-};
+    isLoading.value = false
+  }, 400)
+}
 
 watch(scrollProgress, (val) => {
-  tickAudio(val);
-});
+  tickAudio(val)
+})
 
 onMounted(async () => {
-  await Promise.all([init(), preloadAudio()]);
-});
+  await Promise.all([init(), preloadAudio()])
+})
 
 onUnmounted(() => {
-  cleanup();
-  cleanupAudio();
-  window.removeEventListener("click", startAudio);
-  window.removeEventListener("keydown", startAudio);
-  window.removeEventListener("wheel", startAudio);
-  window.removeEventListener("touchstart", startAudio);
-});
+  cleanup()
+  cleanupAudio()
+  window.removeEventListener('click', startAudio)
+  window.removeEventListener('keydown', startAudio)
+  window.removeEventListener('wheel', startAudio)
+  window.removeEventListener('touchstart', startAudio)
+})
 </script>
 
 <template>

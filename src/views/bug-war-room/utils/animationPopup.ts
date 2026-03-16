@@ -27,11 +27,12 @@ export function hydrateAnimationCatalogPopup(options: AnimationCatalogPopupOptio
     return
   }
 
-  const cardsHtml = items.map((item) => {
-    const operatorHintHtml = item.operatorHint
-      ? `<p class="hint"><strong>Operator note:</strong> ${escapeHtml(item.operatorHint)}</p>`
-      : ''
-    return `<article class="card">
+  const cardsHtml = items
+    .map((item) => {
+      const operatorHintHtml = item.operatorHint
+        ? `<p class="hint"><strong>Operator note:</strong> ${escapeHtml(item.operatorHint)}</p>`
+        : ''
+      return `<article class="card">
       <img src="${escapeHtml(item.asset)}" alt="${escapeHtml(item.title)}" loading="lazy" />
       <div class="body">
         <p class="kicker">${escapeHtml(item.fileName)}</p>
@@ -41,7 +42,8 @@ export function hydrateAnimationCatalogPopup(options: AnimationCatalogPopupOptio
         ${operatorHintHtml}
       </div>
     </article>`
-  }).join('')
+    })
+    .join('')
 
   const html = getAnimationCatalogHtml(cardsHtml)
 
@@ -50,7 +52,9 @@ export function hydrateAnimationCatalogPopup(options: AnimationCatalogPopupOptio
     animationTab.document.write(html)
     animationTab.document.close()
 
-    const closeBtn = animationTab.document.getElementById('animation-catalog-close') as HTMLButtonElement | null
+    const closeBtn = animationTab.document.getElementById(
+      'animation-catalog-close',
+    ) as HTMLButtonElement | null
     if (closeBtn) {
       closeBtn.addEventListener('click', () => {
         animationTab.close()

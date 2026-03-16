@@ -1,6 +1,13 @@
 import type { Vec2, TileMap, AlertState, PatrolRoute } from '../utils/types'
-import { VISION_RANGE, VISION_HALF_ANGLE_RAD, ALERT_TRANSITION_TIME, CHASE_TIMEOUT,
-  VISION_CHECK_INTERVAL, TILE_SIZE, PATROL_PAUSE_TIME } from '../utils/constants'
+import {
+  VISION_RANGE,
+  VISION_HALF_ANGLE_RAD,
+  ALERT_TRANSITION_TIME,
+  CHASE_TIMEOUT,
+  VISION_CHECK_INTERVAL,
+  TILE_SIZE,
+  PATROL_PAUSE_TIME,
+} from '../utils/constants'
 import { BaseEntity } from './BaseEntity'
 import { Physics } from '../engine/Physics'
 import type { Player } from './Player'
@@ -18,10 +25,16 @@ export abstract class Enemy extends BaseEntity {
   visionCheckCounter = Math.floor(Math.random() * VISION_CHECK_INTERVAL)
   spawnPos: Vec2
   waypointPauseTimer = 0
-  lastHitSwingID = -1  // prevents double-hit from the same sword swing
+  lastHitSwingID = -1 // prevents double-hit from the same sword swing
   isAggressive = false
 
-  constructor(spawnPos: Vec2, patrolRoute: PatrolRoute, speed: number, maxHealth: number, size: Vec2) {
+  constructor(
+    spawnPos: Vec2,
+    patrolRoute: PatrolRoute,
+    speed: number,
+    maxHealth: number,
+    size: Vec2,
+  ) {
     super(spawnPos, size, maxHealth, speed)
     this.spawnPos = { ...spawnPos }
     this.patrolRoute = patrolRoute
@@ -47,9 +60,15 @@ export abstract class Enemy extends BaseEntity {
       this.updateChase(dt, player, map)
     } else {
       switch (this.aiState) {
-        case 'patrol': this.updatePatrol(dt, map, player); break
-        case 'alert': this.updateAlert(dt, player); break
-        case 'chase': this.updateChase(dt, player, map); break
+        case 'patrol':
+          this.updatePatrol(dt, map, player)
+          break
+        case 'alert':
+          this.updateAlert(dt, player)
+          break
+        case 'chase':
+          this.updateChase(dt, player, map)
+          break
       }
     }
 
@@ -84,7 +103,8 @@ export abstract class Enemy extends BaseEntity {
     if (this.patrolRoute.length > 0) {
       const wp = this.patrolRoute[this.currentWaypointIdx]!
       const stuck = this.moveToward(wp, dt, map)
-      const dx = wp.x - this.pos.x, dy = wp.y - this.pos.y
+      const dx = wp.x - this.pos.x,
+        dy = wp.y - this.pos.y
       if (stuck || dx * dx + dy * dy < SNAP_DIST_SQ) {
         this.currentWaypointIdx = (this.currentWaypointIdx + 1) % this.patrolRoute.length
         this.waypointPauseTimer = PATROL_PAUSE_TIME
@@ -97,9 +117,12 @@ export abstract class Enemy extends BaseEntity {
     this.alertTimer -= dt
     this.lastKnownPlayerPos = { ...player.getCenter() }
     // Face player, stay still
-    const pc = player.getCenter(), mc = this.getCenter()
-    const dx = pc.x - mc.x, dy = pc.y - mc.y
-    this.direction = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')
+    const pc = player.getCenter(),
+      mc = this.getCenter()
+    const dx = pc.x - mc.x,
+      dy = pc.y - mc.y
+    this.direction =
+      Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up'
     this.animation.play('idle', this.direction)
     if (this.alertTimer <= 0) {
       this.aiState = 'chase'
@@ -110,24 +133,37 @@ export abstract class Enemy extends BaseEntity {
   private updateChase(dt: number, player: Player, map: TileMap): void {
     // Home zone check — skip when aggressive
     if (!this.isAggressive) {
-      const sdx = this.pos.x - this.spawnPos.x, sdy = this.pos.y - this.spawnPos.y
+      const sdx = this.pos.x - this.spawnPos.x,
+        sdy = this.pos.y - this.spawnPos.y
       if (sdx * sdx + sdy * sdy > HOME_ZONE_RADIUS * HOME_ZONE_RADIUS) {
-        this.returnToPatrol(); return
+        this.returnToPatrol()
+        return
       }
     }
     const playerCenter = player.getCenter()
-    this.moveToward({ x: playerCenter.x - this.size.x / 2, y: playerCenter.y - this.size.y / 2 }, dt, map)
+    this.moveToward(
+      { x: playerCenter.x - this.size.x / 2, y: playerCenter.y - this.size.y / 2 },
+      dt,
+      map,
+    )
     // Collision damage + knockback
     if (Physics.overlaps(this.getAABB(), player.getAABB()) && !player.isInvulnerable()) {
       player.takeDamage(1)
-      const ec = this.getCenter(), pc = player.getCenter()
-      const kx = pc.x - ec.x, ky = pc.y - ec.y
+      const ec = this.getCenter(),
+        pc = player.getCenter()
+      const kx = pc.x - ec.x,
+        ky = pc.y - ec.y
       const kDist = Math.sqrt(kx * kx + ky * ky)
       if (kDist > 0) {
         const kb = Math.min(20, TILE_SIZE / 2)
-        const pushed = Physics.resolveMovement(map, player.pos,
-          { x: player.pos.x + (kx / kDist) * kb, y: player.pos.y + (ky / kDist) * kb }, player.size)
-        const mw = map.width * TILE_SIZE, mh = map.height * TILE_SIZE
+        const pushed = Physics.resolveMovement(
+          map,
+          player.pos,
+          { x: player.pos.x + (kx / kDist) * kb, y: player.pos.y + (ky / kDist) * kb },
+          player.size,
+        )
+        const mw = map.width * TILE_SIZE,
+          mh = map.height * TILE_SIZE
         player.pos.x = Math.max(0, Math.min(mw - player.size.x, pushed.x))
         player.pos.y = Math.max(0, Math.min(mh - player.size.y, pushed.y))
       }
@@ -148,14 +184,18 @@ export abstract class Enemy extends BaseEntity {
 
   checkVision(player: Player, map: TileMap): boolean {
     if (this.visionCheckCounter % VISION_CHECK_INTERVAL !== 0) return false
-    const mc = this.getCenter(), pc = player.getCenter()
-    const dx = pc.x - mc.x, dy = pc.y - mc.y
+    const mc = this.getCenter(),
+      pc = player.getCenter()
+    const dx = pc.x - mc.x,
+      dy = pc.y - mc.y
     if (dx * dx + dy * dy > VISION_RANGE * VISION_RANGE) return false
     // Bush hiding: hidden if ANY AABB corner is on a bush tile
     const a = player.getAABB()
     const corners: Vec2[] = [
-      { x: a.x, y: a.y }, { x: a.x + a.width, y: a.y },
-      { x: a.x, y: a.y + a.height }, { x: a.x + a.width, y: a.y + a.height },
+      { x: a.x, y: a.y },
+      { x: a.x + a.width, y: a.y },
+      { x: a.x, y: a.y + a.height },
+      { x: a.x + a.width, y: a.y + a.height },
     ]
     if (corners.some((c) => Physics.getTileAt(map, c.x, c.y) === 'bush')) return false
     // Cone + LOS
@@ -165,34 +205,53 @@ export abstract class Enemy extends BaseEntity {
   }
 
   private moveToward(target: Vec2, dt: number, map: TileMap): boolean {
-    const dx = target.x - this.pos.x, dy = target.y - this.pos.y
+    const dx = target.x - this.pos.x,
+      dy = target.y - this.pos.y
     const dist = Math.sqrt(dx * dx + dy * dy)
     if (dist < 1) return false
-    const desired = { x: this.pos.x + (dx / dist) * this.speed * dt, y: this.pos.y + (dy / dist) * this.speed * dt }
+    const desired = {
+      x: this.pos.x + (dx / dist) * this.speed * dt,
+      y: this.pos.y + (dy / dist) * this.speed * dt,
+    }
     const resolved = Physics.resolveMovement(map, this.pos, desired, this.size)
     const stuck = Math.abs(resolved.x - this.pos.x) + Math.abs(resolved.y - this.pos.y) < 0.1
     this.pos.x = resolved.x
     this.pos.y = resolved.y
-    this.direction = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')
+    this.direction =
+      Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up'
     this.animation.play('walk', this.direction)
     return stuck
   }
 
   private findNearestWaypoint(): number {
-    let bestIdx = 0, bestDist = Infinity
+    let bestIdx = 0,
+      bestDist = Infinity
     for (let i = 0; i < this.patrolRoute.length; i++) {
       const wp = this.patrolRoute[i]!
-      const dx = wp.x - this.pos.x, dy = wp.y - this.pos.y
+      const dx = wp.x - this.pos.x,
+        dy = wp.y - this.pos.y
       const d = dx * dx + dy * dy
-      if (d < bestDist) { bestDist = d; bestIdx = i }
+      if (d < bestDist) {
+        bestDist = d
+        bestIdx = i
+      }
     }
     return bestIdx
   }
 
-  getVisionConeParams(): { center: Vec2; angle: number; range: number; halfAngle: number; state: AlertState } {
+  getVisionConeParams(): {
+    center: Vec2
+    angle: number
+    range: number
+    halfAngle: number
+    state: AlertState
+  } {
     return {
-      center: this.getCenter(), angle: Physics.directionToAngle(this.direction),
-      range: VISION_RANGE, halfAngle: VISION_HALF_ANGLE_RAD, state: this.aiState,
+      center: this.getCenter(),
+      angle: Physics.directionToAngle(this.direction),
+      range: VISION_RANGE,
+      halfAngle: VISION_HALF_ANGLE_RAD,
+      state: this.aiState,
     }
   }
 }

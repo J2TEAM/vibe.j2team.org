@@ -20,7 +20,13 @@
       <canvas
         ref="gridCanvasEl"
         v-show="showGrid"
-        style="image-rendering: pixelated; position: absolute; top: 0; left: 0; pointer-events: none"
+        style="
+          image-rendering: pixelated;
+          position: absolute;
+          top: 0;
+          left: 0;
+          pointer-events: none;
+        "
       ></canvas>
     </div>
 
@@ -108,21 +114,21 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 // ─── Props / Emits ────────────────────────────────────────────────────────────
 
 const props = defineProps<{ showGrid?: boolean }>()
-const emit  = defineEmits<{ toggleGrid: [] }>()
+const emit = defineEmits<{ toggleGrid: [] }>()
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const MIN_SCALE  = 0.1
-const MAX_SCALE  = 15
-const CLAMP_PAD  = 80
+const MIN_SCALE = 0.1
+const MAX_SCALE = 15
+const CLAMP_PAD = 80
 
 // ─── Refs ─────────────────────────────────────────────────────────────────────
 
-const containerRef  = ref<HTMLDivElement      | null>(null)
-const canvasEl      = ref<HTMLCanvasElement   | null>(null)
-const gridCanvasEl  = ref<HTMLCanvasElement   | null>(null)
+const containerRef = ref<HTMLDivElement | null>(null)
+const canvasEl = ref<HTMLCanvasElement | null>(null)
+const gridCanvasEl = ref<HTMLCanvasElement | null>(null)
 
-const scale      = ref(1)
+const scale = ref(1)
 const translateX = ref(0)
 const translateY = ref(0)
 const isDragging = ref(false)
@@ -130,18 +136,22 @@ const hasContent = ref(false)
 
 // ─── Grid overlay state (non-reactive — only used inside draw functions) ──────
 
-let innerSize  = 0
+let innerSize = 0
 let innerBrick = 0
 
 // ─── Drag bookkeeping ─────────────────────────────────────────────────────────
 
-let dragStartX = 0, dragStartY  = 0
-let dragStartTX = 0, dragStartTY = 0
+let dragStartX = 0,
+  dragStartY = 0
+let dragStartTX = 0,
+  dragStartTY = 0
 let rafId: number | null = null
 
 // ─── Touch bookkeeping ────────────────────────────────────────────────────────
 
-let lastTouchX = 0, lastTouchY = 0, lastPinchDist = 0
+let lastTouchX = 0,
+  lastTouchY = 0,
+  lastPinchDist = 0
 
 // ─── Computed wrapper style ───────────────────────────────────────────────────
 
@@ -159,11 +169,11 @@ function clamp(v: number, lo: number, hi: number) {
 }
 
 function applyClamp() {
-  const canvas    = canvasEl.value
+  const canvas = canvasEl.value
   const container = containerRef.value
   if (!canvas || !container) return
 
-  const cw = canvas.width  * scale.value
+  const cw = canvas.width * scale.value
   const ch = canvas.height * scale.value
   const vw = container.clientWidth
   const vh = container.clientHeight
@@ -189,7 +199,7 @@ function drawGridOverlay() {
   if (!canvas || innerSize === 0 || innerBrick === 0) return
 
   const cw = innerSize * innerBrick
-  canvas.width  = cw
+  canvas.width = cw
   canvas.height = cw
 
   const ctx = canvas.getContext('2d')
@@ -197,13 +207,15 @@ function drawGridOverlay() {
 
   // Thinner lines for small bricks, standard for larger
   ctx.strokeStyle = 'rgba(0, 0, 0, 0.18)'
-  ctx.lineWidth   = innerBrick >= 4 ? 1 : Math.max(0.5, innerBrick * 0.2)
+  ctx.lineWidth = innerBrick >= 4 ? 1 : Math.max(0.5, innerBrick * 0.2)
   ctx.beginPath()
 
   for (let i = 1; i < innerSize; i++) {
     const pos = i * innerBrick
-    ctx.moveTo(pos, 0);  ctx.lineTo(pos, cw)
-    ctx.moveTo(0,   pos); ctx.lineTo(cw, pos)
+    ctx.moveTo(pos, 0)
+    ctx.lineTo(pos, cw)
+    ctx.moveTo(0, pos)
+    ctx.lineTo(cw, pos)
   }
 
   ctx.stroke()
@@ -218,17 +230,20 @@ function clearGridOverlay() {
 
 // ─── Watch: redraw / clear grid when prop toggles ────────────────────────────
 
-watch(() => props.showGrid, (show) => {
-  if (show) drawGridOverlay()
-  else      clearGridOverlay()
-})
+watch(
+  () => props.showGrid,
+  (show) => {
+    if (show) drawGridOverlay()
+    else clearGridOverlay()
+  },
+)
 
 // ─── Public API (exposed to parent) ──────────────────────────────────────────
 
 /** Scale canvas to fit container, centered */
 function fit() {
   const container = containerRef.value
-  const canvas    = canvasEl.value
+  const canvas = canvasEl.value
   if (!container || !canvas || !canvas.width) return
 
   const s = clamp(
@@ -236,19 +251,19 @@ function fit() {
     MIN_SCALE,
     MAX_SCALE,
   )
-  scale.value      = s
-  translateX.value = (container.clientWidth  - canvas.width  * s) / 2
+  scale.value = s
+  translateX.value = (container.clientWidth - canvas.width * s) / 2
   translateY.value = (container.clientHeight - canvas.height * s) / 2
 }
 
 /** Reset to 1:1, centered */
 function resetZoom() {
   const container = containerRef.value
-  const canvas    = canvasEl.value
+  const canvas = canvasEl.value
   if (!container || !canvas) return
 
-  scale.value      = 1
-  translateX.value = (container.clientWidth  - canvas.width)  / 2
+  scale.value = 1
+  translateX.value = (container.clientWidth - canvas.width) / 2
   translateY.value = (container.clientHeight - canvas.height) / 2
   applyClamp()
 }
@@ -258,7 +273,7 @@ function resetZoom() {
  * Stores grid dimensions, fits to screen, and redraws the grid overlay if active.
  */
 function notifyDrawn(size: number, brick: number) {
-  innerSize  = size
+  innerSize = size
   innerBrick = brick
   hasContent.value = true
 
@@ -269,7 +284,9 @@ function notifyDrawn(size: number, brick: number) {
 }
 
 /** No-op — kept for API compatibility */
-function refreshMinimap() { /* removed */ }
+function refreshMinimap() {
+  /* removed */
+}
 
 // ─── Download (merges main canvas + grid overlay) ────────────────────────────
 
@@ -278,16 +295,16 @@ function downloadCanvas() {
   if (!canvas) return
 
   const gridCanvas = gridCanvasEl.value
-  const hasGrid    = props.showGrid && gridCanvas && gridCanvas.width > 0
+  const hasGrid = props.showGrid && gridCanvas && gridCanvas.width > 0
 
   let url: string
   if (hasGrid) {
     // Merge mosaic + grid onto a temporary canvas before saving
     const merged = document.createElement('canvas')
-    merged.width  = canvas.width
+    merged.width = canvas.width
     merged.height = canvas.height
     const ctx = merged.getContext('2d')!
-    ctx.drawImage(canvas,     0, 0)
+    ctx.drawImage(canvas, 0, 0)
     ctx.drawImage(gridCanvas, 0, 0)
     url = merged.toDataURL('image/png')
   } else {
@@ -295,7 +312,7 @@ function downloadCanvas() {
   }
 
   const a = document.createElement('a')
-  a.href     = url
+  a.href = url
   a.download = 'lego-mosaic.png'
   a.click()
 }
@@ -321,8 +338,8 @@ function onSliderZoom(e: Event) {
 function onMouseDown(e: MouseEvent) {
   if (e.button !== 0) return
   isDragging.value = true
-  dragStartX  = e.clientX
-  dragStartY  = e.clientY
+  dragStartX = e.clientX
+  dragStartY = e.clientY
   dragStartTX = translateX.value
   dragStartTY = translateY.value
 }
@@ -358,7 +375,7 @@ function onTouchStart(e: TouchEvent) {
     lastTouchY = e.touches[0]!.clientY
   } else if (e.touches.length === 2) {
     isDragging.value = false
-    lastPinchDist    = pinchDist(e)
+    lastPinchDist = pinchDist(e)
   }
 }
 
@@ -373,7 +390,10 @@ function onTouchMove(e: TouchEvent) {
     applyClamp()
   } else if (e.touches.length === 2) {
     const dist = pinchDist(e)
-    if (lastPinchDist === 0) { lastPinchDist = dist; return }
+    if (lastPinchDist === 0) {
+      lastPinchDist = dist
+      return
+    }
     const container = containerRef.value
     if (!container) return
     const rect = container.getBoundingClientRect()
@@ -387,10 +407,10 @@ function onTouchMove(e: TouchEvent) {
 function onTouchEnd(e: TouchEvent) {
   if (e.touches.length === 0) {
     isDragging.value = false
-    lastPinchDist    = 0
+    lastPinchDist = 0
   } else if (e.touches.length === 1) {
-    lastTouchX    = e.touches[0]!.clientX
-    lastTouchY    = e.touches[0]!.clientY
+    lastTouchX = e.touches[0]!.clientX
+    lastTouchY = e.touches[0]!.clientY
     lastPinchDist = 0
     isDragging.value = true
   }
@@ -403,7 +423,9 @@ let resizeObs: ResizeObserver | null = null
 onMounted(() => {
   const el = containerRef.value
   if (!el) return
-  resizeObs = new ResizeObserver(() => { if (hasContent.value) fit() })
+  resizeObs = new ResizeObserver(() => {
+    if (hasContent.value) fit()
+  })
   resizeObs.observe(el)
 })
 

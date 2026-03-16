@@ -55,9 +55,7 @@ function updateParam(effectId: EffectId, key: string, value: number) {
             <h1 class="font-display text-3xl font-bold text-accent-coral sm:text-4xl">
               Yud Pixel Lab
             </h1>
-            <p class="mt-1 text-sm text-text-secondary">
-              Áp dụng hiệu ứng lo-fi lên ảnh của bạn
-            </p>
+            <p class="mt-1 text-sm text-text-secondary">Áp dụng hiệu ứng lo-fi lên ảnh của bạn</p>
           </div>
           <RouterLink
             to="/"
@@ -70,11 +68,7 @@ function updateParam(effectId: EffectId, key: string, value: number) {
       </header>
 
       <!-- Upload zone (when no image) -->
-      <div
-        v-if="!hasImage"
-        ref="dropZoneRef"
-        class="animate-fade-up animate-delay-2"
-      >
+      <div v-if="!hasImage" ref="dropZoneRef" class="animate-fade-up animate-delay-2">
         <label
           class="flex cursor-pointer flex-col items-center justify-center border-2 border-dashed py-20 transition-all duration-300"
           :class="
@@ -83,22 +77,14 @@ function updateParam(effectId: EffectId, key: string, value: number) {
               : 'border-border-default bg-bg-surface hover:border-accent-coral/50'
           "
         >
-          <Icon
-            icon="lucide:image-plus"
-            class="size-12 text-text-dim mb-4"
-          />
+          <Icon icon="lucide:image-plus" class="size-12 text-text-dim mb-4" />
           <span class="font-display text-lg font-semibold text-text-secondary">
             Kéo thả ảnh vào đây
           </span>
           <span class="mt-1 text-sm text-text-dim">
             hoặc nhấn để chọn file (.jpg, .png, .webp)
           </span>
-          <input
-            type="file"
-            accept="image/*"
-            class="hidden"
-            @change="onFileInput"
-          />
+          <input type="file" accept="image/*" class="hidden" @change="onFileInput" />
         </label>
       </div>
 
@@ -131,12 +117,7 @@ function updateParam(effectId: EffectId, key: string, value: number) {
             >
               <Icon icon="lucide:replace" class="size-3.5" />
               Đổi ảnh
-              <input
-                type="file"
-                accept="image/*"
-                class="hidden"
-                @change="onFileInput"
-              />
+              <input type="file" accept="image/*" class="hidden" @change="onFileInput" />
             </label>
 
             <button
@@ -150,22 +131,14 @@ function updateParam(effectId: EffectId, key: string, value: number) {
           </div>
 
           <!-- Image info -->
-          <div
-            v-if="imageSize.width"
-            class="text-xs text-text-dim font-display tracking-wide"
-          >
+          <div v-if="imageSize.width" class="text-xs text-text-dim font-display tracking-wide">
             {{ imageSize.width }} × {{ imageSize.height }}px
-            <span v-if="isProcessing" class="ml-2 text-accent-amber">
-              Đang xử lý...
-            </span>
+            <span v-if="isProcessing" class="ml-2 text-accent-amber"> Đang xử lý... </span>
           </div>
         </div>
 
         <!-- Effect panel sidebar -->
-        <aside
-          ref="dropZoneRef"
-          class="animate-fade-up animate-delay-2"
-        >
+        <aside ref="dropZoneRef" class="animate-fade-up animate-delay-2">
           <EffectPanel
             :selected-effect="selectedEffect"
             :effect-params="effectParams"

@@ -38,21 +38,31 @@ const grade = computed(() => {
 
 const gradeColor = computed(() => {
   switch (grade.value) {
-    case 'S': return 'text-accent-amber'
-    case 'A': return 'text-accent-sky'
-    case 'B': return 'text-accent-coral'
-    case 'C': return 'text-text-secondary'
-    default: return 'text-text-dim'
+    case 'S':
+      return 'text-accent-amber'
+    case 'A':
+      return 'text-accent-sky'
+    case 'B':
+      return 'text-accent-coral'
+    case 'C':
+      return 'text-text-secondary'
+    default:
+      return 'text-text-dim'
   }
 })
 
 const gradeLabel = computed(() => {
   switch (grade.value) {
-    case 'S': return 'Xuất sắc!'
-    case 'A': return 'Giỏi lắm!'
-    case 'B': return 'Khá tốt!'
-    case 'C': return 'Tạm được'
-    default: return 'Cần cải thiện'
+    case 'S':
+      return 'Xuất sắc!'
+    case 'A':
+      return 'Giỏi lắm!'
+    case 'B':
+      return 'Khá tốt!'
+    case 'C':
+      return 'Tạm được'
+    default:
+      return 'Cần cải thiện'
   }
 })
 
@@ -66,24 +76,29 @@ function formatTime(seconds: number): string {
 // Wrong provinces details
 const wrongProvincesDetails = computed(() => {
   if (!result.value) return []
-  return result.value.wrongProvinces.map(id => {
-    const p = provinces.find(prov => prov.id === id)
-    return p ? { id: p.id, name: p.name, zone: p.zone, region: p.region } : null
-  }).filter(Boolean)
+  return result.value.wrongProvinces
+    .map((id) => {
+      const p = provinces.find((prov) => prov.id === id)
+      return p ? { id: p.id, name: p.name, zone: p.zone, region: p.region } : null
+    })
+    .filter(Boolean)
 })
 
 const correctCount = computed(() => {
   if (!result.value) return 0
-  const total = props.config.mode === 'daily' ? 10
-    : props.config.mode === 'region' ? provinces.filter(p => p.zone === props.config.regionFilter).length
-    : 63
+  const total =
+    props.config.mode === 'daily'
+      ? 10
+      : props.config.mode === 'region'
+        ? provinces.filter((p) => p.zone === props.config.regionFilter).length
+        : 63
   return total - (result.value.wrongProvinces?.length || 0)
 })
 
 const totalCount = computed(() => {
   if (props.config.mode === 'daily') return 10
   if (props.config.mode === 'region') {
-    return provinces.filter(p => p.zone === props.config.regionFilter).length
+    return provinces.filter((p) => p.zone === props.config.regionFilter).length
   }
   return 63
 })
@@ -92,23 +107,31 @@ const totalCount = computed(() => {
 onMounted(() => {
   if (grade.value === 'S' || grade.value === 'A') {
     showConfetti.value = true
-    setTimeout(() => { showConfetti.value = false }, 4000)
+    setTimeout(() => {
+      showConfetti.value = false
+    }, 4000)
   }
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col items-center
-              justify-center px-4 py-8 relative overflow-hidden">
-
+  <div
+    class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col items-center justify-center px-4 py-8 relative overflow-hidden"
+  >
     <!-- Confetti effect -->
     <div v-if="showConfetti" class="confetti-container">
-      <div v-for="i in 50" :key="i" class="confetti-piece"
-           :style="{
-             left: Math.random() * 100 + '%',
-             animationDelay: Math.random() * 3 + 's',
-             backgroundColor: ['#FF6B4A', '#FFB830', '#38BDF8', '#F0EDE6'][Math.floor(Math.random() * 4)],
-           }" />
+      <div
+        v-for="i in 50"
+        :key="i"
+        class="confetti-piece"
+        :style="{
+          left: Math.random() * 100 + '%',
+          animationDelay: Math.random() * 3 + 's',
+          backgroundColor: ['#FF6B4A', '#FFB830', '#38BDF8', '#F0EDE6'][
+            Math.floor(Math.random() * 4)
+          ],
+        }"
+      />
     </div>
 
     <div class="max-w-lg w-full">
@@ -170,8 +193,7 @@ onMounted(() => {
           <span
             v-for="wp in wrongProvincesDetails"
             :key="wp!.id"
-            class="border border-accent-coral/30 bg-accent-coral/5 px-2 py-1 text-xs
-                   font-display text-accent-coral"
+            class="border border-accent-coral/30 bg-accent-coral/5 px-2 py-1 text-xs font-display text-accent-coral"
           >
             {{ wp!.name }}
           </span>
@@ -181,26 +203,20 @@ onMounted(() => {
       <!-- Actions -->
       <div class="flex flex-col sm:flex-row gap-3 animate-fade-up animate-delay-3">
         <button
-          class="flex-1 py-3 bg-accent-coral text-bg-deep font-display font-bold text-sm
-                 tracking-wide transition-all duration-200
-                 hover:bg-accent-amber hover:-translate-y-0.5"
+          class="flex-1 py-3 bg-accent-coral text-bg-deep font-display font-bold text-sm tracking-wide transition-all duration-200 hover:bg-accent-amber hover:-translate-y-0.5"
           @click="emit('play-again')"
         >
           🔄 Chơi lại
         </button>
         <button
-          class="flex-1 py-3 border border-border-default bg-bg-surface font-display
-                 text-sm text-text-secondary transition-all duration-200
-                 hover:border-accent-sky hover:text-text-primary"
+          class="flex-1 py-3 border border-border-default bg-bg-surface font-display text-sm text-text-secondary transition-all duration-200 hover:border-accent-sky hover:text-text-primary"
           @click="emit('change-mode')"
         >
           ⚙️ Đổi chế độ
         </button>
         <RouterLink
           to="/"
-          class="flex-1 py-3 border border-border-default bg-bg-surface font-display
-                 text-sm text-text-secondary text-center transition-all duration-200
-                 hover:border-accent-coral hover:text-text-primary"
+          class="flex-1 py-3 border border-border-default bg-bg-surface font-display text-sm text-text-secondary text-center transition-all duration-200 hover:border-accent-coral hover:text-text-primary"
         >
           ← Trang chủ
         </RouterLink>

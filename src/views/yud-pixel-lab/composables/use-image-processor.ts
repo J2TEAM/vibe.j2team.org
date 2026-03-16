@@ -13,10 +13,7 @@ export function useImageProcessor() {
 
   const effectParams = ref<Record<EffectId, EffectParams>>(
     Object.fromEntries(
-      EFFECTS.map((e) => [
-        e.id,
-        Object.fromEntries(e.params.map((p) => [p.key, p.defaultValue])),
-      ]),
+      EFFECTS.map((e) => [e.id, Object.fromEntries(e.params.map((p) => [p.key, p.defaultValue]))]),
     ) as Record<EffectId, EffectParams>,
   )
 

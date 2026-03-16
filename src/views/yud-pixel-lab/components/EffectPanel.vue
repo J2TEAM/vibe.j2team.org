@@ -76,13 +76,7 @@ function currentParams() {
             :step="param.step"
             :value="effectParams[selectedEffect]?.[param.key] ?? param.defaultValue"
             :disabled="disabled"
-            class="w-full h-1.5 appearance-none bg-bg-elevated rounded-none cursor-pointer
-                   [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3
-                   [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-accent-coral
-                   [&::-webkit-slider-thumb]:cursor-pointer
-                   [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3
-                   [&::-moz-range-thumb]:bg-accent-coral [&::-moz-range-thumb]:border-0
-                   [&::-moz-range-thumb]:cursor-pointer"
+            class="w-full h-1.5 appearance-none bg-bg-elevated rounded-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-accent-coral [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:bg-accent-coral [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
             @input="
               emit(
                 'update:param',

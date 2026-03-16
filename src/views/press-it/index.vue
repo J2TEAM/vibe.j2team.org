@@ -1,734 +1,734 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from "vue";
-import { RouterLink } from "vue-router";
-import { useAudio } from "./composables/useAudio";
-import { useRhythmEngine } from "./composables/useRhythmEngine";
-import { useGameMode } from "./composables/useGameMode";
-import { GAME_CONFIG } from "./assets/beatmap";
-import type { GamePhase, HitResult, GameMode, KeyButton, BeatChallenge } from "./types";
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { RouterLink } from 'vue-router'
+import { useAudio } from './composables/useAudio'
+import { useRhythmEngine } from './composables/useRhythmEngine'
+import { useGameMode } from './composables/useGameMode'
+import { GAME_CONFIG } from './assets/beatmap'
+import type { GamePhase, HitResult, GameMode, KeyButton, BeatChallenge } from './types'
 
 // ─── Composables ─────────────────────────────────────────
-const audio = useAudio();
-const rhythm = useRhythmEngine();
-const gameMode = useGameMode();
+const audio = useAudio()
+const rhythm = useRhythmEngine()
+const gameMode = useGameMode()
 
 // ─── i18n ────────────────────────────────────────────────
-type Lang = "vi" | "en";
-const lang = ref<Lang>("vi");
+type Lang = 'vi' | 'en'
+const lang = ref<Lang>('vi')
 
 interface ModeInfo {
-  label: string;
-  emoji: string;
-  desc: string;
-  details: string[];
+  label: string
+  emoji: string
+  desc: string
+  details: string[]
 }
 
 interface Locale {
-  homeLink: string;
-  tagline: string;
-  pauseBtn: string;
-  resumeBtn: string;
-  shortcutPause: string;
-  shortcutClick: string;
-  selectModeLabel: string;
-  customTitle: string;
-  customMouse: string;
-  customKeys: string;
-  customMaxKeys: (n: number) => string;
-  customHold: string;
-  customMaxHold: (s: string) => string;
-  bestScoreLabel: (n: number) => string;
-  btnTutorial: string;
-  btnStart: string;
-  layoutTitle: string;
-  leftHand: string;
-  rightHand: string;
-  lmbHint: string;
-  ruleTitle: string;
-  perfectLabel: string;
-  perfectDesc: string;
-  goodLabel: string;
-  goodDesc: string;
-  missLabel: string;
-  missDesc: string;
-  beatCount: (beats: number, bpm: number) => string;
-  btnBackMode: string;
-  countdownHintBasic: string;
-  countdownHintCombo: string;
-  holdIndicator: (s: string) => string;
-  tapHintBasic: string;
-  tapHintCombo: string;
-  feedbackPerfect: string;
-  feedbackGood: string;
-  feedbackMiss: string;
-  pauseTitle: string;
-  pauseSubtitle: string;
-  livesLabel: string;
-  currentScoreLabel: string;
-  beatProgress: string;
-  btnGiveUp: string;
-  btnContinue: string;
-  shortcutContinue: string;
-  shortcutMouse: string;
-  victoryIcon: string;
-  victoryTitle: string;
-  victoryDesc: (n: number) => string;
-  gameOverIcon: string;
-  gameOverTitle: string;
-  statsScore: string;
-  statsBest: string;
-  statsPerfect: string;
-  statsGood: string;
-  statsMiss: string;
-  statsAccuracy: string;
-  statsCombo: string;
-  btnChangeMode: string;
-  btnRetry: string;
-  btnReplay: string;
-  getRating: (acc: number) => string;
-  modes: Record<GameMode, ModeInfo>;
+  homeLink: string
+  tagline: string
+  pauseBtn: string
+  resumeBtn: string
+  shortcutPause: string
+  shortcutClick: string
+  selectModeLabel: string
+  customTitle: string
+  customMouse: string
+  customKeys: string
+  customMaxKeys: (n: number) => string
+  customHold: string
+  customMaxHold: (s: string) => string
+  bestScoreLabel: (n: number) => string
+  btnTutorial: string
+  btnStart: string
+  layoutTitle: string
+  leftHand: string
+  rightHand: string
+  lmbHint: string
+  ruleTitle: string
+  perfectLabel: string
+  perfectDesc: string
+  goodLabel: string
+  goodDesc: string
+  missLabel: string
+  missDesc: string
+  beatCount: (beats: number, bpm: number) => string
+  btnBackMode: string
+  countdownHintBasic: string
+  countdownHintCombo: string
+  holdIndicator: (s: string) => string
+  tapHintBasic: string
+  tapHintCombo: string
+  feedbackPerfect: string
+  feedbackGood: string
+  feedbackMiss: string
+  pauseTitle: string
+  pauseSubtitle: string
+  livesLabel: string
+  currentScoreLabel: string
+  beatProgress: string
+  btnGiveUp: string
+  btnContinue: string
+  shortcutContinue: string
+  shortcutMouse: string
+  victoryIcon: string
+  victoryTitle: string
+  victoryDesc: (n: number) => string
+  gameOverIcon: string
+  gameOverTitle: string
+  statsScore: string
+  statsBest: string
+  statsPerfect: string
+  statsGood: string
+  statsMiss: string
+  statsAccuracy: string
+  statsCombo: string
+  btnChangeMode: string
+  btnRetry: string
+  btnReplay: string
+  getRating: (acc: number) => string
+  modes: Record<GameMode, ModeInfo>
 }
 
 const i18n: Record<Lang, Locale> = {
   vi: {
-    homeLink: "← Về trang chủ",
-    tagline: "Trust your guts. Choose your hell.",
-    pauseBtn: "⏸ TẠM DỪNG",
-    resumeBtn: "▶ TIẾP",
-    shortcutPause: "dừng",
-    shortcutClick: "click",
-    selectModeLabel: "Chọn chế độ chơi",
-    customTitle: "Tùy chỉnh",
-    customMouse: "Bật chuột",
-    customKeys: "Bật phím A/W/S/D",
+    homeLink: '← Về trang chủ',
+    tagline: 'Trust your guts. Choose your hell.',
+    pauseBtn: '⏸ TẠM DỪNG',
+    resumeBtn: '▶ TIẾP',
+    shortcutPause: 'dừng',
+    shortcutClick: 'click',
+    selectModeLabel: 'Chọn chế độ chơi',
+    customTitle: 'Tùy chỉnh',
+    customMouse: 'Bật chuột',
+    customKeys: 'Bật phím A/W/S/D',
     customMaxKeys: (n) => `Số phím tối đa: ${n}`,
-    customHold: "Bật cơ chế giữ phím",
+    customHold: 'Bật cơ chế giữ phím',
     customMaxHold: (s) => `Giữ tối đa: ${s}s`,
     bestScoreLabel: (n) => `Kỷ lục: ${n} điểm`,
-    btnTutorial: "HƯỚNG DẪN",
-    btnStart: "BẮT ĐẦU",
-    layoutTitle: "Bố cục phím",
-    leftHand: "Tay trái",
-    rightHand: "Tay phải",
-    lmbHint: "LMB / Space",
-    ruleTitle: "Luật chơi",
-    perfectLabel: "PERFECT",
-    perfectDesc: "±350ms — Senior LGTM: +2 điểm",
-    goodLabel: "GOOD",
-    goodDesc: "±500ms — CI passed barely: +1 điểm",
-    missLabel: "MISS",
-    missDesc: "Lệch nhịp / sai nút — git blame trỏ về bạn ♥",
+    btnTutorial: 'HƯỚNG DẪN',
+    btnStart: 'BẮT ĐẦU',
+    layoutTitle: 'Bố cục phím',
+    leftHand: 'Tay trái',
+    rightHand: 'Tay phải',
+    lmbHint: 'LMB / Space',
+    ruleTitle: 'Luật chơi',
+    perfectLabel: 'PERFECT',
+    perfectDesc: '±350ms — Senior LGTM: +2 điểm',
+    goodLabel: 'GOOD',
+    goodDesc: '±500ms — CI passed barely: +1 điểm',
+    missLabel: 'MISS',
+    missDesc: 'Lệch nhịp / sai nút — git blame trỏ về bạn ♥',
     beatCount: (beats, bpm) => `${beats} beats • ${bpm} BPM`,
-    btnBackMode: "← CHỌN ĐỘ KHÓ",
-    countdownHintBasic: "Tap khi từ xuất hiện đúng nhịp.\nTheo dõi rhythm bar phía dưới!",
-    countdownHintCombo: "Nhấn đúng combo khi từ xuất hiện.\nXem phím yêu cầu ở dưới!",
+    btnBackMode: '← CHỌN ĐỘ KHÓ',
+    countdownHintBasic: 'Tap khi từ xuất hiện đúng nhịp.\nTheo dõi rhythm bar phía dưới!',
+    countdownHintCombo: 'Nhấn đúng combo khi từ xuất hiện.\nXem phím yêu cầu ở dưới!',
     holdIndicator: (s) => `⏳ GIỮ ${s}s`,
-    tapHintBasic: "— TAP NGAY KHI TỪ XUẤT HIỆN —",
-    tapHintCombo: "— NHẤN ĐÚNG COMBO KHI TỪ XUẤT HIỆN —",
-    feedbackPerfect: "LGTM! 🎯",
-    feedbackGood: "CI PASSED 👍",
-    feedbackMiss: "500 ERROR 💀",
-    pauseTitle: "TẠM DỪNG",
-    pauseSubtitle: "Nhấn P hoặc nút TIẾP để tiếp tục",
-    livesLabel: "Mạng còn",
-    currentScoreLabel: "Điểm hiện tại",
-    beatProgress: "Beat",
-    btnGiveUp: "BỎ CUỘC",
-    btnContinue: "▶ TIẾP TỤC",
-    shortcutContinue: "tiếp tục",
-    shortcutMouse: "click chuột",
-    victoryIcon: "🏆",
-    victoryTitle: "10X DEV CONFIRMED",
+    tapHintBasic: '— TAP NGAY KHI TỪ XUẤT HIỆN —',
+    tapHintCombo: '— NHẤN ĐÚNG COMBO KHI TỪ XUẤT HIỆN —',
+    feedbackPerfect: 'LGTM! 🎯',
+    feedbackGood: 'CI PASSED 👍',
+    feedbackMiss: '500 ERROR 💀',
+    pauseTitle: 'TẠM DỪNG',
+    pauseSubtitle: 'Nhấn P hoặc nút TIẾP để tiếp tục',
+    livesLabel: 'Mạng còn',
+    currentScoreLabel: 'Điểm hiện tại',
+    beatProgress: 'Beat',
+    btnGiveUp: 'BỎ CUỘC',
+    btnContinue: '▶ TIẾP TỤC',
+    shortcutContinue: 'tiếp tục',
+    shortcutMouse: 'click chuột',
+    victoryIcon: '🏆',
+    victoryTitle: '10X DEV CONFIRMED',
     victoryDesc: (n) => `git push origin main: ${n} beats. Không một revert nào.`,
-    gameOverIcon: "💀",
-    gameOverTitle: "SEGMENTATION FAULT",
-    statsScore: "Điểm",
-    statsBest: "Kỷ lục",
-    statsPerfect: "Perfect",
-    statsGood: "Good",
-    statsMiss: "Miss",
-    statsAccuracy: "Accuracy",
-    statsCombo: "Longest Combo",
-    btnChangeMode: "ĐỔI MODE",
-    btnRetry: "THỬ LẠI",
-    btnReplay: "CHƠI LẠI",
+    gameOverIcon: '💀',
+    gameOverTitle: 'SEGMENTATION FAULT',
+    statsScore: 'Điểm',
+    statsBest: 'Kỷ lục',
+    statsPerfect: 'Perfect',
+    statsGood: 'Good',
+    statsMiss: 'Miss',
+    statsAccuracy: 'Accuracy',
+    statsCombo: 'Longest Combo',
+    btnChangeMode: 'ĐỔI MODE',
+    btnRetry: 'THỬ LẠI',
+    btnReplay: 'CHƠI LẠI',
     getRating: (acc) => {
-      if (acc >= 95) return "S rank — SENIOR DEVGOD. Đòi tăng lương đi. 🏆";
-      if (acc >= 85) return "A rank — FLOW STATE ĐẠT. PR được merge không comment. 🔥";
-      if (acc >= 70) return "B rank — CI PASSED WITH WARNINGS. Cần thêm unit test. 👍";
-      if (acc >= 50) return "C rank — NEEDS REVIEW. Code review còn nhiều TODO. 😐";
-      return "D rank — 0 STARS, WOULD NOT FORK. Nghỉ ngơi đi rồi code lại. 💀";
+      if (acc >= 95) return 'S rank — SENIOR DEVGOD. Đòi tăng lương đi. 🏆'
+      if (acc >= 85) return 'A rank — FLOW STATE ĐẠT. PR được merge không comment. 🔥'
+      if (acc >= 70) return 'B rank — CI PASSED WITH WARNINGS. Cần thêm unit test. 👍'
+      if (acc >= 50) return 'C rank — NEEDS REVIEW. Code review còn nhiều TODO. 😐'
+      return 'D rank — 0 STARS, WOULD NOT FORK. Nghỉ ngơi đi rồi code lại. 💀'
     },
     modes: {
       basic: {
-        label: "BASIC",
-        emoji: "🖱️",
-        desc: "Chỉ chuột. Như debug production bằng console.log",
+        label: 'BASIC',
+        emoji: '🖱️',
+        desc: 'Chỉ chuột. Như debug production bằng console.log',
         details: [
-          "Nhấp chuột (hoặc chạm) theo đúng nhịp",
-          "PERFECT ±350ms — Senior nói LGTM: +2 điểm",
-          "GOOD ±500ms — Intern approve qua loa: +1 điểm",
-          "MISS — git blame trỏ thẳng về bạn ♥",
+          'Nhấp chuột (hoặc chạm) theo đúng nhịp',
+          'PERFECT ±350ms — Senior nói LGTM: +2 điểm',
+          'GOOD ±500ms — Intern approve qua loa: +1 điểm',
+          'MISS — git blame trỏ thẳng về bạn ♥',
         ],
       },
       medium: {
-        label: "MEDIUM",
-        emoji: "⌨️",
-        desc: "1 phím + chuột. Đủ để tạo 1 merge conflict",
+        label: 'MEDIUM',
+        emoji: '⌨️',
+        desc: '1 phím + chuột. Đủ để tạo 1 merge conflict',
         details: [
-          "Mỗi beat: 1 trong 4 phím A/W/S/D + chuột",
-          "Nhấn đủ combo trong window ±500ms là được",
-          "Bấm sai phím = push nhầm thẳng lên branch main",
-          "Tốc độ phản xạ như trả lời câu hỏi standup",
+          'Mỗi beat: 1 trong 4 phím A/W/S/D + chuột',
+          'Nhấn đủ combo trong window ±500ms là được',
+          'Bấm sai phím = push nhầm thẳng lên branch main',
+          'Tốc độ phản xạ như trả lời câu hỏi standup',
         ],
       },
       hard: {
-        label: "HARD",
-        emoji: "🔥",
-        desc: "1-2 phím ± chuột. Resolve conflict giữa buổi demo",
+        label: 'HARD',
+        emoji: '🔥',
+        desc: '1-2 phím ± chuột. Resolve conflict giữa buổi demo',
         details: [
-          "Mỗi beat: 1-2 phím A/W/S/D, chuột có hoặc không",
-          "Phải nhấn đúng và đủ combo hiển thị",
-          "Nhấn thừa/thiếu = deploy thiếu env var lên prod",
-          "Đọc combo nhanh như đọc stack trace lúc 3h sáng",
+          'Mỗi beat: 1-2 phím A/W/S/D, chuột có hoặc không',
+          'Phải nhấn đúng và đủ combo hiển thị',
+          'Nhấn thừa/thiếu = deploy thiếu env var lên prod',
+          'Đọc combo nhanh như đọc stack trace lúc 3h sáng',
         ],
       },
       asian: {
-        label: "ASIAN",
-        emoji: "🀄",
-        desc: "2-3 phím + giữ. Người dùng là tester",
+        label: 'ASIAN',
+        emoji: '🀄',
+        desc: '2-3 phím + giữ. Người dùng là tester',
         details: [
-          "Mỗi beat: 2-3 phím A/W/S/D, có thể có chuột",
-          "Một số beat yêu cầu GIỮ phím (biểu tượng ⏳)",
-          "Thả sớm = tech debt; giữ đủ = refactor hoàn hảo",
-          "Nếu thấy dễ, có thể bạn đang dùng AI để cheat",
+          'Mỗi beat: 2-3 phím A/W/S/D, có thể có chuột',
+          'Một số beat yêu cầu GIỮ phím (biểu tượng ⏳)',
+          'Thả sớm = tech debt; giữ đủ = refactor hoàn hảo',
+          'Nếu thấy dễ, có thể bạn đang dùng AI để cheat',
         ],
       },
       customized: {
-        label: "CUSTOM",
-        emoji: "⚙️",
-        desc: "Tự config như setup .vimrc của senior",
+        label: 'CUSTOM',
+        emoji: '⚙️',
+        desc: 'Tự config như setup .vimrc của senior',
         details: [
-          "Bật/tắt cơ chế chuột (feature ai cũng muốn toggle)",
-          "Bật/tắt phím A/W/S/D, chọn số phím tối đa",
-          "Bật/tắt giữ phím và thời gian giữ tối đa",
-          "Bấm sai vẫn mất mạng — không có hotpatch ở đây",
+          'Bật/tắt cơ chế chuột (feature ai cũng muốn toggle)',
+          'Bật/tắt phím A/W/S/D, chọn số phím tối đa',
+          'Bật/tắt giữ phím và thời gian giữ tối đa',
+          'Bấm sai vẫn mất mạng — không có hotpatch ở đây',
         ],
       },
     },
   },
 
   en: {
-    homeLink: "← Back home",
-    tagline: "Trust your guts. Ship the beat or get paged at 3am.",
-    pauseBtn: "⏸ PAUSE",
-    resumeBtn: "▶ RESUME",
-    shortcutPause: "pause",
-    shortcutClick: "click",
-    selectModeLabel: "Select difficulty",
-    customTitle: "Custom config",
-    customMouse: "Enable mouse",
-    customKeys: "Enable A/W/S/D keys",
+    homeLink: '← Back home',
+    tagline: 'Trust your guts. Ship the beat or get paged at 3am.',
+    pauseBtn: '⏸ PAUSE',
+    resumeBtn: '▶ RESUME',
+    shortcutPause: 'pause',
+    shortcutClick: 'click',
+    selectModeLabel: 'Select difficulty',
+    customTitle: 'Custom config',
+    customMouse: 'Enable mouse',
+    customKeys: 'Enable A/W/S/D keys',
     customMaxKeys: (n) => `Max keys: ${n}`,
-    customHold: "Enable hold mechanic",
+    customHold: 'Enable hold mechanic',
     customMaxHold: (s) => `Max hold: ${s}s`,
     bestScoreLabel: (n) => `Personal best: ${n} pts`,
-    btnTutorial: "HOW TO PLAY",
-    btnStart: "START",
-    layoutTitle: "Key layout",
-    leftHand: "Left hand",
-    rightHand: "Right hand",
-    lmbHint: "LMB / Space",
-    ruleTitle: "Rules",
-    perfectLabel: "PERFECT",
-    perfectDesc: "±350ms — Senior LGTM: +2 pts",
-    goodLabel: "GOOD",
-    goodDesc: "±500ms — CI barely passed: +1 pt",
-    missLabel: "MISS",
-    missDesc: "Off-beat / wrong key — git blame is you ♥",
+    btnTutorial: 'HOW TO PLAY',
+    btnStart: 'START',
+    layoutTitle: 'Key layout',
+    leftHand: 'Left hand',
+    rightHand: 'Right hand',
+    lmbHint: 'LMB / Space',
+    ruleTitle: 'Rules',
+    perfectLabel: 'PERFECT',
+    perfectDesc: '±350ms — Senior LGTM: +2 pts',
+    goodLabel: 'GOOD',
+    goodDesc: '±500ms — CI barely passed: +1 pt',
+    missLabel: 'MISS',
+    missDesc: 'Off-beat / wrong key — git blame is you ♥',
     beatCount: (beats, bpm) => `${beats} beats • ${bpm} BPM`,
-    btnBackMode: "← CHANGE MODE",
-    countdownHintBasic: "Tap on the beat.\nWatch the rhythm bar below!",
-    countdownHintCombo: "Hit the correct combo on the beat.\nCheck the key display below!",
+    btnBackMode: '← CHANGE MODE',
+    countdownHintBasic: 'Tap on the beat.\nWatch the rhythm bar below!',
+    countdownHintCombo: 'Hit the correct combo on the beat.\nCheck the key display below!',
     holdIndicator: (s) => `⏳ HOLD ${s}s`,
-    tapHintBasic: "— TAP ON THE BEAT —",
-    tapHintCombo: "— HIT THE CORRECT COMBO —",
-    feedbackPerfect: "LGTM! 🎯",
-    feedbackGood: "CI PASSED 👍",
-    feedbackMiss: "500 ERROR 💀",
-    pauseTitle: "PAUSED",
-    pauseSubtitle: "Press P or click RESUME to continue",
-    livesLabel: "Lives left",
-    currentScoreLabel: "Current score",
-    beatProgress: "Beat",
-    btnGiveUp: "GIVE UP",
-    btnContinue: "▶ RESUME",
-    shortcutContinue: "resume",
-    shortcutMouse: "click",
-    victoryIcon: "🏆",
-    victoryTitle: "10X DEV CONFIRMED",
+    tapHintBasic: '— TAP ON THE BEAT —',
+    tapHintCombo: '— HIT THE CORRECT COMBO —',
+    feedbackPerfect: 'LGTM! 🎯',
+    feedbackGood: 'CI PASSED 👍',
+    feedbackMiss: '500 ERROR 💀',
+    pauseTitle: 'PAUSED',
+    pauseSubtitle: 'Press P or click RESUME to continue',
+    livesLabel: 'Lives left',
+    currentScoreLabel: 'Current score',
+    beatProgress: 'Beat',
+    btnGiveUp: 'GIVE UP',
+    btnContinue: '▶ RESUME',
+    shortcutContinue: 'resume',
+    shortcutMouse: 'click',
+    victoryIcon: '🏆',
+    victoryTitle: '10X DEV CONFIRMED',
     victoryDesc: (n) => `git push origin main: ${n} beats. Zero reverts.`,
-    gameOverIcon: "💀",
-    gameOverTitle: "SEGMENTATION FAULT",
-    statsScore: "Score",
-    statsBest: "Best",
-    statsPerfect: "Perfect",
-    statsGood: "Good",
-    statsMiss: "Miss",
-    statsAccuracy: "Accuracy",
-    statsCombo: "Longest Combo",
-    btnChangeMode: "CHANGE MODE",
-    btnRetry: "RETRY",
-    btnReplay: "REPLAY",
+    gameOverIcon: '💀',
+    gameOverTitle: 'SEGMENTATION FAULT',
+    statsScore: 'Score',
+    statsBest: 'Best',
+    statsPerfect: 'Perfect',
+    statsGood: 'Good',
+    statsMiss: 'Miss',
+    statsAccuracy: 'Accuracy',
+    statsCombo: 'Longest Combo',
+    btnChangeMode: 'CHANGE MODE',
+    btnRetry: 'RETRY',
+    btnReplay: 'REPLAY',
     getRating: (acc) => {
-      if (acc >= 95) return "S rank — DEVGOD. Time to ask for that raise. 🏆";
-      if (acc >= 85) return "A rank — IN THE ZONE. PR merged, zero comments. 🔥";
-      if (acc >= 70) return "B rank — LGTM WITH NITS. Needs more unit tests. 👍";
-      if (acc >= 50) return "C rank — NEEDS REVIEW. Several TODO comments remain. 😐";
-      return "D rank — 0 STARS, WOULD NOT FORK. Touch grass first. 💀";
+      if (acc >= 95) return 'S rank — DEVGOD. Time to ask for that raise. 🏆'
+      if (acc >= 85) return 'A rank — IN THE ZONE. PR merged, zero comments. 🔥'
+      if (acc >= 70) return 'B rank — LGTM WITH NITS. Needs more unit tests. 👍'
+      if (acc >= 50) return 'C rank — NEEDS REVIEW. Several TODO comments remain. 😐'
+      return 'D rank — 0 STARS, WOULD NOT FORK. Touch grass first. 💀'
     },
     modes: {
       basic: {
-        label: "BASIC",
-        emoji: "🖱️",
-        desc: "Just click. Like debug production with console.log",
+        label: 'BASIC',
+        emoji: '🖱️',
+        desc: 'Just click. Like debug production with console.log',
         details: [
-          "Click (or tap) on every beat",
-          "PERFECT ±350ms — LGTM approved: +2 pts",
-          "GOOD ±500ms — Intern barely approved: +1 pt",
-          "MISS — git blame points directly at you ♥",
+          'Click (or tap) on every beat',
+          'PERFECT ±350ms — LGTM approved: +2 pts',
+          'GOOD ±500ms — Intern barely approved: +1 pt',
+          'MISS — git blame points directly at you ♥',
         ],
       },
       medium: {
-        label: "MEDIUM",
-        emoji: "⌨️",
-        desc: "1 key + click. Like a 2-commit PR with conflicts",
+        label: 'MEDIUM',
+        emoji: '⌨️',
+        desc: '1 key + click. Like a 2-commit PR with conflicts',
         details: [
-          "Each beat: 1 of A/W/S/D + mouse click",
-          "Hit the full combo within ±500ms window",
-          "Wrong key = accidentally pushed to main",
-          "Reaction speed required: standup-answer velocity",
+          'Each beat: 1 of A/W/S/D + mouse click',
+          'Hit the full combo within ±500ms window',
+          'Wrong key = accidentally pushed to main',
+          'Reaction speed required: standup-answer velocity',
         ],
       },
       hard: {
-        label: "HARD",
-        emoji: "🔥",
-        desc: "1-2 keys ± click. Resolving conflicts mid-demo",
+        label: 'HARD',
+        emoji: '🔥',
+        desc: '1-2 keys ± click. Resolving conflicts mid-demo',
         details: [
-          "Each beat: 1-2 keys, mouse optional",
-          "Hit the exact displayed combo",
-          "Wrong/missing input = missing env var on prod",
-          "Read combos as fast as you read stack traces at 3am",
+          'Each beat: 1-2 keys, mouse optional',
+          'Hit the exact displayed combo',
+          'Wrong/missing input = missing env var on prod',
+          'Read combos as fast as you read stack traces at 3am',
         ],
       },
       asian: {
-        label: "ASIAN",
-        emoji: "🀄",
-        desc: "2-3 keys + hold. Your users, our testers",
+        label: 'ASIAN',
+        emoji: '🀄',
+        desc: '2-3 keys + hold. Your users, our testers',
         details: [
-          "Each beat: 2-3 keys, sometimes with mouse",
-          "Some beats require HOLDING (⏳)",
-          "Early release = tech debt; full hold = clean refactor",
-          "If this feels easy, you might be using AI to cheat",
+          'Each beat: 2-3 keys, sometimes with mouse',
+          'Some beats require HOLDING (⏳)',
+          'Early release = tech debt; full hold = clean refactor',
+          'If this feels easy, you might be using AI to cheat',
         ],
       },
       customized: {
-        label: "CUSTOM",
-        emoji: "⚙️",
-        desc: "Configure it yourself. Like setting up .vimrc.",
+        label: 'CUSTOM',
+        emoji: '⚙️',
+        desc: 'Configure it yourself. Like setting up .vimrc.',
         details: [
-          "Toggle mouse input (the feature everyone wants to disable)",
-          "Toggle A/W/S/D keys, set max simultaneous keys",
-          "Toggle hold mechanic and max hold duration",
-          "Wrong inputs still cost lives — no hotpatch available",
+          'Toggle mouse input (the feature everyone wants to disable)',
+          'Toggle A/W/S/D keys, set max simultaneous keys',
+          'Toggle hold mechanic and max hold duration',
+          'Wrong inputs still cost lives — no hotpatch available',
         ],
       },
     },
   },
-};
+}
 
-const t = computed(() => i18n[lang.value]);
+const t = computed(() => i18n[lang.value])
 
 // ─── Game State ──────────────────────────────────────────
-const phase = ref<GamePhase>("idle");
-const lives = ref(3);
-const countdownNum = ref(3);
-const isVictory = ref(false);
+const phase = ref<GamePhase>('idle')
+const lives = ref(3)
+const countdownNum = ref(3)
+const isVictory = ref(false)
 
 // Hit feedback
-const hitFeedback = ref<HitResult | null>(null);
-const showFeedback = ref(false);
+const hitFeedback = ref<HitResult | null>(null)
+const showFeedback = ref(false)
 
 // Stats
-const perfectHits = ref(0);
-const goodHits = ref(0);
-const missCount = ref(0);
-const bestScore = ref(0);
+const perfectHits = ref(0)
+const goodHits = ref(0)
+const missCount = ref(0)
+const bestScore = ref(0)
 
 // Per-beat input tracking (accumulates presses, resets on new beat)
-const currentBeatKeys = ref<Set<KeyButton>>(new Set());
-const currentBeatMouse = ref(false);
-const currentBeatSolved = ref(false);
+const currentBeatKeys = ref<Set<KeyButton>>(new Set())
+const currentBeatMouse = ref(false)
+const currentBeatSolved = ref(false)
 
 // Hold mechanic state
-const isHolding = ref(false);
-const holdStartTime = ref(0);
-const holdRequired = ref(0);
-const holdChallenge = ref<BeatChallenge | null>(null);
+const isHolding = ref(false)
+const holdStartTime = ref(0)
+const holdRequired = ref(0)
+const holdChallenge = ref<BeatChallenge | null>(null)
 
 // Combo tracking
-const currentCombo = ref(0);
-const longestCombo = ref(0);
+const currentCombo = ref(0)
+const longestCombo = ref(0)
 
 // ─── Computed ─────────────────────────────────────────────
-const score = computed(() => perfectHits.value * 2 + goodHits.value);
+const score = computed(() => perfectHits.value * 2 + goodHits.value)
 const accuracy = computed(() => {
-  const total = perfectHits.value + goodHits.value + missCount.value;
-  if (total === 0) return 100;
-  return Math.round(((perfectHits.value * 2 + goodHits.value) / (total * 2)) * 100);
-});
+  const total = perfectHits.value + goodHits.value + missCount.value
+  if (total === 0) return 100
+  return Math.round(((perfectHits.value * 2 + goodHits.value) / (total * 2)) * 100)
+})
 const progressPct = computed(() =>
   Math.round((rhythm.currentBeatIndex.value / GAME_CONFIG.totalBeats) * 100),
-);
+)
 
 const currentChallenge = computed<BeatChallenge | null>(() =>
   gameMode.getChallengeAt(rhythm.currentBeatIndex.value),
-);
+)
 
 // ─── Animation Frame ─────────────────────────────────────
-let rafId = 0;
+let rafId = 0
 
 function gameLoop() {
-  if (phase.value !== "playing") return;
-  const audioEl = audio.getMusicElement();
-  if (audioEl) rhythm.update(audioEl.currentTime);
+  if (phase.value !== 'playing') return
+  const audioEl = audio.getMusicElement()
+  if (audioEl) rhythm.update(audioEl.currentTime)
   if (rhythm.isComplete.value) {
-    endGame(true);
-    return;
+    endGame(true)
+    return
   }
-  rafId = requestAnimationFrame(gameLoop);
+  rafId = requestAnimationFrame(gameLoop)
 }
 
 // Reset per-beat state when beat advances
 watch(
   () => rhythm.currentBeatIndex.value,
   () => {
-    currentBeatKeys.value = new Set();
-    currentBeatMouse.value = false;
-    currentBeatSolved.value = false;
+    currentBeatKeys.value = new Set()
+    currentBeatMouse.value = false
+    currentBeatSolved.value = false
   },
-);
+)
 
 // ─── Auto-miss callback ───────────────────────────────────
 function handleAutoMiss() {
-  if (isHolding.value) return;
-  if (currentBeatSolved.value) return;
-  missCount.value++;
-  currentCombo.value = 0;
-  audio.playFail();
-  lives.value--;
-  currentBeatSolved.value = true;
+  if (isHolding.value) return
+  if (currentBeatSolved.value) return
+  missCount.value++
+  currentCombo.value = 0
+  audio.playFail()
+  lives.value--
+  currentBeatSolved.value = true
   if (lives.value <= 0) {
-    endGame(false);
-    return;
+    endGame(false)
+    return
   }
-  showHitFeedback("miss");
+  showHitFeedback('miss')
 }
 
 // ─── Game Flow ────────────────────────────────────────────
 async function startGame() {
-  if (phase.value !== "idle" && phase.value !== "dead") return;
-  audio.init();
-  lives.value = 3;
-  perfectHits.value = 0;
-  goodHits.value = 0;
-  missCount.value = 0;
-  hitFeedback.value = null;
-  showFeedback.value = false;
-  isVictory.value = false;
-  isHolding.value = false;
-  currentBeatKeys.value = new Set();
-  currentBeatMouse.value = false;
-  currentBeatSolved.value = false;
-  currentCombo.value = 0;
-  longestCombo.value = 0;
-  rhythm.reset();
-  gameMode.generateChallenges();
+  if (phase.value !== 'idle' && phase.value !== 'dead') return
+  audio.init()
+  lives.value = 3
+  perfectHits.value = 0
+  goodHits.value = 0
+  missCount.value = 0
+  hitFeedback.value = null
+  showFeedback.value = false
+  isVictory.value = false
+  isHolding.value = false
+  currentBeatKeys.value = new Set()
+  currentBeatMouse.value = false
+  currentBeatSolved.value = false
+  currentCombo.value = 0
+  longestCombo.value = 0
+  rhythm.reset()
+  gameMode.generateChallenges()
 
-  phase.value = "countdown";
+  phase.value = 'countdown'
   for (let i = 3; i >= 1; i--) {
-    if (phase.value !== "countdown") return;
-    countdownNum.value = i;
-    audio.playTick();
-    await sleep(700);
+    if (phase.value !== 'countdown') return
+    countdownNum.value = i
+    audio.playTick()
+    await sleep(700)
   }
 
-  phase.value = "playing";
-  audio.startMusic();
-  rhythm.start();
-  rhythm.setAutoMissCallback(handleAutoMiss);
-  rafId = requestAnimationFrame(gameLoop);
+  phase.value = 'playing'
+  audio.startMusic()
+  rhythm.start()
+  rhythm.setAutoMissCallback(handleAutoMiss)
+  rafId = requestAnimationFrame(gameLoop)
 }
 
 function togglePause() {
-  if (phase.value === "playing") {
-    phase.value = "paused";
-    cancelAnimationFrame(rafId);
-    audio.pauseMusic();
-    rhythm.stop();
-  } else if (phase.value === "paused") {
-    phase.value = "playing";
-    audio.resumeMusic();
-    rhythm.resume();
-    rhythm.setAutoMissCallback(handleAutoMiss);
-    rafId = requestAnimationFrame(gameLoop);
+  if (phase.value === 'playing') {
+    phase.value = 'paused'
+    cancelAnimationFrame(rafId)
+    audio.pauseMusic()
+    rhythm.stop()
+  } else if (phase.value === 'paused') {
+    phase.value = 'playing'
+    audio.resumeMusic()
+    rhythm.resume()
+    rhythm.setAutoMissCallback(handleAutoMiss)
+    rafId = requestAnimationFrame(gameLoop)
   }
 }
 
 function showHitFeedback(result: HitResult) {
-  hitFeedback.value = result;
-  showFeedback.value = true;
+  hitFeedback.value = result
+  showFeedback.value = true
   setTimeout(() => {
-    showFeedback.value = false;
-  }, 400);
+    showFeedback.value = false
+  }, 400)
 }
 
 function endGame(victory: boolean) {
-  isVictory.value = victory;
-  phase.value = "dead";
-  cancelAnimationFrame(rafId);
-  rhythm.stop();
-  audio.stopMusic();
-  isHolding.value = false;
-  currentBeatKeys.value = new Set();
-  currentBeatMouse.value = false;
-  currentBeatSolved.value = false;
-  const s = score.value;
+  isVictory.value = victory
+  phase.value = 'dead'
+  cancelAnimationFrame(rafId)
+  rhythm.stop()
+  audio.stopMusic()
+  isHolding.value = false
+  currentBeatKeys.value = new Set()
+  currentBeatMouse.value = false
+  currentBeatSolved.value = false
+  const s = score.value
   if (s > bestScore.value) {
-    bestScore.value = s;
-    localStorage.setItem("press-it-best", s.toString());
+    bestScore.value = s
+    localStorage.setItem('press-it-best', s.toString())
   }
 }
 
 // ─── Input handling ───────────────────────────────────────
 function isInBeatWindow(): boolean {
-  const audioEl = audio.getMusicElement();
-  if (!audioEl || !rhythm.currentBeat.value) return false;
-  const delta = Math.abs(audioEl.currentTime - rhythm.currentBeat.value.time);
-  return delta <= GAME_CONFIG.goodWindow;
+  const audioEl = audio.getMusicElement()
+  if (!audioEl || !rhythm.currentBeat.value) return false
+  const delta = Math.abs(audioEl.currentTime - rhythm.currentBeat.value.time)
+  return delta <= GAME_CONFIG.goodWindow
 }
 
 function getAudioTime(): number {
-  return audio.getMusicElement()?.currentTime ?? 0;
+  return audio.getMusicElement()?.currentTime ?? 0
 }
 
-function recordHit(result: "perfect" | "good") {
-  currentCombo.value++;
-  if (currentCombo.value > longestCombo.value) longestCombo.value = currentCombo.value;
-  if (result === "perfect") {
-    perfectHits.value++;
-    audio.playDoubleJump();
-    showHitFeedback("perfect");
+function recordHit(result: 'perfect' | 'good') {
+  currentCombo.value++
+  if (currentCombo.value > longestCombo.value) longestCombo.value = currentCombo.value
+  if (result === 'perfect') {
+    perfectHits.value++
+    audio.playDoubleJump()
+    showHitFeedback('perfect')
   } else {
-    goodHits.value++;
-    audio.playJump();
-    showHitFeedback("good");
+    goodHits.value++
+    audio.playJump()
+    showHitFeedback('good')
   }
 }
 
 function tryEvaluateCombo() {
-  const challenge = currentChallenge.value;
-  if (!challenge || phase.value !== "playing" || currentBeatSolved.value) return;
+  const challenge = currentChallenge.value
+  if (!challenge || phase.value !== 'playing' || currentBeatSolved.value) return
 
-  const allKeysDown = challenge.keys.every((k) => currentBeatKeys.value.has(k));
-  const mouseOk = !challenge.mouse || currentBeatMouse.value;
+  const allKeysDown = challenge.keys.every((k) => currentBeatKeys.value.has(k))
+  const mouseOk = !challenge.mouse || currentBeatMouse.value
 
   if (allKeysDown && mouseOk) {
-    const tapTime = getAudioTime();
-    const result = rhythm.evaluateTap(tapTime);
+    const tapTime = getAudioTime()
+    const result = rhythm.evaluateTap(tapTime)
 
-    if (result === "miss") {
-      currentBeatSolved.value = true;
-      missCount.value++;
-      currentCombo.value = 0;
-      audio.playFail();
-      lives.value--;
+    if (result === 'miss') {
+      currentBeatSolved.value = true
+      missCount.value++
+      currentCombo.value = 0
+      audio.playFail()
+      lives.value--
       if (lives.value <= 0) {
-        endGame(false);
-        return;
+        endGame(false)
+        return
       }
-      showHitFeedback("miss");
-      return;
+      showHitFeedback('miss')
+      return
     }
 
-    currentBeatSolved.value = true;
+    currentBeatSolved.value = true
     if (challenge.holdDuration > 0) {
-      isHolding.value = true;
-      holdStartTime.value = performance.now() / 1000;
-      holdRequired.value = challenge.holdDuration;
-      holdChallenge.value = challenge;
+      isHolding.value = true
+      holdStartTime.value = performance.now() / 1000
+      holdRequired.value = challenge.holdDuration
+      holdChallenge.value = challenge
     } else {
-      recordHit(result);
-      rhythm.advanceBeat();
+      recordHit(result)
+      rhythm.advanceBeat()
     }
   }
 }
 
 function handleKeyDown(e: KeyboardEvent) {
-  if (e.repeat) return;
+  if (e.repeat) return
 
-  if (e.key.toLowerCase() === "p" && (phase.value === "playing" || phase.value === "paused")) {
-    e.preventDefault();
-    togglePause();
-    return;
+  if (e.key.toLowerCase() === 'p' && (phase.value === 'playing' || phase.value === 'paused')) {
+    e.preventDefault()
+    togglePause()
+    return
   }
 
-  if (e.code === "Space" && phase.value === "playing") {
-    e.preventDefault();
-    handleMouseInput();
-    return;
+  if (e.code === 'Space' && phase.value === 'playing') {
+    e.preventDefault()
+    handleMouseInput()
+    return
   }
 
-  if (phase.value !== "playing") return;
+  if (phase.value !== 'playing') return
 
   const keyMap: Record<string, KeyButton> = {
-    a: "A",
-    w: "W",
-    s: "S",
-    d: "D",
-    A: "A",
-    W: "W",
-    S: "S",
-    D: "D",
-  };
-  const key = keyMap[e.key];
-  if (!key) return;
+    a: 'A',
+    w: 'W',
+    s: 'S',
+    d: 'D',
+    A: 'A',
+    W: 'W',
+    S: 'S',
+    D: 'D',
+  }
+  const key = keyMap[e.key]
+  if (!key) return
 
-  e.preventDefault();
+  e.preventDefault()
 
-  const challenge = currentChallenge.value;
-  if (!challenge) return;
+  const challenge = currentChallenge.value
+  if (!challenge) return
 
   if (!challenge.keys.includes(key)) {
     if (isInBeatWindow() && !currentBeatSolved.value) {
-      currentBeatSolved.value = true;
-      missCount.value++;
-      currentCombo.value = 0;
-      audio.playFail();
-      lives.value--;
+      currentBeatSolved.value = true
+      missCount.value++
+      currentCombo.value = 0
+      audio.playFail()
+      lives.value--
       if (lives.value <= 0) {
-        endGame(false);
-        return;
+        endGame(false)
+        return
       }
-      showHitFeedback("miss");
+      showHitFeedback('miss')
     }
-    return;
+    return
   }
 
-  currentBeatKeys.value = new Set([...currentBeatKeys.value, key]);
-  tryEvaluateCombo();
+  currentBeatKeys.value = new Set([...currentBeatKeys.value, key])
+  tryEvaluateCombo()
 }
 
 function handleKeyUp(e: KeyboardEvent) {
   const keyMap: Record<string, KeyButton> = {
-    a: "A",
-    w: "W",
-    s: "S",
-    d: "D",
-    A: "A",
-    W: "W",
-    S: "S",
-    D: "D",
-  };
-  const key = keyMap[e.key];
-  if (!key) return;
-  if (isHolding.value) resolveHold();
+    a: 'A',
+    w: 'W',
+    s: 'S',
+    d: 'D',
+    A: 'A',
+    W: 'W',
+    S: 'S',
+    D: 'D',
+  }
+  const key = keyMap[e.key]
+  if (!key) return
+  if (isHolding.value) resolveHold()
 }
 
 function handleMouseInput() {
-  if (phase.value !== "playing") return;
+  if (phase.value !== 'playing') return
 
-  const challenge = currentChallenge.value;
-  if (!challenge) return;
+  const challenge = currentChallenge.value
+  if (!challenge) return
 
-  if (gameMode.selectedMode.value === "basic") {
-    if (currentBeatSolved.value) return;
-    currentBeatSolved.value = true;
-    const tapTime = getAudioTime();
-    const result = rhythm.evaluateTap(tapTime);
-    if (result === "perfect" || result === "good") {
-      recordHit(result);
+  if (gameMode.selectedMode.value === 'basic') {
+    if (currentBeatSolved.value) return
+    currentBeatSolved.value = true
+    const tapTime = getAudioTime()
+    const result = rhythm.evaluateTap(tapTime)
+    if (result === 'perfect' || result === 'good') {
+      recordHit(result)
     } else {
-      missCount.value++;
-      currentCombo.value = 0;
-      audio.playFail();
-      lives.value--;
+      missCount.value++
+      currentCombo.value = 0
+      audio.playFail()
+      lives.value--
       if (lives.value <= 0) {
-        endGame(false);
-        return;
+        endGame(false)
+        return
       }
-      showHitFeedback("miss");
+      showHitFeedback('miss')
     }
-    rhythm.advanceBeat();
-    return;
+    rhythm.advanceBeat()
+    return
   }
 
   if (!challenge.mouse) {
     if (isInBeatWindow() && !currentBeatSolved.value) {
-      currentBeatSolved.value = true;
-      missCount.value++;
-      currentCombo.value = 0;
-      audio.playFail();
-      lives.value--;
+      currentBeatSolved.value = true
+      missCount.value++
+      currentCombo.value = 0
+      audio.playFail()
+      lives.value--
       if (lives.value <= 0) {
-        endGame(false);
-        return;
+        endGame(false)
+        return
       }
-      showHitFeedback("miss");
+      showHitFeedback('miss')
     }
-    return;
+    return
   }
 
-  currentBeatMouse.value = true;
-  tryEvaluateCombo();
+  currentBeatMouse.value = true
+  tryEvaluateCombo()
 }
 
 function handleMouseUp() {
-  if (isHolding.value) resolveHold();
+  if (isHolding.value) resolveHold()
 }
 
 function resolveHold() {
-  if (!isHolding.value) return;
-  const held = performance.now() / 1000 - holdStartTime.value;
-  isHolding.value = false;
-  holdChallenge.value = null;
-  recordHit(held >= holdRequired.value ? "perfect" : "good");
-  rhythm.advanceBeat();
+  if (!isHolding.value) return
+  const held = performance.now() / 1000 - holdStartTime.value
+  isHolding.value = false
+  holdChallenge.value = null
+  recordHit(held >= holdRequired.value ? 'perfect' : 'good')
+  rhythm.advanceBeat()
 }
 
 function sleep(ms: number): Promise<void> {
-  return new Promise((r) => setTimeout(r, ms));
+  return new Promise((r) => setTimeout(r, ms))
 }
 
 onMounted(() => {
-  const saved = localStorage.getItem("press-it-best");
-  if (saved) bestScore.value = parseInt(saved, 10);
-  const savedLang = localStorage.getItem("press-it-lang");
-  if (savedLang === "vi" || savedLang === "en") lang.value = savedLang;
-  window.addEventListener("keydown", handleKeyDown);
-  window.addEventListener("keyup", handleKeyUp);
-});
+  const saved = localStorage.getItem('press-it-best')
+  if (saved) bestScore.value = parseInt(saved, 10)
+  const savedLang = localStorage.getItem('press-it-lang')
+  if (savedLang === 'vi' || savedLang === 'en') lang.value = savedLang
+  window.addEventListener('keydown', handleKeyDown)
+  window.addEventListener('keyup', handleKeyUp)
+})
 
 onUnmounted(() => {
-  cancelAnimationFrame(rafId);
-  audio.destroy();
-  window.removeEventListener("keydown", handleKeyDown);
-  window.removeEventListener("keyup", handleKeyUp);
-});
+  cancelAnimationFrame(rafId)
+  audio.destroy()
+  window.removeEventListener('keydown', handleKeyDown)
+  window.removeEventListener('keyup', handleKeyUp)
+})
 
 function toggleLang() {
-  lang.value = lang.value === "vi" ? "en" : "vi";
-  localStorage.setItem("press-it-lang", lang.value);
+  lang.value = lang.value === 'vi' ? 'en' : 'vi'
+  localStorage.setItem('press-it-lang', lang.value)
 }
 </script>
 
@@ -764,7 +764,7 @@ function toggleLang() {
           @click.stop="togglePause"
           @pointerdown.stop
         >
-          {{ phase === "paused" ? t.resumeBtn : t.pauseBtn }}
+          {{ phase === 'paused' ? t.resumeBtn : t.pauseBtn }}
         </button>
         <!-- Lang toggle -->
         <button
@@ -772,14 +772,14 @@ function toggleLang() {
           @click="toggleLang"
           @pointerdown.stop
         >
-          {{ lang === "vi" ? "EN" : "VI" }}
+          {{ lang === 'vi' ? 'EN' : 'VI' }}
         </button>
         <button
           class="text-text-secondary hover:text-text-primary transition-colors text-lg px-1"
           @pointerdown.stop
           @click="audio.toggleMute()"
         >
-          {{ audio.isMuted.value ? "🔇" : "🔊" }}
+          {{ audio.isMuted.value ? '🔇' : '🔊' }}
         </button>
       </div>
     </header>
@@ -932,7 +932,7 @@ function toggleLang() {
           class="flex items-start gap-2 text-sm text-text-secondary"
         >
           <span class="text-accent-coral shrink-0 font-display text-xs mt-0.5">{{
-            String(i + 1).padStart(2, "0")
+            String(i + 1).padStart(2, '0')
           }}</span>
           <span>{{ detail }}</span>
         </div>

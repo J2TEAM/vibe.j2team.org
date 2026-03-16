@@ -39,7 +39,10 @@ const moodCardClass = computed(() => {
         <span class="text-accent-amber text-sm tracking-widest">//</span>
         Điểm tổng hợp
       </h2>
-      <span class="border border-border-default bg-bg-deep px-2 py-1 font-display text-[10px] tracking-widest" :class="scoreClass">
+      <span
+        class="border border-border-default bg-bg-deep px-2 py-1 font-display text-[10px] tracking-widest"
+        :class="scoreClass"
+      >
         {{ statusLabel }}
       </span>
     </div>

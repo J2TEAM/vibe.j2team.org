@@ -73,9 +73,15 @@ function adjustBirthYear(index: number, delta: number): void {
 </script>
 
 <template>
-  <main class="relative min-h-screen overflow-hidden bg-bg-deep px-4 py-8 text-text-primary sm:px-6">
-    <div class="pointer-events-none absolute -left-28 top-24 h-64 w-64 rounded-full bg-accent-coral/10 blur-3xl" />
-    <div class="pointer-events-none absolute -right-20 top-52 h-56 w-56 rounded-full bg-accent-amber/10 blur-3xl" />
+  <main
+    class="relative min-h-screen overflow-hidden bg-bg-deep px-4 py-8 text-text-primary sm:px-6"
+  >
+    <div
+      class="pointer-events-none absolute -left-28 top-24 h-64 w-64 rounded-full bg-accent-coral/10 blur-3xl"
+    />
+    <div
+      class="pointer-events-none absolute -right-20 top-52 h-56 w-56 rounded-full bg-accent-amber/10 blur-3xl"
+    />
 
     <section class="relative mx-auto max-w-5xl animate-fade-up">
       <RouterLink
@@ -97,13 +103,15 @@ function adjustBirthYear(index: number, delta: number): void {
           Deploy Hành Thông
         </h1>
         <p class="mt-3 text-sm text-text-secondary sm:text-base">
-          Hệ thống hỗ trợ chọn thời điểm release dựa trên tín hiệu thời gian, cấu hình rủi ro và thông
-          số kỹ thuật hiện tại.
+          Hệ thống hỗ trợ chọn thời điểm release dựa trên tín hiệu thời gian, cấu hình rủi ro và
+          thông số kỹ thuật hiện tại.
         </p>
       </header>
 
       <div class="mt-5 grid gap-5 lg:grid-cols-[1.2fr_1fr]">
-        <article class="border border-border-default bg-bg-surface p-5 animate-fade-up animate-delay-2">
+        <article
+          class="border border-border-default bg-bg-surface p-5 animate-fade-up animate-delay-2"
+        >
           <h2 class="flex items-center gap-2 font-display text-lg text-text-primary">
             <span class="text-accent-coral text-sm tracking-widest">//</span>
             Team mode
@@ -120,8 +128,10 @@ function adjustBirthYear(index: number, delta: number): void {
                 type="text"
                 placeholder="Tên người deploy"
                 class="w-full border border-border-default bg-bg-surface px-3 py-2 text-sm text-text-primary outline-none transition-colors focus:border-accent-coral"
+              />
+              <div
+                class="grid grid-cols-[34px_1fr_34px] border border-border-default bg-bg-surface"
               >
-              <div class="grid grid-cols-[34px_1fr_34px] border border-border-default bg-bg-surface">
                 <button
                   type="button"
                   class="inline-flex items-center justify-center border-r border-border-default text-text-secondary transition hover:bg-bg-elevated hover:text-text-primary"
@@ -137,7 +147,7 @@ function adjustBirthYear(index: number, delta: number): void {
                   max="2100"
                   placeholder="Năm sinh"
                   class="no-spinner w-full bg-transparent px-2 py-2 text-center text-sm text-text-primary outline-none"
-                >
+                />
 
                 <button
                   type="button"
@@ -193,16 +203,28 @@ function adjustBirthYear(index: number, delta: number): void {
 
             <label class="block text-sm">
               <span class="text-text-secondary">Test pass rate: {{ testPassRate }}%</span>
-              <input v-model.number="testPassRate" type="range" min="40" max="100" class="mt-2 w-full">
+              <input
+                v-model.number="testPassRate"
+                type="range"
+                min="40"
+                max="100"
+                class="mt-2 w-full"
+              />
             </label>
 
             <label class="block text-sm">
               <span class="text-text-secondary">Files changed: {{ filesChanged }}</span>
-              <input v-model.number="filesChanged" type="range" min="1" max="300" class="mt-2 w-full">
+              <input
+                v-model.number="filesChanged"
+                type="range"
+                min="1"
+                max="300"
+                class="mt-2 w-full"
+              />
             </label>
 
             <label class="inline-flex items-center gap-2 text-sm text-text-secondary sm:col-span-2">
-              <input v-model="hasRollbackPlan" type="checkbox" class="size-4 accent-accent-coral">
+              <input v-model="hasRollbackPlan" type="checkbox" class="size-4 accent-accent-coral" />
               Có rollback plan rõ ràng
             </label>
           </div>
@@ -263,7 +285,9 @@ function adjustBirthYear(index: number, delta: number): void {
         <HistoryList :items="history" @clear="clearHistory" />
       </div>
 
-      <p class="mt-5 border border-border-default bg-bg-surface p-4 text-xs text-text-dim animate-fade-up animate-delay-4">
+      <p
+        class="mt-5 border border-border-default bg-bg-surface p-4 text-xs text-text-dim animate-fade-up animate-delay-4"
+      >
         Lưu ý: Công cụ chỉ mang tính giải trí và tham khảo. Trước khi release, luôn kiểm tra test,
         backup, monitoring và kế hoạch rollback.
       </p>

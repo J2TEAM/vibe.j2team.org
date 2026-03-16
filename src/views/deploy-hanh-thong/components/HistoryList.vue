@@ -28,23 +28,33 @@ const emit = defineEmits<{
       </button>
     </div>
 
-    <div v-if="items.length === 0" class="mt-4 border border-dashed border-border-default bg-bg-deep p-5">
+    <div
+      v-if="items.length === 0"
+      class="mt-4 border border-dashed border-border-default bg-bg-deep p-5"
+    >
       <p class="inline-flex items-center gap-2 font-display text-sm text-text-primary">
         <Icon icon="lucide:inbox" class="size-4 text-accent-sky" />
         Chưa có snapshot nào
       </p>
       <p class="mt-2 text-sm text-text-secondary">
-        Hãy bấm <span class="text-accent-coral">Lưu snapshot</span> ở phía trên để tạo mốc so sánh cho các lần release sau.
+        Hãy bấm <span class="text-accent-coral">Lưu snapshot</span> ở phía trên để tạo mốc so sánh
+        cho các lần release sau.
       </p>
     </div>
 
     <ul v-else class="mt-4 space-y-2 text-xs text-text-secondary">
-      <li v-for="item in items.slice(0, 6)" :key="item.id" class="border border-border-default bg-bg-deep p-3">
-        <p class="font-display text-sm text-text-primary">{{ item.score }} điểm - {{ item.releaseType }}</p>
+      <li
+        v-for="item in items.slice(0, 6)"
+        :key="item.id"
+        class="border border-border-default bg-bg-deep p-3"
+      >
+        <p class="font-display text-sm text-text-primary">
+          {{ item.score }} điểm - {{ item.releaseType }}
+        </p>
         <p class="mt-1">{{ item.deployers.join(', ') || 'Không có tên' }}</p>
         <p class="mt-1 text-text-dim">
-          {{ new Date(item.createdAt).toLocaleString('vi-VN') }} | risk: {{ item.riskLevel }} | test:
-          {{ item.testPassRate }}%
+          {{ new Date(item.createdAt).toLocaleString('vi-VN') }} | risk: {{ item.riskLevel }} |
+          test: {{ item.testPassRate }}%
         </p>
       </li>
     </ul>

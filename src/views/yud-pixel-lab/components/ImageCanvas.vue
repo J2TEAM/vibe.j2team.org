@@ -28,11 +28,7 @@ onMounted(drawCanvas)
 
 <template>
   <div class="relative w-full border border-border-default bg-bg-surface overflow-hidden">
-    <canvas
-      v-show="imageData || originalData"
-      ref="canvasRef"
-      class="block w-full h-auto"
-    />
+    <canvas v-show="imageData || originalData" ref="canvasRef" class="block w-full h-auto" />
     <div
       v-if="!imageData && !originalData"
       class="flex items-center justify-center h-64 text-text-dim text-sm font-display"

@@ -54,19 +54,44 @@ function initCanvas() {
 
 // Re-render khi state thay đổi
 watch(
-  () => [props.selectedTile, props.hintTiles, props.remainingTiles, props.boardVersion, props.status] as const,
+  () =>
+    [
+      props.selectedTile,
+      props.hintTiles,
+      props.remainingTiles,
+      props.boardVersion,
+      props.status,
+    ] as const,
   () => {
     if (props.status === 'menu' || !ctxReady) return
 
     props.engine.renderBoard(props.tileSize)
 
     if (props.selectedTile) {
-      props.engine.renderSingleTile(props.selectedTile.row, props.selectedTile.col, props.tileSize, true, false)
+      props.engine.renderSingleTile(
+        props.selectedTile.row,
+        props.selectedTile.col,
+        props.tileSize,
+        true,
+        false,
+      )
     }
 
     if (props.hintTiles) {
-      props.engine.renderSingleTile(props.hintTiles[0].row, props.hintTiles[0].col, props.tileSize, false, true)
-      props.engine.renderSingleTile(props.hintTiles[1].row, props.hintTiles[1].col, props.tileSize, false, true)
+      props.engine.renderSingleTile(
+        props.hintTiles[0].row,
+        props.hintTiles[0].col,
+        props.tileSize,
+        false,
+        true,
+      )
+      props.engine.renderSingleTile(
+        props.hintTiles[1].row,
+        props.hintTiles[1].col,
+        props.tileSize,
+        false,
+        true,
+      )
     }
   },
   { deep: true },
@@ -125,7 +150,10 @@ function handleTouch(e: TouchEvent) {
 
 <template>
   <div class="flex justify-center w-full">
-    <div class="relative inline-block" :style="{ width: `${canvasWidth}px`, height: `${canvasHeight}px` }">
+    <div
+      class="relative inline-block"
+      :style="{ width: `${canvasWidth}px`, height: `${canvasHeight}px` }"
+    >
       <canvas
         ref="canvasRef"
         :style="{ width: '100%', height: '100%' }"
@@ -146,7 +174,7 @@ function handleTouch(e: TouchEvent) {
             left: `${tile.col * tileSize}px`,
             top: `${tile.row * tileSize}px`,
             boxShadow: '0 0 20px rgba(255, 187, 0, 0.9), inset 0 0 20px rgba(255, 187, 0, 0.7)',
-            animation: 'custom-pulse 1s infinite alternate'
+            animation: 'custom-pulse 1s infinite alternate',
           }"
         />
       </template>
@@ -156,7 +184,13 @@ function handleTouch(e: TouchEvent) {
 
 <style scoped>
 @keyframes custom-pulse {
-  0% { opacity: 0.6; transform: scale(0.95); }
-  100% { opacity: 1; transform: scale(1.05); }
+  0% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 }
 </style>

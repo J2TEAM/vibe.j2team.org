@@ -14,10 +14,14 @@ function formatTime(seconds: number): string {
 </script>
 
 <template>
-  <div class="flex items-center justify-between gap-4 border border-border-default bg-bg-surface px-4 py-3">
+  <div
+    class="flex items-center justify-between gap-4 border border-border-default bg-bg-surface px-4 py-3"
+  >
     <div class="flex flex-col items-center">
       <span class="font-display text-xs tracking-widest text-text-dim">ĐIỂM</span>
-      <span class="font-display text-lg font-bold text-accent-coral">{{ score.toLocaleString() }}</span>
+      <span class="font-display text-lg font-bold text-accent-coral">{{
+        score.toLocaleString()
+      }}</span>
     </div>
     <div class="flex flex-col items-center">
       <span class="font-display text-xs tracking-widest text-text-dim">THỜI GIAN</span>
@@ -28,7 +32,8 @@ function formatTime(seconds: number): string {
           'text-accent-amber': timeLeft <= 60 && timeLeft > 30,
           'text-text-primary': timeLeft > 60,
         }"
-      >{{ formatTime(timeLeft) }}</span>
+        >{{ formatTime(timeLeft) }}</span
+      >
     </div>
     <div class="flex flex-col items-center">
       <span class="font-display text-xs tracking-widest text-text-dim">CÒN LẠI</span>

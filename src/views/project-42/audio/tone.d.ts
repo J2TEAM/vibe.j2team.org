@@ -3,8 +3,8 @@
  * Local type augmentation to avoid editing global env.d.ts
  */
 
-export {};
+export {}
 
 declare global {
-  const Tone: typeof import("tone");
+  const Tone: typeof import('tone')
 }

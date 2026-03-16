@@ -11,10 +11,26 @@ const emit = defineEmits<{
 
 // ── Color palette ──────────────────────────────────────
 const WHEEL_COLORS = [
-  '#FF6B4A', '#FFB830', '#38BDF8', '#E63946', '#2A9D8F',
-  '#6A4C93', '#F77F00', '#8338EC', '#06D6A0', '#EF476F',
-  '#118AB2', '#F4A261', '#E9C46A', '#264653', '#C77DFF',
-  '#F72585', '#4CC9F0', '#4361EE', '#7209B7', '#52B788',
+  '#FF6B4A',
+  '#FFB830',
+  '#38BDF8',
+  '#E63946',
+  '#2A9D8F',
+  '#6A4C93',
+  '#F77F00',
+  '#8338EC',
+  '#06D6A0',
+  '#EF476F',
+  '#118AB2',
+  '#F4A261',
+  '#E9C46A',
+  '#264653',
+  '#C77DFF',
+  '#F72585',
+  '#4CC9F0',
+  '#4361EE',
+  '#7209B7',
+  '#52B788',
 ] as const
 
 // ── Wheel geometry constants ───────────────────────────
@@ -193,12 +209,7 @@ defineExpose({ spin })
 
         <!-- Wheel segments fill -->
         <template v-else>
-          <path
-            v-for="(seg, i) in segments"
-            :key="`seg-${i}`"
-            :d="seg.path"
-            :fill="seg.color"
-          />
+          <path v-for="(seg, i) in segments" :key="`seg-${i}`" :d="seg.path" :fill="seg.color" />
           <!-- Segment border dividers -->
           <path
             v-for="(seg, i) in segments"

@@ -123,7 +123,10 @@ function detectRefreshRate() {
   let hzStart = 0
   let hzId = 0
   function hzLoop(ts: number) {
-    if (hzStart === 0) { hzStart = ts; hzFrames = 0 }
+    if (hzStart === 0) {
+      hzStart = ts
+      hzFrames = 0
+    }
     hzFrames++
     const elapsed = ts - hzStart
     if (elapsed >= 1000) {
@@ -162,7 +165,10 @@ function updateJank(delta: number, timestamp: number) {
 
   if (delta > jankThreshold) {
     jankTotalDropped.value++
-    jankEvents.value.push({ timestamp: timestamp - jankStartTime.value, frameDuration: Math.round(delta) })
+    jankEvents.value.push({
+      timestamp: timestamp - jankStartTime.value,
+      frameDuration: Math.round(delta),
+    })
     if (jankEvents.value.length > 200) jankEvents.value.shift()
   }
 
@@ -231,7 +237,9 @@ let scrollTimeout = 0
 function onScroll() {
   scrolling = true
   clearTimeout(scrollTimeout)
-  scrollTimeout = window.setTimeout(() => { scrolling = false }, 150)
+  scrollTimeout = window.setTimeout(() => {
+    scrolling = false
+  }, 150)
 }
 
 function scrollMonitorLoop(ts: number) {
@@ -463,15 +471,10 @@ function frameTimeColor(ms: number): string {
       class="border-b border-border-default bg-bg-surface px-4 py-3 flex items-center justify-between animate-fade-up"
     >
       <div class="flex items-center gap-4">
-        <RouterLink
-          to="/"
-          class="text-text-secondary hover:text-accent-coral transition text-sm"
-        >
+        <RouterLink to="/" class="text-text-secondary hover:text-accent-coral transition text-sm">
           &larr; Trang chủ
         </RouterLink>
-        <h1 class="font-display text-xl font-bold tracking-tight">
-          FPS Check
-        </h1>
+        <h1 class="font-display text-xl font-bold tracking-tight">FPS Check</h1>
       </div>
       <div class="flex items-center gap-3">
         <span class="font-display text-3xl font-bold tabular-nums" :class="fpsColor(fps)">
@@ -507,7 +510,10 @@ function frameTimeColor(ms: number): string {
       </div>
       <div class="flex items-center gap-1.5">
         <span class="text-text-dim">Rớt khung:</span>
-        <span class="tabular-nums" :class="droppedFrames > 0 ? 'text-red-400' : 'text-text-secondary'">
+        <span
+          class="tabular-nums"
+          :class="droppedFrames > 0 ? 'text-red-400' : 'text-text-secondary'"
+        >
           {{ droppedFrames }}
         </span>
       </div>
@@ -547,7 +553,10 @@ function frameTimeColor(ms: number): string {
             ? 'border-accent-sky text-accent-sky bg-accent-sky/10'
             : 'border-border-default text-text-secondary hover:border-text-dim'
         "
-        @click="activeTab = 'scroll'; startScrollMonitor()"
+        @click="
+          activeTab = 'scroll'
+          startScrollMonitor()
+        "
       >
         📜 Cuộn
       </button>
@@ -605,7 +614,9 @@ function frameTimeColor(ms: number): string {
     >
       <!-- Presets -->
       <div class="space-y-1">
-        <span class="text-text-dim uppercase tracking-wider text-[10px]">So sánh tốc độ khung hình</span>
+        <span class="text-text-dim uppercase tracking-wider text-[10px]"
+          >So sánh tốc độ khung hình</span
+        >
         <div class="flex gap-1 flex-wrap">
           <button
             v-for="(preset, i) in presets"
@@ -652,7 +663,9 @@ function frameTimeColor(ms: number): string {
             <button
               class="ml-0.5 text-text-dim hover:text-red-400 transition"
               @click="removeLane(li)"
-            >×</button>
+            >
+              ×
+            </button>
           </span>
         </div>
       </div>
@@ -717,13 +730,17 @@ function frameTimeColor(ms: number): string {
         <span class="text-text-dim text-xs">(ms)</span>
       </div>
       <svg viewBox="0 0 360 80" class="w-full h-20" preserveAspectRatio="none">
-        <line x1="0" :y1="targetY" x2="360" :y2="targetY" stroke="#4A6180" stroke-width="0.5" stroke-dasharray="4,4" />
-        <text x="362" :y="targetY + 3" fill="#4A6180" font-size="6">16.7ms</text>
-        <polygon
-          v-if="graphFill"
-          :points="graphFill"
-          fill="rgba(56, 189, 248, 0.1)"
+        <line
+          x1="0"
+          :y1="targetY"
+          x2="360"
+          :y2="targetY"
+          stroke="#4A6180"
+          stroke-width="0.5"
+          stroke-dasharray="4,4"
         />
+        <text x="362" :y="targetY + 3" fill="#4A6180" font-size="6">16.7ms</text>
+        <polygon v-if="graphFill" :points="graphFill" fill="rgba(56, 189, 248, 0.1)" />
         <polyline
           v-if="graphPoints"
           :points="graphPoints"
@@ -740,26 +757,38 @@ function frameTimeColor(ms: number): string {
     </div>
 
     <!-- Test area -->
-    <div
-      ref="trackContainer"
-      class="flex-1 relative overflow-hidden bg-[#0a1018] min-h-[400px]"
-    >
+    <div ref="trackContainer" class="flex-1 relative overflow-hidden bg-[#0a1018] min-h-[400px]">
       <!-- === FRAMERATE TAB === -->
       <template v-if="activeTab === 'framerate'">
         <!-- Background grid -->
-        <div class="absolute inset-0 opacity-[0.04]" style="background-image: repeating-linear-gradient(90deg, #fff 0px, #fff 1px, transparent 1px, transparent 80px), repeating-linear-gradient(0deg, #fff 0px, #fff 1px, transparent 1px, transparent 80px);"></div>
+        <div
+          class="absolute inset-0 opacity-[0.04]"
+          style="
+            background-image:
+              repeating-linear-gradient(
+                90deg,
+                #fff 0px,
+                #fff 1px,
+                transparent 1px,
+                transparent 80px
+              ),
+              repeating-linear-gradient(0deg, #fff 0px, #fff 1px, transparent 1px, transparent 80px);
+          "
+        ></div>
 
         <!-- Speed watermark -->
-        <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-          <span class="font-display text-[120px] font-bold text-white/[0.03] tabular-nums leading-none">
+        <div
+          class="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+        >
+          <span
+            class="font-display text-[120px] font-bold text-white/[0.03] tabular-nums leading-none"
+          >
             {{ speed }}
           </span>
         </div>
 
         <!-- Lanes -->
-        <div
-          class="absolute top-1/2 left-0 w-full flex flex-col gap-2 -translate-y-1/2"
-        >
+        <div class="absolute top-1/2 left-0 w-full flex flex-col gap-2 -translate-y-1/2">
           <div
             v-for="(lane, li) in lanes"
             :key="li"
@@ -806,7 +835,9 @@ function frameTimeColor(ms: number): string {
               </div>
               <div
                 class="absolute top-1/2 left-0 w-full h-px -translate-y-1/2"
-                :style="{ background: `linear-gradient(to right, transparent 0%, ${lane.color}33 50%, transparent 100%)` }"
+                :style="{
+                  background: `linear-gradient(to right, transparent 0%, ${lane.color}33 50%, transparent 100%)`,
+                }"
               />
             </template>
           </div>
@@ -820,21 +851,40 @@ function frameTimeColor(ms: number): string {
           <div class="flex items-center justify-between px-4 py-3 border-b border-border-default">
             <div class="flex items-center gap-4">
               <div class="text-center">
-                <p class="font-display text-5xl font-bold tabular-nums" :class="jankScoreColor(jankScore)">
+                <p
+                  class="font-display text-5xl font-bold tabular-nums"
+                  :class="jankScoreColor(jankScore)"
+                >
                   {{ jankScore }}
                 </p>
                 <p class="text-text-dim text-[10px] uppercase tracking-wider mt-0.5">Điểm mượt</p>
               </div>
               <div class="text-xs space-y-1">
-                <p :class="jankScoreColor(jankScore)" class="font-display font-bold">{{ jankScoreLabel(jankScore) }}</p>
-                <p class="text-text-dim">Trễ nhịp: <span class="tabular-nums" :class="jankTotalDropped > 0 ? 'text-red-400' : 'text-text-secondary'">{{ jankTotalDropped }} lần</span></p>
-                <p class="text-text-dim">Giới hạn: <span class="text-text-secondary tabular-nums">{{ jankThreshold }}ms</span></p>
+                <p :class="jankScoreColor(jankScore)" class="font-display font-bold">
+                  {{ jankScoreLabel(jankScore) }}
+                </p>
+                <p class="text-text-dim">
+                  Trễ nhịp:
+                  <span
+                    class="tabular-nums"
+                    :class="jankTotalDropped > 0 ? 'text-red-400' : 'text-text-secondary'"
+                    >{{ jankTotalDropped }} lần</span
+                  >
+                </p>
+                <p class="text-text-dim">
+                  Giới hạn:
+                  <span class="text-text-secondary tabular-nums">{{ jankThreshold }}ms</span>
+                </p>
               </div>
             </div>
             <div class="flex items-center gap-2">
               <button
                 class="px-2.5 py-1 border text-xs transition"
-                :class="jankRecording ? 'border-red-400 text-red-400 bg-red-400/10' : 'border-green-400 text-green-400 bg-green-400/10'"
+                :class="
+                  jankRecording
+                    ? 'border-red-400 text-red-400 bg-red-400/10'
+                    : 'border-green-400 text-green-400 bg-green-400/10'
+                "
                 @click="jankRecording = !jankRecording"
               >
                 {{ jankRecording ? '⏸ Dừng' : '▶ Ghi' }}
@@ -851,17 +901,41 @@ function frameTimeColor(ms: number): string {
           <!-- Live timeline -->
           <div class="flex-1 flex flex-col px-4 py-3">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-text-dim text-xs uppercase tracking-wider">Thời gian khung hình (ms) — thời gian thực</span>
-              <span class="text-text-dim text-[10px]">Vùng đỏ = trễ nhịp (>{{ jankThreshold }}ms)</span>
+              <span class="text-text-dim text-xs uppercase tracking-wider"
+                >Thời gian khung hình (ms) — thời gian thực</span
+              >
+              <span class="text-text-dim text-[10px]"
+                >Vùng đỏ = trễ nhịp (>{{ jankThreshold }}ms)</span
+              >
             </div>
             <div class="flex-1 relative min-h-[120px]">
               <svg viewBox="0 0 360 80" class="w-full h-full" preserveAspectRatio="none">
                 <!-- Budget line (16.7ms) -->
-                <line x1="0" :y1="80 - (16.67 / 60) * 80" x2="360" :y2="80 - (16.67 / 60) * 80" stroke="#4A6180" stroke-width="0.5" stroke-dasharray="4,4" />
-                <text x="362" :y="80 - (16.67 / 60) * 80 + 3" fill="#4A6180" font-size="6">16.7ms</text>
+                <line
+                  x1="0"
+                  :y1="80 - (16.67 / 60) * 80"
+                  x2="360"
+                  :y2="80 - (16.67 / 60) * 80"
+                  stroke="#4A6180"
+                  stroke-width="0.5"
+                  stroke-dasharray="4,4"
+                />
+                <text x="362" :y="80 - (16.67 / 60) * 80 + 3" fill="#4A6180" font-size="6">
+                  16.7ms
+                </text>
                 <!-- Jank threshold line -->
-                <line x1="0" :y1="80 - (jankThreshold / 60) * 80" x2="360" :y2="80 - (jankThreshold / 60) * 80" stroke="#f87171" stroke-width="0.5" stroke-dasharray="2,4" />
-                <text x="362" :y="80 - (jankThreshold / 60) * 80 + 3" fill="#f87171" font-size="6">{{ jankThreshold }}ms</text>
+                <line
+                  x1="0"
+                  :y1="80 - (jankThreshold / 60) * 80"
+                  x2="360"
+                  :y2="80 - (jankThreshold / 60) * 80"
+                  stroke="#f87171"
+                  stroke-width="0.5"
+                  stroke-dasharray="2,4"
+                />
+                <text x="362" :y="80 - (jankThreshold / 60) * 80 + 3" fill="#f87171" font-size="6">
+                  {{ jankThreshold }}ms
+                </text>
                 <!-- Fill -->
                 <polygon
                   v-if="jankTimelineFill"
@@ -900,7 +974,9 @@ function frameTimeColor(ms: number): string {
 
           <!-- Recent jank events -->
           <div class="border-t border-border-default px-4 py-2 max-h-[120px] overflow-y-auto">
-            <p class="text-text-dim text-[10px] uppercase tracking-wider mb-1">Lần trễ nhịp gần đây</p>
+            <p class="text-text-dim text-[10px] uppercase tracking-wider mb-1">
+              Lần trễ nhịp gần đây
+            </p>
             <div v-if="jankEvents.length === 0" class="text-text-dim text-xs py-2 text-center">
               Chưa phát hiện trễ nhịp — màn hình đang mượt ✓
             </div>
@@ -911,9 +987,13 @@ function frameTimeColor(ms: number): string {
                 class="flex items-center gap-2 text-xs"
               >
                 <span class="w-2 h-2 bg-red-400 shrink-0"></span>
-                <span class="text-text-dim tabular-nums">{{ (evt.timestamp / 1000).toFixed(1) }}s</span>
+                <span class="text-text-dim tabular-nums"
+                  >{{ (evt.timestamp / 1000).toFixed(1) }}s</span
+                >
                 <span class="text-red-400 tabular-nums font-bold">{{ evt.frameDuration }}ms</span>
-                <span class="text-text-dim">vượt {{ Math.round(evt.frameDuration / 16.67) }}× thời gian cho phép</span>
+                <span class="text-text-dim"
+                  >vượt {{ Math.round(evt.frameDuration / 16.67) }}× thời gian cho phép</span
+                >
               </div>
             </div>
           </div>
@@ -924,18 +1004,35 @@ function frameTimeColor(ms: number): string {
       <template v-if="activeTab === 'scroll'">
         <div class="absolute inset-0 flex flex-col">
           <!-- Score header -->
-          <div class="flex items-center justify-between px-4 py-3 border-b border-border-default shrink-0">
+          <div
+            class="flex items-center justify-between px-4 py-3 border-b border-border-default shrink-0"
+          >
             <div class="flex items-center gap-4">
               <div class="text-center">
-                <p class="font-display text-5xl font-bold tabular-nums" :class="jankScoreColor(scrollJankScore)">
+                <p
+                  class="font-display text-5xl font-bold tabular-nums"
+                  :class="jankScoreColor(scrollJankScore)"
+                >
                   {{ scrollJankScore }}
                 </p>
                 <p class="text-text-dim text-[10px] uppercase tracking-wider mt-0.5">Điểm cuộn</p>
               </div>
               <div class="text-xs space-y-1">
-                <p :class="jankScoreColor(scrollJankScore)" class="font-display font-bold">{{ jankScoreLabel(scrollJankScore) }}</p>
-                <p class="text-text-dim">Trễ nhịp: <span class="tabular-nums" :class="scrollDroppedFrames > 0 ? 'text-red-400' : 'text-text-secondary'">{{ scrollDroppedFrames }} lần</span></p>
-                <p class="text-text-dim">Tổng khung: <span class="text-text-secondary tabular-nums">{{ scrollTotalFrames }}</span></p>
+                <p :class="jankScoreColor(scrollJankScore)" class="font-display font-bold">
+                  {{ jankScoreLabel(scrollJankScore) }}
+                </p>
+                <p class="text-text-dim">
+                  Trễ nhịp:
+                  <span
+                    class="tabular-nums"
+                    :class="scrollDroppedFrames > 0 ? 'text-red-400' : 'text-text-secondary'"
+                    >{{ scrollDroppedFrames }} lần</span
+                  >
+                </p>
+                <p class="text-text-dim">
+                  Tổng khung:
+                  <span class="text-text-secondary tabular-nums">{{ scrollTotalFrames }}</span>
+                </p>
               </div>
             </div>
             <button
@@ -947,12 +1044,25 @@ function frameTimeColor(ms: number): string {
           </div>
 
           <!-- Scroll timeline -->
-          <div v-if="scrollFrameTimes.length > 1" class="px-4 py-2 border-b border-border-default shrink-0">
+          <div
+            v-if="scrollFrameTimes.length > 1"
+            class="px-4 py-2 border-b border-border-default shrink-0"
+          >
             <div class="flex items-center justify-between mb-1">
-              <span class="text-text-dim text-[10px] uppercase tracking-wider">Thời gian khung hình khi cuộn</span>
+              <span class="text-text-dim text-[10px] uppercase tracking-wider"
+                >Thời gian khung hình khi cuộn</span
+              >
             </div>
             <svg viewBox="0 0 360 60" class="w-full h-14" preserveAspectRatio="none">
-              <line x1="0" :y1="60 - (16.67 / 60) * 60" x2="360" :y2="60 - (16.67 / 60) * 60" stroke="#4A6180" stroke-width="0.5" stroke-dasharray="4,4" />
+              <line
+                x1="0"
+                :y1="60 - (16.67 / 60) * 60"
+                x2="360"
+                :y2="60 - (16.67 / 60) * 60"
+                stroke="#4A6180"
+                stroke-width="0.5"
+                stroke-dasharray="4,4"
+              />
               <polyline
                 :points="scrollTimelinePoints"
                 fill="none"
@@ -976,12 +1086,11 @@ function frameTimeColor(ms: number): string {
           </div>
 
           <!-- Heavy scrollable content -->
-          <div
-            class="flex-1 overflow-y-auto"
-            @scroll="onScroll"
-          >
+          <div class="flex-1 overflow-y-auto" @scroll="onScroll">
             <div class="px-4 py-3">
-              <p class="text-text-dim text-xs mb-3">👆 Cuộn khu vực này để đo độ mượt. Nội dung được tạo nặng có chủ đích.</p>
+              <p class="text-text-dim text-xs mb-3">
+                👆 Cuộn khu vực này để đo độ mượt. Nội dung được tạo nặng có chủ đích.
+              </p>
             </div>
             <div
               v-for="block in 80"
@@ -1006,7 +1115,9 @@ function frameTimeColor(ms: number): string {
                   v-for="tag in 6"
                   :key="tag"
                   class="px-2 py-0.5 text-[10px] border border-border-default text-text-dim"
-                  :style="{ boxShadow: `0 0 ${tag * 2}px ${laneColors[(block + tag) % laneColors.length]?.color ?? '#FF6B4A'}33` }"
+                  :style="{
+                    boxShadow: `0 0 ${tag * 2}px ${laneColors[(block + tag) % laneColors.length]?.color ?? '#FF6B4A'}33`,
+                  }"
                 >
                   tag-{{ block }}-{{ tag }}
                 </span>
@@ -1026,7 +1137,9 @@ function frameTimeColor(ms: number): string {
       <template v-if="activeTab === 'ghosting'">
         <div class="absolute inset-0 overflow-hidden">
           <!-- Speed control (inside test area) -->
-          <div class="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 text-xs">
+          <div
+            class="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 text-xs"
+          >
             <span class="text-text-dim">Tốc độ:</span>
             <button
               v-for="s in [1, 2, 3, 5]"
@@ -1046,7 +1159,11 @@ function frameTimeColor(ms: number): string {
           <!-- Scrolling text pattern -->
           <div
             class="absolute top-0 h-full flex flex-col justify-center gap-0"
-            :style="{ left: -ghostingTileWidth + 'px', transform: `translateX(${-ghostingPosition}px)`, willChange: 'transform' }"
+            :style="{
+              left: -ghostingTileWidth + 'px',
+              transform: `translateX(${-ghostingPosition}px)`,
+              willChange: 'transform',
+            }"
           >
             <div
               v-for="row in 12"
@@ -1065,18 +1182,18 @@ function frameTimeColor(ms: number): string {
           <div
             class="absolute inset-0"
             :style="{
-              backgroundImage: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 16px, #0a1018 16px, #0a1018 32px)',
+              backgroundImage:
+                'repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 16px, #0a1018 16px, #0a1018 32px)',
               backgroundPositionX: -ghostingPosition * 1.5 + 'px',
               willChange: 'background-position',
             }"
-          >
-          </div>
+          ></div>
 
           <!-- Instructions overlay -->
           <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-center">
             <p class="text-text-dim text-xs">
-              Nếu bạn thấy viền mờ hoặc bóng ma (rõ hơn khi tăng tốc độ),
-              màn hình của bạn có hiện tượng lưu ảnh
+              Nếu bạn thấy viền mờ hoặc bóng ma (rõ hơn khi tăng tốc độ), màn hình của bạn có hiện
+              tượng lưu ảnh
             </p>
           </div>
         </div>
@@ -1095,9 +1212,7 @@ function frameTimeColor(ms: number): string {
     <footer
       class="border-t border-border-default bg-bg-surface/50 px-4 py-2.5 text-xs text-text-dim flex flex-wrap items-center justify-between gap-2"
     >
-      <div>
-        Mẹo: Sử dụng toàn màn hình (F11) để có kết quả tốt nhất.
-      </div>
+      <div>Mẹo: Sử dụng toàn màn hình (F11) để có kết quả tốt nhất.</div>
       <div class="flex items-center gap-3 flex-wrap">
         <span>
           Màn hình:

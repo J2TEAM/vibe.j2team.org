@@ -1,51 +1,59 @@
 <script setup lang="ts">
-import { ref, nextTick, watch } from "vue";
-import type { Message } from "../types";
+import { ref, nextTick, watch } from 'vue'
+import type { Message } from '../types'
 
 const props = defineProps<{
-  messages: Message[];
-  isProcessing: boolean;
-}>();
+  messages: Message[]
+  isProcessing: boolean
+}>()
 
-const emit = defineEmits(["send"]);
+const emit = defineEmits(['send'])
 
-const userInput = ref("");
-const messagesEndRef = ref<HTMLElement | null>(null);
+const userInput = ref('')
+const messagesEndRef = ref<HTMLElement | null>(null)
 
 const handleSend = () => {
-  const text = userInput.value.trim();
-  if (!text || props.isProcessing) return;
-  emit("send", text);
-  userInput.value = "";
-};
+  const text = userInput.value.trim()
+  if (!text || props.isProcessing) return
+  emit('send', text)
+  userInput.value = ''
+}
 
 watch(
   () => props.messages.length,
   async () => {
-    await nextTick();
-    messagesEndRef.value?.scrollIntoView({ behavior: "smooth" });
-  }
-);
+    await nextTick()
+    messagesEndRef.value?.scrollIntoView({ behavior: 'smooth' })
+  },
+)
 </script>
 
 <template>
-  <div class="bg-bg-surface flex-1 flex flex-col overflow-hidden border border-border-default min-w-0">
-    <div class="bg-bg-elevated p-3 text-xs text-text-primary font-display font-bold border-b border-border-default flex justify-between tracking-widest uppercase italic">
+  <div
+    class="bg-bg-surface flex-1 flex flex-col overflow-hidden border border-border-default min-w-0"
+  >
+    <div
+      class="bg-bg-elevated p-3 text-xs text-text-primary font-display font-bold border-b border-border-default flex justify-between tracking-widest uppercase italic"
+    >
       <span class="flex items-center gap-2">
         <span class="w-2 h-2 bg-accent-coral animate-pulse"></span>
         Hệ thống
       </span>
       <span class="text-accent-sky">ONLINE</span>
     </div>
-    <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-6 scrollbar-thin scrollbar-thumb-border-default text-lg font-pixel">
+    <div
+      class="flex-1 overflow-y-auto p-4 flex flex-col gap-6 scrollbar-thin scrollbar-thumb-border-default text-lg font-pixel"
+    >
       <div
         v-for="msg in messages"
         :key="msg.id"
         :class="['flex flex-col relative', msg.sender === 'user' ? 'items-end' : 'items-start']"
       >
-        <span class="font-display text-[10px] mb-1.5 text-text-dim tracking-widest font-bold uppercase">
+        <span
+          class="font-display text-[10px] mb-1.5 text-text-dim tracking-widest font-bold uppercase"
+        >
           <span class="text-accent-coral mr-1">//</span>
-          {{ msg.sender === 'user' ? 'NGƯỜI DÙNG' : (msg.agentName || 'AI AGENT') }}
+          {{ msg.sender === 'user' ? 'NGƯỜI DÙNG' : msg.agentName || 'AI AGENT' }}
         </span>
         <div
           :class="[
@@ -66,7 +74,10 @@ watch(
           </template>
         </div>
       </div>
-      <div v-if="isProcessing" class="flex items-center gap-2 text-xs text-accent-amber font-display font-bold mt-2 animate-pulse">
+      <div
+        v-if="isProcessing"
+        class="flex items-center gap-2 text-xs text-accent-amber font-display font-bold mt-2 animate-pulse"
+      >
         <span class="tracking-widest italic">// ĐANG TRUY XUẤT DỮ LIỆU...</span>
       </div>
       <div ref="messagesEndRef"></div>

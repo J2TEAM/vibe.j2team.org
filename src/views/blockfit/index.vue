@@ -2098,7 +2098,7 @@ watch(won, (w) => {
           <button
             class="group relative border-2 border-accent-coral px-12 py-4 font-display text-lg tracking-widest text-accent-coral uppercase transition-all hover:bg-accent-coral hover:text-bg-deep active:scale-95 anim-fade-in-delay"
             @click="
-              sfx.click();
+              sfx.click()
               goToLevelSelect('fwd')
             "
           >
@@ -2109,7 +2109,7 @@ watch(won, (w) => {
           <button
             class="flex items-center gap-2 text-text-dim text-xs font-display tracking-wide hover:text-text-secondary transition anim-fade-in-delay"
             @click="
-              audioMuted = !audioMuted;
+              audioMuted = !audioMuted
               if (!audioMuted) sfx.click()
             "
           >
@@ -2146,7 +2146,7 @@ watch(won, (w) => {
             <button
               class="flex items-center gap-1.5 text-text-dim text-xs font-display tracking-wide hover:text-text-secondary transition active:scale-95"
               @click="
-                sfx.click();
+                sfx.click()
                 goToStart()
               "
             >
@@ -2197,7 +2197,7 @@ watch(won, (w) => {
                   : 'border-border-default text-text-dim hover:border-text-dim'
               "
               @click="
-                sfx.click();
+                sfx.click()
                 setLevelSelectTab(tab)
               "
             >
@@ -2250,7 +2250,7 @@ watch(won, (w) => {
                         : 'border-border-default text-text-dim hover:border-accent-coral hover:text-accent-coral'
                     "
                     @click="
-                      sfx.click();
+                      sfx.click()
                       startPackLevel(diff, selectedColorMode, i - 1)
                     "
                   >
@@ -2262,7 +2262,7 @@ watch(won, (w) => {
               <button
                 class="mt-3 w-full border-2 border-accent-coral/40 py-2 font-display text-xs tracking-wider text-accent-coral/60 uppercase transition-all hover:border-accent-coral hover:text-accent-coral active:scale-95"
                 @click="
-                  sfx.click();
+                  sfx.click()
                   askResetMode(levelSelectTab as '1c' | '2c' | '3c')
                 "
               >
@@ -2343,7 +2343,7 @@ watch(won, (w) => {
                 <button
                   class="border-2 border-accent-amber px-6 py-2 font-display text-sm tracking-wider text-accent-amber uppercase transition-all hover:bg-accent-amber hover:text-bg-deep active:scale-95"
                   @click="
-                    sfx.click();
+                    sfx.click()
                     startRandomPuzzle()
                   "
                 >
@@ -2365,7 +2365,7 @@ watch(won, (w) => {
               class="flex items-center gap-1 text-text-dim font-display tracking-wide hover:text-accent-amber transition active:scale-95 shrink-0"
               :disabled="won || timerExpired"
               @click="
-                sfx.click();
+                sfx.click()
                 pauseTimer()
               "
             >
@@ -2378,7 +2378,7 @@ watch(won, (w) => {
                   class="text-text-dim hover:text-accent-amber transition active:scale-90"
                   :class="{ 'opacity-30 pointer-events-none': selectedLevelIdx <= 0 }"
                   @click="
-                    sfx.click();
+                    sfx.click()
                     navLevel(-1)
                   "
                 >
@@ -2401,7 +2401,7 @@ watch(won, (w) => {
                       selectedLevelIdx >= packSize(selectedDifficulty) - 1,
                   }"
                   @click="
-                    sfx.click();
+                    sfx.click()
                     navLevel(1)
                   "
                 >
@@ -2414,7 +2414,7 @@ watch(won, (w) => {
                 v-if="isFreeplay"
                 class="flex items-center gap-1 text-text-dim font-display tracking-wide hover:text-accent-amber transition active:scale-95"
                 @click="
-                  sfx.click();
+                  sfx.click()
                   timerStarted && !won && !timerExpired
                     ? showNavWarning()
                     : (startRandomPuzzle(), showRandomNotice())
@@ -2426,7 +2426,7 @@ watch(won, (w) => {
                 v-else
                 class="flex items-center gap-1 text-text-dim font-display tracking-wide hover:text-accent-amber transition active:scale-95"
                 @click="
-                  sfx.click();
+                  sfx.click()
                   tryReset()
                 "
               >
@@ -2942,7 +2942,7 @@ watch(won, (w) => {
               v-if="isFreeplay"
               class="w-full border-2 border-accent-sky px-5 py-3 font-display text-sm tracking-wider text-accent-sky uppercase transition-all hover:bg-accent-sky hover:text-bg-deep active:scale-95"
               @click="
-                sfx.click();
+                sfx.click()
                 startRandomPuzzle()
               "
             >
@@ -2952,7 +2952,7 @@ watch(won, (w) => {
               v-else-if="selectedLevelIdx < packSize(selectedDifficulty) - 1"
               class="w-full border-2 border-accent-sky px-5 py-3 font-display text-sm tracking-wider text-accent-sky uppercase transition-all hover:bg-accent-sky hover:text-bg-deep active:scale-95"
               @click="
-                sfx.click();
+                sfx.click()
                 nextPackLevel()
               "
             >
@@ -2962,7 +2962,7 @@ watch(won, (w) => {
               v-else
               class="w-full border-2 border-accent-sky px-5 py-3 font-display text-sm tracking-wider text-accent-sky uppercase transition-all hover:bg-accent-sky hover:text-bg-deep active:scale-95"
               @click="
-                sfx.click();
+                sfx.click()
                 goToLevelSelect()
               "
             >
@@ -2971,7 +2971,7 @@ watch(won, (w) => {
             <button
               class="w-full border-2 border-border-default px-5 py-2.5 font-display text-xs tracking-wider text-text-dim uppercase transition-all hover:border-text-dim hover:text-text-secondary active:scale-95"
               @click="
-                sfx.click();
+                sfx.click()
                 goToLevelSelect()
               "
             >
@@ -2999,7 +2999,7 @@ watch(won, (w) => {
             <button
               class="flex-1 border-2 border-border-default px-4 py-2.5 font-display text-sm tracking-wider text-text-dim uppercase transition-all hover:border-text-dim hover:text-text-secondary active:scale-95"
               @click="
-                sfx.click();
+                sfx.click()
                 goToLevelSelect()
               "
             >
@@ -3008,7 +3008,7 @@ watch(won, (w) => {
             <button
               class="flex-1 border-2 border-accent-sky px-4 py-2.5 font-display text-sm tracking-wider text-accent-sky uppercase transition-all hover:bg-accent-sky hover:text-bg-deep active:scale-95"
               @click="
-                sfx.click();
+                sfx.click()
                 resumeTimer()
               "
             >
@@ -3035,7 +3035,7 @@ watch(won, (w) => {
               <button
                 class="flex-1 border-2 border-border-default px-4 py-2.5 font-display text-sm tracking-wider text-text-dim uppercase transition-all hover:border-text-dim hover:text-text-secondary active:scale-95"
                 @click="
-                  sfx.click();
+                  sfx.click()
                   goToLevelSelect()
                 "
               >
@@ -3044,8 +3044,8 @@ watch(won, (w) => {
               <button
                 class="flex-1 border-2 border-accent-coral px-4 py-2.5 font-display text-sm tracking-wider text-accent-coral uppercase transition-all hover:bg-accent-coral hover:text-bg-deep active:scale-95"
                 @click="
-                  sfx.click();
-                  resetStreak();
+                  sfx.click()
+                  resetStreak()
                   init()
                 "
               >
@@ -3056,7 +3056,7 @@ watch(won, (w) => {
               v-if="level.solution && !showSolutionConfirm"
               class="w-full border-2 border-accent-amber/40 px-4 py-2 font-display text-xs tracking-wider text-accent-amber/60 uppercase transition-all hover:border-accent-amber hover:text-accent-amber active:scale-95"
               @click="
-                sfx.click();
+                sfx.click()
                 currentStreak > 0 ? (showSolutionConfirm = true) : showSolution()
               "
             >
@@ -3071,7 +3071,7 @@ watch(won, (w) => {
                 <button
                   class="flex-1 border-2 border-border-default px-3 py-1.5 font-display text-xs tracking-wider text-text-dim uppercase transition-all hover:border-text-dim hover:text-text-secondary active:scale-95"
                   @click="
-                    sfx.click();
+                    sfx.click()
                     showSolutionConfirm = false
                   "
                 >
@@ -3080,8 +3080,8 @@ watch(won, (w) => {
                 <button
                   class="flex-1 border-2 border-accent-amber/40 px-3 py-1.5 font-display text-xs tracking-wider text-accent-amber uppercase transition-all hover:border-accent-amber hover:text-accent-amber active:scale-95"
                   @click="
-                    sfx.click();
-                    showSolutionConfirm = false;
+                    sfx.click()
+                    showSolutionConfirm = false
                     showSolution()
                   "
                 >
@@ -3112,7 +3112,7 @@ watch(won, (w) => {
             <button
               class="flex-1 border-2 border-border-default px-4 py-2.5 font-display text-sm tracking-wider text-text-dim uppercase transition-all hover:border-text-dim hover:text-text-secondary active:scale-95"
               @click="
-                sfx.click();
+                sfx.click()
                 showResetConfirm = false
               "
             >
@@ -3121,7 +3121,7 @@ watch(won, (w) => {
             <button
               class="flex-1 border-2 border-accent-coral px-4 py-2.5 font-display text-sm tracking-wider text-accent-coral uppercase transition-all hover:bg-accent-coral hover:text-bg-deep active:scale-95"
               @click="
-                sfx.click();
+                sfx.click()
                 confirmReset()
               "
             >
@@ -3155,7 +3155,7 @@ watch(won, (w) => {
             <button
               class="flex-1 border-2 border-border-default px-4 py-2.5 font-display text-sm tracking-wider text-text-dim uppercase transition-all hover:border-text-dim hover:text-text-secondary active:scale-95"
               @click="
-                sfx.click();
+                sfx.click()
                 showModeResetConfirm = false
               "
             >
@@ -3164,7 +3164,7 @@ watch(won, (w) => {
             <button
               class="flex-1 border-2 border-accent-coral px-4 py-2.5 font-display text-sm tracking-wider text-accent-coral uppercase transition-all hover:bg-accent-coral hover:text-bg-deep active:scale-95"
               @click="
-                sfx.click();
+                sfx.click()
                 confirmModeReset()
               "
             >

@@ -18,18 +18,20 @@ const searchQuery = ref('')
 const filteredProvinces = computed(() => {
   const q = searchQuery.value.toLowerCase().trim()
   if (!q) return props.provinces
-  return props.provinces.filter(p =>
-    p.name.toLowerCase().includes(q) ||
-    p.shortName.toLowerCase().includes(q)
+  return props.provinces.filter(
+    (p) => p.name.toLowerCase().includes(q) || p.shortName.toLowerCase().includes(q),
   )
 })
 
 // Show hint info based on difficulty
 function getHintText(province: Province): string {
   switch (props.difficulty) {
-    case 'easy': return province.zone
-    case 'medium': return province.shortName
-    default: return ''
+    case 'easy':
+      return province.zone
+    case 'medium':
+      return province.shortName
+    default:
+      return ''
   }
 }
 
@@ -50,9 +52,7 @@ function onDragStart(e: DragEvent, provinceId: string) {
         v-model="searchQuery"
         type="text"
         placeholder="🔍 Tìm tỉnh..."
-        class="w-full bg-bg-deep border border-border-default px-3 py-2 text-sm
-               text-text-primary placeholder-text-dim font-body
-               focus:outline-none focus:border-accent-sky transition-colors duration-200"
+        class="w-full bg-bg-deep border border-border-default px-3 py-2 text-sm text-text-primary placeholder-text-dim font-body focus:outline-none focus:border-accent-sky transition-colors duration-200"
       />
     </div>
 
@@ -62,10 +62,9 @@ function onDragStart(e: DragEvent, provinceId: string) {
     </p>
 
     <!-- Province list -->
-    <div class="flex-1 overflow-y-auto overflow-x-hidden pr-1 space-y-1.5
-                md:max-h-[55vh]
-                max-h-[25vh]
-                scrollbar-thin">
+    <div
+      class="flex-1 overflow-y-auto overflow-x-hidden pr-1 space-y-1.5 md:max-h-[55vh] max-h-[25vh] scrollbar-thin"
+    >
       <!-- Desktop: vertical list -->
       <div class="hidden md:block space-y-1.5">
         <div
@@ -84,10 +83,7 @@ function onDragStart(e: DragEvent, provinceId: string) {
         >
           <div class="flex items-center justify-between gap-2">
             <span class="truncate">{{ p.name }}</span>
-            <span
-              v-if="getHintText(p)"
-              class="text-xs text-text-dim whitespace-nowrap"
-            >
+            <span v-if="getHintText(p)" class="text-xs text-text-dim whitespace-nowrap">
               {{ getHintText(p) }}
             </span>
           </div>

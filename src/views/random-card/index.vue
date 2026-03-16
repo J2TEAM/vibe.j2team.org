@@ -936,14 +936,20 @@ function backToSetup() {
                 <button
                   class="flex-1 px-3 py-2 text-xs border border-border-default text-text-dim transition hover:border-accent-amber hover:text-accent-amber disabled:opacity-40"
                   :disabled="isShufflingInPlace"
-                  @click="reshuffleTable(); showMobileDrawer = false"
+                  @click="
+                    reshuffleTable()
+                    showMobileDrawer = false
+                  "
                 >
                   🔀 Xáo trên sân
                 </button>
                 <button
                   class="flex-1 px-3 py-2 text-xs border border-border-default text-text-dim transition hover:border-accent-coral hover:text-accent-coral disabled:opacity-40"
                   :disabled="isShufflingInPlace"
-                  @click="reshuffleAll(); showMobileDrawer = false"
+                  @click="
+                    reshuffleAll()
+                    showMobileDrawer = false
+                  "
                 >
                   🔄 Xáo toàn bộ
                 </button>

@@ -7,15 +7,15 @@
 
 ## 1. Tổng Quan Dự Án
 
-| Thông tin | Chi tiết |
-|---|---|
-| **Tên hiển thị** | GolingDuo Idiom 🦜 |
-| **Slug** | `golingduo-idiom` |
-| **Đường dẫn** | `src/views/golingduo-idiom/` |
-| **Mô tả** | Học thành ngữ tiếng Anh kiểu lầy lội — dịch thẳng chết cười, nhưng học xong nhớ mãi |
-| **Ngôn ngữ** | Tiếng Việt (chính) |
-| **Không database** | ✅ Toàn bộ dùng `localStorage` + data tĩnh |
-| **Responsive** | ✅ Mobile-first |
+| Thông tin          | Chi tiết                                                                            |
+| ------------------ | ----------------------------------------------------------------------------------- |
+| **Tên hiển thị**   | GolingDuo Idiom 🦜                                                                  |
+| **Slug**           | `golingduo-idiom`                                                                   |
+| **Đường dẫn**      | `src/views/golingduo-idiom/`                                                        |
+| **Mô tả**          | Học thành ngữ tiếng Anh kiểu lầy lội — dịch thẳng chết cười, nhưng học xong nhớ mãi |
+| **Ngôn ngữ**       | Tiếng Việt (chính)                                                                  |
+| **Không database** | ✅ Toàn bộ dùng `localStorage` + data tĩnh                                          |
+| **Responsive**     | ✅ Mobile-first                                                                     |
 
 ---
 
@@ -82,17 +82,17 @@ src/views/golingduo-idiom/
 // src/views/golingduo-idiom/data/idioms.ts
 
 export interface Idiom {
-  id: string                  // "raining-cats-dogs"
-  phrase: string              // "It's raining cats and dogs"
-  literal_vi: string          // "Trời đang mưa mèo và chó 🐱🐶"
-  meaning_vi: string          // "Trời mưa rất to, như trút nước"
-  funny_context: string       // "Dùng khi muốn flex với sếp..."
-  example_en: string          // "I can't go out, it's raining cats and dogs."
-  example_vi: string          // "Tao không ra được, đang mưa như trút nước ngoài đó."
+  id: string // "raining-cats-dogs"
+  phrase: string // "It's raining cats and dogs"
+  literal_vi: string // "Trời đang mưa mèo và chó 🐱🐶"
+  meaning_vi: string // "Trời mưa rất to, như trút nước"
+  funny_context: string // "Dùng khi muốn flex với sếp..."
+  example_en: string // "I can't go out, it's raining cats and dogs."
+  example_vi: string // "Tao không ra được, đang mưa như trút nước ngoài đó."
   category: CategoryId
   difficulty: 'easy' | 'medium' | 'hard'
-  emoji: string               // "🌧️"
-  wrong_answers: string[]     // 3 đáp án sai cho quiz (đã soạn sẵn + lầy)
+  emoji: string // "🌧️"
+  wrong_answers: string[] // 3 đáp án sai cho quiz (đã soạn sẵn + lầy)
 }
 ```
 
@@ -101,21 +101,21 @@ export interface Idiom {
 ```typescript
 export interface Category {
   id: CategoryId
-  label: string               // "Drama & Cảm Xúc"
-  emoji: string               // "😭"
-  accent: 'coral' | 'amber' | 'sky'   // Màu accent theo design system
-  description: string         // "Khi drama bùng nổ, mày cần những câu này"
+  label: string // "Drama & Cảm Xúc"
+  emoji: string // "😭"
+  accent: 'coral' | 'amber' | 'sky' // Màu accent theo design system
+  description: string // "Khi drama bùng nổ, mày cần những câu này"
 }
 
 export type CategoryId =
-  | 'drama'        // 😭 Drama & Cảm Xúc
-  | 'work'         // 💼 Công Sở Sống Còn
-  | 'love'         // ❤️ Yêu Đương Éo Le
-  | 'money'        // 🤑 Flex Tài Chính
-  | 'daily'        // 🍜 Đời Thường Việt Nam
-  | 'motivation'   // 💪 Sống Ảo Motivate
-  | 'food'         // 🍕 Ăn Uống Nói Chuyện
-  | 'time'         // ⏰ Thời Gian & Deadline
+  | 'drama' // 😭 Drama & Cảm Xúc
+  | 'work' // 💼 Công Sở Sống Còn
+  | 'love' // ❤️ Yêu Đương Éo Le
+  | 'money' // 🤑 Flex Tài Chính
+  | 'daily' // 🍜 Đời Thường Việt Nam
+  | 'motivation' // 💪 Sống Ảo Motivate
+  | 'food' // 🍕 Ăn Uống Nói Chuyện
+  | 'time' // ⏰ Thời Gian & Deadline
 ```
 
 ### 3.3 Progress (localStorage)
@@ -123,16 +123,16 @@ export type CategoryId =
 ```typescript
 // Key: "golingduo-progress"
 export interface UserProgress {
-  learnedIds: string[]         // Danh sách ID đã học
-  quizScores: QuizRecord[]     // Lịch sử quiz
+  learnedIds: string[] // Danh sách ID đã học
+  quizScores: QuizRecord[] // Lịch sử quiz
   streak: {
-    current: number            // Streak hiện tại (ngày)
-    longest: number            // Kỷ lục
-    lastActiveDate: string     // "2026-03-12" — để tính streak
+    current: number // Streak hiện tại (ngày)
+    longest: number // Kỷ lục
+    lastActiveDate: string // "2026-03-12" — để tính streak
   }
-  xp: number                   // Tổng XP tích lũy
+  xp: number // Tổng XP tích lũy
   unlockedBadges: BadgeId[]
-  spinHistory: string[]        // ID các idiom từ vòng quay gần đây
+  spinHistory: string[] // ID các idiom từ vòng quay gần đây
 }
 
 export interface QuizRecord {
@@ -150,7 +150,7 @@ export interface QuizRecord {
 export interface Badge {
   id: BadgeId
   name: string
-  description: string         // Mô tả lầy lội
+  description: string // Mô tả lầy lội
   emoji: string
   condition: (progress: UserProgress) => boolean
 }
@@ -171,6 +171,7 @@ export interface Badge {
 ### 4.1 🃏 Flashcard — Tab Trang Chủ
 
 **Luồng:**
+
 1. Hiện **Idiom of the Day** ở đầu trang (seed theo `dayOfYear % idioms.length`)
 2. Bên dưới là deck flashcard cuộn ngang
 3. Mỗi card flip 3 lần:
@@ -181,6 +182,7 @@ export interface Badge {
 5. Nút **"Học Lại 🔄"** → đẩy về cuối deck
 
 **Design (theo Design System):**
+
 ```
 Card: bg-bg-surface, border border-border-default, sharp corners
 Flip animation: CSS transform-style: preserve-3d, 3D perspective
@@ -196,12 +198,13 @@ Background number: số thứ tự idiom, text-accent-coral/5, font-display text
 
 **Hai chế độ:**
 
-| Mode | Mô tả |
-|---|---|
-| **Classic** | Không giới hạn thời gian, 10 câu, chọn đúng/sai |
-| **Time Attack** | 30 giây/câu, có countdown bar, áp lực tối đa |
+| Mode            | Mô tả                                           |
+| --------------- | ----------------------------------------------- |
+| **Classic**     | Không giới hạn thời gian, 10 câu, chọn đúng/sai |
+| **Time Attack** | 30 giây/câu, có countdown bar, áp lực tối đa    |
 
 **Cấu trúc câu hỏi:**
+
 - Hiển thị idiom phrase
 - 4 lựa chọn (1 đúng + 3 sai từ `wrong_answers` đã soạn sẵn trong data)
 - Đáp án sai được viết theo kiểu lầy: dịch thẳng, hiểu nhầm, meme reference
@@ -209,6 +212,7 @@ Background number: số thứ tự idiom, text-accent-coral/5, font-display text
 - Kết thúc: màn hình kết quả với điểm số + XP earned + tên level đạt được
 
 **XP theo kết quả quiz:**
+
 ```
 10/10 → +100 XP + badge check
 7-9/10 → +60 XP
@@ -217,6 +221,7 @@ Background number: số thứ tự idiom, text-accent-coral/5, font-display text
 ```
 
 **Design:**
+
 ```
 Progress bar phía trên: bg-accent-coral/20 → bg-accent-coral
 Câu hỏi: font-display text-2xl text-text-primary, căn giữa
@@ -231,6 +236,7 @@ Timer bar (Time Attack): animate-width, đổi màu khi gần hết
 ### 4.3 🗂️ Collection — Tab Duyệt
 
 **Tính năng:**
+
 - Grid các **category card** theo design system
 - Click vào category → lọc danh sách idioms
 - **Search bar** tìm kiếm realtime theo phrase hoặc meaning_vi
@@ -239,6 +245,7 @@ Timer bar (Time Attack): animate-width, đổi màu khi gần hết
 - Badge "✅ Đã thuộc" trên card nếu có trong learnedIds
 
 **Design:**
+
 ```
 Category grid: grid-cols-2 sm:grid-cols-4, mỗi card có border đổi màu theo accent
 Search bar: border-border-default, focus:border-accent-coral
@@ -251,6 +258,7 @@ Modal: bg-bg-surface, border border-accent-coral, với overlay bg-bg-deep/80
 ### 4.4 🎲 Spin Wheel — Tab Vòng Quay
 
 **Cơ chế:**
+
 - Vòng quay chia thành các ô theo category (8 ô)
 - Nhấn **"QUAY THÔI!"** → animation quay có deceleration
 - Dừng lại tại ô random → hiện 1 idiom ngẫu nhiên từ category đó
@@ -259,6 +267,7 @@ Modal: bg-bg-surface, border border-accent-coral, với overlay bg-bg-deep/80
 - +5 XP mỗi lần spin
 
 **Implementation:**
+
 ```
 Canvas hoặc CSS conic-gradient + CSS transform rotate
 Easing: cubic-bezier deceleration, tối thiểu 3 vòng trước khi dừng
@@ -271,6 +280,7 @@ Mũi tên chỉ: bg-accent-coral, absolute top, triangle clip-path
 ### 4.5 📊 Stats — Tab Thống Kê
 
 **Hiển thị:**
+
 - **Streak Calendar:** 30 ngày gần nhất, ô ngày học = filled coral, không học = dim
 - **XP Bar** với level hiện tại và số XP cần lên level
 - **Badges đã mở khóa** (grid, còn lại dạng silhouette mờ với dấu ?)
@@ -278,12 +288,13 @@ Mũi tên chỉ: bg-accent-coral, absolute top, triangle clip-path
 - **Tỉ lệ đã học:** `learnedIds.length / total` dạng progress circle
 
 **Level System:**
+
 ```typescript
 const LEVELS = [
-  { min: 0,    label: '🐣 Newbie Mơ Tây' },
-  { min: 100,  label: '📚 Đang Vào Số' },
-  { min: 300,  label: '🧠 Não Đang Nở' },
-  { min: 600,  label: '💬 Nói Được Đôi Câu' },
+  { min: 0, label: '🐣 Newbie Mơ Tây' },
+  { min: 100, label: '📚 Đang Vào Số' },
+  { min: 300, label: '🧠 Não Đang Nở' },
+  { min: 600, label: '💬 Nói Được Đôi Câu' },
   { min: 1000, label: '🔥 Cháy Với Tiếng Anh' },
   { min: 2000, label: '👑 Người Việt Nói Tiếng Anh Như Tây' },
 ]
@@ -298,19 +309,19 @@ Vì đây là sub-page độc lập (không dùng Vue Router cha), navigation gi
 ```vue
 <!-- index.vue -->
 <script setup>
-const activeTab = ref<'home' | 'quiz' | 'collection' | 'spin' | 'stats'>('home')
+const activeTab = (ref < 'home') | 'quiz' | 'collection' | 'spin' | ('stats' > 'home')
 </script>
 ```
 
 Tab bar cố định ở bottom (mobile) hoặc top (desktop):
 
-| Tab | Icon (Iconify) | Label |
-|---|---|---|
-| home | `fluent-emoji:books` | Học |
-| quiz | `fluent-emoji:game-die` | Quiz |
+| Tab        | Icon (Iconify)                     | Label      |
+| ---------- | ---------------------------------- | ---------- |
+| home       | `fluent-emoji:books`               | Học        |
+| quiz       | `fluent-emoji:game-die`            | Quiz       |
 | collection | `fluent-emoji:card-index-dividers` | Bộ Sưu Tập |
-| spin | `fluent-emoji:ferris-wheel` | Vòng Quay |
-| stats | `fluent-emoji:bar-chart` | Stats |
+| spin       | `fluent-emoji:ferris-wheel`        | Vòng Quay  |
+| stats      | `fluent-emoji:bar-chart`           | Stats      |
 
 ---
 
@@ -318,13 +329,13 @@ Tab bar cố định ở bottom (mobile) hoặc top (desktop):
 
 ### Màu sắc theo tính năng
 
-| Tính năng | Accent chính | Lý do |
-|---|---|---|
-| Flashcard / Home | `coral` | Dominant accent, thu hút attention |
-| Quiz | `amber` | Energy, warning (đang thi!) |
-| Collection | `sky` | Calm, browsing mode |
-| Spin Wheel | Xen kẽ coral + amber | Festive, vui vẻ |
-| Stats | coral (streak) + amber (XP) | Consistent với gamification |
+| Tính năng        | Accent chính                | Lý do                              |
+| ---------------- | --------------------------- | ---------------------------------- |
+| Flashcard / Home | `coral`                     | Dominant accent, thu hút attention |
+| Quiz             | `amber`                     | Energy, warning (đang thi!)        |
+| Collection       | `sky`                       | Calm, browsing mode                |
+| Spin Wheel       | Xen kẽ coral + amber        | Festive, vui vẻ                    |
+| Stats            | coral (streak) + amber (XP) | Consistent với gamification        |
 
 ### Typography
 
@@ -340,11 +351,11 @@ Category label:       font-display text-sm tracking-widest text-accent-coral
 ### Cards
 
 Tất cả card tuân thủ: **sharp corners, no rounded-\***, hover lift + coral border:
+
 ```html
-class="border border-border-default bg-bg-surface p-6
-       transition-all duration-300
-       hover:-translate-y-1 hover:border-accent-coral hover:bg-bg-elevated
-       hover:shadow-lg hover:shadow-accent-coral/5"
+class="border border-border-default bg-bg-surface p-6 transition-all duration-300
+hover:-translate-y-1 hover:border-accent-coral hover:bg-bg-elevated hover:shadow-lg
+hover:shadow-accent-coral/5"
 ```
 
 ### Animations
@@ -378,6 +389,7 @@ export default {
 ## 8. Lộ Trình Triển Khai
 
 ### Phase 1 — Foundation (Ngày 1–2)
+
 - [ ] Chạy `pnpm create:page golingduo-idiom`
 - [ ] Viết `meta.ts`
 - [ ] Tạo `data/idioms.ts` với ~30 idioms đầu (6 categories)
@@ -386,6 +398,7 @@ export default {
 - [ ] Scaffold `index.vue` với tab navigation + AppHeader/AppFooter
 
 ### Phase 2 — Flashcard Core (Ngày 3–4)
+
 - [ ] `FlipCard.vue` với 3D CSS flip animation (3 mặt)
 - [ ] `FlipCardDeck.vue` với swipe/arrow navigation
 - [ ] `IdiomOfDay.vue` với seed theo ngày
@@ -393,6 +406,7 @@ export default {
 - [ ] `HomeTab.vue` hoàn chỉnh
 
 ### Phase 3 — Quiz Mode (Ngày 5–6)
+
 - [ ] `useQuiz.ts` — shuffle, score logic
 - [ ] `QuizCard.vue` — render câu hỏi + 4 đáp án lầy
 - [ ] `QuizTimer.vue` — countdown bar cho Time Attack
@@ -400,6 +414,7 @@ export default {
 - [ ] `QuizTab.vue` — mode selector + flow hoàn chỉnh
 
 ### Phase 4 — Collection (Ngày 7)
+
 - [ ] `CategoryGrid.vue`
 - [ ] `SearchBar.vue` với debounce (VueUse `useDebounceFn`)
 - [ ] `IdiomCard.vue` + modal chi tiết
@@ -407,6 +422,7 @@ export default {
 - [ ] Thêm data lên ~80 idioms
 
 ### Phase 5 — Spin & Stats (Ngày 8–9)
+
 - [ ] `SpinWheel.vue` — CSS conic-gradient + rotate animation
 - [ ] `useSpin.ts` — random logic + history
 - [ ] `SpinTab.vue` hoàn chỉnh
@@ -415,6 +431,7 @@ export default {
 - [ ] Badge unlock popup với animation
 
 ### Phase 6 — Polish & Submit (Ngày 10)
+
 - [ ] Responsive check (mobile-first)
 - [ ] Kiểm tra tất cả animation, transition mượt
 - [ ] Review lại tất cả `funny_context` cho đủ lầy 😂
@@ -427,119 +444,126 @@ export default {
 ## 9. Danh Sách 80 Idioms (Phân theo Category)
 
 ### 😭 Drama & Cảm Xúc (12 idioms)
-| Phrase | Literal VI | Nghĩa thật |
-|---|---|---|
-| Cry me a river | Khóc cho tao một con sông | Thôi đừng than vãn nữa |
-| Spill the tea | Đổ trà ra | Kể chuyện drama đi |
-| Bite the bullet | Cắn viên đạn | Cố chịu đựng vượt qua |
-| On the fence | Ngồi trên hàng rào | Chưa quyết định được |
-| Butterflies in my stomach | Có bướm trong bụng | Hồi hộp, bồn chồn |
-| Pull someone's leg | Kéo chân ai đó | Nói đùa, trêu chọc |
-| See eye to eye | Nhìn mắt qua mắt | Đồng ý, hiểu nhau |
-| Bite off more than you can chew | Cắn nhiều hơn mày nhai được | Nhận việc quá sức |
-| Burning bridges | Đốt cầu | Phá hỏng quan hệ vĩnh viễn |
-| Cold shoulder | Vai lạnh | Cố tình lờ đi ai |
-| Hit the nail on the head | Đóng đinh vào đầu | Nói đúng vấn đề |
-| Beat around the bush | Đánh quanh bụi | Nói vòng vo, né tránh thẳng thắn |
+
+| Phrase                          | Literal VI                  | Nghĩa thật                       |
+| ------------------------------- | --------------------------- | -------------------------------- |
+| Cry me a river                  | Khóc cho tao một con sông   | Thôi đừng than vãn nữa           |
+| Spill the tea                   | Đổ trà ra                   | Kể chuyện drama đi               |
+| Bite the bullet                 | Cắn viên đạn                | Cố chịu đựng vượt qua            |
+| On the fence                    | Ngồi trên hàng rào          | Chưa quyết định được             |
+| Butterflies in my stomach       | Có bướm trong bụng          | Hồi hộp, bồn chồn                |
+| Pull someone's leg              | Kéo chân ai đó              | Nói đùa, trêu chọc               |
+| See eye to eye                  | Nhìn mắt qua mắt            | Đồng ý, hiểu nhau                |
+| Bite off more than you can chew | Cắn nhiều hơn mày nhai được | Nhận việc quá sức                |
+| Burning bridges                 | Đốt cầu                     | Phá hỏng quan hệ vĩnh viễn       |
+| Cold shoulder                   | Vai lạnh                    | Cố tình lờ đi ai                 |
+| Hit the nail on the head        | Đóng đinh vào đầu           | Nói đúng vấn đề                  |
+| Beat around the bush            | Đánh quanh bụi              | Nói vòng vo, né tránh thẳng thắn |
 
 ### 💼 Công Sở Sống Còn (12 idioms)
-| Phrase | Literal VI | Nghĩa thật |
-|---|---|---|
-| Under the weather | Dưới thời tiết | Không khoẻ, hơi bệnh |
-| Back to the drawing board | Quay lại bảng vẽ | Bắt đầu lại từ đầu |
-| Hit the ground running | Chạm đất là chạy luôn | Bắt đầu ngay và luôn |
-| Think outside the box | Nghĩ ngoài cái hộp | Sáng tạo, tư duy khác |
-| Cut corners | Cắt góc | Làm tắt, bỏ bước quan trọng |
-| Get the ball rolling | Lăn quả bóng | Bắt đầu khởi động việc gì |
-| Jump the gun | Nhảy theo súng | Làm quá sớm, nóng vội |
-| Go the extra mile | Đi thêm một dặm nữa | Nỗ lực thêm hơn mức cần |
-| In the loop | Trong vòng lặp | Được cập nhật thông tin |
-| Touch base | Chạm vào gốc | Liên lạc nhanh để cập nhật |
-| Ballpark figure | Con số sân bóng | Số ước tính gần đúng |
-| Drop the ball | Thả quả bóng | Làm hỏng, bỏ lỡ trách nhiệm |
+
+| Phrase                    | Literal VI            | Nghĩa thật                  |
+| ------------------------- | --------------------- | --------------------------- |
+| Under the weather         | Dưới thời tiết        | Không khoẻ, hơi bệnh        |
+| Back to the drawing board | Quay lại bảng vẽ      | Bắt đầu lại từ đầu          |
+| Hit the ground running    | Chạm đất là chạy luôn | Bắt đầu ngay và luôn        |
+| Think outside the box     | Nghĩ ngoài cái hộp    | Sáng tạo, tư duy khác       |
+| Cut corners               | Cắt góc               | Làm tắt, bỏ bước quan trọng |
+| Get the ball rolling      | Lăn quả bóng          | Bắt đầu khởi động việc gì   |
+| Jump the gun              | Nhảy theo súng        | Làm quá sớm, nóng vội       |
+| Go the extra mile         | Đi thêm một dặm nữa   | Nỗ lực thêm hơn mức cần     |
+| In the loop               | Trong vòng lặp        | Được cập nhật thông tin     |
+| Touch base                | Chạm vào gốc          | Liên lạc nhanh để cập nhật  |
+| Ballpark figure           | Con số sân bóng       | Số ước tính gần đúng        |
+| Drop the ball             | Thả quả bóng          | Làm hỏng, bỏ lỡ trách nhiệm |
 
 ### ❤️ Yêu Đương Éo Le (10 idioms)
-| Phrase | Literal VI | Nghĩa thật |
-|---|---|---|
-| Head over heels | Đầu qua gót chân | Yêu điên đảo, mê mẩn |
-| Love at first sight | Tình yêu nhìn đầu tiên | Yêu từ cái nhìn đầu |
-| On the same page | Trên cùng một trang | Hiểu nhau, đồng thuận |
-| Have a crush | Có một vụ nghiền | Thích ai đó |
-| Play hard to get | Chơi khó để nhận | Giả vờ không quan tâm |
-| Wear your heart on your sleeve | Đeo tim trên tay áo | Lộ cảm xúc ra ngoài quá |
-| Fall for someone | Ngã vì ai đó | Bắt đầu yêu ai |
-| Tie the knot | Buộc nút | Kết hôn |
-| Pop the question | Nổ câu hỏi | Cầu hôn |
-| It takes two to tango | Cần hai người để nhảy tango | Hai bên đều có lỗi |
+
+| Phrase                         | Literal VI                  | Nghĩa thật              |
+| ------------------------------ | --------------------------- | ----------------------- |
+| Head over heels                | Đầu qua gót chân            | Yêu điên đảo, mê mẩn    |
+| Love at first sight            | Tình yêu nhìn đầu tiên      | Yêu từ cái nhìn đầu     |
+| On the same page               | Trên cùng một trang         | Hiểu nhau, đồng thuận   |
+| Have a crush                   | Có một vụ nghiền            | Thích ai đó             |
+| Play hard to get               | Chơi khó để nhận            | Giả vờ không quan tâm   |
+| Wear your heart on your sleeve | Đeo tim trên tay áo         | Lộ cảm xúc ra ngoài quá |
+| Fall for someone               | Ngã vì ai đó                | Bắt đầu yêu ai          |
+| Tie the knot                   | Buộc nút                    | Kết hôn                 |
+| Pop the question               | Nổ câu hỏi                  | Cầu hôn                 |
+| It takes two to tango          | Cần hai người để nhảy tango | Hai bên đều có lỗi      |
 
 ### 🤑 Flex Tài Chính (10 idioms)
-| Phrase | Literal VI | Nghĩa thật |
-|---|---|---|
-| Break the bank | Phá vỡ ngân hàng | Tốn rất nhiều tiền |
-| On the house | Trên ngôi nhà | Được miễn phí, chủ đãi |
-| Penny pincher | Kẹp đồng xu | Người keo kiệt, tính toán |
-| In the red | Trong màu đỏ | Đang bị lỗ, nợ tiền |
-| In the black | Trong màu đen | Đang có lãi |
-| Costs an arm and a leg | Tốn một tay và một chân | Đắt khủng khiếp |
-| Nest egg | Trứng ổ | Tiền tiết kiệm dự phòng |
-| Make ends meet | Làm hai đầu gặp nhau | Kiếm đủ tiền trang trải |
-| Money doesn't grow on trees | Tiền không mọc trên cây | Tiền không phải tự nhiên có |
-| Tighten your belt | Thắt chặt thắt lưng | Tiết kiệm hơn, chi tiêu ít đi |
+
+| Phrase                      | Literal VI              | Nghĩa thật                    |
+| --------------------------- | ----------------------- | ----------------------------- |
+| Break the bank              | Phá vỡ ngân hàng        | Tốn rất nhiều tiền            |
+| On the house                | Trên ngôi nhà           | Được miễn phí, chủ đãi        |
+| Penny pincher               | Kẹp đồng xu             | Người keo kiệt, tính toán     |
+| In the red                  | Trong màu đỏ            | Đang bị lỗ, nợ tiền           |
+| In the black                | Trong màu đen           | Đang có lãi                   |
+| Costs an arm and a leg      | Tốn một tay và một chân | Đắt khủng khiếp               |
+| Nest egg                    | Trứng ổ                 | Tiền tiết kiệm dự phòng       |
+| Make ends meet              | Làm hai đầu gặp nhau    | Kiếm đủ tiền trang trải       |
+| Money doesn't grow on trees | Tiền không mọc trên cây | Tiền không phải tự nhiên có   |
+| Tighten your belt           | Thắt chặt thắt lưng     | Tiết kiệm hơn, chi tiêu ít đi |
 
 ### 🍜 Đời Thường Việt Nam (10 idioms)
-| Phrase | Literal VI | Nghĩa thật |
-|---|---|---|
-| Piece of cake | Miếng bánh | Dễ như ăn kẹo |
-| Bite the dust | Cắn bụi | Thất bại, ngã xuống |
-| Hit the sack | Đánh vào bao | Đi ngủ |
+
+| Phrase                        | Literal VI                        | Nghĩa thật                 |
+| ----------------------------- | --------------------------------- | -------------------------- |
+| Piece of cake                 | Miếng bánh                        | Dễ như ăn kẹo              |
+| Bite the dust                 | Cắn bụi                           | Thất bại, ngã xuống        |
+| Hit the sack                  | Đánh vào bao                      | Đi ngủ                     |
 | Kill two birds with one stone | Giết hai con chim bằng một hòn đá | Một mũi tên trúng hai đích |
-| Spill the beans | Đổ hạt đậu | Lỡ miệng tiết lộ bí mật |
-| Under the table | Dưới bàn | Làm chui, không chính thức |
-| Wrap your head around | Quấn đầu mày quanh | Hiểu được điều gì đó |
-| Sleep on it | Ngủ lên nó | Suy nghĩ thêm qua đêm đã |
-| Hang in there | Treo ở đó | Cố lên, đừng bỏ cuộc |
-| Give it a shot | Cho nó một phát | Thử xem sao |
+| Spill the beans               | Đổ hạt đậu                        | Lỡ miệng tiết lộ bí mật    |
+| Under the table               | Dưới bàn                          | Làm chui, không chính thức |
+| Wrap your head around         | Quấn đầu mày quanh                | Hiểu được điều gì đó       |
+| Sleep on it                   | Ngủ lên nó                        | Suy nghĩ thêm qua đêm đã   |
+| Hang in there                 | Treo ở đó                         | Cố lên, đừng bỏ cuộc       |
+| Give it a shot                | Cho nó một phát                   | Thử xem sao                |
 
 ### 💪 Sống Ảo Motivate (8 idioms)
-| Phrase | Literal VI | Nghĩa thật |
-|---|---|---|
-| Bite the bullet | Cắn viên đạn | Bước qua khó khăn dũng cảm |
-| Face the music | Đối mặt với âm nhạc | Chấp nhận hậu quả hành động |
-| The ball is in your court | Quả bóng trong sân mày | Đến lượt mày quyết định rồi |
-| Step up to the plate | Bước lên tấm đĩa | Nhận lấy trách nhiệm |
-| Take the bull by the horns | Nắm bò bằng sừng | Đối mặt trực tiếp với vấn đề |
-| Weather the storm | Vượt qua cơn bão | Sống sót qua giai đoạn khó |
-| Light at the end of the tunnel | Ánh sáng cuối đường hầm | Hy vọng sau giai đoạn khó |
-| Rise to the occasion | Nổi lên với dịp đó | Bứt phá khi được thử thách |
+
+| Phrase                         | Literal VI              | Nghĩa thật                   |
+| ------------------------------ | ----------------------- | ---------------------------- |
+| Bite the bullet                | Cắn viên đạn            | Bước qua khó khăn dũng cảm   |
+| Face the music                 | Đối mặt với âm nhạc     | Chấp nhận hậu quả hành động  |
+| The ball is in your court      | Quả bóng trong sân mày  | Đến lượt mày quyết định rồi  |
+| Step up to the plate           | Bước lên tấm đĩa        | Nhận lấy trách nhiệm         |
+| Take the bull by the horns     | Nắm bò bằng sừng        | Đối mặt trực tiếp với vấn đề |
+| Weather the storm              | Vượt qua cơn bão        | Sống sót qua giai đoạn khó   |
+| Light at the end of the tunnel | Ánh sáng cuối đường hầm | Hy vọng sau giai đoạn khó    |
+| Rise to the occasion           | Nổi lên với dịp đó      | Bứt phá khi được thử thách   |
 
 ### ⏰ Thời Gian & Deadline (8 idioms)
-| Phrase | Literal VI | Nghĩa thật |
-|---|---|---|
-| Against the clock | Chống lại đồng hồ | Đang đua với thời gian |
-| In the nick of time | Trong khía của thời gian | Vừa kịp lúc, sát giờ |
-| Beat the clock | Đánh bại đồng hồ | Làm xong trước deadline |
-| Around the clock | Xung quanh đồng hồ | Làm liên tục 24/7 |
-| A race against time | Cuộc đua chống lại thời gian | Đang rất gấp |
-| On the dot | Trên chấm | Đúng giờ, đúng phút |
-| Time flies | Thời gian bay | Thời gian trôi nhanh quá |
-| At the eleventh hour | Vào giờ thứ mười một | Làm vào phút chót |
+
+| Phrase               | Literal VI                   | Nghĩa thật               |
+| -------------------- | ---------------------------- | ------------------------ |
+| Against the clock    | Chống lại đồng hồ            | Đang đua với thời gian   |
+| In the nick of time  | Trong khía của thời gian     | Vừa kịp lúc, sát giờ     |
+| Beat the clock       | Đánh bại đồng hồ             | Làm xong trước deadline  |
+| Around the clock     | Xung quanh đồng hồ           | Làm liên tục 24/7        |
+| A race against time  | Cuộc đua chống lại thời gian | Đang rất gấp             |
+| On the dot           | Trên chấm                    | Đúng giờ, đúng phút      |
+| Time flies           | Thời gian bay                | Thời gian trôi nhanh quá |
+| At the eleventh hour | Vào giờ thứ mười một         | Làm vào phút chót        |
 
 ---
 
 ## 10. Các Quyết Định Kỹ Thuật
 
-| Quyết định | Giải pháp | Lý do |
-|---|---|---|
-| Navigation nội bộ | `ref<TabId>` trong `index.vue` | Không cần nested Vue Router, sub-page độc lập |
-| State persistence | `localStorage` qua `useProgress.ts` | Không có database, theo nguyên tắc dự án |
-| Idiom of Day | `idioms[dayOfYear % idioms.length]` | Deterministic, không cần server |
-| Spin wheel | CSS `conic-gradient` + `transform: rotate()` | Không cần thư viện canvas mới |
-| Quiz shuffle | Fisher-Yates trong `useQuiz.ts` | Pure function, testable |
-| Debounce search | `useDebounceFn` từ `@vueuse/core` | Đã có sẵn, không cần thêm dep |
-| Icons | `@iconify/vue` với `fluent-emoji` set | Đã được cài sẵn trong dự án |
-| Animations | CSS keyframes + Tailwind classes | Nhất quán với design system |
+| Quyết định        | Giải pháp                                    | Lý do                                         |
+| ----------------- | -------------------------------------------- | --------------------------------------------- |
+| Navigation nội bộ | `ref<TabId>` trong `index.vue`               | Không cần nested Vue Router, sub-page độc lập |
+| State persistence | `localStorage` qua `useProgress.ts`          | Không có database, theo nguyên tắc dự án      |
+| Idiom of Day      | `idioms[dayOfYear % idioms.length]`          | Deterministic, không cần server               |
+| Spin wheel        | CSS `conic-gradient` + `transform: rotate()` | Không cần thư viện canvas mới                 |
+| Quiz shuffle      | Fisher-Yates trong `useQuiz.ts`              | Pure function, testable                       |
+| Debounce search   | `useDebounceFn` từ `@vueuse/core`            | Đã có sẵn, không cần thêm dep                 |
+| Icons             | `@iconify/vue` với `fluent-emoji` set        | Đã được cài sẵn trong dự án                   |
+| Animations        | CSS keyframes + Tailwind classes             | Nhất quán với design system                   |
 
 ---
 
-*Tài liệu này được tạo để làm guide triển khai cho trang `golingduo-idiom` trong dự án vibe.j2team.org.*
-*Mọi component và composable phải hoạt động độc lập trong thư mục `src/views/golingduo-idiom/`.*
+_Tài liệu này được tạo để làm guide triển khai cho trang `golingduo-idiom` trong dự án vibe.j2team.org._
+_Mọi component và composable phải hoạt động độc lập trong thư mục `src/views/golingduo-idiom/`._

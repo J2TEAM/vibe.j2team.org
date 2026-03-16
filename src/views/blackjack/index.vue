@@ -1,153 +1,153 @@
 <script setup lang="ts">
 defineOptions({
-  name: "BlackjackView",
-});
-import { ref, onMounted, onUnmounted, defineAsyncComponent, shallowRef } from "vue";
-import type { Ref, ComputedRef } from "vue";
-import type { Player, Dealer, GameStatus, Card } from "./types/blackjack";
+  name: 'BlackjackView',
+})
+import { ref, onMounted, onUnmounted, defineAsyncComponent, shallowRef } from 'vue'
+import type { Ref, ComputedRef } from 'vue'
+import type { Player, Dealer, GameStatus, Card } from './types/blackjack'
 
 // Định nghĩa Interface cho logic game để tránh lỗi 'any'
 interface BlackjackLogic {
-  player: Ref<Player>;
-  dealer: Ref<Dealer>;
-  status: Ref<GameStatus>;
-  resultMessage: Ref<string>;
-  startNewGame: (amount: number) => Promise<void>;
-  hit: () => void;
-  stand: () => Promise<void>;
-  doubleDown: () => void;
-  split: () => void;
-  resetGame: () => void;
-  canSplit: ComputedRef<boolean>;
-  canDouble: ComputedRef<boolean>;
-  getScoreDisplay: (hand: Card[]) => string;
-  isSoundEnabled: Ref<boolean>;
-  toggleSound: () => void;
+  player: Ref<Player>
+  dealer: Ref<Dealer>
+  status: Ref<GameStatus>
+  resultMessage: Ref<string>
+  startNewGame: (amount: number) => Promise<void>
+  hit: () => void
+  stand: () => Promise<void>
+  doubleDown: () => void
+  split: () => void
+  resetGame: () => void
+  canSplit: ComputedRef<boolean>
+  canDouble: ComputedRef<boolean>
+  getScoreDisplay: (hand: Card[]) => string
+  isSoundEnabled: Ref<boolean>
+  toggleSound: () => void
 }
 
 // 1. Tách các Component giao diện (UI)
-const BlackjackTable = defineAsyncComponent(() => import("./components/BlackjackTable.vue"));
-const BetControl = defineAsyncComponent(() => import("./components/BetControl.vue"));
-const RulesModal = defineAsyncComponent(() => import("./components/RulesModal.vue"));
+const BlackjackTable = defineAsyncComponent(() => import('./components/BlackjackTable.vue'))
+const BetControl = defineAsyncComponent(() => import('./components/BetControl.vue'))
+const RulesModal = defineAsyncComponent(() => import('./components/RulesModal.vue'))
 
 // 2. Chuẩn bị refs cho logic game với kiểu dữ liệu tường minh
-const blackjackLogic = shallowRef<BlackjackLogic | null>(null);
-const isReady = ref(false);
-const isRulesOpen = ref(false);
+const blackjackLogic = shallowRef<BlackjackLogic | null>(null)
+const isReady = ref(false)
+const isRulesOpen = ref(false)
 
 onMounted(async () => {
-  document.body.style.overflow = "hidden";
+  document.body.style.overflow = 'hidden'
 
   // 3. Tách logic game ra khỏi bundle chính (Dynamic Import)
   // Lưu ý: Chúng ta gọi trực tiếp useBlackjack ở đây sau khi dynamic import
-  const { useBlackjack: useBlackjackFn } = await import("./composables/useBlackjack");
-  blackjackLogic.value = useBlackjackFn() as unknown as BlackjackLogic;
-  isReady.value = true;
-});
+  const { useBlackjack: useBlackjackFn } = await import('./composables/useBlackjack')
+  blackjackLogic.value = useBlackjackFn() as unknown as BlackjackLogic
+  isReady.value = true
+})
 
 onUnmounted(() => {
-  document.body.style.overflow = "";
-});
+  document.body.style.overflow = ''
+})
 
 // Các hàm wrapper để truy cập vào logic sau khi đã load xong
 const handlePlaceBet = (amount: number) => {
-  if (!blackjackLogic.value) return;
-  if (blackjackLogic.value.status.value === "ended") {
-    blackjackLogic.value.resetGame();
+  if (!blackjackLogic.value) return
+  if (blackjackLogic.value.status.value === 'ended') {
+    blackjackLogic.value.resetGame()
   }
-  blackjackLogic.value.startNewGame(amount);
-};
+  blackjackLogic.value.startNewGame(amount)
+}
 
 const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-};
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
 // --- IMPORT / EXPORT LOGIC ---
-const SECRET_KEY = "j2team-blackjack-vibe-2026";
+const SECRET_KEY = 'j2team-blackjack-vibe-2026'
 
 const generateMachineId = () => {
-  const nav = window.navigator;
-  const screen = window.screen;
-  let guid = nav.mimeTypes.length.toString();
-  guid += nav.userAgent.replace(/\D+/g, "");
-  guid += nav.plugins.length.toString();
-  guid += screen.height?.toString() || "";
-  guid += screen.width?.toString() || "";
-  guid += screen.pixelDepth?.toString() || "";
-  return btoa(guid).substring(0, 16);
-};
+  const nav = window.navigator
+  const screen = window.screen
+  let guid = nav.mimeTypes.length.toString()
+  guid += nav.userAgent.replace(/\D+/g, '')
+  guid += nav.plugins.length.toString()
+  guid += screen.height?.toString() || ''
+  guid += screen.width?.toString() || ''
+  guid += screen.pixelDepth?.toString() || ''
+  return btoa(guid).substring(0, 16)
+}
 
 const encryptData = (data: object) => {
-  const str = JSON.stringify(data);
-  let result = "";
+  const str = JSON.stringify(data)
+  let result = ''
   for (let i = 0; i < str.length; i++) {
-    result += String.fromCharCode(str.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length));
+    result += String.fromCharCode(str.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length))
   }
-  return btoa(result);
-};
+  return btoa(result)
+}
 
 interface DecryptedData {
-  balance: number;
-  mid: string;
-  ts: number;
+  balance: number
+  mid: string
+  ts: number
 }
 
 const decryptData = (encoded: string): DecryptedData | null => {
   try {
-    const str = atob(encoded);
-    let result = "";
+    const str = atob(encoded)
+    let result = ''
     for (let i = 0; i < str.length; i++) {
       result += String.fromCharCode(
         str.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length),
-      );
+      )
     }
-    return JSON.parse(result);
+    return JSON.parse(result)
   } catch {
-    return null;
+    return null
   }
-};
+}
 
 const handleExport = () => {
-  if (!blackjackLogic.value) return;
+  if (!blackjackLogic.value) return
   const data = {
     balance: blackjackLogic.value.player.value.balance,
     mid: generateMachineId(),
     ts: Date.now(),
-  };
-  const encrypted = encryptData(data);
-  const blob = new Blob([encrypted], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `player_${data.mid}.blackjack`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
+  }
+  const encrypted = encryptData(data)
+  const blob = new Blob([encrypted], { type: 'text/plain' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `player_${data.mid}.blackjack`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 
 const handleImport = () => {
-  if (!blackjackLogic.value) return;
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = ".blackjack";
+  if (!blackjackLogic.value) return
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.blackjack'
   input.onchange = (event: Event) => {
-    const target = event.target as HTMLInputElement;
-    const file = target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
+    const target = event.target as HTMLInputElement
+    const file = target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
     reader.onload = (res: ProgressEvent<FileReader>) => {
-      const content = res.target?.result as string;
-      const decrypted = decryptData(content);
+      const content = res.target?.result as string
+      const decrypted = decryptData(content)
       if (decrypted && decrypted.mid === generateMachineId() && blackjackLogic.value) {
-        blackjackLogic.value.player.value.balance = decrypted.balance;
-        alert("Nạp dữ liệu thành công!");
+        blackjackLogic.value.player.value.balance = decrypted.balance
+        alert('Nạp dữ liệu thành công!')
       } else {
-        alert("File không hợp lệ hoặc ID máy không khớp!");
+        alert('File không hợp lệ hoặc ID máy không khớp!')
       }
-    };
-    reader.readAsText(file);
-  };
-  input.click();
-};
+    }
+    reader.readAsText(file)
+  }
+  input.click()
+}
 </script>
 
 <template>
@@ -191,7 +191,11 @@ const handleImport = () => {
             <span
               class="font-display font-black text-sm sm:text-lg tracking-tighter text-accent-amber"
             >
-              ${{ blackjackLogic.player.value.balance.toLocaleString("en-US", { minimumFractionDigits: 2 }) }}
+              ${{
+                blackjackLogic.player.value.balance.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                })
+              }}
             </span>
           </div>
         </div>
@@ -203,11 +207,14 @@ const handleImport = () => {
       class="grow flex flex-col items-center justify-start relative pt-4 sm:pt-8 pb-4 overflow-y-auto sm:overflow-hidden custom-scrollbar"
     >
       <div v-if="!isReady" class="grow flex items-center justify-center">
-         <div class="w-10 h-10 border-2 border-accent-coral border-t-transparent animate-spin"></div>
+        <div class="w-10 h-10 border-2 border-accent-coral border-t-transparent animate-spin"></div>
       </div>
 
       <!-- Unified Game Wrapper -->
-      <div v-else-if="blackjackLogic" class="w-full max-w-4xl px-4 sm:px-6 flex flex-col items-center shrink-0">
+      <div
+        v-else-if="blackjackLogic"
+        class="w-full max-w-4xl px-4 sm:px-6 flex flex-col items-center shrink-0"
+      >
         <!-- Title Row -->
         <div class="w-full mb-2 flex items-center justify-between">
           <h1
@@ -238,7 +245,9 @@ const handleImport = () => {
           <transition name="fade-scale" mode="out-in">
             <!-- Betting/Ended State -->
             <div
-              v-if="blackjackLogic.status.value === 'betting' || blackjackLogic.status.value === 'ended'"
+              v-if="
+                blackjackLogic.status.value === 'betting' || blackjackLogic.status.value === 'ended'
+              "
               key="betting"
               class="w-full h-full flex items-center justify-center"
             >
@@ -278,7 +287,9 @@ const handleImport = () => {
               <button
                 @click="blackjackLogic.split"
                 :disabled="!blackjackLogic.canSplit.value"
-                :class="{ 'opacity-20 grayscale pointer-events-none': !blackjackLogic.canSplit.value }"
+                :class="{
+                  'opacity-20 grayscale pointer-events-none': !blackjackLogic.canSplit.value,
+                }"
                 class="group flex flex-col items-center justify-center bg-bg-surface border-2 border-border-default hover:border-accent-coral transition-all shadow-lg active:scale-95"
               >
                 <span
@@ -290,7 +301,9 @@ const handleImport = () => {
               <button
                 @click="blackjackLogic.doubleDown"
                 :disabled="!blackjackLogic.canDouble.value"
-                :class="{ 'opacity-20 grayscale pointer-events-none': !blackjackLogic.canDouble.value }"
+                :class="{
+                  'opacity-20 grayscale pointer-events-none': !blackjackLogic.canDouble.value,
+                }"
                 class="group flex flex-col items-center justify-center bg-bg-surface border-2 border-border-default hover:border-accent-coral transition-all shadow-lg active:scale-95"
               >
                 <span

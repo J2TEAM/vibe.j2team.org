@@ -16,9 +16,24 @@ const selectedDifficulty = ref<Difficulty>(settings.defaultDifficulty)
 const selectedRegion = ref<Zone>('Bắc')
 
 const modes: { value: GameMode; label: string; icon: string; desc: string }[] = [
-  { value: 'classic', label: 'Classic', icon: '🗺️', desc: 'Gắn hết 63 tỉnh, không giới hạn thời gian' },
-  { value: 'time-attack', label: 'Time Attack', icon: '⚡', desc: 'Gắn càng nhiều càng tốt trong thời gian giới hạn' },
-  { value: 'daily', label: 'Daily Quiz', icon: '📅', desc: 'Mỗi ngày 10 tỉnh ngẫu nhiên, chơi 1 lần/ngày' },
+  {
+    value: 'classic',
+    label: 'Classic',
+    icon: '🗺️',
+    desc: 'Gắn hết 63 tỉnh, không giới hạn thời gian',
+  },
+  {
+    value: 'time-attack',
+    label: 'Time Attack',
+    icon: '⚡',
+    desc: 'Gắn càng nhiều càng tốt trong thời gian giới hạn',
+  },
+  {
+    value: 'daily',
+    label: 'Daily Quiz',
+    icon: '📅',
+    desc: 'Mỗi ngày 10 tỉnh ngẫu nhiên, chơi 1 lần/ngày',
+  },
   { value: 'region', label: 'Region', icon: '🏔️', desc: 'Chỉ chơi các tỉnh thuộc 1 vùng' },
 ]
 
@@ -35,9 +50,7 @@ const regions: { value: Zone; label: string }[] = [
   { value: 'Nam', label: '🌴 Miền Nam' },
 ]
 
-const bestScore = computed(() =>
-  storage.getBestScore(selectedMode.value, selectedDifficulty.value)
-)
+const bestScore = computed(() => storage.getBestScore(selectedMode.value, selectedDifficulty.value))
 
 const hasPlayedToday = computed(() => storage.hasPlayedToday())
 
@@ -63,8 +76,7 @@ function handleStart() {
     <header class="border-b border-border-default px-4 py-3 flex items-center justify-between">
       <RouterLink
         to="/"
-        class="inline-flex items-center gap-2 text-sm text-text-secondary
-               transition hover:text-text-primary"
+        class="inline-flex items-center gap-2 text-sm text-text-secondary transition hover:text-text-primary"
       >
         &larr; Trang chủ
       </RouterLink>
@@ -75,11 +87,14 @@ function handleStart() {
     </header>
 
     <!-- Content -->
-    <div class="flex-1 flex flex-col items-center justify-center px-4 py-8 max-w-2xl mx-auto w-full">
+    <div
+      class="flex-1 flex flex-col items-center justify-center px-4 py-8 max-w-2xl mx-auto w-full"
+    >
       <!-- Title -->
       <div class="text-center mb-10 animate-fade-up">
-        <h1 class="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-accent-coral
-                   tracking-tight leading-tight">
+        <h1
+          class="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-accent-coral tracking-tight leading-tight"
+        >
           🗺️ Blind Map
           <br />
           <span class="text-accent-sky">Challenge</span>
@@ -171,8 +186,7 @@ function handleStart() {
       <!-- Best score -->
       <div
         v-if="bestScore > 0"
-        class="w-full mb-6 border border-border-default bg-bg-surface p-3
-               flex items-center justify-between animate-fade-up animate-delay-3"
+        class="w-full mb-6 border border-border-default bg-bg-surface p-3 flex items-center justify-between animate-fade-up animate-delay-3"
       >
         <span class="text-sm text-text-secondary font-display">🏆 Kỷ lục</span>
         <span class="font-display font-bold text-accent-amber text-lg">{{ bestScore }}đ</span>
@@ -181,20 +195,14 @@ function handleStart() {
       <!-- Daily warning -->
       <div
         v-if="selectedMode === 'daily' && hasPlayedToday"
-        class="w-full mb-6 border border-accent-amber/30 bg-accent-amber/5 p-3
-               text-sm text-accent-amber animate-fade-up animate-delay-3"
+        class="w-full mb-6 border border-accent-amber/30 bg-accent-amber/5 p-3 text-sm text-accent-amber animate-fade-up animate-delay-3"
       >
         📅 Bạn đã chơi Daily Quiz hôm nay rồi. Hãy quay lại vào ngày mai!
       </div>
 
       <!-- Start button -->
       <button
-        class="w-full max-w-sm py-4 bg-accent-coral text-bg-deep font-display font-bold
-               text-lg tracking-wide transition-all duration-300
-               hover:bg-accent-amber hover:shadow-lg hover:shadow-accent-coral/20
-               hover:-translate-y-0.5 active:translate-y-0
-               animate-fade-up animate-delay-4
-               disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+        class="w-full max-w-sm py-4 bg-accent-coral text-bg-deep font-display font-bold text-lg tracking-wide transition-all duration-300 hover:bg-accent-amber hover:shadow-lg hover:shadow-accent-coral/20 hover:-translate-y-0.5 active:translate-y-0 animate-fade-up animate-delay-4 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
         :disabled="selectedMode === 'daily' && hasPlayedToday"
         @click="handleStart"
       >

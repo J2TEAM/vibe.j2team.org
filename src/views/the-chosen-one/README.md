@@ -12,13 +12,13 @@ A colorful prize wheel that spins and lands on a randomly selected name. Each pa
 
 A lane-based race where each participant is represented by a uniquely costumed duck. Ducks race across the screen at randomised speeds with a swimming wobble animation. The first duck to cross the finish line wins. Costumes are inspired by pop culture, movies, and iconic characters:
 
-| Costume | Costume | Costume | Costume |
-|---------|---------|---------|---------|
-| Wizard | Cowboy | Detective | Chef |
-| Pirate | Ninja | Astronaut | Viking |
-| Vampire | Princess | Robot | Samurai |
-| Jedi | Zombie | Santa | Clown |
-| Pharaoh | Knight | Hacker | Disco |
+| Costume | Costume  | Costume   | Costume |
+| ------- | -------- | --------- | ------- |
+| Wizard  | Cowboy   | Detective | Chef    |
+| Pirate  | Ninja    | Astronaut | Viking  |
+| Vampire | Princess | Robot     | Samurai |
+| Jedi    | Zombie   | Santa     | Clown   |
+| Pharaoh | Knight   | Hacker    | Disco   |
 
 Each duck gets a unique SVG hat and accessory. Costumes are assigned by shuffling on every race.
 
@@ -127,4 +127,3 @@ When multiple games exist, one is randomly selected on each page load.
 ## Author
 
 **huynguyen260398** — [Facebook](https://www.facebook.com/huy.nguyen.682)
-
