@@ -21,6 +21,12 @@ const isStarting = ref(false)
 const isProcessing = ref(false)
 const errorMessage = ref('')
 
+// --- Actions ---
+function resetPhotobooth() {
+  mergedPreview.value = ''
+  lastCapturedPhoto.value = ''
+}
+
 // --- Điều hướng ---
 function goToHome() {
   window.location.href = '/'
@@ -220,10 +226,7 @@ onBeforeUnmount(() => {
             >
             <button
               v-if="mergedPreview"
-              @click="
-                mergedPreview = ''
-                lastCapturedPhoto = ''
-              "
+              @click="resetPhotobooth"
               class="text-[10px] text-slate-400 hover:text-orange-500 underline underline-offset-4 uppercase font-bold transition-colors cursor-pointer"
             >
               Chụp lại
@@ -236,6 +239,7 @@ onBeforeUnmount(() => {
             <img
               v-if="mergedPreview"
               :src="mergedPreview"
+              loading="lazy"
               :class="{ 'opacity-50': isProcessing }"
               class="h-full w-full object-contain animate-in fade-in zoom-in-95 duration-500 transition-opacity"
             />

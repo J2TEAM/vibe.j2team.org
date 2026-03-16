@@ -258,10 +258,13 @@ function buildDisplayList(): DisplayItem[] {
   const list: DisplayItem[] = []
   const banMenh = cards.value.find((c) => c.isBanMenh)
   const trungCung = cards.value.find((c) => c.slotKey === 'center')
+
+  // Tất cả lá ngoại trừ trung cung — kể cả lá bản mệnh
   const others = cards.value
-    .filter((c) => !c.isBanMenh && c.slotKey !== 'center')
+    .filter((c) => c.slotKey !== 'center')
     .sort((a, b) => MONTH_ORDER[a.slotKey]! - MONTH_ORDER[b.slotKey]!)
 
+  // 1. Lá Bản Mệnh (đọc theo chất, hiện riêng ở đầu)
   if (banMenh)
     list.push({
       slotKey: banMenh.slotKey,
@@ -269,6 +272,8 @@ function buildDisplayList(): DisplayItem[] {
       isBanMenh: true,
       month: 'Lá Bản Mệnh',
     })
+
+  // 2. Trung cung
   if (trungCung)
     list.push({
       slotKey: trungCung.slotKey,
@@ -277,6 +282,7 @@ function buildDisplayList(): DisplayItem[] {
       month: 'Trung cung',
     })
 
+  // 3. Tất cả 12 tháng — lá bản mệnh vẫn có tháng riêng của nó
   const monthCards: { month: string; c: SlotCard }[] = []
   others.forEach((c) => {
     const slot = SLOTS.find((s) => s.key === c.slotKey)!
@@ -297,6 +303,238 @@ function getReading(item: DisplayItem): string {
   const base = READINGS[item.month]?.[item.card.suit] ?? ''
   const extra = VALUE_READINGS[item.card.value]?.[item.card.suit] ?? ''
   return base + (extra ? ' ' + extra : '')
+}
+
+// --- PDF EXPORT ---
+const isGeneratingPdf = ref(false)
+const resultsRef = ref<HTMLElement | null>(null)
+
+async function downloadPDF() {
+  if (!resultsRef.value) return
+  isGeneratingPdf.value = true
+
+  try {
+    // Render kết quả ra canvas thủ công — không cần thư viện ngoài
+    const items = buildDisplayList()
+    const now = new Date()
+    const dateStr = now.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    })
+
+    // Tạo offscreen canvas A4 (794 x 1123 px @ 96dpi)
+    const W = 794
+    const PADDING = 40
+    const ROW_H = 72
+    const headerH = 130
+    const footerH = 60
+    const totalH = headerH + items.length * (ROW_H + 8) + footerH + PADDING * 2
+
+    const canvas = document.createElement('canvas')
+    canvas.width = W
+    canvas.height = totalH
+    const ctx = canvas.getContext('2d')!
+
+    // --- Background ---
+    ctx.fillStyle = '#0F1923'
+    ctx.fillRect(0, 0, W, totalH)
+
+    // --- Load fonts ---
+    await document.fonts.ready
+
+    // --- Header ---
+    ctx.textAlign = 'center'
+    ctx.fillStyle = '#FF6B4A'
+    ctx.font = '500 13px "Be Vietnam Pro", sans-serif'
+    ctx.fillText('✦  ✦  ✦', W / 2, PADDING + 20)
+
+    ctx.fillStyle = '#FF6B4A'
+    ctx.font = 'bold 28px "Anybody", sans-serif'
+    ctx.fillText('Quẻ Bài Bát Quái', W / 2, PADDING + 56)
+
+    ctx.fillStyle = '#4A6180'
+    ctx.font = '500 11px "Be Vietnam Pro", sans-serif'
+    ctx.fillText('HUỲNH LIÊN TỬ  —  XEM VẬN MỘT NĂM', W / 2, PADDING + 76)
+
+    ctx.fillStyle = '#4A6180'
+    ctx.font = '400 11px "Be Vietnam Pro", sans-serif'
+    ctx.fillText(`Ngày xem: ${dateStr}`, W / 2, PADDING + 96)
+
+    // divider
+    ctx.strokeStyle = '#253549'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(PADDING, PADDING + 110)
+    ctx.lineTo(W - PADDING, PADDING + 110)
+    ctx.stroke()
+
+    // section heading
+    ctx.textAlign = 'left'
+    ctx.fillStyle = '#FF6B4A'
+    ctx.font = 'bold 12px "Anybody", sans-serif'
+    ctx.fillText('//', PADDING, PADDING + 128)
+    ctx.fillStyle = '#F0EDE6'
+    ctx.font = 'bold 16px "Anybody", sans-serif'
+    ctx.fillText('Giải Quẻ Một Năm', PADDING + 22, PADDING + 128)
+
+    // --- Rows ---
+    let y = headerH + PADDING
+
+    for (const item of items) {
+      const isRed = ['♥', '♦'].includes(item.card.suit)
+      const reading = getReading(item)
+
+      // Row bg
+      ctx.fillStyle = '#162232'
+      ctx.fillRect(PADDING, y, W - PADDING * 2, ROW_H)
+
+      // Border
+      ctx.strokeStyle = item.isBanMenh ? '#FF6B4A' : '#253549'
+      ctx.lineWidth = item.isBanMenh ? 1.5 : 0.8
+      ctx.strokeRect(PADDING, y, W - PADDING * 2, ROW_H)
+
+      // Left accent bar for ban menh
+      if (item.isBanMenh) {
+        ctx.fillStyle = '#FF6B4A'
+        ctx.fillRect(PADDING, y, 4, ROW_H)
+      }
+
+      // Card mini box
+      const cardX = PADDING + 14
+      const cardY = y + 10
+      ctx.fillStyle = '#0F1923'
+      ctx.fillRect(cardX, cardY, 42, 52)
+
+      ctx.textAlign = 'center'
+      ctx.fillStyle = isRed ? '#e53e3e' : '#F0EDE6'
+      ctx.font = '500 26px "Be Vietnam Pro", sans-serif'
+      ctx.fillText(item.card.suit, cardX + 21, cardY + 30)
+
+      const miniLabel = item.isBanMenh
+        ? (SUIT_NAME[item.card.suit] ?? item.card.value)
+        : item.card.value
+      ctx.fillStyle = '#FFB830'
+      ctx.font = 'bold 11px "Anybody", sans-serif'
+      ctx.fillText(miniLabel, cardX + 21, cardY + 46)
+
+      // Text area
+      const textX = cardX + 42 + 14
+      const textW = W - PADDING * 2 - 42 - 28 - 14
+
+      ctx.textAlign = 'left'
+
+      // Month label
+      ctx.fillStyle = '#4A6180'
+      ctx.font = '500 9px "Anybody", sans-serif'
+      ctx.fillText(item.month.toUpperCase(), textX, y + 22)
+
+      // Ban menh badge
+      if (item.isBanMenh) {
+        const badgeX = textX + ctx.measureText(item.month.toUpperCase()).width + 10
+        ctx.fillStyle = '#FF6B4A'
+        ctx.fillRect(badgeX, y + 11, 68, 14)
+        ctx.fillStyle = '#0F1923'
+        ctx.font = 'bold 8px "Anybody", sans-serif'
+        ctx.fillText('BẢN MỆNH', badgeX + 4, y + 21)
+      }
+
+      // Reading text — wrap
+      ctx.fillStyle = '#8B9DB5'
+      ctx.font = '400 12px "Be Vietnam Pro", sans-serif'
+      const words = reading.split(' ')
+      let line = ''
+      let lineY = y + 38
+      for (const word of words) {
+        const test = line ? line + ' ' + word : word
+        if (ctx.measureText(test).width > textW && line) {
+          ctx.fillText(line, textX, lineY)
+          line = word
+          lineY += 16
+          if (lineY > y + ROW_H - 6) {
+            ctx.fillText(line + '…', textX, lineY)
+            line = ''
+            break
+          }
+        } else {
+          line = test
+        }
+      }
+      if (line) ctx.fillText(line, textX, lineY)
+
+      y += ROW_H + 8
+    }
+
+    // --- Footer ---
+    ctx.strokeStyle = '#253549'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(PADDING, y + 8)
+    ctx.lineTo(W - PADDING, y + 8)
+    ctx.stroke()
+
+    ctx.textAlign = 'center'
+    ctx.fillStyle = '#4A6180'
+    ctx.font = '400 10px "Be Vietnam Pro", sans-serif'
+    ctx.fillText('Tham khảo từ sách Bói Bài — Huỳnh Liên Tử', W / 2, y + 28)
+    ctx.fillText('Chỉ mang tính giải trí tâm linh dân gian', W / 2, y + 44)
+
+    // --- Export as PDF (single image embedded in PDF) ---
+    // Slice into A4 pages (1123px height per page)
+    const PAGE_H = 1123
+    const pages = Math.ceil(totalH / PAGE_H)
+
+    // Use jsPDF via CDN UMD
+    await new Promise<void>((resolve, reject) => {
+      if ((window as unknown as Record<string, unknown>)['jspdf']) {
+        resolve()
+        return
+      }
+      const s = document.createElement('script')
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+      s.onload = () => resolve()
+      s.onerror = () => reject(new Error('jsPDF load failed'))
+      document.head.appendChild(s)
+    })
+
+    const { jsPDF } = (
+      window as unknown as Record<string, { jsPDF: new (...args: unknown[]) => unknown }>
+    )['jspdf']!
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'px',
+      format: 'a4',
+      hotfixes: ['px_scaling'],
+    }) as {
+      internal: { pageSize: { getWidth: () => number } }
+      addPage: () => void
+      addImage: (data: string, format: string, x: number, y: number, w: number, h: number) => void
+      save: (name: string) => void
+    }
+    const pdfW = pdf.internal.pageSize.getWidth()
+    const scale = pdfW / W
+
+    for (let i = 0; i < pages; i++) {
+      if (i > 0) pdf.addPage()
+      // crop slice from canvas
+      const sliceCanvas = document.createElement('canvas')
+      sliceCanvas.width = W
+      sliceCanvas.height = Math.min(PAGE_H, totalH - i * PAGE_H)
+      const sCtx = sliceCanvas.getContext('2d')!
+      sCtx.drawImage(canvas, 0, -i * PAGE_H)
+      const sliceData = sliceCanvas.toDataURL('image/jpeg', 0.92)
+      const sliceH = sliceCanvas.height * scale
+      pdf.addImage(sliceData, 'JPEG', 0, 0, pdfW, sliceH)
+    }
+
+    const d = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`
+    pdf.save(`que-bai-bat-quai-${d}.pdf`)
+  } catch (e) {
+    console.error('PDF error:', e)
+    alert(`Lỗi: ${(e as Error).message}`)
+  } finally {
+    isGeneratingPdf.value = false
+  }
 }
 
 initGame()
@@ -444,7 +682,7 @@ initGame()
       </div>
 
       <!-- Results -->
-      <div v-if="showResults" class="animate-fade-up">
+      <div v-if="showResults" ref="resultsRef" class="animate-fade-up">
         <!-- Section heading -->
         <h2
           class="font-display text-2xl font-semibold text-text-primary mb-6 flex items-center gap-3"
@@ -490,8 +728,19 @@ initGame()
           </div>
         </div>
 
-        <!-- Reset -->
-        <div class="text-center mt-8">
+        <!-- Reset + Download -->
+        <div class="pdf-hide flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
+          <!-- Download PDF -->
+          <button
+            @click="downloadPDF"
+            :disabled="isGeneratingPdf"
+            class="inline-flex items-center gap-2 bg-accent-coral text-bg-deep font-display font-bold px-6 py-2.5 text-sm uppercase tracking-widest transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-coral/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span v-if="isGeneratingPdf">⏳ Đang tạo...</span>
+            <span v-else>↓ Tải Kết Quả PDF</span>
+          </button>
+
+          <!-- Reset -->
           <button
             @click="initGame"
             class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-6 py-2.5 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary font-display tracking-wide"
@@ -504,7 +753,10 @@ initGame()
       <!-- Footer -->
       <p class="text-center font-display text-xs text-text-dim tracking-wide mt-14">
         Tham khảo từ sách Bói Bài — Huỳnh Liên Tử<br />
-        <span class="mt-1 block">Chỉ mang tính giải trí tâm linh dân gian</span>
+        <span class="mt-1 block"
+          >Xem vui thôi nhé các bác, đừng đặt nặng vấn đề ^^ Quẻ mà xấu thì mình bốc cho đến khi nào
+          tốt mới thôi ha.</span
+        >
       </p>
     </div>
   </div>

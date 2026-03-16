@@ -17,6 +17,7 @@ const emit = defineEmits<{
       <img
         src="https://github.com/JinHuynh81.png"
         alt="User"
+        loading="lazy"
         class="w-12 h-12 rounded border-2 border-white shadow-sm"
       />
       <span

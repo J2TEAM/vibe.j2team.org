@@ -548,7 +548,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, reactive, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, reactive, onMounted, onUnmounted, nextTick } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useAiSettingsStore } from './stores/aiSettings'
 
@@ -674,12 +674,17 @@ function toggleFullscreen() {
   }
 }
 
+const handleFullscreenChange = () => {
+  isFullscreen.value = !!document.fullscreenElement
+}
+
 onMounted(() => {
   autoLayout()
+  document.addEventListener('fullscreenchange', handleFullscreenChange)
+})
 
-  document.addEventListener('fullscreenchange', () => {
-    isFullscreen.value = !!document.fullscreenElement
-  })
+onUnmounted(() => {
+  document.removeEventListener('fullscreenchange', handleFullscreenChange)
 })
 
 const sqlDialects = [

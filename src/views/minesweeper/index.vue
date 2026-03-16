@@ -206,41 +206,26 @@ const getLevelImageId = (lv: number): number => {
 const updateBackground = () => {
   const imageId = getLevelImageId(level.value)
 
-  const imgPath = `/images/minesweeper/${imageId}.jpg?v=${Date.now()}`
-  const imgPathPng = `/images/minesweeper/${imageId}.png?v=${Date.now()}`
   const imgPathWebp = `/images/minesweeper/${imageId}.webp?v=${Date.now()}`
+  const imgPathJpg = `/images/minesweeper/${imageId}.jpg?v=${Date.now()}`
+  const imgPathPng = `/images/minesweeper/${imageId}.png?v=${Date.now()}`
   const imgPathJpeg = `/images/minesweeper/${imageId}.jpeg?v=${Date.now()}`
 
-  const img = new Image()
-  img.onload = () => {
-    currentBackground.value = imgPath
-  }
-  img.onerror = () => {
-    const img2 = new Image()
-    img2.onload = () => {
-      currentBackground.value = imgPathPng
+  const formats = [imgPathWebp, imgPathJpg, imgPathPng, imgPathJpeg]
+  const tryLoad = (index: number) => {
+    if (index >= formats.length) {
+      currentBackground.value = `/images/minesweeper/1.webp`
+      return
     }
-    img2.onerror = () => {
-      const img3 = new Image()
-      img3.onload = () => {
-        currentBackground.value = imgPathWebp
-      }
-      img3.onerror = () => {
-        const img4 = new Image()
-        img4.onload = () => {
-          currentBackground.value = imgPathJpeg
-        }
-        img4.onerror = () => {
-          // Lấy hình mặc định trong thư mục nếu file chưa được up cho màn này
-          currentBackground.value = `/images/minesweeper/1.jpg`
-        }
-        img4.src = imgPathJpeg
-      }
-      img3.src = imgPathWebp
+    const img = new Image()
+    const src = formats[index] as string
+    img.onload = () => {
+      currentBackground.value = src
     }
-    img2.src = imgPathPng
+    img.onerror = () => tryLoad(index + 1)
+    img.src = src
   }
-  img.src = imgPath
+  tryLoad(0)
 }
 
 watch(

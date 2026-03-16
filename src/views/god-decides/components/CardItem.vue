@@ -4,7 +4,7 @@
       <slot name="default" />
       <div class="card-bg">
         <div class="pattern"></div>
-        <div class="stars-container" id="stars"></div>
+        <div ref="starsRef" class="stars-container"></div>
 
         <!-- Constellations -->
         <svg class="constellation" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -36,7 +36,7 @@
           <line x1="60" y1="15" x2="80" y2="25" stroke="#c9a959" stroke-width="0.1" />
         </svg>
 
-        <div class="moving-particles" id="particles"></div>
+        <div ref="particlesRef" class="moving-particles"></div>
 
         <div class="gold-frame"></div>
         <div class="inner-frame"></div>
@@ -67,49 +67,41 @@
 </template>
 
 <script setup lang="ts">
-document.addEventListener('DOMContentLoaded', function () {
-  const starsContainer = document.getElementById('stars')
-  const numStars = 60
+import { onMounted, useTemplateRef } from 'vue'
 
-  for (let i = 0; i < numStars; i++) {
-    const star = document.createElement('div')
-    star.className = 'star'
+const starsRef = useTemplateRef<HTMLDivElement>('starsRef')
+const particlesRef = useTemplateRef<HTMLDivElement>('particlesRef')
 
-    // Random size between 1-3px
-    const size = Math.random() * 2 + 1
-    star.style.width = `${size}px`
-    star.style.height = `${size}px`
-
-    // Random position
-    star.style.left = `${Math.random() * 100}%`
-    star.style.top = `${Math.random() * 100}%`
-
-    // Random animation delay
-    star.style.animationDelay = `${Math.random() * 3}s`
-
-    starsContainer?.appendChild(star)
+onMounted(() => {
+  const starsContainer = starsRef.value
+  if (starsContainer) {
+    for (let i = 0; i < 60; i++) {
+      const star = document.createElement('div')
+      star.className = 'star'
+      const size = Math.random() * 2 + 1
+      star.style.width = `${size}px`
+      star.style.height = `${size}px`
+      star.style.left = `${Math.random() * 100}%`
+      star.style.top = `${Math.random() * 100}%`
+      star.style.animationDelay = `${Math.random() * 3}s`
+      starsContainer.appendChild(star)
+    }
   }
 
-  // Create moving particles
-  const particlesContainer = document.getElementById('particles')
-  const numParticles = 10
-
-  for (let i = 0; i < numParticles; i++) {
-    const particle = document.createElement('div')
-    particle.className = 'moving-particle'
-
-    // Random size between 5-15px
-    const size = Math.random() * 10 + 5
-    particle.style.width = `${size}px`
-    particle.style.height = `${size}px`
-
-    // Random position and animation timing
-    particle.style.left = `${Math.random() * 100}%`
-    particle.style.top = `${Math.random() * 100}%`
-    particle.style.animationDelay = `${Math.random() * 20}s`
-    particle.style.animationDuration = `${Math.random() * 10 + 15}s`
-
-    particlesContainer?.appendChild(particle)
+  const particlesContainer = particlesRef.value
+  if (particlesContainer) {
+    for (let i = 0; i < 10; i++) {
+      const particle = document.createElement('div')
+      particle.className = 'moving-particle'
+      const size = Math.random() * 10 + 5
+      particle.style.width = `${size}px`
+      particle.style.height = `${size}px`
+      particle.style.left = `${Math.random() * 100}%`
+      particle.style.top = `${Math.random() * 100}%`
+      particle.style.animationDelay = `${Math.random() * 20}s`
+      particle.style.animationDuration = `${Math.random() * 10 + 15}s`
+      particlesContainer.appendChild(particle)
+    }
   }
 })
 </script>

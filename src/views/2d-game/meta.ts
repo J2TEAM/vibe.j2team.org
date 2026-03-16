@@ -5,8 +5,8 @@ const meta: PageMeta = {
   description:
     'Game 2D hành động — điều khiển Ninja chiến đấu, tiêu diệt quái vật, nâng cấp level!',
   author: 'nmdung.dev',
-  facebook: 'https://www.facebook.com/nmdung.dev',
   category: 'game',
+  facebook: 'https://www.facebook.com/nmdung.dev',
 }
 
 export default meta

@@ -1,47 +1,48 @@
 <script lang="ts" setup>
-// Create stars dynamically
-document.addEventListener('DOMContentLoaded', function () {
-  const starsContainer = document.getElementById('stars')
-  const numStars = 200
+import { onMounted, onUnmounted, useTemplateRef } from 'vue'
 
-  for (let i = 0; i < numStars; i++) {
-    const star = document.createElement('div')
-    star.className = 'star'
+const starsRef = useTemplateRef<HTMLDivElement>('starsRef')
+const containerRef = useTemplateRef<HTMLDivElement>('containerRef')
+let shootingStarInterval: ReturnType<typeof setInterval> | undefined
 
-    // Random size between 1-3px
-    const size = Math.random() * 2 + 1
-    star.style.width = `${size}px`
-    star.style.height = `${size}px`
-
-    // Random position
-    star.style.left = `${Math.random() * 100}%`
-    star.style.top = `${Math.random() * 100}%`
-
-    // Random animation delay
-    star.style.animationDelay = `${Math.random() * 3}s`
-
-    starsContainer?.appendChild(star)
+onMounted(() => {
+  const starsContainer = starsRef.value
+  if (starsContainer) {
+    for (let i = 0; i < 200; i++) {
+      const star = document.createElement('div')
+      star.className = 'star'
+      const size = Math.random() * 2 + 1
+      star.style.width = `${size}px`
+      star.style.height = `${size}px`
+      star.style.left = `${Math.random() * 100}%`
+      star.style.top = `${Math.random() * 100}%`
+      star.style.animationDelay = `${Math.random() * 3}s`
+      starsContainer.appendChild(star)
+    }
   }
 
-  // Create additional shooting stars
-  setInterval(() => {
+  shootingStarInterval = setInterval(() => {
+    const container = containerRef.value
+    if (!container) return
     const shootingStar = document.createElement('div')
     shootingStar.className = 'shooting-star'
     shootingStar.style.top = `${Math.random() * 80}%`
     shootingStar.style.animationDuration = `${Math.random() * 3 + 2}s`
-    document?.querySelector('.container-bg')?.appendChild(shootingStar)
-
-    // Remove shooting star after animation completes
+    container.appendChild(shootingStar)
     setTimeout(() => {
       shootingStar.remove()
     }, 5000)
   }, 4000)
 })
+
+onUnmounted(() => {
+  clearInterval(shootingStarInterval)
+})
 </script>
 
 <template>
-  <div class="container-bg fixed top-0 left-0 z-0">
-    <div class="stars" id="stars"></div>
+  <div ref="containerRef" class="container-bg fixed top-0 left-0 z-0">
+    <div ref="starsRef" class="stars"></div>
 
     <!-- Planets -->
     <div

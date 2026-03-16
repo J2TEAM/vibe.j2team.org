@@ -2162,6 +2162,7 @@ const filteredCities = computed(() => {
           >
             <img
               :src="`https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/${city.code}.svg`"
+              loading="lazy"
               class="w-5 h-3.5 object-cover rounded-sm"
               :alt="city.country"
             />
@@ -2201,6 +2202,7 @@ const filteredCities = computed(() => {
           <div class="text-center">
             <img
               :src="`https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/${city.code}.svg`"
+              loading="lazy"
               class="w-8 h-6 object-cover rounded-sm shadow mb-0.5"
               :alt="city.country"
             />

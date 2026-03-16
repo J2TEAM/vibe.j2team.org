@@ -121,6 +121,7 @@
               v-if="originalImageUrl"
               :src="originalImageUrl"
               alt="Ảnh gốc"
+              loading="lazy"
               class="max-w-full object-contain"
               style="max-height: 280px"
             />

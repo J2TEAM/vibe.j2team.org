@@ -154,7 +154,7 @@ Before implementing any new feature or sub-page, agents MUST:
 2. **Always link back to homepage** — every sub-page must have a link back to the homepage (`/`)
 3. **Language: Vietnamese (preferred) or English** — page content should be in Vietnamese or English
 4. **No duplicate sub-apps** — check existing directories in `src/views/` before creating a new page
-5. **Each sub-page is self-contained** — only work within your page's directory, do not modify shared files (`App.vue`, `main.css`, `router/index.ts`). Routes are auto-generated from the `meta.ts` file in each page directory
+5. **Each sub-page is self-contained** — only work within your page's directory (`src/views/<app-name>/`), do not modify shared files (`App.vue`, `main.css`, `router/index.ts`). Routes are auto-generated from the `meta.ts` file in each page directory. **Exception:** static assets can be placed in `public/<app-name>/` (see "Static Assets Convention" below)
 6. **Responsive** — pages must display well on mobile
 7. **No new dependencies** in `package.json` unless truly needed and approved. The following libraries are **already installed** — use them freely (see "Leveraging Installed Libraries" section above):
    - `@vueuse/core` — Vue composables
@@ -192,8 +192,10 @@ Simple apps (just a single page) only need `index.vue` + `meta.ts`.
 
 ### Static Assets Convention
 
-- `src/views/<app-name>/assets/` — images, sounds, CSS that Vite will hash and optimize. **Use this for most cases.**
-- `public/<app-name>/` — large media files (videos, large image sets) served as-is without Vite processing. Accessible at `/<app-name>/filename.ext`.
+- `src/views/<app-name>/assets/` — small images, sounds, CSS that Vite will hash and optimize. **Use this for small assets (< 50 kB total).**
+- `public/<app-name>/` — large or numerous assets (sprite sheets, image sets, audio files, videos) served as-is without Vite processing. Accessible at `/<app-name>/filename.ext`. **You are allowed and encouraged to create `public/<app-name>/` directories** — this is NOT limited to your `src/views/` folder.
+
+**Why use `public/`?** Assets imported via `import` or `import.meta.glob` in `src/` get bundled into JS chunks, increasing initial page load. Files in `public/` are served as static files and loaded on demand by the browser.
 
 ### Bundle Size — Avoid bloating JS chunks
 
@@ -229,6 +231,7 @@ const engineUrl = '/my-app/engine.js' // Rollup never touches it
 |-----------|-----------|----------------|
 | Dictionary / word list | > 50 kB | `public/data/*.json` + fetch |
 | Geo / SVG path data | > 50 kB | `public/data/*.json` + fetch |
+| Sprite frames / image sets | > 10 files or > 50 kB total | `public/<app>/` + URL strings |
 | Compiled engine (Emscripten, asm.js) | any size | `public/<app>/` + hardcoded URL |
 | Config / small data | < 20 kB | Direct import is fine |
 
@@ -335,3 +338,22 @@ Default is `true` — the toolbar is shown unless explicitly disabled.
 - Prettier config exists for compatibility (eslint-config-prettier)
 - Commitlint with `@commitlint/config-conventional` — commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/) format (e.g., `feat:`, `fix:`, `chore:`)
 - Pre-commit: `simple-git-hooks` + `lint-staged` runs linters on staged files and auto-optimizes images (`.png`, `.jpg`, `.jpeg`, `.webp`) via `sharp`
+
+### Oxfmt & Vue template expressions
+
+**Do NOT write multiple statements inline in Vue template event handlers** (e.g., `@click`). Oxfmt strips semicolons during formatting, which causes the Vue compiler to fail with a syntax error because the two statements merge into an invalid expression.
+
+```vue
+<!-- BAD — oxfmt strips semicolons → build error -->
+<button @click="doA(); doB()">Click</button>
+
+<!-- GOOD — extract to a function -->
+<button @click="handleClick">Click</button>
+```
+
+```ts
+function handleClick() {
+  doA()
+  doB()
+}
+```
