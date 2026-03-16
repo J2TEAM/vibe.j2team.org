@@ -1,72 +1,111 @@
 <template>
-  <div class="min-h-screen bg-[#0a0a0a] text-lime-400 font-mono flex flex-col">
-    <!-- Header -->
-    <div class="border-b border-lime-500/30 bg-black/80 p-4 flex items-center justify-between">
+  <div class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col">
+    <!-- Header / Status Bar -->
+    <header
+      class="border-b border-border-default bg-bg-elevated/80 backdrop-blur-sm p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
+    >
       <div>
-        <h1 class="text-4xl font-bold tracking-tighter">TÔI LÀ BUG</h1>
-        <p class="text-lime-300/70 text-sm">
-          Làm Dev đủ roài, hôm nay mình làm con bug trốn Dev nhóa !?
+        <h1
+          class="font-display text-5xl md:text-6xl font-bold tracking-tight text-accent-coral animate-fade-up"
+        >
+          TÔI LÀ BUG
+        </h1>
+        <p class="mt-2 text-text-secondary text-lg md:text-xl animate-fade-up animate-delay-1">
+          Làm Dev đủ rồi, hôm nay mình làm con bug trốn Dev nhóa!?
         </p>
       </div>
-      <div class="flex items-center gap-4">
+
+      <div class="flex items-center gap-8 md:gap-10 flex-wrap justify-end">
         <div class="text-right">
-          <div class="text-xs text-lime-400/50">ĐIỂM</div>
-          <div class="text-3xl font-bold tabular-nums">{{ score }}</div>
+          <div class="text-xs text-text-dim font-display tracking-widest">ĐIỂM</div>
+          <div class="text-4xl md:text-5xl font-bold tabular-nums text-accent-amber">
+            {{ Math.floor(score) }}
+          </div>
         </div>
         <div class="text-right">
-          <div class="text-xs text-lime-400/50">THỜI GIAN SỐNG</div>
-          <div class="text-3xl font-bold tabular-nums">{{ time }}s</div>
+          <div class="text-xs text-text-dim font-display tracking-widest">THỜI GIAN SỐNG</div>
+          <div class="text-4xl md:text-5xl font-bold tabular-nums text-accent-sky">{{ time }}s</div>
         </div>
         <RouterLink
           to="/"
-          class="px-6 py-2 border border-lime-400 hover:bg-lime-400 hover:text-black transition-colors text-sm font-medium"
+          class="inline-flex items-center gap-2 px-6 py-3 border border-border-default bg-bg-surface text-text-secondary text-sm md:text-base font-display tracking-wide transition-all duration-300 hover:border-accent-coral hover:text-text-primary hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-coral/10 animate-fade-up animate-delay-2"
         >
           ← VỀ TRANG CHỦ
         </RouterLink>
       </div>
-    </div>
-    <div class="flex-1 flex flex-col items-center justify-center p-6 gap-6">
-      <!-- Game Area -->
-      <div
-        class="relative border-4 border-lime-400 shadow-[0_0_30px_#00ff00] bg-black overflow-hidden"
-      >
-        <canvas id="gameCanvas" width="800" height="420" class="cursor-none"></canvas>
-        <!-- Game Over -->
-        <div
-          v-if="gameState === 'over'"
-          class="absolute inset-0 bg-black/95 flex flex-col items-center justify-center"
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col items-center justify-center p-6 md:p-10 gap-10">
+      <div class="w-full max-w-5xl mx-auto">
+        <h2
+          class="font-display text-2xl md:text-3xl font-semibold mb-6 md:mb-8 flex items-center gap-3 animate-fade-up animate-delay-1"
         >
-          <div class="text-6xl mb-4">💀</div>
-          <div class="text-4xl font-bold text-red-500 mb-2">{{ deathMessage }}</div>
-          <div class="text-xl mb-6">
-            Bạn sống sót được <span class="text-lime-400">{{ time }}</span> giây
-          </div>
-          <button
-            @click="restartGame"
-            class="px-8 py-4 bg-lime-400 text-black font-bold text-xl hover:scale-105 transition"
+          <span class="text-accent-coral text-sm md:text-base tracking-widest">//</span>
+          TRÒ CHƠI Né SENIOR DEV
+        </h2>
+
+        <!-- Game Container -->
+        <div
+          class="relative border border-border-default bg-bg-surface overflow-hidden shadow-lg shadow-black/30 transition-all duration-300 hover:shadow-xl hover:shadow-accent-coral/5"
+        >
+          <canvas
+            id="gameCanvas"
+            width="800"
+            height="420"
+            class="w-full h-auto cursor-none block"
+          ></canvas>
+
+          <!-- Game Over Overlay -->
+          <div
+            v-if="gameState === 'over'"
+            class="absolute inset-0 bg-bg-deep/95 flex flex-col items-center justify-center p-6 md:p-10 text-center animate-fade-up"
           >
-            CHƠI LẠI
-          </button>
+            <div class="text-7xl md:text-8xl mb-6 animate-pulse">💀</div>
+            <div
+              class="font-display text-4xl md:text-6xl font-bold text-accent-coral mb-4 tracking-tight"
+            >
+              {{ deathMessage }}
+            </div>
+            <div class="text-xl md:text-2xl text-text-secondary mb-8 md:mb-10">
+              Bạn sống sót được <span class="text-accent-amber font-bold">{{ time }}</span> giây
+            </div>
+            <button
+              @click="restartGame"
+              class="px-8 md:px-12 py-4 md:py-5 bg-accent-coral text-bg-deep font-display font-bold text-xl md:text-2xl tracking-wide transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-accent-coral/20"
+            >
+              CHƠI LẠI
+            </button>
+          </div>
+
+          <!-- Dev Alert -->
+          <div
+            v-if="devAlert"
+            class="absolute top-4 md:top-6 left-1/2 -translate-x-1/2 bg-accent-coral text-bg-deep px-6 md:px-10 py-3 md:py-4 text-lg md:text-2xl font-display font-bold animate-pulse tracking-wider shadow-lg"
+          >
+            ⚠️ SENIOR DEV ĐANG COMPILE ⚠️
+          </div>
         </div>
-        <!-- Dev Alert -->
+
+        <!-- Instruction -->
         <div
-          v-if="devAlert"
-          class="absolute top-4 left-1/2 -translate-x-1/2 bg-red-600 text-white px-8 py-2 text-xl font-bold animate-pulse rounded"
+          class="mt-8 md:mt-10 text-center text-text-secondary text-base md:text-lg max-w-2xl mx-auto animate-fade-up animate-delay-3"
         >
-          ⚠️ SENIOR DEV ĐANG COMPILE ⚠️
+          🐛 Di chuột né Senior Dev<br />
+          <span class="text-accent-amber font-semibold"
+            >RÊ CHUỘT + CLICK NHANH vào 3 nút skill đang di chuyển!</span
+          ><br />
+          Chỉ có ~2.2 giây cho mỗi nút trước khi nó nhảy chỗ khác 🔥
         </div>
       </div>
-      <div class="text-center text-lime-400/50 text-sm max-w-md">
-        🐛 Di chuột né Senior Dev<br />
-        <span class="text-yellow-300 font-bold"
-          >RÊ CHUỘT + CLICK NHANH vào 3 nút skill đang di chuyển!</span
-        ><br />
-        Chỉ có ~2.2 giây cho mỗi nút trước khi nó nhảy chỗ khác 🔥
-      </div>
-    </div>
-    <div class="text-center py-4 text-[10px] text-lime-500/30">
+    </main>
+
+    <!-- Footer -->
+    <footer
+      class="text-center py-6 md:py-8 text-text-dim text-xs md:text-sm font-display tracking-widest border-t border-border-default"
+    >
       bởi Phạm Minh Thảo • vibe.j2team.org • 2026
-    </div>
+    </footer>
   </div>
 </template>
 
@@ -82,7 +121,6 @@ const devAlert = ref(false)
 
 let canvas!: HTMLCanvasElement
 let ctx!: CanvasRenderingContext2D
-
 const bug = { x: 400, y: 210, radius: 18 }
 const devCursor = { x: 850, y: 210, speed: 1.8, active: false }
 
@@ -280,13 +318,11 @@ function drawActionButtons() {
   actionButtons.forEach((btn) => {
     const pulse = Math.sin(Date.now() / 80) * 4 + 92
     const alpha = btn.life / 2250
-
     ctx.save()
     ctx.globalAlpha = alpha * 0.95
     ctx.translate(btn.x, btn.y)
     ctx.shadowColor = btn.color
     ctx.shadowBlur = 45
-
     ctx.fillStyle = '#111111'
     ctx.strokeStyle = btn.color
     ctx.lineWidth = 7
@@ -294,12 +330,10 @@ function drawActionButtons() {
     ctx.roundRect(-pulse / 2, -pulse / 2 - 8, pulse, pulse + 42, 16)
     ctx.fill()
     ctx.stroke()
-
     ctx.font = '52px system-ui'
     ctx.textAlign = 'center'
     ctx.fillStyle = '#ffffff'
     ctx.fillText(btn.icon, 0, 22)
-
     ctx.font = 'bold 14px monospace'
     ctx.fillStyle = '#ffffff'
     ctx.fillText(btn.name, 0, 62)
@@ -316,10 +350,8 @@ function updateActionButtons() {
     btn.x += btn.vx
     btn.y += btn.vy
     btn.life -= 16.67
-
     if (btn.x < 80 || btn.x > 720) btn.vx *= -1
     if (btn.y < 70 || btn.y > 350) btn.vy *= -1
-
     if (btn.life <= 0) repositionButton(btn)
   })
 }
@@ -385,7 +417,6 @@ function triggerSurprise(now: number) {
 function gameLoop() {
   if (!gameRunning) return
   const now = Date.now()
-
   time.value = Math.floor((now - startTime) / 1000)
   score.value += 0.09
 
@@ -469,6 +500,7 @@ function gameLoop() {
   }
 
   ctx.restore()
+
   requestAnimationFrame(gameLoop)
 }
 
@@ -495,7 +527,7 @@ function startGame() {
   flashAlpha = 0
   nextSurpriseTime = Date.now() + 7000
 
-  // Reset nút skill - dùng ! để assert chắc chắn tồn tại
+  // Reset nút skill
   actionButtons[0]!.x = 180
   actionButtons[0]!.y = 260
   actionButtons[0]!.vx = 1.4
@@ -545,7 +577,6 @@ onMounted(() => {
 
   canvas.addEventListener('mousemove', handleMouse)
   canvas.addEventListener('click', handleCanvasClick)
-
   canvas.addEventListener('touchmove', (e: TouchEvent) => {
     e.preventDefault()
     const touch = e.touches[0]
@@ -554,7 +585,6 @@ onMounted(() => {
     mouse.x = touch.clientX - rect.left
     mouse.y = touch.clientY - rect.top
   })
-
   canvas.addEventListener('touchend', (e: TouchEvent) => {
     if (gameState.value !== 'playing') return
     const rect = canvas.getBoundingClientRect()
