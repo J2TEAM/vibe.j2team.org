@@ -5,13 +5,14 @@ import { Icon } from '@iconify/vue'
 import { useLocalStorage } from '@vueuse/core'
 
 // ── Tabs ──────────────────────────────────────────────────────────────────
-type TabId = 'number' | 'wheel' | 'race' | 'coin' | 'dice' | 'teams'
+type TabId = 'number' | 'wheel' | 'race' | 'bracket' | 'coin' | 'dice' | 'teams'
 const activeTab = ref<TabId>('number')
 
 const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: 'number', label: 'Số ngẫu nhiên', icon: 'lucide:dice-5' },
   { id: 'wheel', label: 'Vòng quay', icon: 'lucide:rotate-cw' },
   { id: 'race', label: 'Đua về đích', icon: 'lucide:flag' },
+  { id: 'bracket', label: 'Bốc thăm', icon: 'lucide:trophy' },
   { id: 'coin', label: 'Đúng / Sai', icon: 'lucide:circle-dot' },
   { id: 'dice', label: 'Xúc xắc', icon: 'lucide:box' },
   { id: 'teams', label: 'Chia đội', icon: 'lucide:users' },
@@ -282,7 +283,83 @@ function clearRaceHistory() {
   raceHistory.value = []
 }
 
-// ── TAB 4: Coin (Icon) ────────────────────────────────────────────────────
+// ── TAB 4: Bracket Draw ───────────────────────────────────────────────────
+interface BracketMatch {
+  id: number
+  home: string
+  away: string | null // null = bye
+}
+
+const SPORT_OPTIONS = [
+  { emoji: '⚽', label: 'Bóng đá' },
+  { emoji: '🏀', label: 'Bóng rổ' },
+  { emoji: '🏐', label: 'Bóng chuyền' },
+  { emoji: '🎾', label: 'Tennis' },
+  { emoji: '🏓', label: 'Bóng bàn' },
+  { emoji: '🎮', label: 'Gaming' },
+  { emoji: '🥊', label: 'Boxing' },
+  { emoji: '♟️', label: 'Cờ' },
+  { emoji: '🏆', label: 'Khác' },
+]
+
+const bracketInputText = useLocalStorage(
+  'rt-bracket-items',
+  'Đội A\nĐội B\nĐội C\nĐội D\nĐội E\nĐội F\nĐội G\nĐội H',
+)
+const bracketSport = useLocalStorage('rt-bracket-sport', '⚽')
+const bracketState = ref<'idle' | 'drawing' | 'done'>('idle')
+const bracketMatches = ref<BracketMatch[]>([])
+const bracketRevealedCount = ref(0)
+
+const bracketParticipants = computed(() =>
+  bracketInputText.value
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean),
+)
+
+function drawBracket() {
+  if (bracketState.value === 'drawing') return
+  bracketRevealedCount.value = 0
+  bracketMatches.value = []
+  bracketState.value = 'drawing'
+
+  const shuffled = [...bracketParticipants.value]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    const tmp = shuffled[i]!
+    shuffled[i] = shuffled[j]!
+    shuffled[j] = tmp
+  }
+
+  const matches: BracketMatch[] = []
+  for (let i = 0; i < shuffled.length; i += 2) {
+    matches.push({ id: matches.length, home: shuffled[i]!, away: shuffled[i + 1] ?? null })
+  }
+  bracketMatches.value = matches
+
+  // drumroll phase, then reveal one by one
+  setTimeout(() => {
+    const delay = Math.max(280, 500 - matches.length * 20)
+    function revealNext() {
+      if (bracketRevealedCount.value < matches.length) {
+        bracketRevealedCount.value++
+        setTimeout(revealNext, delay)
+      } else {
+        bracketState.value = 'done'
+      }
+    }
+    revealNext()
+  }, 900)
+}
+
+function resetBracket() {
+  bracketState.value = 'idle'
+  bracketMatches.value = []
+  bracketRevealedCount.value = 0
+}
+
+// ── TAB 5: Coin (Icon) ────────────────────────────────────────────────────
 interface CoinIconPreset {
   icon: string
   label: string
@@ -975,7 +1052,183 @@ watch(activeTab, (tab) => {
         </div>
       </div>
 
-      <!-- ─── TAB 4: Coin (Icon) ─────────────────────────────────────── -->
+      <!-- ─── TAB 4: Bracket Draw ──────────────────────────────────────── -->
+      <div v-if="activeTab === 'bracket'" class="animate-fade-up">
+        <div class="mb-8 text-center">
+          <p class="mb-1 text-sm text-text-dim">
+            <span class="font-display text-sm tracking-widest text-accent-coral">//</span>
+            BỐC THĂM CẶP ĐẤU
+          </p>
+          <h2 class="font-display text-2xl font-bold">Bốc thăm đối đầu</h2>
+        </div>
+
+        <div class="grid gap-8 md:grid-cols-[240px_1fr]">
+          <!-- Left: config + input -->
+          <div class="flex flex-col gap-4">
+            <!-- Sport selector -->
+            <div>
+              <label class="mb-2 block text-xs tracking-widest text-text-dim">
+                <span class="text-accent-sky">//</span> LOẠI THỂ THAO
+              </label>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="s in SPORT_OPTIONS"
+                  :key="s.emoji"
+                  :title="s.label"
+                  :class="[
+                    'flex items-center gap-1 border px-2.5 py-1.5 text-sm transition-all',
+                    bracketSport === s.emoji
+                      ? 'border-accent-coral bg-accent-coral/10 text-accent-coral'
+                      : 'border-border-default text-text-dim hover:border-accent-coral/40',
+                  ]"
+                  @click="bracketSport = s.emoji"
+                >
+                  <span>{{ s.emoji }}</span>
+                  <span class="text-xs">{{ s.label }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Participants -->
+            <div>
+              <label class="mb-2 block text-xs tracking-widest text-text-dim">
+                <span class="text-accent-sky">//</span> DANH SÁCH (mỗi dòng 1 đội/người)
+              </label>
+              <textarea
+                v-model="bracketInputText"
+                :disabled="bracketState === 'drawing'"
+                class="h-44 w-full resize-none border border-border-default bg-bg-surface p-3 font-mono text-sm text-text-primary placeholder-text-dim focus:border-accent-coral focus:outline-none disabled:opacity-50"
+                placeholder="Mỗi dòng 1 tên..."
+              />
+              <p class="mt-1 text-xs text-text-dim">
+                {{ bracketParticipants.length }} đội ·
+                {{ Math.floor(bracketParticipants.length / 2) }} cặp đấu
+                <span v-if="bracketParticipants.length % 2 === 1"> · 1 BYE</span>
+              </p>
+            </div>
+
+            <!-- Buttons -->
+            <button
+              :disabled="bracketState === 'drawing' || bracketParticipants.length < 2"
+              class="flex items-center justify-center gap-2 bg-accent-coral px-6 py-3 font-display font-bold tracking-widest text-white uppercase transition-all hover:bg-accent-coral/80 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              @click="drawBracket"
+            >
+              <Icon
+                icon="lucide:shuffle"
+                class="size-5"
+                :class="bracketState === 'drawing' ? 'animate-spin' : ''"
+              />
+              {{ bracketState === 'drawing' ? 'Đang bốc thăm...' : 'BỐC THĂM' }}
+            </button>
+
+            <button
+              v-if="bracketState !== 'idle'"
+              class="flex items-center justify-center gap-2 border border-border-default px-4 py-2.5 font-display text-sm uppercase text-text-dim transition-all hover:border-accent-coral hover:text-accent-coral"
+              @click="resetBracket"
+            >
+              <Icon icon="lucide:rotate-ccw" class="size-4" />
+              BỐC LẠI
+            </button>
+          </div>
+
+          <!-- Right: results -->
+          <div>
+            <!-- Drumroll animation -->
+            <div
+              v-if="bracketState === 'drawing' && bracketRevealedCount === 0"
+              class="flex flex-col items-center justify-center py-12 gap-4"
+            >
+              <div class="flex gap-3">
+                <div class="draw-ball draw-ball-1 bg-accent-coral" />
+                <div class="draw-ball draw-ball-2 bg-accent-amber" />
+                <div class="draw-ball draw-ball-3 bg-accent-sky" />
+                <div class="draw-ball draw-ball-4 bg-accent-coral" />
+              </div>
+              <p class="font-display text-sm tracking-widest text-text-dim animate-pulse">
+                ĐANG BỐC THĂM...
+              </p>
+            </div>
+
+            <!-- Idle state -->
+            <div
+              v-else-if="bracketState === 'idle'"
+              class="flex h-48 flex-col items-center justify-center gap-3 border border-border-default bg-bg-surface text-text-dim"
+            >
+              <Icon icon="lucide:trophy" class="size-10 opacity-20" />
+              <p class="text-sm">Nhập danh sách và nhấn Bốc thăm</p>
+            </div>
+
+            <!-- Match cards -->
+            <div v-else>
+              <div class="mb-3 flex items-center justify-between">
+                <p class="text-xs tracking-widest text-text-dim">
+                  <span class="text-accent-coral">//</span>
+                  KẾT QUẢ BỐC THĂM — {{ bracketRevealedCount }}/{{ bracketMatches.length }} cặp
+                </p>
+                <span v-if="bracketState === 'done'" class="text-xs text-accent-sky">
+                  ✓ Hoàn thành
+                </span>
+              </div>
+              <div
+                :class="[
+                  'grid gap-3',
+                  bracketMatches.length <= 4 ? 'grid-cols-1' : 'sm:grid-cols-2',
+                ]"
+              >
+                <div
+                  v-for="(match, i) in bracketMatches"
+                  :key="match.id"
+                  :class="[
+                    'match-card border bg-bg-surface',
+                    i < bracketRevealedCount ? 'match-visible' : 'match-hidden',
+                  ]"
+                >
+                  <!-- Match header -->
+                  <div
+                    class="flex items-center justify-between border-b border-border-default/50 px-3 py-2"
+                  >
+                    <span class="font-display text-xs font-bold tracking-widest text-text-dim">
+                      TRẬN {{ i + 1 }}
+                    </span>
+                    <span class="text-base">{{ bracketSport }}</span>
+                  </div>
+                  <!-- Teams -->
+                  <div class="flex items-center gap-2 px-3 py-3">
+                    <!-- Home -->
+                    <div class="min-w-0 flex-1 text-center">
+                      <p class="truncate font-display font-bold text-text-primary">
+                        {{ match.home }}
+                      </p>
+                    </div>
+                    <!-- VS badge -->
+                    <div
+                      class="shrink-0 border border-accent-coral/60 bg-accent-coral/10 px-2 py-0.5"
+                    >
+                      <span
+                        class="font-display text-xs font-black tracking-widest text-accent-coral"
+                        >VS</span
+                      >
+                    </div>
+                    <!-- Away -->
+                    <div class="min-w-0 flex-1 text-center">
+                      <p
+                        :class="[
+                          'truncate font-display font-bold',
+                          match.away ? 'text-text-primary' : 'text-text-dim italic',
+                        ]"
+                      >
+                        {{ match.away ?? 'BYE' }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── TAB 5: Coin (Icon) ─────────────────────────────────────── -->
       <div v-if="activeTab === 'coin'" class="animate-fade-up">
         <div class="mb-8 text-center">
           <p class="mb-1 text-sm text-text-dim">
@@ -1487,5 +1740,52 @@ watch(activeTab, (tab) => {
 
 .die-land {
   animation: diceLand 0.35s ease-out;
+}
+
+/* ── Bracket Draw ────────────────────────────────────────────────────────── */
+.match-card {
+  transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.match-hidden {
+  opacity: 0;
+  transform: scale(0.75) translateY(14px);
+  pointer-events: none;
+}
+
+.match-visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+@keyframes drawBounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-18px);
+  }
+}
+
+.draw-ball {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  animation: drawBounce 0.9s ease-in-out infinite;
+}
+
+.draw-ball-1 {
+  animation-delay: 0s;
+}
+.draw-ball-2 {
+  animation-delay: 0.18s;
+}
+.draw-ball-3 {
+  animation-delay: 0.36s;
+}
+.draw-ball-4 {
+  animation-delay: 0.54s;
 }
 </style>
