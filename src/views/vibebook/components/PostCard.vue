@@ -36,13 +36,12 @@ function isRateLimited(): boolean {
   return Date.now() < until
 }
 
-// ============ Avatar with caching ============
+// ============ Avatar with caching (permanent) ============
 const avatarUrl = ref<string | null>(null)
 
 const AVATAR_CACHE_KEY = 'vibebook-github-avatars'
-const AVATAR_CACHE_DURATION = 24 * 60 * 60 * 1000 // 24 hours
 
-function getAvatarCache(): Record<string, { url: string; updatedAt: number }> {
+function getAvatarCache(): Record<string, string> {
   try {
     const cached = localStorage.getItem(AVATAR_CACHE_KEY)
     return cached ? JSON.parse(cached) : {}
@@ -51,7 +50,7 @@ function getAvatarCache(): Record<string, { url: string; updatedAt: number }> {
   }
 }
 
-function setAvatarCache(cache: Record<string, { url: string; updatedAt: number }>) {
+function setAvatarCache(cache: Record<string, string>) {
   localStorage.setItem(AVATAR_CACHE_KEY, JSON.stringify(cache))
 }
 
@@ -80,12 +79,11 @@ const initial = computed(() => props.page.author.charAt(0).toUpperCase())
 // Fetch avatar on mount with caching and rate limit check
 onMounted(async () => {
   const cache = getAvatarCache()
-  const now = Date.now()
 
-  // Check cache first
-  const cached = cache[props.page.author]
-  if (cached && now - cached.updatedAt < AVATAR_CACHE_DURATION) {
-    avatarUrl.value = cached.url
+  // Check cache first (permanent cache)
+  const cachedUrl = cache[props.page.author]
+  if (cachedUrl) {
+    avatarUrl.value = cachedUrl
     return
   }
 
@@ -111,7 +109,7 @@ onMounted(async () => {
     if (res.ok) {
       const data = await res.json()
       avatarUrl.value = data.avatar_url
-      cache[props.page.author] = { url: data.avatar_url, updatedAt: now }
+      cache[props.page.author] = data.avatar_url
       setAvatarCache(cache)
     }
   } catch {
