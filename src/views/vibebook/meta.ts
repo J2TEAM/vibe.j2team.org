@@ -5,7 +5,7 @@ const meta: PageMeta = {
   description: 'Newsfeed for vibe.j2team.org',
   author: 'hidang',
   facebook: 'https://www.facebook.com/khanhdang.cd',
-  category: 'other',
+  category: 'connect',
 }
 
 export default meta
