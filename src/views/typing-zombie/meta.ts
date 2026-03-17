@@ -4,7 +4,7 @@ const meta: PageMeta = {
   name: 'Typing Zombie',
   description:
     'Game sinh tồn gõ phím — zombie tiến đến từ bên phải, gõ đúng từ để tiêu diệt chúng trước khi bị tấn công!',
-  author: 'ItsAzura',
+  author: 'https://www.facebook.com/hquang0910',
   category: 'game',
 }
 
