@@ -35,7 +35,7 @@ const matchedLength = computed(() => {
       class="mb-1 px-2 py-1 text-center font-mono text-[10px] sm:text-xs whitespace-nowrap border-2 pixel-textbox"
       :class="
         zombie.active
-          ? 'bg-[#0b1220] border-[#38bdf8] text-[#38bdf8]'
+          ? 'bg-[#0b1220] border-accent-sky text-accent-sky'
           : 'bg-[#0b1220] border-[#22c55e] text-[#22c55e]'
       "
     >

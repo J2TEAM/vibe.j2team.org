@@ -59,17 +59,17 @@ watch(
 
 <template>
   <div class="min-h-screen bg-[#0f172a] text-[#e2e8f0] font-mono overflow-hidden">
-    <div class="mx-auto w-full max-w-[1100px] px-2 py-6 sm:py-6">
+    <div class="mx-auto w-full max-w-275 px-2 py-6 sm:py-6">
       <header class="flex items-center justify-between gap-3">
         <RouterLink
           to="/"
-          class="px-3 py-2 border-2 border-[#22c55e] text-[#22c55e] text-[10px] sm:text-xs tracking-[0.2em] uppercase active:translate-y-[2px]"
+          class="px-3 py-2 border-2 border-[#22c55e] text-[#22c55e] text-[10px] sm:text-xs tracking-[0.2em] uppercase active:translate-y-0.5"
         >
           &lt; Trang chủ
         </RouterLink>
         <div class="text-right">
           <div
-            class="text-[10px] sm:text-xs text-[#38bdf8] tracking-[0.24em] uppercase crt-flicker"
+            class="text-[10px] sm:text-xs text-accent-sky tracking-[0.24em] uppercase crt-flicker"
           >
             Retro Arcade
           </div>
@@ -88,20 +88,13 @@ watch(
             @menu="handleMenu"
           />
           <div v-else class="px-3 py-2 sm:px-4 sm:py-3 border-b-2 border-[#22c55e]">
-            <div class="flex items-center justify-between gap-2">
-              <div class="text-[#22c55e] text-[10px] sm:text-xs tracking-[0.2em] uppercase">
-                Insert coin
-              </div>
-              <div class="text-[#38bdf8] text-[10px] sm:text-xs tracking-[0.2em] uppercase">
-                Type to survive
-              </div>
-            </div>
+            <div class="flex items-center justify-between gap-2"></div>
           </div>
         </div>
 
         <div class="arcade-screen border-4 border-[#22c55e] bg-[#020617] scanlines">
           <main
-            class="relative overflow-hidden h-[64vh] min-h-[440px] max-h-[700px] sm:h-[72vh] sm:min-h-[560px] sm:max-h-[820px]"
+            class="relative overflow-hidden h-[64vh] min-h-110 max-h-175 sm:h-[72vh] sm:min-h-140 sm:max-h-205"
           >
             <div
               v-if="damageFlash"
@@ -127,7 +120,7 @@ watch(
                   Gõ đúng từ để bắn hạ 🧟 trước khi chúng chạm bạn
                 </p>
 
-                <div class="mt-6 text-left border-2 border-[#38bdf8] bg-[#0b1220] p-4">
+                <div class="mt-6 text-left border-2 border-accent-sky bg-[#0b1220] p-4">
                   <p class="text-[10px] sm:text-xs tracking-wider uppercase text-[#e2e8f0]">
                     1. Zombie xuất hiện từ bên phải
                   </p>
@@ -144,7 +137,7 @@ watch(
 
                 <button
                   type="button"
-                  class="mt-6 w-full px-6 py-3 bg-[#22c55e] text-[#020617] border-4 border-[#16a34a] font-black tracking-[0.22em] uppercase active:translate-y-[2px] active:border-[#22c55e]"
+                  class="mt-6 w-full px-6 py-3 bg-[#22c55e] text-[#020617] border-4 border-[#16a34a] font-black tracking-[0.22em] uppercase active:translate-y-0.5 active:border-[#22c55e]"
                   @click="handleStart"
                 >
                   Start
@@ -155,7 +148,7 @@ watch(
             <template v-if="store.isPlaying">
               <div class="absolute inset-0 pixel-grid opacity-20 pointer-events-none" />
               <div
-                class="absolute left-0 top-0 bottom-0 w-[10%] bg-gradient-to-r from-[#ef4444]/25 to-transparent pointer-events-none"
+                class="absolute left-0 top-0 bottom-0 w-[10%] bg-linear-to-r from-[#ef4444]/25 to-transparent pointer-events-none"
               />
 
               <Player />
@@ -167,8 +160,8 @@ watch(
               v-if="store.status === 'paused'"
               class="absolute inset-0 z-50 grid place-items-center bg-black/70 p-4"
             >
-              <div class="w-full max-w-sm border-4 border-[#38bdf8] bg-[#0b1220] p-5 text-center">
-                <div class="text-[#38bdf8] text-xs tracking-[0.26em] uppercase crt-flicker">
+              <div class="w-full max-w-sm border-4 border-accent-sky bg-[#0b1220] p-5 text-center">
+                <div class="text-accent-sky text-xs tracking-[0.26em] uppercase crt-flicker">
                   Paused
                 </div>
                 <div class="mt-2 text-4xl font-black tracking-[0.28em] uppercase neon-title">
@@ -177,14 +170,14 @@ watch(
                 <div class="mt-4 flex items-center justify-center gap-3">
                   <button
                     type="button"
-                    class="px-5 py-3 bg-[#22c55e] text-[#020617] border-4 border-[#16a34a] font-black tracking-[0.22em] uppercase active:translate-y-[2px] active:border-[#22c55e]"
+                    class="px-5 py-3 bg-[#22c55e] text-[#020617] border-4 border-[#16a34a] font-black tracking-[0.22em] uppercase active:translate-y-0.5 active:border-[#22c55e]"
                     @click="handleResume"
                   >
                     Resume
                   </button>
                   <button
                     type="button"
-                    class="px-5 py-3 border-4 border-[#ef4444] text-[#ef4444] font-black tracking-[0.22em] uppercase active:translate-y-[2px]"
+                    class="px-5 py-3 border-4 border-[#ef4444] text-[#ef4444] font-black tracking-[0.22em] uppercase active:translate-y-0.5"
                     @click="handleMenu"
                   >
                     Menu
