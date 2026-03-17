@@ -1,0 +1,39 @@
+<script setup lang="ts">
+import { useGameStore } from '../stores/game'
+
+const gameStore = useGameStore()
+
+const onClick = () => {
+  gameStore.setStage('ready')
+  gameStore.setIsAnimationDone(false)
+  gameStore.setIsGateLeftDone(false)
+  gameStore.setIsGateRightDone(false)
+  gameStore.setIsTankDone(false)
+  gameStore.setIsTankHit(false)
+  gameStore.setGateLeftDistance(0)
+  gameStore.setGateRightDistance(0)
+  gameStore.setTankSpeed(0)
+}
+</script>
+
+<template>
+  <button type="button" class="cursor-pointer fixed top-4 right-4 p-4 h-fit" @click="onClick">
+    <figure class="w-5 h-5 text-[#6C6C6C]">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="w-full h-full"
+      >
+        <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+        <path d="M21 3v5h-5" />
+      </svg>
+    </figure>
+  </button>
+</template>
