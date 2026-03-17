@@ -283,47 +283,53 @@ function clearRaceHistory() {
   raceHistory.value = []
 }
 
-// ── TAB 4: Bracket Draw ───────────────────────────────────────────────────
-interface BracketMatch {
-  id: number
-  home: string
-  away: string | null // null = bye
-}
-
-const SPORT_OPTIONS = [
-  { emoji: '⚽', label: 'Bóng đá' },
-  { emoji: '🏀', label: 'Bóng rổ' },
-  { emoji: '🏐', label: 'Bóng chuyền' },
-  { emoji: '🎾', label: 'Tennis' },
-  { emoji: '🏓', label: 'Bóng bàn' },
-  { emoji: '🎮', label: 'Gaming' },
-  { emoji: '🥊', label: 'Boxing' },
-  { emoji: '♟️', label: 'Cờ' },
-  { emoji: '🏆', label: 'Khác' },
-]
-
+// ── TAB 4: Bốc thăm (Single Draw) ────────────────────────────────────────
 const bracketInputText = useLocalStorage(
   'rt-bracket-items',
-  'Đội A\nĐội B\nĐội C\nĐội D\nĐội E\nĐội F\nĐội G\nĐội H',
+  'Alice\nBob\nCarol\nDave\nEve\nFrank\nGrace\nHenry',
 )
-const bracketSport = useLocalStorage('rt-bracket-sport', '⚽')
-const bracketState = ref<'idle' | 'drawing' | 'done'>('idle')
-const bracketMatches = ref<BracketMatch[]>([])
-const bracketRevealedCount = ref(0)
-
+const bracketNewItem = ref('')
 const bracketParticipants = computed(() =>
   bracketInputText.value
     .split('\n')
     .map((s) => s.trim())
     .filter(Boolean),
 )
+const bracketListExpanded = ref(false)
 
-function drawBracket() {
-  if (bracketState.value === 'drawing') return
-  bracketRevealedCount.value = 0
-  bracketMatches.value = []
-  bracketState.value = 'drawing'
+const drawPool = ref<string[]>([])
+const drawnList = ref<string[]>([])
+const drawAnimating = ref(false)
+const drawCurrentFlash = ref('')
+const drawResult = ref('')
+const drawShowResult = ref(false)
+const drawConfetti = ref(false)
+const drawState = ref<'idle' | 'ready' | 'done'>('idle')
+const confettiPieces = ref<
+  { id: number; x: number; y: number; color: string; delay: number; angle: number }[]
+>([])
 
+function addBracketItem() {
+  const names = bracketNewItem.value
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean)
+  if (names.length === 0) return
+  const existing = new Set(bracketParticipants.value)
+  const newNames = names.filter((n) => !existing.has(n))
+  if (newNames.length > 0) {
+    bracketInputText.value = bracketInputText.value.trim()
+      ? bracketInputText.value.trim() + '\n' + newNames.join('\n')
+      : newNames.join('\n')
+  }
+  bracketNewItem.value = ''
+}
+
+function removeBracketItem(name: string) {
+  bracketInputText.value = bracketParticipants.value.filter((i) => i !== name).join('\n')
+}
+
+function startDrawSession() {
   const shuffled = [...bracketParticipants.value]
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
@@ -331,32 +337,78 @@ function drawBracket() {
     shuffled[i] = shuffled[j]!
     shuffled[j] = tmp
   }
-
-  const matches: BracketMatch[] = []
-  for (let i = 0; i < shuffled.length; i += 2) {
-    matches.push({ id: matches.length, home: shuffled[i]!, away: shuffled[i + 1] ?? null })
-  }
-  bracketMatches.value = matches
-
-  // drumroll phase, then reveal one by one
-  setTimeout(() => {
-    const delay = Math.max(280, 500 - matches.length * 20)
-    function revealNext() {
-      if (bracketRevealedCount.value < matches.length) {
-        bracketRevealedCount.value++
-        setTimeout(revealNext, delay)
-      } else {
-        bracketState.value = 'done'
-      }
-    }
-    revealNext()
-  }, 900)
+  drawPool.value = shuffled
+  drawnList.value = []
+  drawResult.value = ''
+  drawShowResult.value = false
+  drawCurrentFlash.value = ''
+  drawConfetti.value = false
+  drawState.value = 'ready'
 }
 
-function resetBracket() {
-  bracketState.value = 'idle'
-  bracketMatches.value = []
-  bracketRevealedCount.value = 0
+function spawnConfetti() {
+  const colors = ['#FF6B4A', '#FFB830', '#38BDF8', '#4ADE80', '#C084FC', '#F472B6']
+  confettiPieces.value = Array.from({ length: 30 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    color: colors[Math.floor(Math.random() * colors.length)]!,
+    delay: Math.random() * 0.4,
+    angle: Math.random() * 360,
+  }))
+}
+
+function drawNextPerson() {
+  if (drawAnimating.value || drawPool.value.length === 0) return
+  drawAnimating.value = true
+  drawShowResult.value = false
+  drawConfetti.value = false
+  drawResult.value = ''
+
+  const picked = drawPool.value[0]!
+  const allNames = bracketParticipants.value
+  let ticks = 0
+  const totalTicks = 22
+
+  function tick() {
+    drawCurrentFlash.value = allNames[Math.floor(Math.random() * allNames.length)]!
+    ticks++
+    if (ticks < totalTicks) {
+      const delay = 50 + Math.pow(ticks / totalTicks, 2) * 400
+      setTimeout(tick, delay)
+    } else {
+      drawCurrentFlash.value = picked
+      drawResult.value = picked
+      drawShowResult.value = true
+      drawAnimating.value = false
+      drawConfetti.value = true
+      spawnConfetti()
+      drawnList.value = [...drawnList.value, picked]
+      drawPool.value = drawPool.value.slice(1)
+
+      if (drawPool.value.length === 0) {
+        drawState.value = 'done'
+      }
+
+      setTimeout(() => {
+        drawConfetti.value = false
+      }, 2500)
+    }
+  }
+
+  tick()
+}
+
+function resetDraw() {
+  drawState.value = 'idle'
+  drawPool.value = []
+  drawnList.value = []
+  drawResult.value = ''
+  drawShowResult.value = false
+  drawCurrentFlash.value = ''
+  drawConfetti.value = false
+  drawAnimating.value = false
+  confettiPieces.value = []
 }
 
 // ── TAB 5: Coin (Icon) ────────────────────────────────────────────────────
@@ -582,7 +634,7 @@ watch(activeTab, (tab) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-bg-deep font-body text-text-primary">
+  <div class="flex min-h-screen flex-col bg-bg-deep font-body text-text-primary">
     <!-- Header -->
     <div class="border-b border-border-default bg-bg-surface">
       <div class="mx-auto flex max-w-4xl items-center gap-3 px-4 py-4">
@@ -600,7 +652,7 @@ watch(activeTab, (tab) => {
 
     <!-- Tab nav -->
     <div class="sticky top-0 z-10 border-b border-border-default bg-bg-surface">
-      <div class="mx-auto flex max-w-4xl overflow-x-auto px-4">
+      <div class="mx-auto flex max-w-4xl overflow-x-auto px-4 scrollbar-hide">
         <button
           v-for="tab in TABS"
           :key="tab.id"
@@ -1052,176 +1104,241 @@ watch(activeTab, (tab) => {
         </div>
       </div>
 
-      <!-- ─── TAB 4: Bracket Draw ──────────────────────────────────────── -->
+      <!-- ─── TAB 4: Bốc thăm (Single Draw) ─────────────────────────────── -->
       <div v-if="activeTab === 'bracket'" class="animate-fade-up">
         <div class="mb-8 text-center">
           <p class="mb-1 text-sm text-text-dim">
             <span class="font-display text-sm tracking-widest text-accent-coral">//</span>
-            BỐC THĂM CẶP ĐẤU
+            BỐC THĂM
           </p>
-          <h2 class="font-display text-2xl font-bold">Bốc thăm đối đầu</h2>
+          <h2 class="font-display text-2xl font-bold">Bốc thăm từng người</h2>
         </div>
 
-        <div class="grid gap-8 md:grid-cols-[240px_1fr]">
-          <!-- Left: config + input -->
-          <div class="flex flex-col gap-4">
-            <!-- Sport selector -->
-            <div>
-              <label class="mb-2 block text-xs tracking-widest text-text-dim">
-                <span class="text-accent-sky">//</span> LOẠI THỂ THAO
-              </label>
-              <div class="flex flex-wrap gap-2">
-                <button
-                  v-for="s in SPORT_OPTIONS"
-                  :key="s.emoji"
-                  :title="s.label"
-                  :class="[
-                    'flex items-center gap-1 border px-2.5 py-1.5 text-sm transition-all',
-                    bracketSport === s.emoji
-                      ? 'border-accent-coral bg-accent-coral/10 text-accent-coral'
-                      : 'border-border-default text-text-dim hover:border-accent-coral/40',
-                  ]"
-                  @click="bracketSport = s.emoji"
+        <!-- Idle: input & start -->
+        <div v-if="drawState === 'idle'" class="mx-auto max-w-lg">
+          <!-- Compact participant list -->
+          <label class="mb-2 block text-xs tracking-widest text-text-dim">
+            <span class="text-accent-sky">//</span>
+            DANH SÁCH ({{ bracketParticipants.length }} người)
+          </label>
+
+          <!-- Chips area with max-height -->
+          <div class="mb-2 border border-border-default bg-bg-surface">
+            <div
+              :class="[
+                'flex flex-wrap content-start gap-1.5 overflow-hidden p-2.5 transition-all',
+                bracketParticipants.length > 12 && !bracketListExpanded ? 'max-h-24' : '',
+              ]"
+            >
+              <template v-if="bracketParticipants.length > 0">
+                <div
+                  v-for="name in bracketParticipants"
+                  :key="name"
+                  class="group flex items-center gap-1 bg-bg-elevated px-2 py-0.5 text-xs text-text-primary"
                 >
-                  <span>{{ s.emoji }}</span>
-                  <span class="text-xs">{{ s.label }}</span>
-                </button>
-              </div>
+                  <span class="max-w-25 truncate">{{ name }}</span>
+                  <button
+                    class="text-text-dim opacity-0 transition-all hover:text-accent-coral group-hover:opacity-100"
+                    @click="removeBracketItem(name)"
+                  >
+                    <Icon icon="lucide:x" class="size-3" />
+                  </button>
+                </div>
+              </template>
+              <span v-else class="py-1 text-xs text-text-dim">Chưa có ai...</span>
             </div>
-
-            <!-- Participants -->
-            <div>
-              <label class="mb-2 block text-xs tracking-widest text-text-dim">
-                <span class="text-accent-sky">//</span> DANH SÁCH (mỗi dòng 1 đội/người)
-              </label>
-              <textarea
-                v-model="bracketInputText"
-                :disabled="bracketState === 'drawing'"
-                class="h-44 w-full resize-none border border-border-default bg-bg-surface p-3 font-mono text-sm text-text-primary placeholder-text-dim focus:border-accent-coral focus:outline-none disabled:opacity-50"
-                placeholder="Mỗi dòng 1 tên..."
-              />
-              <p class="mt-1 text-xs text-text-dim">
-                {{ bracketParticipants.length }} đội ·
-                {{ Math.floor(bracketParticipants.length / 2) }} cặp đấu
-                <span v-if="bracketParticipants.length % 2 === 1"> · 1 BYE</span>
-              </p>
-            </div>
-
-            <!-- Buttons -->
             <button
-              :disabled="bracketState === 'drawing' || bracketParticipants.length < 2"
-              class="flex items-center justify-center gap-2 bg-accent-coral px-6 py-3 font-display font-bold tracking-widest text-white uppercase transition-all hover:bg-accent-coral/80 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-              @click="drawBracket"
+              v-if="bracketParticipants.length > 12"
+              class="w-full border-t border-border-default/50 py-1 text-xs text-text-dim transition-colors hover:text-accent-coral"
+              @click="bracketListExpanded = !bracketListExpanded"
             >
-              <Icon
-                icon="lucide:shuffle"
-                class="size-5"
-                :class="bracketState === 'drawing' ? 'animate-spin' : ''"
-              />
-              {{ bracketState === 'drawing' ? 'Đang bốc thăm...' : 'BỐC THĂM' }}
-            </button>
-
-            <button
-              v-if="bracketState !== 'idle'"
-              class="flex items-center justify-center gap-2 border border-border-default px-4 py-2.5 font-display text-sm uppercase text-text-dim transition-all hover:border-accent-coral hover:text-accent-coral"
-              @click="resetBracket"
-            >
-              <Icon icon="lucide:rotate-ccw" class="size-4" />
-              BỐC LẠI
+              {{
+                bracketListExpanded ? 'Thu gọn ▲' : `Xem tất cả (${bracketParticipants.length}) ▼`
+              }}
             </button>
           </div>
 
-          <!-- Right: results -->
-          <div>
-            <!-- Drumroll animation -->
-            <div
-              v-if="bracketState === 'drawing' && bracketRevealedCount === 0"
-              class="flex flex-col items-center justify-center py-12 gap-4"
-            >
-              <div class="flex gap-3">
-                <div class="draw-ball draw-ball-1 bg-accent-coral" />
-                <div class="draw-ball draw-ball-2 bg-accent-amber" />
-                <div class="draw-ball draw-ball-3 bg-accent-sky" />
-                <div class="draw-ball draw-ball-4 bg-accent-coral" />
-              </div>
-              <p class="font-display text-sm tracking-widest text-text-dim animate-pulse">
-                ĐANG BỐC THĂM...
-              </p>
-            </div>
-
-            <!-- Idle state -->
-            <div
-              v-else-if="bracketState === 'idle'"
-              class="flex h-48 flex-col items-center justify-center gap-3 border border-border-default bg-bg-surface text-text-dim"
-            >
-              <Icon icon="lucide:trophy" class="size-10 opacity-20" />
-              <p class="text-sm">Nhập danh sách và nhấn Bốc thăm</p>
-            </div>
-
-            <!-- Match cards -->
-            <div v-else>
-              <div class="mb-3 flex items-center justify-between">
-                <p class="text-xs tracking-widest text-text-dim">
-                  <span class="text-accent-coral">//</span>
-                  KẾT QUẢ BỐC THĂM — {{ bracketRevealedCount }}/{{ bracketMatches.length }} cặp
-                </p>
-                <span v-if="bracketState === 'done'" class="text-xs text-accent-sky">
-                  ✓ Hoàn thành
-                </span>
-              </div>
-              <div
-                :class="[
-                  'grid gap-3',
-                  bracketMatches.length <= 4 ? 'grid-cols-1' : 'sm:grid-cols-2',
-                ]"
+          <!-- Add input -->
+          <div class="mb-4">
+            <div class="flex gap-2">
+              <textarea
+                v-model="bracketNewItem"
+                rows="2"
+                class="min-w-0 flex-1 resize-none border border-border-default bg-bg-surface px-3 py-1.5 font-mono text-sm text-text-primary placeholder-text-dim focus:border-accent-coral focus:outline-none"
+                placeholder="Nhập tên, mỗi dòng 1 người..."
+              />
+              <button
+                :disabled="!bracketNewItem.trim()"
+                class="shrink-0 self-end border border-accent-coral px-3 py-1.5 text-accent-coral transition-all hover:bg-accent-coral hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                @click="addBracketItem"
               >
-                <div
-                  v-for="(match, i) in bracketMatches"
-                  :key="match.id"
+                <Icon icon="lucide:plus" class="size-4" />
+              </button>
+            </div>
+            <p class="mt-1 text-xs text-text-dim">Mỗi dòng 1 tên, có thể dán danh sách</p>
+          </div>
+
+          <button
+            :disabled="bracketParticipants.length < 2"
+            class="flex w-full items-center justify-center gap-2 bg-accent-coral px-6 py-3 font-display font-bold tracking-widest text-white uppercase transition-all hover:bg-accent-coral/80 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            @click="startDrawSession"
+          >
+            <Icon icon="lucide:shuffle" class="size-5" />
+            BẮT ĐẦU BỐC THĂM
+          </button>
+        </div>
+
+        <!-- Drawing / Done state -->
+        <div v-else class="mx-auto max-w-2xl">
+          <!-- Progress bar -->
+          <div class="mb-6">
+            <div class="mb-2 flex items-center justify-between">
+              <p class="text-xs tracking-widest text-text-dim">
+                <span class="text-accent-coral">//</span>
+                TIẾN ĐỘ — {{ drawnList.length }}/{{ drawnList.length + drawPool.length }}
+              </p>
+              <span v-if="drawState === 'done'" class="text-xs text-accent-sky">✓ Hoàn thành</span>
+            </div>
+            <div class="h-1.5 w-full bg-bg-surface">
+              <div
+                class="h-full bg-accent-coral transition-all duration-500"
+                :style="{
+                  width: `${(drawnList.length / (drawnList.length + drawPool.length)) * 100}%`,
+                }"
+              />
+            </div>
+          </div>
+
+          <!-- Draw area -->
+          <div class="relative mb-6 flex flex-col items-center">
+            <!-- Confetti overlay -->
+            <div
+              v-if="drawConfetti"
+              class="pointer-events-none absolute inset-0 z-20 overflow-hidden"
+            >
+              <div
+                v-for="piece in confettiPieces"
+                :key="piece.id"
+                class="confetti-piece absolute"
+                :style="{
+                  left: piece.x + '%',
+                  top: '50%',
+                  backgroundColor: piece.color,
+                  animationDelay: piece.delay + 's',
+                  transform: `rotate(${piece.angle}deg)`,
+                }"
+              />
+            </div>
+
+            <!-- Central draw box -->
+            <div
+              :class="[
+                'relative flex h-48 w-full max-w-md items-center justify-center border-2 transition-all',
+                drawAnimating
+                  ? 'draw-box-animating border-accent-amber/60 bg-bg-surface'
+                  : drawShowResult
+                    ? 'draw-box-reveal border-accent-coral bg-accent-coral/5'
+                    : 'border-border-default bg-bg-surface',
+              ]"
+            >
+              <!-- Corner accents -->
+              <div
+                class="absolute left-0 top-0 size-4 -translate-x-px -translate-y-px border-l-2 border-t-2 border-accent-coral"
+              />
+              <div
+                class="absolute right-0 top-0 size-4 -translate-y-px translate-x-px border-r-2 border-t-2 border-accent-coral"
+              />
+              <div
+                class="absolute bottom-0 left-0 size-4 -translate-x-px translate-y-px border-b-2 border-l-2 border-accent-coral"
+              />
+              <div
+                class="absolute bottom-0 right-0 size-4 translate-x-px translate-y-px border-b-2 border-r-2 border-accent-coral"
+              />
+
+              <div v-if="drawAnimating || drawShowResult" class="text-center">
+                <p class="mb-2 text-xs tracking-widest text-text-dim">
+                  {{ drawAnimating ? 'ĐANG BỐC THĂM...' : `NGƯỜI THỨ ${drawnList.length}` }}
+                </p>
+                <p
                   :class="[
-                    'match-card border bg-bg-surface',
-                    i < bracketRevealedCount ? 'match-visible' : 'match-hidden',
+                    'font-display font-black transition-all',
+                    drawAnimating
+                      ? 'draw-flash text-3xl text-text-secondary sm:text-4xl'
+                      : 'draw-reveal text-4xl text-accent-coral sm:text-5xl',
                   ]"
                 >
-                  <!-- Match header -->
-                  <div
-                    class="flex items-center justify-between border-b border-border-default/50 px-3 py-2"
-                  >
-                    <span class="font-display text-xs font-bold tracking-widest text-text-dim">
-                      TRẬN {{ i + 1 }}
-                    </span>
-                    <span class="text-base">{{ bracketSport }}</span>
-                  </div>
-                  <!-- Teams -->
-                  <div class="flex items-center gap-2 px-3 py-3">
-                    <!-- Home -->
-                    <div class="min-w-0 flex-1 text-center">
-                      <p class="truncate font-display font-bold text-text-primary">
-                        {{ match.home }}
-                      </p>
-                    </div>
-                    <!-- VS badge -->
-                    <div
-                      class="shrink-0 border border-accent-coral/60 bg-accent-coral/10 px-2 py-0.5"
-                    >
-                      <span
-                        class="font-display text-xs font-black tracking-widest text-accent-coral"
-                        >VS</span
-                      >
-                    </div>
-                    <!-- Away -->
-                    <div class="min-w-0 flex-1 text-center">
-                      <p
-                        :class="[
-                          'truncate font-display font-bold',
-                          match.away ? 'text-text-primary' : 'text-text-dim italic',
-                        ]"
-                      >
-                        {{ match.away ?? 'BYE' }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                  {{ drawCurrentFlash }}
+                </p>
+              </div>
+              <div v-else class="flex flex-col items-center gap-2 text-text-dim">
+                <Icon icon="lucide:hand" class="size-10 opacity-30" />
+                <p class="text-sm">Nhấn nút để bốc thăm</p>
+                <p class="text-xs">Còn {{ drawPool.length }} người</p>
+              </div>
+            </div>
+
+            <!-- Draw button -->
+            <div class="mt-6 flex gap-3">
+              <button
+                v-if="drawPool.length > 0"
+                :disabled="drawAnimating"
+                class="draw-btn flex items-center gap-2 bg-accent-coral px-8 py-3 font-display font-bold tracking-widest text-white uppercase transition-all hover:bg-accent-coral/80 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                @click="drawNextPerson"
+              >
+                <Icon
+                  icon="lucide:sparkles"
+                  class="size-5"
+                  :class="drawAnimating ? 'animate-spin' : ''"
+                />
+                {{
+                  drawAnimating ? 'ĐANG BỐC...' : drawnList.length === 0 ? 'BỐC THĂM' : 'BỐC TIẾP'
+                }}
+              </button>
+              <button
+                class="flex items-center justify-center gap-2 border border-border-default px-4 py-3 font-display text-sm uppercase text-text-dim transition-all hover:border-accent-coral hover:text-accent-coral"
+                @click="resetDraw"
+              >
+                <Icon icon="lucide:rotate-ccw" class="size-4" />
+                LÀM LẠI
+              </button>
+            </div>
+          </div>
+
+          <!-- Drawn list -->
+          <div v-if="drawnList.length > 0">
+            <p class="mb-3 text-xs tracking-widest text-text-dim">
+              <span class="text-accent-amber">//</span>
+              KẾT QUẢ BỐC THĂM ({{ drawnList.length }})
+            </p>
+            <div class="grid gap-2 sm:grid-cols-2">
+              <div
+                v-for="(name, i) in drawnList"
+                :key="i"
+                :class="[
+                  'drawn-item flex items-center gap-3 border px-4 py-2.5',
+                  i === drawnList.length - 1 && drawShowResult
+                    ? 'border-accent-coral/60 bg-accent-coral/5 drawn-item-latest'
+                    : 'border-border-default bg-bg-surface',
+                ]"
+              >
+                <span
+                  :class="[
+                    'flex size-7 shrink-0 items-center justify-center font-display text-xs font-bold',
+                    i === 0
+                      ? 'bg-accent-amber text-white'
+                      : i === 1
+                        ? 'bg-text-secondary text-white'
+                        : i === 2
+                          ? 'bg-accent-coral text-white'
+                          : 'bg-bg-elevated text-text-dim',
+                  ]"
+                >
+                  {{ i + 1 }}
+                </span>
+                <span class="truncate font-medium text-text-primary">{{ name }}</span>
+                <span v-if="i === 0" class="ml-auto text-sm">🥇</span>
+                <span v-else-if="i === 1" class="ml-auto text-sm">🥈</span>
+                <span v-else-if="i === 2" class="ml-auto text-sm">🥉</span>
               </div>
             </div>
           </div>
@@ -1598,10 +1715,52 @@ watch(activeTab, (tab) => {
         </div>
       </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-border-default/50 bg-bg-surface/30">
+      <div class="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-6 py-4">
+        <div class="flex items-center gap-3">
+          <span class="font-display text-xs tracking-widest text-text-dim">//</span>
+          <div>
+            <p class="font-display text-sm font-semibold text-text-secondary">Hachi Tu</p>
+            <p class="text-xs text-text-dim">Tác giả</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <a
+            href="https://github.com/hachitubg"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-1.5 border border-border-default px-3 py-1.5 text-xs text-text-dim transition hover:border-text-secondary hover:text-text-secondary"
+          >
+            <Icon icon="lucide:github" class="size-3.5" />
+            GitHub
+          </a>
+          <a
+            href="https://www.facebook.com/tuhachiz/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-1.5 border border-border-default px-3 py-1.5 text-xs text-text-dim transition hover:border-accent-sky hover:text-accent-sky"
+          >
+            <Icon icon="lucide:facebook" class="size-3.5" />
+            Facebook
+          </a>
+        </div>
+      </div>
+    </footer>
   </div>
 </template>
 
 <style scoped>
+/* ── Scrollbar hide ──────────────────────────────────────────────────────── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── Coin 3D ─────────────────────────────────────────────────────────────── */
 .coin-scene {
   width: 160px;
@@ -1742,50 +1901,136 @@ watch(activeTab, (tab) => {
   animation: diceLand 0.35s ease-out;
 }
 
-/* ── Bracket Draw ────────────────────────────────────────────────────────── */
-.match-card {
-  transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.match-hidden {
-  opacity: 0;
-  transform: scale(0.75) translateY(14px);
-  pointer-events: none;
-}
-
-.match-visible {
-  opacity: 1;
-  transform: scale(1) translateY(0);
-}
-
-@keyframes drawBounce {
+/* ── Draw (Bốc thăm) ────────────────────────────────────────────────────── */
+@keyframes drawFlash {
   0%,
-  60%,
   100% {
-    transform: translateY(0);
+    opacity: 1;
+    transform: scale(1);
   }
-  30% {
-    transform: translateY(-18px);
+  50% {
+    opacity: 0.6;
+    transform: scale(0.96);
   }
 }
 
-.draw-ball {
-  width: 16px;
-  height: 16px;
+.draw-flash {
+  animation: drawFlash 0.12s ease-in-out infinite;
+}
+
+@keyframes drawReveal {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.draw-reveal {
+  animation: drawReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes boxGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 74, 0);
+  }
+  50% {
+    box-shadow: 0 0 30px 4px rgba(255, 107, 74, 0.3);
+  }
+}
+
+.draw-box-reveal {
+  animation: boxGlow 1s ease;
+}
+
+@keyframes boxPulse {
+  0%,
+  100% {
+    border-color: rgba(255, 184, 48, 0.3);
+  }
+  50% {
+    border-color: rgba(255, 184, 48, 0.8);
+  }
+}
+
+.draw-box-animating {
+  animation: boxPulse 0.4s ease-in-out infinite;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-200px) rotate(720deg) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes confettiSpread {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--spread-x, 50px), var(--spread-y, -150px))
+      rotate(var(--spread-r, 360deg));
+    opacity: 0;
+  }
+}
+
+.confetti-piece {
+  width: 8px;
+  height: 8px;
+  animation: confettiSpread 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  --spread-x: calc((var(--random-x, 0.5) - 0.5) * 300px);
+  --spread-y: calc(-80px - var(--random-y, 0.5) * 200px);
+  --spread-r: calc(var(--random-r, 0.5) * 720deg);
+}
+
+.confetti-piece:nth-child(odd) {
   border-radius: 50%;
-  animation: drawBounce 0.9s ease-in-out infinite;
 }
 
-.draw-ball-1 {
-  animation-delay: 0s;
+.confetti-piece:nth-child(3n) {
+  width: 6px;
+  height: 10px;
 }
-.draw-ball-2 {
-  animation-delay: 0.18s;
+
+.confetti-piece:nth-child(5n) {
+  width: 10px;
+  height: 6px;
 }
-.draw-ball-3 {
-  animation-delay: 0.36s;
+
+@keyframes drawnItemPop {
+  0% {
+    transform: scale(0.8) translateY(10px);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05) translateY(-2px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
 }
-.draw-ball-4 {
-  animation-delay: 0.54s;
+
+.drawn-item-latest {
+  animation: drawnItemPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 </style>
