@@ -11,8 +11,7 @@ const emit = defineEmits<{
 }>()
 
 const containerRef = useTemplateRef('giscus-container')
-const scriptLoaded = ref(false)
-const lastPath = ref('')
+const currentPath = ref('')
 
 // Giscus config - same as GiscusModal.vue
 const giscusAttrs: Record<string, string> = {
@@ -21,7 +20,7 @@ const giscusAttrs: Record<string, string> = {
   'data-repo-id': 'R_kgDORfTq5w',
   'data-category': 'General',
   'data-category-id': 'DIC_kwDORfTq984C4GSo',
-  'data-mapping': 'pathname',
+  'data-mapping': 'specific',
   'data-strict': '0',
   'data-reactions-enabled': '1',
   'data-emit-metadata': '0',
@@ -32,15 +31,19 @@ const giscusAttrs: Record<string, string> = {
   crossorigin: 'anonymous',
 }
 
-function loadGiscus() {
+function loadGiscus(path: string) {
   const container = containerRef.value
   if (!container) return
 
-  // Clear and reload
+  // Clear and reload for new path
   container.innerHTML = ''
 
-  // Add origin for proper communication
-  const attrs = { ...giscusAttrs, 'data-origin': window.location.origin }
+  // Add pathname term and origin for proper communication
+  const attrs = {
+    ...giscusAttrs,
+    'data-term': path,
+    'data-origin': window.location.origin,
+  }
 
   const script = document.createElement('script')
   for (const [key, value] of Object.entries(attrs)) {
@@ -50,22 +53,20 @@ function loadGiscus() {
   container.appendChild(script)
 }
 
+// Watch both show and pagePath to handle different posts
 watch(
-  () => props.show,
-  async (visible) => {
-    if (!visible) return
-    const currentPath = props.pagePath
+  () => [props.show, props.pagePath] as const,
+  async ([visible, path]) => {
+    if (!visible || !path) return
 
     await nextTick()
 
-    // Small delay to ensure DOM is ready
-    setTimeout(() => {
-      if (!scriptLoaded.value || currentPath !== lastPath.value) {
-        scriptLoaded.value = true
-        lastPath.value = currentPath
-        loadGiscus()
-      }
-    }, 100)
+    // Always reload when opening for a different path
+    if (path !== currentPath.value) {
+      currentPath.value = path
+      // Small delay to ensure DOM is ready
+      setTimeout(() => loadGiscus(path), 100)
+    }
   },
 )
 </script>
