@@ -5,7 +5,7 @@ import { Icon } from '@iconify/vue'
 import { useLocalStorage } from '@vueuse/core'
 
 // ── Tabs ──────────────────────────────────────────────────────────────────
-type TabId = 'number' | 'wheel' | 'race' | 'coin' | 'teams'
+type TabId = 'number' | 'wheel' | 'race' | 'coin' | 'dice' | 'teams'
 const activeTab = ref<TabId>('number')
 
 const TABS: { id: TabId; label: string; icon: string }[] = [
@@ -13,6 +13,7 @@ const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: 'wheel', label: 'Vòng quay', icon: 'lucide:rotate-cw' },
   { id: 'race', label: 'Đua về đích', icon: 'lucide:flag' },
   { id: 'coin', label: 'Đúng / Sai', icon: 'lucide:circle-dot' },
+  { id: 'dice', label: 'Xúc xắc', icon: 'lucide:box' },
   { id: 'teams', label: 'Chia đội', icon: 'lucide:users' },
 ]
 
@@ -67,12 +68,18 @@ const wheelSpinning = ref(false)
 const wheelAngle = ref(0)
 const wheelHasSpun = ref(false)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
+const wheelRemoveWon = ref(false)
+const wheelRemovedItems = ref<string[]>([])
 
 const wheelItems = computed(() =>
   wheelInputText.value
     .split('\n')
     .map((s) => s.trim())
     .filter(Boolean),
+)
+
+const activeWheelItems = computed(() =>
+  wheelItems.value.filter((item) => !wheelRemovedItems.value.includes(item)),
 )
 
 const WHEEL_COLORS = [
@@ -91,8 +98,11 @@ function drawWheel() {
   if (!canvas) return
   const ctx = canvas.getContext('2d')
   if (!ctx) return
-  const items = wheelItems.value
-  if (items.length === 0) return
+  const items = activeWheelItems.value
+  if (items.length === 0) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    return
+  }
 
   const size = canvas.width
   const center = size / 2
@@ -136,7 +146,7 @@ function drawWheel() {
 }
 
 function spinWheel() {
-  if (wheelSpinning.value || wheelItems.value.length < 2) return
+  if (wheelSpinning.value || activeWheelItems.value.length < 2) return
   wheelSpinning.value = true
   wheelHasSpun.value = true
   wheelResult.value = ''
@@ -147,21 +157,29 @@ function spinWheel() {
 
   const targetAngle = wheelAngle.value
   setTimeout(() => {
-    const items = wheelItems.value
+    const items = activeWheelItems.value
     const segAngle = 360 / items.length
     const finalAngle = ((targetAngle % 360) + 360) % 360
     const canvasTopAngle = (360 - finalAngle) % 360
     const winnerIdx = Math.floor(((canvasTopAngle + 90) % 360) / segAngle) % items.length
+    const winner = items[winnerIdx] ?? ''
     wheelSpinning.value = false
-    wheelResult.value = items[winnerIdx] ?? ''
+    wheelResult.value = winner
+    if (wheelRemoveWon.value && winner) {
+      wheelRemovedItems.value = [...wheelRemovedItems.value, winner]
+    }
   }, 4400)
+}
+
+function restoreWheelItems() {
+  wheelRemovedItems.value = []
 }
 
 function onWheelInput() {
   drawWheel()
 }
 
-watch(wheelItems, () => {
+watch([wheelItems, wheelRemovedItems], () => {
   nextTick(() => drawWheel())
 })
 
@@ -176,6 +194,7 @@ interface Racer {
 }
 
 const raceInputText = useLocalStorage('rt-race-items', 'Alice\nBob\nCarol\nDave\nEve')
+const raceMinDuration = useLocalStorage<number>('rt-race-min-duration', 10)
 const RACE_EMOJIS = ['🦆', '🐇', '🐢', '🦊', '🐴', '🦁', '🐊', '🐆', '🦓', '🦒']
 const raceState = ref<'idle' | 'racing' | 'finished'>('idle')
 const racers = ref<Racer[]>([])
@@ -198,12 +217,13 @@ const raceFinishOrder = computed(() =>
 function startRace() {
   if (raceAnimFrame) cancelAnimationFrame(raceAnimFrame)
   raceRankCounter = 0
+  const minMs = Math.max(5, Number(raceMinDuration.value)) * 1000
   racers.value = raceParticipants.value.map((name, i) => ({
     id: i,
     name,
     emoji: RACE_EMOJIS[i % RACE_EMOJIS.length]!,
     progress: 0,
-    duration: 3000 + Math.random() * 5000,
+    duration: minMs + Math.random() * 5000,
     rank: null,
   }))
   raceState.value = 'racing'
@@ -243,20 +263,70 @@ function resetRace() {
   racers.value = []
 }
 
-// ── TAB 4: Coin (True/False) ──────────────────────────────────────────────
-const coinLabel1 = useLocalStorage('rt-coin-label1', 'ĐÚNG')
-const coinLabel2 = useLocalStorage('rt-coin-label2', 'SAI')
+// ── TAB 4: Coin (Icon) ────────────────────────────────────────────────────
+interface CoinIconPreset {
+  icon: string
+  label: string
+}
+
+const COIN_ICON_PRESETS: CoinIconPreset[] = [
+  { icon: 'lucide:check-circle-2', label: 'Đúng' },
+  { icon: 'lucide:x-circle', label: 'Sai' },
+  { icon: 'lucide:thumbs-up', label: 'Có' },
+  { icon: 'lucide:thumbs-down', label: 'Không' },
+  { icon: 'lucide:sun', label: 'Ngày' },
+  { icon: 'lucide:moon', label: 'Đêm' },
+  { icon: 'lucide:smile', label: 'Vui' },
+  { icon: 'lucide:frown', label: 'Buồn' },
+  { icon: 'lucide:heart', label: 'Tim' },
+  { icon: 'lucide:heart-crack', label: 'Vỡ tim' },
+  { icon: 'lucide:star', label: 'Sao' },
+  { icon: 'lucide:zap', label: 'Sấm' },
+  { icon: 'lucide:trophy', label: 'Trophy' },
+  { icon: 'lucide:crown', label: 'Vương miện' },
+  { icon: 'lucide:flame', label: 'Lửa' },
+  { icon: 'lucide:shield', label: 'Khiên' },
+  { icon: 'lucide:coffee', label: 'Cà phê' },
+  { icon: 'lucide:rocket', label: 'Rocket' },
+  { icon: 'lucide:bug', label: 'Bug' },
+  { icon: 'lucide:gift', label: 'Quà' },
+  { icon: 'lucide:gem', label: 'Gem' },
+  { icon: 'lucide:skull', label: 'Đầu lâu' },
+  { icon: 'lucide:dice-5', label: 'Xúc xắc' },
+  { icon: 'lucide:hand', label: 'Tay' },
+]
+
+const coinIcon1 = useLocalStorage('rt-coin-icon1', 'lucide:check-circle-2')
+const coinIcon2 = useLocalStorage('rt-coin-icon2', 'lucide:x-circle')
+const coinPickerFor = ref<'heads' | 'tails' | null>(null)
 const coinFlipping = ref(false)
 const coinResult = ref<'heads' | 'tails' | null>(null)
 const coinRotation = ref(0)
 
-const coinResultLabel = computed(() =>
+const coinResultIcon = computed(() =>
   coinResult.value === 'heads'
-    ? coinLabel1.value
+    ? coinIcon1.value
     : coinResult.value === 'tails'
-      ? coinLabel2.value
+      ? coinIcon2.value
       : '',
 )
+
+function getIconLabel(icon: string) {
+  return COIN_ICON_PRESETS.find((p) => p.icon === icon)?.label ?? ''
+}
+
+function openCoinPicker(face: 'heads' | 'tails') {
+  coinPickerFor.value = coinPickerFor.value === face ? null : face
+}
+
+function selectCoinIcon(icon: string) {
+  if (coinPickerFor.value === 'heads') {
+    coinIcon1.value = icon
+  } else if (coinPickerFor.value === 'tails') {
+    coinIcon2.value = icon
+  }
+  coinPickerFor.value = null
+}
 
 function flipCoin() {
   if (coinFlipping.value) return
@@ -280,7 +350,57 @@ function flipCoin() {
   }, 1300)
 }
 
-// ── TAB 5: Teams ──────────────────────────────────────────────────────────
+// ── TAB 5: Dice ───────────────────────────────────────────────────────────
+interface DiceRoll {
+  values: number[]
+  total: number
+}
+
+// pip cell indices (1–9) for each die face in a 3×3 grid
+const DICE_PIPS: Record<number, number[]> = {
+  1: [5],
+  2: [3, 7],
+  3: [3, 5, 7],
+  4: [1, 3, 7, 9],
+  5: [1, 3, 5, 7, 9],
+  6: [1, 3, 4, 6, 7, 9],
+}
+
+const diceCount = useLocalStorage<number>('rt-dice-count', 2)
+const diceValues = ref<number[]>([])
+const diceRolling = ref(false)
+const diceHistory = useLocalStorage<DiceRoll[]>('rt-dice-history', [])
+
+const diceTotal = computed(() => diceValues.value.reduce((a, b) => a + b, 0))
+
+function rollDice() {
+  if (diceRolling.value) return
+  const count = Math.max(1, Math.min(6, Number(diceCount.value)))
+  diceRolling.value = true
+  let ticks = 0
+  const totalTicks = 20
+
+  function tick() {
+    diceValues.value = Array.from({ length: count }, () => Math.floor(Math.random() * 6) + 1)
+    ticks++
+    if (ticks < totalTicks) {
+      const delay = 40 + Math.pow(ticks / totalTicks, 2) * 180
+      setTimeout(tick, delay)
+    } else {
+      diceRolling.value = false
+      const roll = { values: [...diceValues.value], total: diceTotal.value }
+      diceHistory.value = [roll, ...diceHistory.value.slice(0, 4)]
+    }
+  }
+
+  tick()
+}
+
+function clearDiceHistory() {
+  diceHistory.value = []
+}
+
+// ── TAB 6: Teams ──────────────────────────────────────────────────────────
 const teamsInputText = useLocalStorage(
   'rt-teams-items',
   'Alice\nBob\nCarol\nDave\nEve\nFrank\nGrace\nHenry',
@@ -366,7 +486,7 @@ watch(activeTab, (tab) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-bg-deep text-text-primary font-body">
+  <div class="min-h-screen bg-bg-deep font-body text-text-primary">
     <!-- Header -->
     <div class="border-b border-border-default bg-bg-surface">
       <div class="mx-auto flex max-w-4xl items-center gap-3 px-4 py-4">
@@ -413,7 +533,6 @@ watch(activeTab, (tab) => {
           <h2 class="font-display text-2xl font-bold">Tạo số ngẫu nhiên</h2>
         </div>
 
-        <!-- Range -->
         <div class="mb-8 flex items-end justify-center gap-4">
           <div class="flex flex-col items-center gap-1">
             <label class="text-xs tracking-widest text-text-dim">TỪ</label>
@@ -436,7 +555,6 @@ watch(activeTab, (tab) => {
           </div>
         </div>
 
-        <!-- Number display -->
         <div class="mb-8 flex justify-center">
           <div
             :class="[
@@ -470,7 +588,6 @@ watch(activeTab, (tab) => {
           </div>
         </div>
 
-        <!-- Roll button -->
         <div class="mb-8 flex justify-center">
           <button
             :disabled="numAnimating"
@@ -482,7 +599,6 @@ watch(activeTab, (tab) => {
           </button>
         </div>
 
-        <!-- History -->
         <div v-if="numHistory.length > 0" class="border border-border-default bg-bg-surface p-4">
           <p class="mb-3 text-xs tracking-widest text-text-dim">
             <span class="text-accent-amber">//</span> LỊCH SỬ
@@ -497,9 +613,8 @@ watch(activeTab, (tab) => {
                   ? 'border-accent-coral bg-accent-coral/10 text-accent-coral'
                   : 'border-border-default text-text-dim',
               ]"
+              >{{ n }}</span
             >
-              {{ n }}
-            </span>
           </div>
           <button
             class="mt-3 text-xs text-text-dim transition-colors hover:text-accent-coral"
@@ -521,14 +636,12 @@ watch(activeTab, (tab) => {
         </div>
 
         <div class="grid gap-8 md:grid-cols-2">
-          <!-- Wheel -->
+          <!-- Wheel canvas -->
           <div class="flex flex-col items-center gap-4">
             <div class="relative h-72 w-72">
-              <!-- Pointer -->
               <div
                 class="pointer-triangle absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1"
               />
-              <!-- Rotating canvas wrapper -->
               <div
                 class="absolute inset-0"
                 :class="{ 'wheel-spin': wheelHasSpun }"
@@ -538,8 +651,9 @@ watch(activeTab, (tab) => {
               </div>
             </div>
 
+            <!-- Spin button -->
             <button
-              :disabled="wheelSpinning || wheelItems.length < 2"
+              :disabled="wheelSpinning || activeWheelItems.length < 2"
               class="flex items-center gap-2 bg-accent-coral px-8 py-3 font-display font-bold tracking-widest text-white uppercase transition-all hover:bg-accent-coral/80 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
               @click="spinWheel"
             >
@@ -551,27 +665,85 @@ watch(activeTab, (tab) => {
               {{ wheelSpinning ? 'Đang quay...' : 'QUAY' }}
             </button>
 
+            <!-- Result -->
             <div
               v-if="wheelResult"
               class="border-2 border-accent-coral bg-accent-coral/10 px-6 py-3 text-center"
             >
               <p class="mb-1 text-xs tracking-widest text-text-dim">KẾT QUẢ</p>
               <p class="font-display text-xl font-bold text-accent-coral">{{ wheelResult }}</p>
+              <p v-if="wheelRemoveWon" class="mt-1 text-xs text-text-dim">Đã loại khỏi vòng quay</p>
             </div>
           </div>
 
-          <!-- Items input -->
+          <!-- Settings + input -->
           <div class="flex flex-col gap-3">
+            <!-- Remove-won toggle -->
+            <div
+              class="flex items-center justify-between border border-border-default bg-bg-surface px-3 py-2"
+            >
+              <div>
+                <p class="text-sm font-medium text-text-primary">Loại bỏ sau khi quay trúng</p>
+                <p class="text-xs text-text-dim">Mục đã quay sẽ không xuất hiện lại</p>
+              </div>
+              <button
+                :class="[
+                  'relative h-6 w-11 transition-colors',
+                  wheelRemoveWon ? 'bg-accent-coral' : 'bg-border-default',
+                ]"
+                @click="wheelRemoveWon = !wheelRemoveWon"
+              >
+                <span
+                  :class="[
+                    'absolute top-0.5 h-5 w-5 bg-white transition-transform',
+                    wheelRemoveWon ? 'translate-x-5' : 'translate-x-0.5',
+                  ]"
+                />
+              </button>
+            </div>
+
+            <!-- Removed items list -->
+            <div
+              v-if="wheelRemovedItems.length > 0"
+              class="border border-border-default bg-bg-surface p-3"
+            >
+              <div class="mb-2 flex items-center justify-between">
+                <span class="text-xs tracking-widest text-text-dim">
+                  <span class="text-accent-amber">//</span>
+                  ĐÃ LOẠI ({{ wheelRemovedItems.length }})
+                </span>
+                <button
+                  class="flex items-center gap-1 text-xs text-accent-sky hover:underline"
+                  @click="restoreWheelItems"
+                >
+                  <Icon icon="lucide:rotate-ccw" class="size-3" />
+                  Khôi phục tất cả
+                </button>
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <span
+                  v-for="(item, i) in wheelRemovedItems"
+                  :key="i"
+                  class="border border-border-default px-2 py-0.5 text-xs text-text-dim line-through"
+                  >{{ item }}</span
+                >
+              </div>
+            </div>
+
+            <!-- Items textarea -->
             <label class="text-xs tracking-widest text-text-dim">
               <span class="text-accent-sky">//</span> DANH SÁCH (mỗi dòng 1 mục)
             </label>
             <textarea
               v-model="wheelInputText"
-              class="h-60 resize-none border border-border-default bg-bg-surface p-3 font-mono text-sm text-text-primary placeholder-text-dim focus:border-accent-coral focus:outline-none"
+              class="h-48 resize-none border border-border-default bg-bg-surface p-3 font-mono text-sm text-text-primary placeholder-text-dim focus:border-accent-coral focus:outline-none"
               placeholder="Nhập danh sách..."
               @input="onWheelInput"
             />
-            <p class="text-xs text-text-dim">{{ wheelItems.length }} mục · tối thiểu 2 để quay</p>
+            <p class="text-xs text-text-dim">
+              {{ activeWheelItems.length }} / {{ wheelItems.length }} mục còn lại · tối thiểu 2 để
+              quay
+            </p>
           </div>
         </div>
       </div>
@@ -586,8 +758,8 @@ watch(activeTab, (tab) => {
           <h2 class="font-display text-2xl font-bold">Xếp hạng ngẫu nhiên</h2>
         </div>
 
-        <div class="grid gap-8 md:grid-cols-[200px_1fr]">
-          <!-- Input -->
+        <div class="grid gap-8 md:grid-cols-[220px_1fr]">
+          <!-- Input + config -->
           <div class="flex flex-col gap-3">
             <label class="text-xs tracking-widest text-text-dim">
               <span class="text-accent-sky">//</span> NGƯỜI THAM GIA
@@ -595,10 +767,28 @@ watch(activeTab, (tab) => {
             <textarea
               v-model="raceInputText"
               :disabled="raceState === 'racing'"
-              class="h-48 resize-none border border-border-default bg-bg-surface p-3 font-mono text-sm text-text-primary placeholder-text-dim focus:border-accent-coral focus:outline-none disabled:opacity-50"
+              class="h-40 resize-none border border-border-default bg-bg-surface p-3 font-mono text-sm text-text-primary placeholder-text-dim focus:border-accent-coral focus:outline-none disabled:opacity-50"
               placeholder="Mỗi dòng 1 tên..."
             />
             <p class="text-xs text-text-dim">{{ raceParticipants.length }} người · tối đa 10</p>
+
+            <!-- Min duration config -->
+            <div class="border border-border-default bg-bg-surface px-3 py-2">
+              <label class="mb-1 block text-xs tracking-widest text-text-dim">
+                <span class="text-accent-amber">//</span> THỜI GIAN TỐI THIỂU
+              </label>
+              <div class="flex items-center gap-2">
+                <input
+                  v-model.number="raceMinDuration"
+                  type="number"
+                  min="5"
+                  max="60"
+                  :disabled="raceState === 'racing'"
+                  class="w-20 border border-border-default bg-bg-deep px-2 py-1 text-center font-mono text-sm text-text-primary focus:border-accent-coral focus:outline-none disabled:opacity-50"
+                />
+                <span class="text-sm text-text-dim">giây</span>
+              </div>
+            </div>
 
             <button
               v-if="raceState !== 'racing'"
@@ -620,7 +810,7 @@ watch(activeTab, (tab) => {
             </button>
           </div>
 
-          <!-- Race track -->
+          <!-- Track -->
           <div class="flex flex-col gap-2">
             <div class="mb-1 flex items-center justify-between">
               <span class="text-xs tracking-widest text-text-dim">ĐƯỜNG ĐUA</span>
@@ -641,25 +831,20 @@ watch(activeTab, (tab) => {
                 :key="racer.id"
                 class="relative flex h-11 items-center border-b border-border-default/40 last:border-b-0"
               >
-                <!-- Track bg -->
                 <div class="absolute inset-0 bg-bg-deep/40" />
-                <!-- Progress fill -->
                 <div
                   class="absolute bottom-0 left-0 top-0 bg-accent-sky/10"
                   :style="{ width: racer.progress + '%' }"
                 />
-                <!-- Finish line -->
                 <div
                   class="absolute bottom-0 right-0 top-0 w-px border-r border-dashed border-accent-coral/40"
                 />
-                <!-- Racer emoji at progress edge -->
                 <div
                   class="absolute z-10 -translate-x-1/2 text-lg leading-none"
                   :style="{ left: `max(1.5rem, ${racer.progress}%)` }"
                 >
                   {{ racer.emoji }}
                 </div>
-                <!-- Name + rank on right -->
                 <div class="absolute right-2 z-10 flex items-center gap-2">
                   <span
                     v-if="racer.rank"
@@ -671,9 +856,8 @@ watch(activeTab, (tab) => {
                           ? 'text-text-primary'
                           : 'text-text-dim'
                     "
+                    >#{{ racer.rank }}</span
                   >
-                    #{{ racer.rank }}
-                  </span>
                   <span class="text-xs text-text-secondary">{{ racer.name }}</span>
                 </div>
               </div>
@@ -686,7 +870,6 @@ watch(activeTab, (tab) => {
               Nhập danh sách và nhấn Bắt đầu đua
             </div>
 
-            <!-- Finish order -->
             <div v-if="raceFinishOrder.length > 0" class="mt-2">
               <p class="mb-2 text-xs tracking-widest text-text-dim">
                 <span class="text-accent-amber">//</span> BXH CHUNG CUỘC
@@ -722,7 +905,7 @@ watch(activeTab, (tab) => {
         </div>
       </div>
 
-      <!-- ─── TAB 4: Coin ────────────────────────────────────────────── -->
+      <!-- ─── TAB 4: Coin (Icon) ─────────────────────────────────────── -->
       <div v-if="activeTab === 'coin'" class="animate-fade-up">
         <div class="mb-8 text-center">
           <p class="mb-1 text-sm text-text-dim">
@@ -732,42 +915,97 @@ watch(activeTab, (tab) => {
           <h2 class="font-display text-2xl font-bold">Random Đúng / Sai</h2>
         </div>
 
-        <!-- Custom labels -->
-        <div class="mb-8 flex items-end justify-center gap-6">
-          <div class="flex flex-col items-center gap-1">
-            <label class="text-xs tracking-widest text-text-dim">MẶT 1</label>
-            <input
-              v-model="coinLabel1"
-              maxlength="10"
-              class="w-28 border border-accent-coral bg-bg-surface px-3 py-2 text-center font-display font-bold text-accent-coral focus:outline-none"
-            />
+        <!-- Icon config -->
+        <div class="mb-6 flex items-end justify-center gap-8">
+          <!-- Face 1 -->
+          <div class="flex flex-col items-center gap-2">
+            <span class="text-xs tracking-widest text-text-dim">MẶT 1</span>
+            <button
+              :class="[
+                'border-2 p-4 transition-all hover:scale-105',
+                coinPickerFor === 'heads'
+                  ? 'border-accent-coral bg-accent-coral/20'
+                  : 'border-accent-coral bg-bg-surface',
+              ]"
+              @click="openCoinPicker('heads')"
+            >
+              <Icon :icon="coinIcon1" class="size-10 text-accent-coral" />
+            </button>
+            <span class="text-xs text-text-secondary">{{ getIconLabel(coinIcon1) }}</span>
+            <span class="text-xs text-text-dim">click để đổi</span>
           </div>
-          <div class="pb-2">
-            <Icon icon="lucide:refresh-cw" class="size-4 text-text-dim" />
+
+          <div class="pb-8">
+            <Icon icon="lucide:arrow-left-right" class="size-5 text-text-dim" />
           </div>
-          <div class="flex flex-col items-center gap-1">
-            <label class="text-xs tracking-widest text-text-dim">MẶT 2</label>
-            <input
-              v-model="coinLabel2"
-              maxlength="10"
-              class="w-28 border border-accent-sky bg-bg-surface px-3 py-2 text-center font-display font-bold text-accent-sky focus:outline-none"
-            />
+
+          <!-- Face 2 -->
+          <div class="flex flex-col items-center gap-2">
+            <span class="text-xs tracking-widest text-text-dim">MẶT 2</span>
+            <button
+              :class="[
+                'border-2 p-4 transition-all hover:scale-105',
+                coinPickerFor === 'tails'
+                  ? 'border-accent-sky bg-accent-sky/20'
+                  : 'border-accent-sky bg-bg-surface',
+              ]"
+              @click="openCoinPicker('tails')"
+            >
+              <Icon :icon="coinIcon2" class="size-10 text-accent-sky" />
+            </button>
+            <span class="text-xs text-text-secondary">{{ getIconLabel(coinIcon2) }}</span>
+            <span class="text-xs text-text-dim">click để đổi</span>
           </div>
         </div>
 
-        <!-- Coin -->
+        <!-- Icon picker -->
+        <div
+          v-if="coinPickerFor !== null"
+          class="mb-6 border border-border-default bg-bg-surface p-4"
+        >
+          <div class="mb-3 flex items-center justify-between">
+            <span class="text-xs tracking-widest text-text-dim">
+              <span :class="coinPickerFor === 'heads' ? 'text-accent-coral' : 'text-accent-sky'"
+                >//</span
+              >
+              CHỌN ICON CHO MẶT {{ coinPickerFor === 'heads' ? '1' : '2' }}
+            </span>
+            <button
+              class="text-xs text-text-dim hover:text-accent-coral"
+              @click="coinPickerFor = null"
+            >
+              <Icon icon="lucide:x" class="size-4" />
+            </button>
+          </div>
+          <div class="grid grid-cols-8 gap-2 sm:grid-cols-12">
+            <button
+              v-for="preset in COIN_ICON_PRESETS"
+              :key="preset.icon"
+              :title="preset.label"
+              :class="[
+                'flex items-center justify-center border p-2 transition-all hover:scale-110',
+                (coinPickerFor === 'heads' ? coinIcon1 : coinIcon2) === preset.icon
+                  ? coinPickerFor === 'heads'
+                    ? 'border-accent-coral bg-accent-coral/15 text-accent-coral'
+                    : 'border-accent-sky bg-accent-sky/15 text-accent-sky'
+                  : 'border-border-default text-text-secondary hover:border-accent-coral/50',
+              ]"
+              @click="selectCoinIcon(preset.icon)"
+            >
+              <Icon :icon="preset.icon" class="size-5" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Coin flip -->
         <div class="flex flex-col items-center gap-6">
           <div class="coin-scene" @click="flipCoin">
             <div class="coin" :style="{ transform: `rotateY(${coinRotation}deg)` }">
               <div class="coin-face coin-heads">
-                <span class="font-display text-2xl font-black text-accent-coral">{{
-                  coinLabel1
-                }}</span>
+                <Icon :icon="coinIcon1" class="size-14 text-accent-coral" />
               </div>
               <div class="coin-face coin-tails">
-                <span class="font-display text-2xl font-black text-accent-sky">{{
-                  coinLabel2
-                }}</span>
+                <Icon :icon="coinIcon2" class="size-14 text-accent-sky" />
               </div>
             </div>
           </div>
@@ -782,18 +1020,125 @@ watch(activeTab, (tab) => {
           </button>
 
           <div v-if="coinResult && !coinFlipping" class="text-center">
-            <p class="mb-1 text-xs tracking-widest text-text-dim">KẾT QUẢ</p>
+            <p class="mb-2 text-xs tracking-widest text-text-dim">KẾT QUẢ</p>
+            <Icon
+              :icon="coinResultIcon"
+              class="mx-auto size-16"
+              :class="coinResult === 'heads' ? 'text-accent-coral' : 'text-accent-sky'"
+            />
             <p
-              class="font-display text-4xl font-black"
+              class="mt-2 font-display text-2xl font-black"
               :class="coinResult === 'heads' ? 'text-accent-coral' : 'text-accent-sky'"
             >
-              {{ coinResultLabel }}
+              {{ getIconLabel(coinResultIcon) }}
             </p>
           </div>
         </div>
       </div>
 
-      <!-- ─── TAB 5: Teams ───────────────────────────────────────────── -->
+      <!-- ─── TAB 5: Dice ────────────────────────────────────────────── -->
+      <div v-if="activeTab === 'dice'" class="animate-fade-up">
+        <div class="mb-8 text-center">
+          <p class="mb-1 text-sm text-text-dim">
+            <span class="font-display text-sm tracking-widest text-accent-coral">//</span>
+            TUNG XÚC XẮC
+          </p>
+          <h2 class="font-display text-2xl font-bold">Tung xúc xắc</h2>
+        </div>
+
+        <!-- Dice count config -->
+        <div class="mb-8 flex items-center justify-center gap-4">
+          <span class="text-sm text-text-secondary">Số xúc xắc:</span>
+          <div class="flex gap-2">
+            <button
+              v-for="n in 6"
+              :key="n"
+              :class="[
+                'size-9 border font-display font-bold text-sm transition-all',
+                diceCount === n
+                  ? 'border-accent-coral bg-accent-coral text-white'
+                  : 'border-border-default text-text-dim hover:border-accent-coral/60',
+              ]"
+              @click="diceCount = n"
+            >
+              {{ n }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Dice display -->
+        <div class="mb-8 flex min-h-28 flex-wrap items-center justify-center gap-4">
+          <div v-if="diceValues.length === 0" class="text-5xl opacity-20">🎲</div>
+          <div
+            v-for="(val, i) in diceValues"
+            :key="i"
+            :class="['die', diceRolling ? 'die-rolling' : 'die-land']"
+          >
+            <div v-for="cell in 9" :key="cell" class="die-cell">
+              <div v-if="DICE_PIPS[val]?.includes(cell)" class="die-pip" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Sum -->
+        <div v-if="diceValues.length > 0 && !diceRolling" class="mb-6 text-center">
+          <p class="text-xs tracking-widest text-text-dim">TỔNG</p>
+          <p class="font-display text-5xl font-black text-accent-amber">{{ diceTotal }}</p>
+          <p v-if="diceValues.length > 1" class="mt-1 text-xs text-text-dim">
+            {{ diceValues.join(' + ') }}
+          </p>
+        </div>
+
+        <!-- Roll button -->
+        <div class="mb-8 flex justify-center">
+          <button
+            :disabled="diceRolling"
+            class="flex items-center gap-2 bg-accent-coral px-8 py-3 font-display font-bold tracking-widest text-white uppercase transition-all hover:bg-accent-coral/80 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            @click="rollDice"
+          >
+            <Icon icon="lucide:box" class="size-5" :class="diceRolling ? 'animate-bounce' : ''" />
+            {{ diceRolling ? 'Đang tung...' : 'TUNG XÚC XẮC' }}
+          </button>
+        </div>
+
+        <!-- History -->
+        <div v-if="diceHistory.length > 0" class="border border-border-default bg-bg-surface p-4">
+          <div class="mb-3 flex items-center justify-between">
+            <p class="text-xs tracking-widest text-text-dim">
+              <span class="text-accent-amber">//</span> LỊCH SỬ (5 lần gần nhất)
+            </p>
+            <button class="text-xs text-text-dim hover:text-accent-coral" @click="clearDiceHistory">
+              Xóa
+            </button>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div
+              v-for="(roll, i) in diceHistory"
+              :key="i"
+              :class="[
+                'flex items-center gap-3 border px-3 py-2',
+                i === 0 ? 'border-accent-amber/50 bg-accent-amber/5' : 'border-border-default/50',
+              ]"
+            >
+              <span
+                class="font-display font-bold"
+                :class="i === 0 ? 'text-accent-amber' : 'text-text-dim'"
+                >{{ roll.total }}</span
+              >
+              <div class="flex gap-1">
+                <span
+                  v-for="(v, j) in roll.values"
+                  :key="j"
+                  class="border border-border-default px-2 py-0.5 font-mono text-xs text-text-secondary"
+                  >{{ v }}</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── TAB 6: Teams ───────────────────────────────────────────── -->
       <div v-if="activeTab === 'teams'" class="animate-fade-up">
         <div class="mb-8 text-center">
           <p class="mb-1 text-sm text-text-dim">
@@ -804,7 +1149,6 @@ watch(activeTab, (tab) => {
         </div>
 
         <div class="grid gap-8 md:grid-cols-2">
-          <!-- Settings -->
           <div class="flex flex-col gap-4">
             <div>
               <label class="mb-2 block text-xs tracking-widest text-text-dim">
@@ -882,7 +1226,6 @@ watch(activeTab, (tab) => {
             </button>
           </div>
 
-          <!-- Result -->
           <div>
             <div
               v-if="teams.length > 0"
@@ -921,7 +1264,7 @@ watch(activeTab, (tab) => {
             </div>
             <div
               v-else
-              class="flex h-full min-h-48 items-center justify-center border border-border-default bg-bg-surface p-8 text-center text-sm text-text-dim"
+              class="flex min-h-48 items-center justify-center border border-border-default bg-bg-surface p-8 text-center text-sm text-text-dim"
             >
               <div>
                 <Icon icon="lucide:users" class="mx-auto mb-2 size-8 opacity-30" />
@@ -936,7 +1279,7 @@ watch(activeTab, (tab) => {
 </template>
 
 <style scoped>
-/* Coin 3D */
+/* ── Coin 3D ─────────────────────────────────────────────────────────────── */
 .coin-scene {
   width: 160px;
   height: 160px;
@@ -974,12 +1317,11 @@ watch(activeTab, (tab) => {
   transform: rotateY(180deg);
 }
 
-/* Spin wheel */
+/* ── Wheel ───────────────────────────────────────────────────────────────── */
 .wheel-spin {
   transition: transform 4.2s cubic-bezier(0.17, 0.67, 0.12, 0.99);
 }
 
-/* Pointer triangle */
 .pointer-triangle {
   width: 0;
   height: 0;
@@ -989,7 +1331,7 @@ watch(activeTab, (tab) => {
   filter: drop-shadow(0 2px 6px rgba(255, 107, 74, 0.6));
 }
 
-/* Number bounce */
+/* ── Number bounce ───────────────────────────────────────────────────────── */
 @keyframes numBounce {
   0%,
   100% {
@@ -1008,5 +1350,72 @@ watch(activeTab, (tab) => {
 
 .num-bounce {
   animation: numBounce 0.5s ease;
+}
+
+/* ── Dice ────────────────────────────────────────────────────────────────── */
+.die {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 88px;
+  height: 88px;
+  padding: 10px;
+  gap: 4px;
+  background: linear-gradient(135deg, #1e2f42, #162232);
+  border: 3px solid #ff6b4a;
+  border-radius: 14px;
+}
+
+.die-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.die-pip {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #ff6b4a;
+  box-shadow: 0 0 6px rgba(255, 107, 74, 0.5);
+}
+
+@keyframes diceShake {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  20% {
+    transform: rotate(-10deg) scale(1.06);
+  }
+  40% {
+    transform: rotate(10deg) scale(0.94);
+  }
+  60% {
+    transform: rotate(-7deg) scale(1.04);
+  }
+  80% {
+    transform: rotate(7deg) scale(0.97);
+  }
+}
+
+@keyframes diceLand {
+  0% {
+    transform: scale(1.15);
+  }
+  60% {
+    transform: scale(0.93);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.die-rolling {
+  animation: diceShake 0.18s ease-in-out infinite;
+}
+
+.die-land {
+  animation: diceLand 0.35s ease-out;
 }
 </style>
