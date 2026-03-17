@@ -251,6 +251,14 @@ function startRace() {
       raceAnimFrame = requestAnimationFrame(frame)
     } else {
       raceState.value = 'finished'
+      const entry: RaceHistoryEntry = {
+        participants: racers.value
+          .filter((r) => r.rank !== null)
+          .sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0))
+          .map((r) => ({ name: r.name, emoji: r.emoji, rank: r.rank! })),
+        date: Date.now(),
+      }
+      raceHistory.value = [entry, ...raceHistory.value.slice(0, 4)]
     }
   }
 
@@ -261,6 +269,17 @@ function resetRace() {
   if (raceAnimFrame) cancelAnimationFrame(raceAnimFrame)
   raceState.value = 'idle'
   racers.value = []
+}
+
+interface RaceHistoryEntry {
+  participants: { name: string; emoji: string; rank: number }[]
+  date: number
+}
+
+const raceHistory = useLocalStorage<RaceHistoryEntry[]>('rt-race-history', [])
+
+function clearRaceHistory() {
+  raceHistory.value = []
 }
 
 // ── TAB 4: Coin (Icon) ────────────────────────────────────────────────────
@@ -688,17 +707,15 @@ watch(activeTab, (tab) => {
               </div>
               <button
                 :class="[
-                  'relative h-6 w-11 transition-colors',
-                  wheelRemoveWon ? 'bg-accent-coral' : 'bg-border-default',
+                  'flex items-center gap-1.5 border px-2.5 py-1.5 font-display text-xs font-bold uppercase tracking-wide transition-all',
+                  wheelRemoveWon
+                    ? 'border-accent-coral bg-accent-coral text-white'
+                    : 'border-border-default text-text-dim hover:border-accent-coral/50',
                 ]"
                 @click="wheelRemoveWon = !wheelRemoveWon"
               >
-                <span
-                  :class="[
-                    'absolute top-0.5 h-5 w-5 bg-white transition-transform',
-                    wheelRemoveWon ? 'translate-x-5' : 'translate-x-0.5',
-                  ]"
-                />
+                <Icon :icon="wheelRemoveWon ? 'lucide:check' : 'lucide:minus'" class="size-3" />
+                {{ wheelRemoveWon ? 'BẬT' : 'TẮT' }}
               </button>
             </div>
 
@@ -898,6 +915,59 @@ watch(activeTab, (tab) => {
                   }}</span>
                   <span>{{ racer.emoji }}</span>
                   <span>{{ racer.name }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Race history -->
+        <div
+          v-if="raceHistory.length > 0"
+          class="mt-6 border border-border-default bg-bg-surface p-4"
+        >
+          <div class="mb-3 flex items-center justify-between">
+            <p class="text-xs tracking-widest text-text-dim">
+              <span class="text-accent-amber">//</span> LỊCH SỬ ({{ raceHistory.length }} cuộc đua)
+            </p>
+            <button
+              class="text-xs text-text-dim transition-colors hover:text-accent-coral"
+              @click="clearRaceHistory"
+            >
+              Xóa lịch sử
+            </button>
+          </div>
+          <div class="flex flex-col gap-3">
+            <div
+              v-for="(entry, i) in raceHistory"
+              :key="i"
+              :class="[
+                'border p-3',
+                i === 0 ? 'border-accent-coral/40 bg-accent-coral/5' : 'border-border-default/50',
+              ]"
+            >
+              <p class="mb-2 text-xs text-text-dim">
+                {{ i === 0 ? 'Gần nhất' : `Lần ${i + 1}` }} ·
+                {{ new Date(entry.date).toLocaleTimeString('vi-VN') }}
+              </p>
+              <div class="flex flex-wrap gap-2">
+                <div
+                  v-for="p in entry.participants"
+                  :key="p.rank"
+                  :class="[
+                    'flex items-center gap-1.5 border px-2.5 py-1 text-sm',
+                    p.rank === 1
+                      ? 'border-accent-amber/60 bg-accent-amber/10 text-accent-amber'
+                      : p.rank === 2
+                        ? 'border-border-default text-text-primary'
+                        : 'border-border-default/40 text-text-dim',
+                  ]"
+                >
+                  <span>{{
+                    p.rank === 1 ? '🥇' : p.rank === 2 ? '🥈' : p.rank === 3 ? '🥉' : `#${p.rank}`
+                  }}</span>
+                  <span>{{ p.emoji }}</span>
+                  <span>{{ p.name }}</span>
                 </div>
               </div>
             </div>
