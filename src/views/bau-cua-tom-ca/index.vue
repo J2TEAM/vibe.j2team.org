@@ -53,13 +53,21 @@ const SIDE_TRANSFORMS: string[] = [
 ]
 
 // Cube rotation to show each face
+// Face positions in SIDE_TRANSFORMS: 1=front(+Z), 2=back(-Z), 3=left(-X), 4=top(+Y), 5=bottom(-Y), 6=right(+X)
+// To show face N, rotate the cube so that face comes to the front:
+//   face 1 (front)  → identity (no rotation)
+//   face 2 (back)   → rotateX(180°) brings back to front
+//   face 3 (left)   → rotateY(+90°) brings left to front
+//   face 4 (top)    → rotateX(-90°) brings top to front
+//   face 5 (bottom) → rotateX(+90°) brings bottom to front
+//   face 6 (right)  → rotateY(-90°) brings right to front
 const SHOW_TRANSFORMS: Record<DiceIndex, string> = {
-  1: 'rotateX(720deg) rotateZ(-720deg)',
-  2: 'rotateX(450deg) rotateZ(-720deg)',
-  3: 'rotateY(-450deg) rotateZ(-1440deg)',
-  4: 'rotateY(810deg) rotateZ(720deg)',
-  5: 'rotateX(-810deg) rotateZ(-1080deg)',
-  6: 'rotateX(-900deg) rotateZ(1080deg)',
+  1: 'rotateX(720deg) rotateZ(-720deg)', // net: 0° — shows face 1 (bầu)
+  2: 'rotateX(-900deg) rotateZ(1080deg)', // net: X=180° — shows face 2 (gà)
+  3: 'rotateY(810deg) rotateZ(720deg)', // net: Y=+90° — shows face 3 (nai)
+  4: 'rotateX(-810deg) rotateZ(-1080deg)', // net: X=-90° — shows face 4 (tôm)
+  5: 'rotateX(450deg) rotateZ(-720deg)', // net: X=+90° — shows face 5 (cá)
+  6: 'rotateY(-450deg) rotateZ(-1440deg)', // net: Y=-90° — shows face 6 (cua)
 }
 
 // ─── Reactive State ───────────────────────────────────────────────────────────
