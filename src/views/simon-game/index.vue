@@ -17,7 +17,7 @@ interface PadConfig {
   glowClass: string
 }
 
-const pads: PadConfig[] = [
+const pads = [
   {
     id: 0,
     label: 'Đỏ',
@@ -54,7 +54,7 @@ const pads: PadConfig[] = [
     glowClass:
       'border-[#ff8f6b] bg-[#ff8f6b]/92 text-bg-deep shadow-[0_0_40px_rgba(255,143,107,0.35)]',
   },
-]
+] as const satisfies readonly [PadConfig, PadConfig, PadConfig, PadConfig]
 
 const speedOptions: Record<SpeedMode, { label: string; duration: number; gap: number }> = {
   relaxed: {
