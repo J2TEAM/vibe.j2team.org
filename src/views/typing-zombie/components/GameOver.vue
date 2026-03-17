@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
 import { useGameStore } from '../stores/gameStore'
 
-const store = useGameStore()
+// Multi-word component name for lint compliance
+defineOptions({ name: 'TypingZombieGameOver' })
 
+const store = useGameStore()
 const emit = defineEmits<{ restart: [] }>()
 
 function restart() {
@@ -17,39 +20,53 @@ function restart() {
     aria-modal="true"
   >
     <div
-      class="w-full max-w-sm bg-[#0b1220] border-4 border-[#ef4444] p-6 sm:p-8 text-center pixel-panel"
+      class="w-full max-w-md bg-bg-surface border border-border-default p-6 sm:p-8 text-center pixel-panel animate-fade-up"
     >
-      <h2 class="text-3xl sm:text-5xl font-mono font-black text-[#ef4444] mb-2 tracking-[0.22em]">
+      <h2
+        class="text-3xl sm:text-5xl font-display font-extrabold text-accent-coral mb-2 tracking-tight"
+      >
         <span class="blink">GAME OVER</span>
       </h2>
-      <p class="text-[#94a3b8] text-sm mb-6 font-mono tracking-wider uppercase">
+      <p class="text-text-secondary text-sm mb-6 font-display tracking-widest uppercase">
         Zombie đã nuốt chửng bạn
       </p>
 
       <div class="space-y-3 mb-6">
         <div
-          class="flex justify-between items-center px-4 py-2 bg-[#0f172a] border-2 border-[#22c55e]"
+          class="flex justify-between items-center px-4 py-2 bg-bg-deep border border-border-default"
         >
-          <span class="text-[#22c55e] text-[10px] font-mono tracking-[0.18em] uppercase">Điểm</span>
-          <span class="text-[#e2e8f0] text-xl font-mono font-bold tracking-widest">{{
+          <span class="text-text-dim text-[10px] font-display tracking-widest uppercase">Điểm</span>
+          <span class="text-text-primary text-2xl font-display font-bold tabular-nums">{{
             store.score
           }}</span>
         </div>
         <div
-          class="flex justify-between items-center px-4 py-2 bg-[#0f172a] border-2 border-[#38bdf8]"
+          class="flex justify-between items-center px-4 py-2 bg-bg-deep border border-border-default"
         >
-          <span class="text-[#38bdf8] text-[10px] font-mono tracking-[0.18em] uppercase">Đợt</span>
-          <span class="text-[#e2e8f0] text-lg font-mono font-bold tracking-widest">{{
-            store.difficulty
+          <span class="text-text-dim text-[10px] font-display tracking-widest uppercase"
+            >Level</span
+          >
+          <span class="text-text-primary text-lg font-display font-bold tabular-nums">{{
+            store.level
           }}</span>
         </div>
         <div
-          class="flex justify-between items-center px-4 py-2 bg-[#0f172a] border-2 border-[#22c55e]"
+          class="flex justify-between items-center px-4 py-2 bg-bg-deep border border-border-default"
         >
-          <span class="text-[#22c55e] text-[10px] font-mono tracking-[0.18em] uppercase"
+          <span class="text-text-dim text-[10px] font-display tracking-widest uppercase"
+            >Highest combo</span
+          >
+          <span class="text-text-primary text-lg font-display font-bold tabular-nums">{{
+            store.highestCombo
+          }}</span>
+        </div>
+        <div
+          class="flex justify-between items-center px-4 py-2 bg-bg-deep border border-border-default"
+        >
+          <span class="text-text-dim text-[10px] font-display tracking-widest uppercase"
             >Kỷ lục</span
           >
-          <span class="text-[#e2e8f0] text-lg font-mono font-bold tracking-widest">{{
+          <span class="text-text-primary text-lg font-display font-bold tabular-nums">{{
             store.highScore
           }}</span>
         </div>
@@ -57,11 +74,18 @@ function restart() {
 
       <button
         type="button"
-        class="w-full px-6 py-3 bg-[#22c55e] text-[#0b1220] text-lg font-black font-mono tracking-[0.2em] uppercase border-4 border-[#16a34a] active:translate-y-[2px] active:border-[#22c55e]"
+        class="w-full px-6 py-3 bg-accent-coral text-bg-deep text-lg font-display font-bold tracking-widest uppercase border border-accent-coral transition hover:brightness-105 active:translate-y-0.5"
         @click="restart"
       >
         Chơi lại
       </button>
+
+      <RouterLink
+        to="/"
+        class="mt-3 inline-flex items-center justify-center w-full px-6 py-3 border border-border-default bg-bg-deep text-text-secondary text-sm font-display tracking-widest uppercase transition hover:border-accent-coral hover:text-text-primary"
+      >
+        Về trang chủ
+      </RouterLink>
     </div>
   </div>
 </template>

@@ -30,8 +30,10 @@ defineProps<{ effect: PixelEffect }>()
   width: 100%;
   height: 100%;
   background:
-    radial-gradient(#22c55e 25%, transparent 26%), radial-gradient(#22c55e 25%, transparent 26%),
-    radial-gradient(#38bdf8 18%, transparent 19%), radial-gradient(#ef4444 14%, transparent 15%);
+    radial-gradient(var(--color-accent-coral) 25%, transparent 26%),
+    radial-gradient(var(--color-accent-amber) 25%, transparent 26%),
+    radial-gradient(var(--color-accent-sky) 18%, transparent 19%),
+    radial-gradient(var(--color-accent-coral) 14%, transparent 15%);
   background-size:
     10px 10px,
     10px 10px,

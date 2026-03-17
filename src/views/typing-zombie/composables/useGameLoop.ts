@@ -1,4 +1,4 @@
-import { ref, onUnmounted, watch } from 'vue'
+import { onUnmounted, ref, watch } from 'vue'
 import { useGameStore } from '../stores/gameStore'
 
 /**
@@ -8,58 +8,42 @@ import { useGameStore } from '../stores/gameStore'
 export function useGameLoop() {
   const store = useGameStore()
   const animFrameId = ref(0)
-  const spawnTimerId = ref(0)
-  const difficultyTimerId = ref(0)
   const running = ref(false)
+  const lastTs = ref<number | null>(null)
 
-  function gameLoop() {
+  function frame(ts: number) {
     if (!store.isPlaying) return
-    store.updateZombiePositions()
-    animFrameId.value = requestAnimationFrame(gameLoop)
-  }
+    const prev = lastTs.value ?? ts
+    const rawDt = ts - prev
+    lastTs.value = ts
 
-  function startSpawning() {
-    const interval = Math.max(1200, 3000 - store.difficulty * 200)
-    clearInterval(spawnTimerId.value)
-    spawnTimerId.value = window.setInterval(() => {
-      if (!store.isPlaying) return
-      store.spawnZombie()
-    }, interval)
-  }
-
-  function startDifficultyTimer() {
-    clearInterval(difficultyTimerId.value)
-    difficultyTimerId.value = window.setInterval(() => {
-      if (!store.isPlaying) return
-      store.increaseDifficulty()
-      startSpawning()
-    }, 15000)
+    // Clamp dt to keep gameplay stable after tab-switch/sleep
+    const dt = Math.max(0, Math.min(50, rawDt))
+    store.tick(dt)
+    animFrameId.value = requestAnimationFrame(frame)
   }
 
   function start() {
     stop()
+    lastTs.value = null
+    store.unlockAudio()
     store.startGame()
-    store.spawnZombie()
     running.value = true
-    animFrameId.value = requestAnimationFrame(gameLoop)
-    startSpawning()
-    startDifficultyTimer()
+    animFrameId.value = requestAnimationFrame(frame)
   }
 
   function resume() {
     if (running.value) return
     if (store.status !== 'playing') return
     running.value = true
-    animFrameId.value = requestAnimationFrame(gameLoop)
-    startSpawning()
-    startDifficultyTimer()
+    lastTs.value = null
+    animFrameId.value = requestAnimationFrame(frame)
   }
 
   function stop() {
     cancelAnimationFrame(animFrameId.value)
-    clearInterval(spawnTimerId.value)
-    clearInterval(difficultyTimerId.value)
     running.value = false
+    lastTs.value = null
   }
 
   // Auto-stop when not playing (pause/menu/gameover)

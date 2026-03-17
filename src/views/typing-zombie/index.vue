@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useGameStore } from './stores/gameStore'
 import { useGameLoop } from './composables/useGameLoop'
@@ -9,12 +9,21 @@ import TypingInput from './components/TypingInput.vue'
 import GameOver from './components/GameOver.vue'
 import Player from './components/Player.vue'
 import PixelExplosion from './components/PixelExplosion.vue'
+import FloatingText from './components/FloatingText.vue'
 
 const store = useGameStore()
 const { start, resume, stop } = useGameLoop()
 const inputRef = ref<InstanceType<typeof TypingInput> | null>(null)
 const damageFlash = ref(false)
+const killFlash = ref(false)
 let flashTimer: number | undefined
+let killFlashTimer: number | undefined
+
+const shakeStyle = computed(() => {
+  const x = Math.round(store.shakeX * 10)
+  const y = Math.round(store.shakeY * 10)
+  return { transform: `translate(${x}px, ${y}px)` }
+})
 
 function handleStart() {
   start()
@@ -55,50 +64,66 @@ watch(
     }
   },
 )
+
+watch(
+  () => store.killPulse,
+  (v, prev) => {
+    if (prev !== undefined && v !== prev) {
+      killFlash.value = true
+      if (killFlashTimer) window.clearTimeout(killFlashTimer)
+      killFlashTimer = window.setTimeout(() => {
+        killFlash.value = false
+      }, 90)
+    }
+  },
+)
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#0f172a] text-[#e2e8f0] font-mono overflow-hidden">
-    <div class="mx-auto w-full max-w-275 px-2 py-6 sm:py-6">
+  <div class="min-h-screen bg-bg-deep text-text-primary font-body overflow-hidden">
+    <div class="mx-auto w-full max-w-5xl px-4 sm:px-6 py-6 sm:py-8">
       <header class="flex items-center justify-between gap-3">
         <RouterLink
           to="/"
-          class="px-3 py-2 border-2 border-[#22c55e] text-[#22c55e] text-[10px] sm:text-xs tracking-[0.2em] uppercase active:translate-y-0.5"
+          class="px-4 py-2 border border-border-default bg-bg-surface text-text-secondary text-xs font-display tracking-widest uppercase transition hover:border-accent-coral hover:text-text-primary active:translate-y-0.5"
         >
-          &lt; Trang chủ
+          &larr; Trang chủ
         </RouterLink>
         <div class="text-right">
-          <div
-            class="text-[10px] sm:text-xs text-accent-sky tracking-[0.24em] uppercase crt-flicker"
-          >
-            Retro Arcade
+          <div class="text-xs text-text-dim font-display tracking-widest uppercase crt-flicker">
+            // Arcade
           </div>
-          <h1 class="text-lg sm:text-2xl font-black tracking-[0.28em] uppercase neon-title">
+          <h1 class="text-2xl sm:text-3xl font-display font-extrabold tracking-tight">
             Typing Zombie
           </h1>
         </div>
       </header>
 
       <section class="mt-5 sm:mt-7 arcade-shell">
-        <div class="arcade-topbar border-4 border-[#22c55e] bg-[#0b1220]">
+        <div class="arcade-topbar border border-border-default bg-bg-surface">
           <GameHUD
             v-if="store.status === 'playing' || store.status === 'paused'"
             @pause="handlePause"
             @resume="handleResume"
             @menu="handleMenu"
           />
-          <div v-else class="px-3 py-2 sm:px-4 sm:py-3 border-b-2 border-[#22c55e]">
+          <div v-else class="px-3 py-2 sm:px-4 sm:py-3 border-b border-border-default">
             <div class="flex items-center justify-between gap-2"></div>
           </div>
         </div>
 
-        <div class="arcade-screen border-4 border-[#22c55e] bg-[#020617] scanlines">
+        <div class="arcade-screen border border-border-default bg-bg-deep scanlines">
           <main
             class="relative overflow-hidden h-[64vh] min-h-110 max-h-175 sm:h-[72vh] sm:min-h-140 sm:max-h-205"
+            :style="shakeStyle"
           >
             <div
               v-if="damageFlash"
-              class="absolute inset-0 bg-[#ef4444]/25 z-40 pointer-events-none"
+              class="absolute inset-0 bg-accent-coral/20 z-40 pointer-events-none"
+            />
+            <div
+              v-if="killFlash"
+              class="absolute inset-0 bg-text-primary/6 z-30 pointer-events-none"
             />
 
             <div
@@ -107,37 +132,32 @@ watch(
             >
               <div class="w-full max-w-md text-center">
                 <div
-                  class="text-[#22c55e] text-xs sm:text-sm tracking-[0.26em] uppercase crt-flicker"
+                  class="text-accent-coral text-xs sm:text-sm font-display tracking-widest uppercase"
                 >
                   Press start
                 </div>
-                <h2
-                  class="mt-2 text-4xl sm:text-6xl font-black tracking-[0.28em] uppercase neon-title"
-                >
+                <h2 class="mt-2 text-4xl sm:text-6xl font-display font-extrabold tracking-tight">
                   Typing Zombie
                 </h2>
-                <p class="mt-4 text-[#94a3b8] text-xs sm:text-sm tracking-wide uppercase">
-                  Gõ đúng từ để bắn hạ 🧟 trước khi chúng chạm bạn
+                <p class="mt-4 text-text-secondary text-sm">
+                  Gõ đúng từ để bắn hạ zombie trước khi chúng chạm bạn. Combo càng cao, điểm càng
+                  nhân.
                 </p>
 
-                <div class="mt-6 text-left border-2 border-accent-sky bg-[#0b1220] p-4">
-                  <p class="text-[10px] sm:text-xs tracking-wider uppercase text-[#e2e8f0]">
-                    1. Zombie xuất hiện từ bên phải
+                <div class="mt-6 text-left border border-border-default bg-bg-surface p-4">
+                  <p class="text-xs text-text-secondary">
+                    1. Zombie xuất hiện từ bên phải, tiến dần về bạn
                   </p>
-                  <p class="mt-2 text-[10px] sm:text-xs tracking-wider uppercase text-[#e2e8f0]">
-                    2. Gõ đúng từ trên đầu zombie
+                  <p class="mt-2 text-xs text-text-secondary">
+                    2. Gõ đúng từ trên đầu zombie để hạ gục
                   </p>
-                  <p class="mt-2 text-[10px] sm:text-xs tracking-wider uppercase text-[#e2e8f0]">
-                    3. Chạm người chơi sẽ mất HP
-                  </p>
-                  <p class="mt-2 text-[10px] sm:text-xs tracking-wider uppercase text-[#ef4444]">
-                    Càng lâu càng khó
-                  </p>
+                  <p class="mt-2 text-xs text-text-secondary">3. Sai ký tự sẽ reset combo</p>
+                  <p class="mt-2 text-xs text-text-secondary">4. Nhặt power-up để sống lâu hơn</p>
                 </div>
 
                 <button
                   type="button"
-                  class="mt-6 w-full px-6 py-3 bg-[#22c55e] text-[#020617] border-4 border-[#16a34a] font-black tracking-[0.22em] uppercase active:translate-y-0.5 active:border-[#22c55e]"
+                  class="mt-6 w-full px-6 py-3 bg-accent-coral text-bg-deep border border-accent-coral font-display font-bold tracking-widest uppercase transition hover:brightness-105 active:translate-y-0.5"
                   @click="handleStart"
                 >
                   Start
@@ -145,39 +165,46 @@ watch(
               </div>
             </div>
 
-            <template v-if="store.isPlaying">
+            <template v-if="store.status === 'playing' || store.status === 'paused'">
               <div class="absolute inset-0 pixel-grid opacity-20 pointer-events-none" />
               <div
-                class="absolute left-0 top-0 bottom-0 w-[10%] bg-linear-to-r from-[#ef4444]/25 to-transparent pointer-events-none"
+                class="absolute left-0 top-0 bottom-0 w-[10%] bg-linear-to-r from-accent-coral/18 to-transparent pointer-events-none"
               />
 
               <Player />
               <ZombieComponent v-for="zombie in store.zombies" :key="zombie.id" :zombie="zombie" />
-              <PixelExplosion v-for="effect in store.effects" :key="effect.id" :effect="effect" />
+              <template v-for="effect in store.effects" :key="effect.id">
+                <PixelExplosion v-if="effect.kind === 'explode'" :effect="effect" />
+                <FloatingText v-else :effect="effect" />
+              </template>
             </template>
 
             <div
               v-if="store.status === 'paused'"
               class="absolute inset-0 z-50 grid place-items-center bg-black/70 p-4"
             >
-              <div class="w-full max-w-sm border-4 border-accent-sky bg-[#0b1220] p-5 text-center">
-                <div class="text-accent-sky text-xs tracking-[0.26em] uppercase crt-flicker">
+              <div
+                class="w-full max-w-sm border border-border-default bg-bg-surface p-5 text-center"
+              >
+                <div
+                  class="text-accent-sky text-xs font-display tracking-widest uppercase crt-flicker"
+                >
                   Paused
                 </div>
-                <div class="mt-2 text-4xl font-black tracking-[0.28em] uppercase neon-title">
+                <div class="mt-2 text-4xl font-display font-extrabold tracking-tight">
                   <span class="pause-blink">PAUSE</span>
                 </div>
                 <div class="mt-4 flex items-center justify-center gap-3">
                   <button
                     type="button"
-                    class="px-5 py-3 bg-[#22c55e] text-[#020617] border-4 border-[#16a34a] font-black tracking-[0.22em] uppercase active:translate-y-0.5 active:border-[#22c55e]"
+                    class="px-5 py-3 bg-accent-coral text-bg-deep border border-accent-coral font-display font-bold tracking-widest uppercase transition hover:brightness-105 active:translate-y-0.5"
                     @click="handleResume"
                   >
                     Resume
                   </button>
                   <button
                     type="button"
-                    class="px-5 py-3 border-4 border-[#ef4444] text-[#ef4444] font-black tracking-[0.22em] uppercase active:translate-y-0.5"
+                    class="px-5 py-3 border border-border-default bg-bg-deep text-text-secondary font-display font-bold tracking-widest uppercase transition hover:border-accent-coral hover:text-text-primary active:translate-y-0.5"
                     @click="handleMenu"
                   >
                     Menu
@@ -190,13 +217,13 @@ watch(
           </main>
         </div>
 
-        <div class="arcade-bottombar border-4 border-[#22c55e] bg-[#0b1220]">
+        <div class="arcade-bottombar border border-border-default bg-bg-surface">
           <TypingInput
             v-if="store.status === 'playing' || store.status === 'paused'"
             ref="inputRef"
           />
           <div v-else class="px-3 py-2 sm:px-4 sm:py-3">
-            <div class="text-[10px] sm:text-xs tracking-[0.22em] uppercase text-[#94a3b8]">
+            <div class="text-xs text-text-secondary font-display tracking-widest uppercase">
               Tip: bấm Start, rồi gõ từ trong ô nhập
             </div>
           </div>
@@ -204,8 +231,8 @@ watch(
       </section>
 
       <footer class="mt-6 text-center">
-        <p class="text-[#94a3b8] text-[10px] sm:text-xs tracking-[0.18em] uppercase">
-          Tác giả: <span class="text-[#22c55e] font-black">ItsAzura</span>
+        <p class="text-text-dim text-xs font-display tracking-widest uppercase">
+          Tác giả: <span class="text-text-primary font-bold">ItsAzura</span>
         </p>
       </footer>
     </div>
@@ -214,23 +241,15 @@ watch(
 
 <style scoped>
 .arcade-shell {
-  border: 6px solid #0b1220;
-  outline: 6px solid #000;
-  outline-offset: -6px;
-}
-
-.neon-title {
-  text-shadow:
-    0 0 0 #000,
-    2px 2px 0 #000,
-    0 0 18px rgba(34, 197, 94, 0.25),
-    0 0 24px rgba(56, 189, 248, 0.15);
+  border: 2px solid #000;
+  outline: 2px solid rgba(37, 53, 73, 0.9);
+  outline-offset: -2px;
 }
 
 .pixel-grid {
   background-image:
-    linear-gradient(rgba(34, 197, 94, 0.22) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(34, 197, 94, 0.22) 1px, transparent 1px);
+    linear-gradient(rgba(255, 107, 74, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 107, 74, 0.18) 1px, transparent 1px);
   background-size: 32px 32px;
   image-rendering: pixelated;
 }
