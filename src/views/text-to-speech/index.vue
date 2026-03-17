@@ -191,6 +191,12 @@ const EN_PRESETS = [
   'Welcome to the J2TEAM Community project.',
 ]
 
+function resetControls() {
+  rate.value = 1
+  pitch.value = 1
+  volume.value = 1
+}
+
 watch(selectedVoiceURI, () => {
   if (playState.value !== 'idle') stop()
 })
@@ -445,11 +451,7 @@ watch(selectedVoiceURI, () => {
           </div>
           <button
             class="text-xs text-text-muted hover:text-accent-coral transition-colors flex items-center gap-1"
-            @click="
-              rate = 1
-              pitch = 1
-              volume = 1
-            "
+            @click="resetControls"
           >
             <Icon icon="lucide:rotate-ccw" class="size-3" />
             Đặt lại mặc định
