@@ -7,6 +7,7 @@ import { RouterLink } from 'vue-router'
 const nameInput = ref('')
 const nameError = ref('')
 const names = ref<string[]>([])
+const nameAvatarMap = ref<Record<string, string>>({})
 
 const isSpinning = ref(false)
 const showWinnerModal = ref(false)
@@ -33,6 +34,16 @@ const itemGap = 12
 const itemStep = itemWidth + itemGap
 
 const randomPalette = ['bg-accent-coral', 'bg-accent-amber', 'bg-accent-sky'] as const
+const pixelAvatarPool = [
+  '/resident-lor/main_char/rotations/south.png',
+  '/resident-lor/main_char/rotations/south-east.png',
+  '/resident-lor/main_char/rotations/east.png',
+  '/resident-lor/main_char/rotations/north-east.png',
+  '/resident-lor/main_char/rotations/north.png',
+  '/resident-lor/main_char/rotations/north-west.png',
+  '/resident-lor/main_char/rotations/west.png',
+  '/resident-lor/main_char/rotations/south-west.png',
+]
 
 interface ConfettiPiece {
   id: number
@@ -110,6 +121,20 @@ function restartIdleLoop() {
   idleTrackKey.value += 1
 }
 
+function normalizeName(value: string) {
+  return value.trim().toLocaleLowerCase('vi-VN')
+}
+
+function pickRandomPixelAvatar() {
+  const randomIndex = Math.floor(Math.random() * pixelAvatarPool.length)
+  return pixelAvatarPool[randomIndex] ?? pixelAvatarPool[0] ?? ''
+}
+
+function getAvatarForName(name: string) {
+  const key = normalizeName(name)
+  return nameAvatarMap.value[key] ?? pixelAvatarPool[0] ?? ''
+}
+
 function addName() {
   const trimmed = nameInput.value.trim()
   if (!trimmed) {
@@ -117,9 +142,9 @@ function addName() {
     return
   }
 
-  const normalizedName = trimmed.toLocaleLowerCase('vi-VN')
+  const normalizedName = normalizeName(trimmed)
   const hasDuplicate = names.value.some((item) => {
-    return item.toLocaleLowerCase('vi-VN') === normalizedName
+    return normalizeName(item) === normalizedName
   })
 
   if (hasDuplicate) {
@@ -128,6 +153,7 @@ function addName() {
   }
 
   names.value.push(trimmed)
+  nameAvatarMap.value[normalizedName] = pickRandomPixelAvatar()
   nameInput.value = ''
   nameError.value = ''
   restartIdleLoop()
@@ -136,6 +162,11 @@ function addName() {
 function removeName(index: number) {
   if (isSpinning.value) {
     return
+  }
+
+  const removed = names.value[index]
+  if (removed) {
+    delete nameAvatarMap.value[normalizeName(removed)]
   }
 
   names.value.splice(index, 1)
@@ -148,6 +179,7 @@ function clearAllNames() {
   }
 
   names.value = []
+  nameAvatarMap.value = {}
   winnerName.value = ''
   winnerOrder.value = 0
   nameError.value = ''
@@ -293,8 +325,13 @@ function spinAgainFromModal() {
           <div
             v-for="(name, index) in names"
             :key="`${name}-${index}`"
-            class="inline-flex items-center gap-2 border border-border-default bg-bg-elevated px-3 py-1.5 text-sm"
+            class="inline-flex items-center gap-2 border border-border-default bg-bg-elevated px-2.5 py-1.5 text-sm"
           >
+            <img
+              :src="getAvatarForName(name)"
+              alt="pixel avatar"
+              class="pixel-avatar size-6 border border-border-default bg-bg-deep"
+            />
             <span class="text-text-primary">{{ name }}</span>
             <button
               type="button"
@@ -338,7 +375,7 @@ function spinAgainFromModal() {
       >
         <h2 class="mb-4 flex items-center gap-3 font-display text-xl font-semibold">
           <span class="text-xs tracking-[0.2em] text-accent-sky">//</span>
-          Vòng quay ngang
+          Vòng quay
         </h2>
 
         <div
@@ -370,9 +407,14 @@ function spinAgainFromModal() {
             <div
               v-for="(name, index) in visibleTrackItems"
               :key="`${name}-${index}`"
-              class="flex h-16 w-45 shrink-0 items-center justify-center border border-border-default bg-bg-surface px-4 text-center font-display text-base font-semibold text-text-primary"
+              class="flex h-16 w-45 shrink-0 items-center justify-center gap-2 border border-border-default bg-bg-surface px-3 text-center font-display text-base font-semibold text-text-primary"
             >
-              {{ name }}
+              <img
+                :src="getAvatarForName(name)"
+                alt="pixel avatar"
+                class="pixel-avatar size-14 border border-border-default bg-bg-deep"
+              />
+              <span>{{ name }}</span>
             </div>
           </div>
 
@@ -488,5 +530,9 @@ function spinAgainFromModal() {
   animation-name: confetti-fall;
   animation-timing-function: ease-out;
   animation-fill-mode: both;
+}
+
+.pixel-avatar {
+  image-rendering: pixelated;
 }
 </style>
