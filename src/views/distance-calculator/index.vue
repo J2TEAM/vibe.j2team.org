@@ -10,7 +10,20 @@ const lon1 = ref('')
 const lat2 = ref('')
 const lon2 = ref('')
 
-const geolibKm = ref('0.000')
+const setLat1 = (value: string) => {
+  lat1.value = value
+}
+const setLon1 = (value: string) => {
+  lon1.value = value
+}
+const setLat2 = (value: string) => {
+  lat2.value = value
+}
+const setLon2 = (value: string) => {
+  lon2.value = value
+}
+
+const geolibKm = ref('~0.0')
 const geolibMeters = ref('0')
 const haversineKm = ref('0.00')
 
@@ -110,10 +123,12 @@ function calculateDistance() {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })
-  geolibKm.value = preciseKm.toLocaleString('vi-VN', {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
-  })
+
+  const roundedKm = preciseKm.toFixed(1)
+  geolibKm.value = `~${Number(roundedKm).toLocaleString('vi-VN', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })}`
   geolibMeters.value = preciseMeters.toLocaleString('vi-VN')
 
   showResults.value = true
@@ -182,13 +197,7 @@ function calculateDistance() {
               type="text"
               placeholder="Dán JSON/Text vào đây (vd: {lat: 10.7, lon: 106.6} )"
               class="w-full rounded-lg border border-border-default bg-bg-elevated px-3 py-2 text-sm text-text-secondary focus:border-accent-sky focus:outline-none"
-              @input="
-                parseInput(
-                  rawA,
-                  (value) => (lat1.value = value),
-                  (value) => (lon1.value = value),
-                )
-              "
+              @input="parseInput(rawA, setLat1, setLon1)"
             />
           </div>
 
@@ -245,13 +254,7 @@ function calculateDistance() {
               type="text"
               placeholder="Dán JSON/Text vào đây (vd: {lat: 21.0, lon: 105.8} )"
               class="w-full rounded-lg border border-border-default bg-bg-elevated px-3 py-2 text-sm text-text-secondary focus:border-accent-coral focus:outline-none"
-              @input="
-                parseInput(
-                  rawB,
-                  (value) => (lat2.value = value),
-                  (value) => (lon2.value = value),
-                )
-              "
+              @input="parseInput(rawB, setLat2, setLon2)"
             />
           </div>
 
@@ -303,10 +306,10 @@ function calculateDistance() {
 
         <div v-if="showResults" class="space-y-4">
           <div
-            class="relative overflow-hidden rounded-xl border border-accent-sky/30 bg-accent-sky/10 p-4 transition hover:scale-[1.02]"
+            class="relative overflow-hidden rounded-xl border border-accent-sky/30 bg-accent-sky/10 p-4 pt-10 transition hover:scale-[1.02]"
           >
             <div
-              class="absolute right-0 top-0 rounded-bl-lg bg-accent-sky px-2 py-1 text-[10px] font-bold uppercase text-white"
+              class="absolute right-0 top-0 rounded-bl-lg bg-accent-sky px-2 py-1 text-[10px] font-bold uppercase text-white shadow-lg"
             >
               Geolib (Chính xác)
             </div>
@@ -323,10 +326,10 @@ function calculateDistance() {
           </div>
 
           <div
-            class="relative rounded-xl border border-border-default bg-bg-elevated p-3 text-text-dim opacity-80 transition hover:opacity-100"
+            class="relative rounded-xl border border-border-default bg-bg-elevated p-3 pt-8 text-text-dim opacity-80 transition hover:opacity-100"
           >
             <div
-              class="absolute right-0 top-0 rounded-bl-lg bg-bg-elevated px-2 py-1 text-[10px] font-bold"
+              class="absolute right-0 top-0 rounded-bl-lg bg-bg-elevated px-2 py-1 text-[10px] font-bold shadow"
             >
               Haversine (Tham khảo)
             </div>
@@ -344,12 +347,6 @@ function calculateDistance() {
         >
           {{ errorMessage }}
         </div>
-      </div>
-
-      <div
-        class="border-t border-border-default bg-bg-elevated p-4 text-center text-xs text-text-dim"
-      >
-        Sử dụng công thức Haversine • Bán kính Trái Đất ~ 6371km
       </div>
     </div>
   </div>
