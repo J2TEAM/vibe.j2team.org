@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { provideMap } from './composables/useMap'
 import { usePlayerMovement } from './composables/usePlayerMovement'
@@ -14,8 +14,47 @@ import GameBullets from './components/GameBullets.vue'
 import type { Map as MapboxMap } from 'mapbox-gl'
 
 const BASE = '/resident-lor'
-const INITIAL_LAT = 10.799
-const INITIAL_LNG = 106.7
+const MAPBOX_TOKEN =
+  'pk.eyJ1IjoidHVhbnRhbXR1b25nIiwiYSI6ImNsZ3lpd3Y4ODBhMzEzbHBlejh1Zjc3eGYifQ.i6qdKYjYC6bof7_KDOfGQA'
+
+interface Province {
+  name: string
+  code: number
+}
+
+const provinces = ref<Province[]>([])
+const selectedCode = ref<number>(1) // Hà Nội mặc định
+const isLoadingProvinces = ref(true)
+const isGeocoding = ref(false)
+
+onMounted(async () => {
+  try {
+    const res = await fetch('https://provinces.open-api.vn/api/v2/')
+    provinces.value = (await res.json()) as Province[]
+  } catch {
+    // Dùng vị trí mặc định nếu không tải được
+  } finally {
+    isLoadingProvinces.value = false
+  }
+})
+
+async function geocodeProvince(name: string): Promise<{ lat: number; lng: number } | null> {
+  const encoded = encodeURIComponent(name + ', Việt Nam')
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encoded}.json?country=vn&types=place,region&language=vi&access_token=${MAPBOX_TOKEN}`
+  try {
+    const res = await fetch(url)
+    const data = (await res.json()) as { features: { center: [number, number] }[] }
+    const center = data.features[0]?.center
+    if (!center) return null
+    return { lat: center[1], lng: center[0] }
+  } catch {
+    return null
+  }
+}
+
+// Vị trí spawn có thể thay đổi theo tỉnh được chọn
+let spawnLat = 10.799
+let spawnLng = 106.7
 
 const mapRef = ref<MapboxMap | null>(null)
 provideMap(mapRef)
@@ -24,7 +63,7 @@ const isWalkable = (lat: number, lng: number) => checkWalkable(mapRef.value, lat
 
 const getUnstuck = (lat: number, lng: number) => findWalkableNear(lat, lng, isWalkable)
 
-const { position, keys } = usePlayerMovement(INITIAL_LAT, INITIAL_LNG, {
+const { position, keys } = usePlayerMovement(spawnLat, spawnLng, {
   isWalkable,
   getUnstuck,
 })
@@ -53,7 +92,19 @@ const isStarted = ref(false)
 const isGameOver = ref(false)
 const finalScore = ref(0)
 
-function startGame() {
+async function startGame() {
+  isGeocoding.value = true
+  const province = provinces.value.find((p) => p.code === selectedCode.value)
+  if (province) {
+    const pos = await geocodeProvince(province.name)
+    if (pos) {
+      spawnLat = pos.lat
+      spawnLng = pos.lng
+    }
+  }
+  isGeocoding.value = false
+  position.value = { lat: spawnLat, lng: spawnLng }
+  resetZombies()
   isStarted.value = true
 }
 
@@ -69,7 +120,7 @@ function playAgain() {
   isStarted.value = false
   hp.value = maxHp
   score.value = 0
-  position.value = { lat: INITIAL_LAT, lng: INITIAL_LNG }
+  position.value = { lat: spawnLat, lng: spawnLng }
   keys.value = { w: false, a: false, s: false, d: false }
   resetZombies()
   bullets.value = []
@@ -82,7 +133,22 @@ function playAgain() {
     <div v-if="!isStarted" class="start-screen">
       <img :src="`${BASE}/bg-final.jpg`" alt="Resident Lỏ" class="start-bg" />
       <div class="start-menu">
-        <button type="button" class="btn-start" @click="startGame">▶ BẮT ĐẦU</button>
+        <div class="province-select-wrap">
+          <label class="province-label">🗺️ Chọn tỉnh/thành phố</label>
+          <select
+            v-model="selectedCode"
+            class="province-select"
+            :disabled="isLoadingProvinces || isGeocoding"
+          >
+            <option v-if="isLoadingProvinces" :value="1">Đang tải...</option>
+            <option v-for="p in provinces" :key="p.code" :value="p.code">
+              {{ p.name }}
+            </option>
+          </select>
+        </div>
+        <button type="button" class="btn-start" :disabled="isGeocoding" @click="startGame">
+          {{ isGeocoding ? '⏳ Đang tải...' : '▶ BẮT ĐẦU' }}
+        </button>
         <RouterLink to="/" class="btn-home-start">🏠 Về trang chủ</RouterLink>
       </div>
     </div>
@@ -326,6 +392,50 @@ function playAgain() {
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+  width: min(320px, 90vw);
+}
+
+.province-select-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.province-label {
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+.province-select {
+  width: 100%;
+  padding: 0.6rem 0.875rem;
+  font-size: 1rem;
+  font-family: inherit;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 0.4rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.province-select:focus {
+  border-color: #dc2626;
+}
+
+.province-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-start:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .btn-start {
