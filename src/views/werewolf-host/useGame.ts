@@ -15,8 +15,14 @@ import type {
 } from './types'
 import { NIGHT_CALL, NIGHT_ORDER, NIGHT_SLEEP, ROLE_STEP_MAP } from './types'
 
+// ── Module-level pause flag ────────────────────────────────────────────────
+let _isPaused = false
+
+// ── Module-level night abort ID ───────────────────────────────────────────
+let _currentNightId = 0
+
 // ── Speech ────────────────────────────────────────────────────────────────────
-function speak(text: string, rate = 0.9): Promise<void> {
+function speakNow(text: string, rate: number): Promise<void> {
   return new Promise((resolve) => {
     if (!('speechSynthesis' in window)) {
       resolve()
@@ -29,10 +35,23 @@ function speak(text: string, rate = 0.9): Promise<void> {
     const voices = window.speechSynthesis.getVoices()
     const viVoice = voices.find((v) => v.lang.startsWith('vi'))
     if (viVoice) utter.voice = viVoice
-    utter.onend = () => resolve()
-    utter.onerror = () => resolve()
+    // Timeout fallback: ~80ms per char + 3s buffer (Chrome TTS onend bug)
+    const timeout = setTimeout(resolve, Math.max(4000, text.length * 80 + 3000))
+    utter.onend = () => {
+      clearTimeout(timeout)
+      resolve()
+    }
+    utter.onerror = () => {
+      clearTimeout(timeout)
+      resolve()
+    }
     window.speechSynthesis.speak(utter)
   })
+}
+
+async function speak(text: string, rate = 0.9): Promise<void> {
+  while (_isPaused) await sleep(200)
+  return speakNow(text, rate)
 }
 
 function sleep(ms: number): Promise<void> {
@@ -73,6 +92,8 @@ export function useGame() {
     witch: 1,
     hunter: 0,
     disruptor: 0,
+    traitor: 0,
+    cupid: 0,
   })
 
   // Time config
@@ -83,6 +104,9 @@ export function useGame() {
     hangVoteSeconds: 30,
     nightDelayMs: 3000,
   })
+
+  // Pause
+  const isPaused = ref(false)
 
   // Role reveal
   const roleRevealIndex = ref(0)
@@ -106,6 +130,14 @@ export function useGame() {
   const disruptorTarget = ref<string | null>(null)
   // Wolves voting UI state: which wolf's turn
   const wolfVotePlayerIndex = ref(0)
+
+  // Cupid / lovers
+  const cupidTarget1 = ref<string | null>(null)
+  const cupidTarget2 = ref<string | null>(null)
+  const loverIds = ref<[string, string] | null>(null)
+
+  // Night snapshot for go-back
+  const nightSnapshot = ref<{ players: string; round: number } | null>(null)
 
   // Night results for this round
   const currentNightDeaths = ref<DeathRecord[]>([])
@@ -181,10 +213,91 @@ export function useGame() {
     return wolfFinalTargets.value[0] ?? null
   })
 
+  // Duplicate name check
+  const duplicateNameError = computed(() => {
+    const name = playerNameInput.value.trim()
+    if (!name) return false
+    return players.value.some((p) => p.name.toLowerCase() === name.toLowerCase())
+  })
+
+  // ── Pause ──────────────────────────────────────────────────────────────────
+  function togglePause() {
+    isPaused.value = !isPaused.value
+    _isPaused = isPaused.value
+    if (isPaused.value) {
+      window.speechSynthesis.cancel()
+      if (discussionTimer) {
+        clearInterval(discussionTimer)
+        discussionTimer = null
+      }
+      if (explainTimer) {
+        clearInterval(explainTimer)
+        explainTimer = null
+      }
+    } else {
+      // Resume timers based on current phase
+      if (phase.value === 'day-discussion' && discussionTimeLeft.value > 0) {
+        discussionTimer = setInterval(() => {
+          discussionTimeLeft.value--
+          if (discussionTimeLeft.value <= 0) {
+            clearInterval(discussionTimer!)
+            speak('Hết thời gian thảo luận.').then(() => startNominate())
+          }
+        }, 1000)
+      } else if (phase.value === 'day-explain' && explainTimeLeft.value > 0) {
+        explainTimer = setInterval(() => {
+          explainTimeLeft.value--
+          if (explainTimeLeft.value <= 0) {
+            clearInterval(explainTimer!)
+            nextExplain()
+          }
+        }, 1000)
+      }
+    }
+  }
+
+  // ── Go back to night ───────────────────────────────────────────────────────
+  function goBackToNight() {
+    if (!nightSnapshot.value) return
+    // Abort current night
+    _currentNightId++
+    window.speechSynthesis.cancel()
+    isPaused.value = false
+    _isPaused = false
+    // Restore player states
+    players.value = JSON.parse(nightSnapshot.value.players) as Player[]
+    roundNumber.value = nightSnapshot.value.round
+    // Clear timers
+    if (discussionTimer) clearInterval(discussionTimer)
+    if (explainTimer) clearInterval(explainTimer)
+    discussionTimer = null
+    explainTimer = null
+    // Reset all night state
+    wolfVotes.value = {}
+    wolfFinalTargets.value = []
+    wolfVotePlayerIndex.value = 0
+    seerTarget.value = null
+    seerResult.value = null
+    guardTarget.value = null
+    disruptorTarget.value = null
+    witchSaved.value = false
+    witchKillTarget.value = null
+    currentNightDeaths.value = []
+    currentNightSilenced.value = null
+    cupidTarget1.value = null
+    cupidTarget2.value = null
+    resolveNightAction = null
+    // Start night again
+    beginNight()
+  }
+
   // ── Setup actions ──────────────────────────────────────────────────────────
   function addPlayer() {
     const name = playerNameInput.value.trim()
     if (!name) return
+    if (players.value.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
+      return
+    }
     players.value.push({
       id: crypto.randomUUID(),
       name,
@@ -218,7 +331,8 @@ export function useGame() {
 
     players.value = shuffledPlayers.map((p, i) => {
       const role = shuffledRoles[i]!
-      const faction: Faction = role === 'wolf' || role === 'wolf-cub' ? 'wolf' : 'villager'
+      const faction: Faction =
+        role === 'wolf' || role === 'wolf-cub' || role === 'traitor' ? 'wolf' : 'villager'
       return { ...p, role, faction, alive: true, isSilenced: false }
     })
 
@@ -260,9 +374,14 @@ export function useGame() {
     witchKillTarget.value = null
     currentNightDeaths.value = []
     currentNightSilenced.value = null
+    cupidTarget1.value = null
+    cupidTarget2.value = null
 
     // Reset silenced from last day
     players.value.forEach((p) => (p.isSilenced = false))
+
+    // Save snapshot before running night
+    nightSnapshot.value = { players: JSON.stringify(players.value), round: roundNumber.value }
 
     phase.value = 'night'
     runNightPhase()
@@ -282,16 +401,38 @@ export function useGame() {
   }
 
   async function runNightPhase() {
+    const myId = ++_currentNightId
+
     await speak(`Đêm thứ ${roundNumber.value} xuống. Mọi người hãy nhắm mắt.`)
+    if (_currentNightId !== myId) return
 
     for (const step of NIGHT_ORDER) {
-      if (!isRoleInGame(step)) continue // role not in this game — skip entirely
+      if (_currentNightId !== myId) return
+      if (!isRoleInGame(step)) continue
+
+      // Cupid only acts on night 1
+      if (step === 'cupid' && roundNumber.value > 1) {
+        // Still fake-wait to hide info
+        nightStep.value = step
+        nightUiState.value = 'fake-wait'
+        await speak(NIGHT_CALL[step])
+        if (_currentNightId !== myId) return
+        await randomDelay()
+        if (_currentNightId !== myId) return
+        await speak(NIGHT_SLEEP[step])
+        nightUiState.value = 'sleeping'
+        await sleep(timeConfig.value.nightDelayMs)
+        continue
+      }
+
       await runNightStep(step)
+      if (_currentNightId !== myId) return
     }
 
-    // End of night
+    if (_currentNightId !== myId) return
     await speak('Trời sáng rồi. Mọi người hãy mở mắt.')
 
+    if (_currentNightId !== myId) return
     resolveNight()
   }
 
@@ -411,7 +552,46 @@ export function useGame() {
     confirmNightAction()
   }
 
+  // ── Cupid actions ──────────────────────────────────────────────────────────
+  function setCupidTarget(slot: 1 | 2, id: string) {
+    if (slot === 1) cupidTarget1.value = id
+    else cupidTarget2.value = id
+  }
+
+  function confirmCupid() {
+    if (cupidTarget1.value && cupidTarget2.value) {
+      loverIds.value = [cupidTarget1.value, cupidTarget2.value]
+    }
+    confirmNightAction()
+  }
+
+  // ── Traitor actions ────────────────────────────────────────────────────────
+  function confirmTraitor() {
+    confirmNightAction()
+  }
+
   // ── Night resolution ───────────────────────────────────────────────────────
+  function applyLoversChain(deaths: DeathRecord[]): DeathRecord[] {
+    if (!loverIds.value) return deaths
+    const [l1, l2] = loverIds.value
+    const deadIds = new Set(deaths.map((d) => d.playerId))
+
+    // Also include already-dead players
+    players.value.filter((p) => !p.alive).forEach((p) => deadIds.add(p.id))
+
+    const l1IsDying = deadIds.has(l1)
+    const l2IsDying = deadIds.has(l2)
+
+    const extra: DeathRecord[] = []
+    if (l1IsDying && !l2IsDying && players.value.find((p) => p.id === l2)?.alive) {
+      extra.push({ playerId: l2, reason: 'lover-death' })
+    }
+    if (l2IsDying && !l1IsDying && players.value.find((p) => p.id === l1)?.alive) {
+      extra.push({ playerId: l1, reason: 'lover-death' })
+    }
+    return [...deaths, ...extra]
+  }
+
   function resolveNight() {
     const deaths: DeathRecord[] = []
 
@@ -477,8 +657,19 @@ export function useGame() {
 
     if (wolfCubDied) wolfCubDiedLastNight.value = true
 
+    // Step 4: Lovers chain
+    const finalDeaths = applyLoversChain(deaths)
+
+    // Check lover wolf-cub deaths
+    for (const d of finalDeaths) {
+      if (!deaths.find((dd) => dd.playerId === d.playerId)) {
+        const p = players.value.find((pl) => pl.id === d.playerId)
+        if (p?.role === 'wolf-cub') wolfCubDiedLastNight.value = true
+      }
+    }
+
     // Apply deaths
-    for (const d of deaths) {
+    for (const d of finalDeaths) {
       const p = players.value.find((pl) => pl.id === d.playerId)
       if (p) {
         p.alive = false
@@ -508,13 +699,13 @@ export function useGame() {
       witchKilled: witchKillTarget.value ?? undefined,
       disruptorTarget: currentNightSilenced.value ?? undefined,
       hunterTarget: hunterTarget.value ?? undefined,
-      deaths,
+      deaths: finalDeaths,
       curseConverted: cursedConverted?.id,
       wolfCubDied,
     }
     history.value.nights.push(nightRecord)
 
-    currentNightDeaths.value = deaths
+    currentNightDeaths.value = finalDeaths
 
     // Add pending hunter kill from last day hanging (if any)
     if (pendingHunterKill.value) {
@@ -731,6 +922,21 @@ export function useGame() {
     // Check wolf-cub hanged
     if (hanged.role === 'wolf-cub') wolfCubDiedLastNight.value = true
 
+    // Check lovers chain on hang
+    const hangDeaths: DeathRecord[] = [{ playerId: hangedId, reason: 'hanged' }]
+    const withLovers = applyLoversChain(hangDeaths)
+    for (const d of withLovers) {
+      if (d.playerId === hangedId) continue
+      const loverPlayer = players.value.find((p) => p.id === d.playerId)
+      if (loverPlayer && loverPlayer.alive) {
+        loverPlayer.alive = false
+        loverPlayer.deathRound = roundNumber.value
+        loverPlayer.deathTime = 'day'
+        loverPlayer.deathReason = 'lover-death'
+        speak(`${loverPlayer.name} chết theo người yêu.`)
+      }
+    }
+
     speak(`${hanged.name} đã bị treo cổ.`)
     recordDay(hangedId)
     checkAndContinue()
@@ -791,6 +997,12 @@ export function useGame() {
     hunterTarget.value = null
     lastGuardTarget.value = null
     history.value = { nights: [], days: [] }
+    loverIds.value = null
+    cupidTarget1.value = null
+    cupidTarget2.value = null
+    nightSnapshot.value = null
+    isPaused.value = false
+    _isPaused = false
   }
 
   return {
@@ -802,6 +1014,11 @@ export function useGame() {
     playerNameInput,
     roleConfig,
     timeConfig,
+    // Pause
+    isPaused,
+    togglePause,
+    goBackToNight,
+    nightSnapshot,
     // Role reveal
     roleRevealIndex,
     roleRevealShowing,
@@ -824,6 +1041,9 @@ export function useGame() {
     disruptorTarget,
     witchNightVictim,
     currentNightSilenced,
+    cupidTarget1,
+    cupidTarget2,
+    loverIds,
     // Day
     dayDeaths,
     discussionTimeLeft,
@@ -846,6 +1066,7 @@ export function useGame() {
     livingWolves,
     livingVillagers,
     setupValid,
+    duplicateNameError,
     // Actions - setup
     addPlayer,
     removePlayer,
@@ -869,6 +1090,9 @@ export function useGame() {
     confirmWitch,
     setHunterTarget,
     confirmHunter,
+    setCupidTarget,
+    confirmCupid,
+    confirmTraitor,
     // Actions - day
     acknowledgeDayResult,
     skipDiscussion,

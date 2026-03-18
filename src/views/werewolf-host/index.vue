@@ -9,8 +9,10 @@ import {
   ROLE_DESC,
   ROLE_EMOJI,
   ROLE_NAMES,
+  ROLE_POINTS,
   type NightStep,
   type RoleId,
+  type RoleConfig,
 } from './types'
 
 const g = useGame()
@@ -23,7 +25,9 @@ const showGuide = ref(false)
 // Night step labels
 const STEP_LABELS: Record<NightStep, string> = {
   disruptor: 'Kẻ phá hoại',
+  cupid: 'Thần tình yêu',
   wolves: 'Bầy Sói',
+  traitor: 'Kẻ phản bội',
   seer: 'Tiên tri',
   guard: 'Bảo vệ',
   witch: 'Phù thủy',
@@ -32,7 +36,9 @@ const STEP_LABELS: Record<NightStep, string> = {
 
 const STEP_ICON: Record<NightStep, string> = {
   disruptor: 'lucide:volume-x',
+  cupid: 'lucide:heart',
   wolves: 'lucide:moon',
+  traitor: 'lucide:user-x',
   seer: 'lucide:eye',
   guard: 'lucide:shield',
   witch: 'lucide:flask-conical',
@@ -44,13 +50,68 @@ const CONFIGURABLE_ROLES: { id: RoleId; faction: 'wolf' | 'villager' }[] = [
   { id: 'wolf', faction: 'wolf' },
   { id: 'wolf-cub', faction: 'wolf' },
   { id: 'cursed-wolf', faction: 'wolf' },
+  { id: 'traitor', faction: 'wolf' },
   { id: 'villager', faction: 'villager' },
   { id: 'seer', faction: 'villager' },
   { id: 'guard', faction: 'villager' },
   { id: 'witch', faction: 'villager' },
   { id: 'hunter', faction: 'villager' },
   { id: 'disruptor', faction: 'villager' },
+  { id: 'cupid', faction: 'villager' },
 ]
+
+// ── Presets ─────────────────────────────────────────────────────────────────
+interface Preset {
+  label: string
+  players: number
+  config: Partial<RoleConfig>
+}
+
+const PRESETS: Preset[] = [
+  {
+    label: '4–5 người',
+    players: 5,
+    config: { wolf: 1, villager: 2, seer: 1, guard: 1 },
+  },
+  {
+    label: '6–7 người',
+    players: 6,
+    config: { wolf: 1, villager: 3, seer: 1, guard: 1 },
+  },
+  {
+    label: '8–10 người',
+    players: 8,
+    config: { wolf: 2, villager: 4, seer: 1, guard: 1 },
+  },
+  {
+    label: '11–14 người',
+    players: 12,
+    config: { wolf: 3, villager: 5, seer: 1, guard: 1, witch: 1, hunter: 1 },
+  },
+  {
+    label: '15–20 người',
+    players: 16,
+    config: { wolf: 4, villager: 8, seer: 1, guard: 1, witch: 1, hunter: 1, disruptor: 1 },
+  },
+]
+
+function applyPreset(preset: Preset) {
+  for (const key in g.roleConfig.value) {
+    ;(g.roleConfig.value as Record<string, number>)[key] = 0
+  }
+  for (const [role, count] of Object.entries(preset.config)) {
+    ;(g.roleConfig.value as Record<string, number>)[role] = count ?? 0
+  }
+}
+
+// ── Balance score ────────────────────────────────────────────────────────────
+const balanceScore = computed(() => {
+  let score = 0
+  for (const [role, count] of Object.entries(g.roleConfig.value)) {
+    score += (ROLE_POINTS[role as RoleId] ?? 0) * count
+  }
+  return score
+})
 
 // ── Night step helpers ─────────────────────────────────────────────────────
 const currentStepIndex = computed(() => NIGHT_ORDER.indexOf(g.nightStep.value))
@@ -104,6 +165,7 @@ function getDeathReasonLabel(reason: string) {
     'witch-poison': 'Bình độc',
     'hunter-shot': 'Thợ săn bắn',
     hanged: 'Bị treo cổ',
+    'lover-death': 'Chết theo người yêu',
   }
   return map[reason] ?? reason
 }
@@ -112,6 +174,26 @@ function formatTime(secs: number) {
   const m = Math.floor(secs / 60)
   const s = secs % 60
   return `${m}:${s.toString().padStart(2, '0')}`
+}
+
+// ── Cupid click handler ───────────────────────────────────────────────────
+function handleCupidClick(playerId: string) {
+  if (g.cupidTarget1.value === playerId) {
+    g.cupidTarget1.value = null
+  } else if (g.cupidTarget2.value === playerId) {
+    g.cupidTarget2.value = null
+  } else if (!g.cupidTarget1.value) {
+    g.setCupidTarget(1, playerId)
+  } else if (!g.cupidTarget2.value) {
+    g.setCupidTarget(2, playerId)
+  }
+}
+
+// ── Wolf vote next handler ────────────────────────────────────────────────
+function handleWolfVoteNext() {
+  // currentWolfVoter auto-updates from wolvesYetToVote after vote is cast
+  // This button just needs to exist for UX; the computed handles the transition
+  g.wolfVotePlayerIndex.value++
 }
 </script>
 
@@ -155,6 +237,7 @@ function formatTime(secs: number) {
             type="text"
             placeholder="Nhập tên người chơi..."
             class="flex-1 border border-border-default bg-bg-surface px-3 py-2.5 text-sm text-text-primary placeholder-text-dim focus:border-accent-coral focus:outline-none"
+            :class="g.duplicateNameError.value ? 'border-accent-coral' : ''"
             @keyup.enter="g.addPlayer"
           />
           <button
@@ -164,6 +247,9 @@ function formatTime(secs: number) {
             <Icon icon="lucide:plus" class="size-4" />
           </button>
         </div>
+        <p v-if="g.duplicateNameError.value" class="mb-2 text-xs text-accent-coral">
+          Tên này đã có trong danh sách!
+        </p>
 
         <div class="flex flex-wrap gap-2">
           <div
@@ -195,8 +281,23 @@ function formatTime(secs: number) {
           </span>
         </p>
 
+        <!-- Presets -->
+        <div class="mb-4">
+          <p class="mb-2 text-xs text-text-dim">Gợi ý nhanh:</p>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="preset in PRESETS"
+              :key="preset.label"
+              class="border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-secondary transition hover:border-accent-amber hover:text-accent-amber"
+              @click="applyPreset(preset)"
+            >
+              {{ preset.label }}
+            </button>
+          </div>
+        </div>
+
         <!-- Wolf roles -->
-        <p class="mb-2 text-xs text-accent-coral font-display">Phe Sói</p>
+        <p class="mb-2 font-display text-xs text-accent-coral">Phe Sói</p>
         <div class="mb-4 space-y-2">
           <div
             v-for="r in CONFIGURABLE_ROLES.filter((x) => x.faction === 'wolf')"
@@ -207,10 +308,16 @@ function formatTime(secs: number) {
               <div class="flex items-center gap-2">
                 <span class="text-base">{{ ROLE_EMOJI[r.id] }}</span>
                 <span class="font-display text-sm font-semibold">{{ ROLE_NAMES[r.id] }}</span>
+                <span
+                  class="ml-2 font-display text-xs font-bold"
+                  :class="ROLE_POINTS[r.id] < 0 ? 'text-accent-coral' : 'text-accent-sky'"
+                >
+                  {{ ROLE_POINTS[r.id] > 0 ? '+' : '' }}{{ ROLE_POINTS[r.id] }}
+                </span>
               </div>
               <p class="mt-0.5 text-xs text-text-dim">{{ ROLE_DESC[r.id] }}</p>
             </div>
-            <div class="flex items-center gap-2 ml-4">
+            <div class="ml-4 flex items-center gap-2">
               <button
                 class="flex size-7 items-center justify-center border border-border-default text-text-dim transition hover:border-accent-coral hover:text-accent-coral"
                 @click="g.setRoleCount(r.id, -1)"
@@ -231,7 +338,7 @@ function formatTime(secs: number) {
         </div>
 
         <!-- Villager roles -->
-        <p class="mb-2 text-xs text-accent-sky font-display">Phe Dân</p>
+        <p class="mb-2 font-display text-xs text-accent-sky">Phe Dân</p>
         <div class="space-y-2">
           <div
             v-for="r in CONFIGURABLE_ROLES.filter((x) => x.faction === 'villager')"
@@ -242,10 +349,16 @@ function formatTime(secs: number) {
               <div class="flex items-center gap-2">
                 <span class="text-base">{{ ROLE_EMOJI[r.id] }}</span>
                 <span class="font-display text-sm font-semibold">{{ ROLE_NAMES[r.id] }}</span>
+                <span
+                  class="ml-2 font-display text-xs font-bold"
+                  :class="ROLE_POINTS[r.id] < 0 ? 'text-accent-coral' : 'text-accent-sky'"
+                >
+                  {{ ROLE_POINTS[r.id] > 0 ? '+' : '' }}{{ ROLE_POINTS[r.id] }}
+                </span>
               </div>
               <p class="mt-0.5 text-xs text-text-dim">{{ ROLE_DESC[r.id] }}</p>
             </div>
-            <div class="flex items-center gap-2 ml-4">
+            <div class="ml-4 flex items-center gap-2">
               <button
                 class="flex size-7 items-center justify-center border border-border-default text-text-dim transition hover:border-accent-sky hover:text-accent-sky"
                 @click="g.setRoleCount(r.id, -1)"
@@ -263,6 +376,35 @@ function formatTime(secs: number) {
               </button>
             </div>
           </div>
+        </div>
+
+        <!-- Balance indicator -->
+        <div class="mt-4 border border-border-default bg-bg-surface px-4 py-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-text-dim">Điểm cân bằng</span>
+            <span
+              class="font-display text-sm font-bold"
+              :class="
+                Math.abs(balanceScore) <= 3
+                  ? 'text-accent-sky'
+                  : balanceScore < 0
+                    ? 'text-accent-coral'
+                    : 'text-accent-amber'
+              "
+            >
+              {{ balanceScore > 0 ? '+' : '' }}{{ balanceScore }}
+              <span class="ml-1 text-xs font-normal text-text-dim">
+                {{
+                  Math.abs(balanceScore) <= 3
+                    ? '(cân bằng)'
+                    : balanceScore < 0
+                      ? '(nghiêng về Sói)'
+                      : '(nghiêng về Dân)'
+                }}
+              </span>
+            </span>
+          </div>
+          <p class="mt-1 text-xs text-text-dim">Khi tổng âm = tổng dương là cân bằng (gần 0)</p>
         </div>
       </div>
 
@@ -283,7 +425,7 @@ function formatTime(secs: number) {
 
         <div
           v-if="showTimeConfig"
-          class="border border-t-0 border-border-default bg-bg-surface p-4 space-y-3"
+          class="space-y-3 border border-t-0 border-border-default bg-bg-surface p-4"
         >
           <div
             v-for="[key, label] in [
@@ -300,7 +442,7 @@ function formatTime(secs: number) {
             <input
               type="number"
               :value="(g.timeConfig.value as Record<string, number>)[key as string]"
-              class="w-24 border border-border-default bg-bg-deep px-2 py-1 text-sm text-right text-text-primary focus:border-accent-coral focus:outline-none"
+              class="w-24 border border-border-default bg-bg-deep px-2 py-1 text-right text-sm text-text-primary focus:border-accent-coral focus:outline-none"
               @input="
                 (e) => {
                   ;(g.timeConfig.value as Record<string, number>)[key as string] = +(
@@ -319,7 +461,7 @@ function formatTime(secs: number) {
         :class="
           g.setupValid.value
             ? 'border-accent-coral bg-accent-coral/10 text-accent-coral hover:bg-accent-coral/20'
-            : 'border-border-default text-text-dim cursor-not-allowed'
+            : 'cursor-not-allowed border-border-default text-text-dim'
         "
         :disabled="!g.setupValid.value"
         @click="g.startGame"
@@ -341,7 +483,7 @@ function formatTime(secs: number) {
       class="flex min-h-screen flex-col items-center justify-center px-4"
     >
       <div class="w-full max-w-sm text-center">
-        <p class="mb-2 text-xs text-text-dim font-display tracking-widest uppercase">
+        <p class="mb-2 font-display text-xs tracking-widest text-text-dim uppercase">
           Xem bài —
           <span class="text-accent-amber"
             >{{ g.roleRevealIndex.value + 1 }}/{{ g.players.value.length }}</span
@@ -375,9 +517,9 @@ function formatTime(secs: number) {
             {{ ROLE_NAMES[g.players.value[g.roleRevealIndex.value]?.role ?? 'villager'] }}
           </p>
           <p
-            class="mb-2 text-xs font-display font-semibold"
+            class="mb-2 font-display text-xs font-semibold"
             :class="
-              ['wolf', 'wolf-cub', 'cursed-wolf'].includes(
+              ['wolf', 'wolf-cub', 'cursed-wolf', 'traitor'].includes(
                 g.players.value[g.roleRevealIndex.value]?.role ?? '',
               )
                 ? 'text-accent-coral'
@@ -385,7 +527,7 @@ function formatTime(secs: number) {
             "
           >
             {{
-              ['wolf', 'wolf-cub', 'cursed-wolf'].includes(
+              ['wolf', 'wolf-cub', 'cursed-wolf', 'traitor'].includes(
                 g.players.value[g.roleRevealIndex.value]?.role ?? '',
               )
                 ? 'Phe Sói 🐺'
@@ -477,7 +619,7 @@ function formatTime(secs: number) {
               <button
                 v-for="p in g.livingPlayers.value.filter((p) => p.role !== 'disruptor')"
                 :key="p.id"
-                class="border py-3 text-sm font-display transition"
+                class="border py-3 font-display text-sm transition"
                 :class="
                   g.disruptorTarget.value === p.id
                     ? 'border-accent-coral bg-accent-coral/20 text-accent-coral'
@@ -492,6 +634,41 @@ function formatTime(secs: number) {
               class="mt-4 w-full border border-accent-coral bg-accent-coral/10 py-3 font-display text-sm font-semibold text-accent-coral transition hover:bg-accent-coral/20 disabled:opacity-40"
               :disabled="!g.disruptorTarget.value"
               @click="g.confirmDisruptor"
+            >
+              Xác nhận
+            </button>
+          </div>
+
+          <!-- CUPID ACTION -->
+          <div
+            v-else-if="g.nightStep.value === 'cupid'"
+            class="border border-accent-amber/30 bg-bg-surface p-5"
+          >
+            <p class="mb-4 font-display text-sm font-semibold text-accent-amber">
+              <Icon icon="lucide:heart" class="mr-1 inline size-4" /> Chọn 2 người yêu nhau
+            </p>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                v-for="p in g.livingPlayers.value"
+                :key="p.id"
+                class="border py-3 font-display text-sm transition"
+                :class="[
+                  g.cupidTarget1.value === p.id || g.cupidTarget2.value === p.id
+                    ? 'border-accent-amber bg-accent-amber/20 text-accent-amber'
+                    : 'border-border-default bg-bg-elevated text-text-secondary hover:border-accent-amber/50',
+                ]"
+                @click="handleCupidClick(p.id)"
+              >
+                {{ p.name }}
+                <span v-if="g.cupidTarget1.value === p.id || g.cupidTarget2.value === p.id"
+                  >💘</span
+                >
+              </button>
+            </div>
+            <button
+              class="mt-4 w-full border border-accent-amber bg-accent-amber/10 py-3 font-display text-sm font-semibold text-accent-amber disabled:opacity-40"
+              :disabled="!g.cupidTarget1.value || !g.cupidTarget2.value"
+              @click="g.confirmCupid"
             >
               Xác nhận
             </button>
@@ -512,7 +689,7 @@ function formatTime(secs: number) {
             <!-- Who's voting now -->
             <p v-if="currentWolfVoter" class="mb-3 text-xs text-text-dim">
               Lượt của:
-              <span class="text-accent-amber font-semibold">{{ currentWolfVoter.name }}</span>
+              <span class="font-semibold text-accent-amber">{{ currentWolfVoter.name }}</span>
             </p>
 
             <!-- Targets grid -->
@@ -520,7 +697,7 @@ function formatTime(secs: number) {
               <button
                 v-for="p in g.livingPlayers.value.filter((pl) => pl.faction !== 'wolf')"
                 :key="p.id"
-                class="relative border py-3 text-sm font-display transition"
+                class="relative border py-3 font-display text-sm transition"
                 :class="
                   g.wolfVotes.value[currentWolfVoter?.id ?? ''] === p.id
                     ? 'border-accent-coral bg-accent-coral/20 text-accent-coral'
@@ -561,7 +738,7 @@ function formatTime(secs: number) {
               <button
                 v-if="currentWolfVoter && g.wolfVotes.value[currentWolfVoter.id]"
                 class="flex-1 border border-accent-amber bg-accent-amber/10 py-3 font-display text-sm font-semibold text-accent-amber transition hover:bg-accent-amber/20"
-                @click="g.wolfVotePlayerIndex.value++"
+                @click="handleWolfVoteNext"
               >
                 {{ wolvesYetToVote.length > 1 ? 'Sói tiếp theo' : 'Xong' }}
               </button>
@@ -587,6 +764,37 @@ function formatTime(secs: number) {
             </button>
           </div>
 
+          <!-- TRAITOR ACTION -->
+          <div
+            v-else-if="g.nightStep.value === 'traitor'"
+            class="border border-accent-coral/30 bg-bg-surface p-5"
+          >
+            <p class="mb-4 font-display text-sm font-semibold text-accent-coral">
+              <Icon icon="lucide:user-x" class="mr-1 inline size-4" /> Danh sách phe Sói
+            </p>
+            <div class="space-y-2">
+              <div
+                v-for="wolf in g.players.value.filter(
+                  (p) => (p.role === 'wolf' || p.role === 'wolf-cub') && p.alive,
+                )"
+                :key="wolf.id"
+                class="border border-accent-coral/20 bg-accent-coral/5 px-4 py-2.5 text-sm"
+              >
+                <span class="font-semibold text-accent-coral">{{ wolf.name }}</span>
+                <span class="ml-2 text-xs text-text-dim">{{ ROLE_NAMES[wolf.role] }}</span>
+              </div>
+            </div>
+            <p class="mt-3 text-xs italic text-text-dim">
+              Chỉ Kẻ phản bội mới được xem thông tin này.
+            </p>
+            <button
+              class="mt-4 w-full border border-accent-coral bg-accent-coral/10 py-3 font-display text-sm font-semibold text-accent-coral"
+              @click="g.confirmTraitor"
+            >
+              Đã xem — Nhắm mắt
+            </button>
+          </div>
+
           <!-- SEER ACTION -->
           <div
             v-else-if="g.nightStep.value === 'seer'"
@@ -600,7 +808,7 @@ function formatTime(secs: number) {
               <button
                 v-for="p in g.livingPlayers.value.filter((pl) => pl.role !== 'seer')"
                 :key="p.id"
-                class="border py-3 text-sm font-display transition"
+                class="border py-3 font-display text-sm transition"
                 :class="
                   g.seerTarget.value === p.id
                     ? 'border-accent-sky bg-accent-sky/20 text-accent-sky'
@@ -656,7 +864,7 @@ function formatTime(secs: number) {
               <button
                 v-for="p in g.livingPlayers.value"
                 :key="p.id"
-                class="border py-3 text-sm font-display transition disabled:cursor-not-allowed disabled:opacity-30"
+                class="border py-3 font-display text-sm transition disabled:cursor-not-allowed disabled:opacity-30"
                 :class="
                   g.guardTarget.value === p.id
                     ? 'border-accent-amber bg-accent-amber/20 text-accent-amber'
@@ -727,7 +935,7 @@ function formatTime(secs: number) {
                 <button
                   v-for="p in g.livingPlayers.value.filter((pl) => pl.role !== 'witch')"
                   :key="p.id"
-                  class="border py-2.5 text-xs font-display transition"
+                  class="border py-2.5 font-display text-xs transition"
                   :class="
                     g.witchKillTarget.value === p.id
                       ? 'border-accent-coral bg-accent-coral/20 text-accent-coral'
@@ -761,7 +969,7 @@ function formatTime(secs: number) {
               <button
                 v-for="p in g.livingPlayers.value.filter((pl) => pl.role !== 'hunter')"
                 :key="p.id"
-                class="border py-3 text-sm font-display transition"
+                class="border py-3 font-display text-sm transition"
                 :class="
                   g.hunterTarget.value === p.id
                     ? 'border-accent-amber bg-accent-amber/20 text-accent-amber'
@@ -859,7 +1067,7 @@ function formatTime(secs: number) {
           class="mb-4 border border-accent-amber/30 bg-bg-surface px-4 py-3 text-sm"
         >
           🤫
-          <span class="text-accent-amber font-semibold">{{
+          <span class="font-semibold text-accent-amber">{{
             g.livingPlayers.value
               .filter((p) => p.isSilenced)
               .map((p) => p.name)
@@ -873,7 +1081,7 @@ function formatTime(secs: number) {
           <div
             v-for="p in g.livingPlayers.value"
             :key="p.id"
-            class="border py-2 text-xs font-display"
+            class="border py-2 font-display text-xs"
             :class="
               p.isSilenced
                 ? 'border-accent-amber/30 bg-accent-amber/5 text-accent-amber'
@@ -919,7 +1127,7 @@ function formatTime(secs: number) {
                 (pl) => pl.id !== g.currentNominatePlayer.value?.id,
               )"
               :key="p.id"
-              class="border py-3 text-sm font-display transition"
+              class="border py-3 font-display text-sm transition"
               :class="
                 g.nominations.value[g.currentNominatePlayer.value?.id ?? ''] === p.id
                   ? 'border-accent-coral bg-accent-coral/20 text-accent-coral'
@@ -969,7 +1177,7 @@ function formatTime(secs: number) {
           <span
             v-for="id in g.nominatedPlayers.value"
             :key="id"
-            class="border px-3 py-1 text-xs font-display"
+            class="border px-3 py-1 font-display text-xs"
             :class="
               id === g.nominatedPlayers.value[g.explainCurrentIndex.value]
                 ? 'border-accent-amber text-accent-amber'
@@ -1148,7 +1356,7 @@ function formatTime(secs: number) {
                     night.deaths.map((d) => getPlayerName(d.playerId)).join(', ')
                   }}</span>
                 </div>
-                <div v-else class="pt-1 text-text-dim italic">Không ai chết</div>
+                <div v-else class="pt-1 italic text-text-dim">Không ai chết</div>
               </div>
             </div>
           </div>
@@ -1181,11 +1389,11 @@ function formatTime(secs: number) {
                 </div>
                 <div v-if="day.hanged">
                   🪢 Bị treo:
-                  <span class="text-accent-coral font-semibold">{{
+                  <span class="font-semibold text-accent-coral">{{
                     getPlayerName(day.hanged)
                   }}</span>
                 </div>
-                <div v-else class="text-text-dim italic">Không ai bị treo</div>
+                <div v-else class="italic text-text-dim">Không ai bị treo</div>
               </div>
             </div>
           </div>
@@ -1225,10 +1433,63 @@ function formatTime(secs: number) {
       </div>
     </div>
 
+    <!-- Floating controls - chỉ hiển thị khi đang chơi (không phải setup) -->
+    <div
+      v-if="g.phase.value !== 'setup' && g.phase.value !== 'game-over'"
+      class="fixed right-4 top-4 z-50 flex gap-2"
+    >
+      <button
+        v-if="g.nightSnapshot.value"
+        class="flex items-center gap-1.5 border border-border-default bg-bg-deep/90 px-3 py-2 text-xs text-text-secondary backdrop-blur transition hover:border-accent-amber hover:text-accent-amber"
+        @click="g.goBackToNight"
+      >
+        <Icon icon="lucide:rotate-ccw" class="size-3.5" />
+        Đêm trước
+      </button>
+      <button
+        class="flex items-center gap-1.5 border px-3 py-2 text-xs backdrop-blur transition"
+        :class="
+          g.isPaused.value
+            ? 'border-accent-sky bg-accent-sky/20 text-accent-sky hover:bg-accent-sky/30'
+            : 'border-border-default bg-bg-deep/90 text-text-secondary hover:border-accent-sky hover:text-accent-sky'
+        "
+        @click="g.togglePause"
+      >
+        <Icon :icon="g.isPaused.value ? 'lucide:play' : 'lucide:pause'" class="size-3.5" />
+        {{ g.isPaused.value ? 'Tiếp tục' : 'Tạm dừng' }}
+      </button>
+    </div>
+
+    <!-- Pause overlay -->
+    <div
+      v-if="g.isPaused.value"
+      class="fixed inset-0 z-40 flex items-center justify-center bg-bg-deep/80 backdrop-blur"
+    >
+      <div class="border border-accent-sky/30 bg-bg-surface p-8 text-center">
+        <Icon icon="lucide:pause-circle" class="mx-auto mb-3 size-12 text-accent-sky" />
+        <p class="font-display text-xl font-bold text-accent-sky">Đang tạm dừng</p>
+        <p class="mt-2 text-sm text-text-dim">Nhấn "Tiếp tục" để chơi lại</p>
+        <button
+          class="mt-4 border border-accent-sky bg-accent-sky/10 px-6 py-2.5 font-display font-semibold text-accent-sky transition hover:bg-accent-sky/20"
+          @click="g.togglePause"
+        >
+          <Icon icon="lucide:play" class="mr-2 inline size-4" />
+          Tiếp tục
+        </button>
+      </div>
+    </div>
+
     <!-- Floating guide button (visible in all non-setup phases) -->
     <button
-      v-if="g.phase.value !== 'setup'"
-      class="fixed right-4 top-4 z-40 flex size-10 items-center justify-center border border-border-default bg-bg-surface text-text-dim shadow-lg transition hover:border-accent-sky hover:text-accent-sky"
+      v-if="g.phase.value !== 'setup' && g.phase.value !== 'game-over'"
+      class="fixed bottom-4 right-4 z-40 flex size-10 items-center justify-center border border-border-default bg-bg-surface text-text-dim shadow-lg transition hover:border-accent-sky hover:text-accent-sky"
+      @click="showGuide = true"
+    >
+      <Icon icon="lucide:book-open" class="size-4" />
+    </button>
+    <button
+      v-else-if="g.phase.value === 'game-over'"
+      class="fixed bottom-4 right-4 z-40 flex size-10 items-center justify-center border border-border-default bg-bg-surface text-text-dim shadow-lg transition hover:border-accent-sky hover:text-accent-sky"
       @click="showGuide = true"
     >
       <Icon icon="lucide:book-open" class="size-4" />
@@ -1262,11 +1523,11 @@ function formatTime(secs: number) {
             </p>
             <div class="space-y-2 text-sm text-text-secondary">
               <p>
-                🎯 <span class="text-text-primary font-semibold">Phe Sói thắng</span> khi số Sói ≥
+                🎯 <span class="font-semibold text-text-primary">Phe Sói thắng</span> khi số Sói ≥
                 số Dân còn sống.
               </p>
               <p>
-                🎯 <span class="text-text-primary font-semibold">Phe Dân thắng</span> khi tất cả Sói
+                🎯 <span class="font-semibold text-text-primary">Phe Dân thắng</span> khi tất cả Sói
                 bị loại.
               </p>
               <p>🔒 Không ai được tiết lộ vai trò của mình trong lúc chơi.</p>
@@ -1283,7 +1544,9 @@ function formatTime(secs: number) {
               <span
                 v-for="(s, i) in [
                   '🤫 Kẻ phá hoại',
+                  '💘 Thần tình yêu',
                   '🐺 Bầy Sói',
+                  '🎭 Kẻ phản bội',
                   '🔮 Tiên tri',
                   '🛡️ Bảo vệ',
                   '🧙 Phù thủy',
@@ -1295,7 +1558,7 @@ function formatTime(secs: number) {
                 <span class="text-text-dim">{{ i + 1 }}.</span> {{ s }}
               </span>
             </div>
-            <p class="mt-2 text-xs text-text-dim italic">
+            <p class="mt-2 text-xs italic text-text-dim">
               * Vai nào không có trong game sẽ bị bỏ qua. Vai chết vẫn được gọi (chờ ngẫu nhiên) để
               tránh lộ thông tin.
             </p>
@@ -1324,9 +1587,15 @@ function formatTime(secs: number) {
                 <p class="mt-0.5 text-sm text-text-secondary">
                   Ban đầu thuộc <strong>Phe Dân</strong> — Tiên tri soi thấy
                   <em>"Không phải Sói"</em>. Khi bị Sói cắn mà không được bảo vệ/cứu →
-                  <strong>chuyển sang Phe Sói</strong> (không chết). Nếu được Bảo vệ bảo vệ → không
-                  bị cắn, không chuyển phe. Nếu được Phù thủy cứu → không chuyển phe (bình cứu bị
-                  dùng). Sau khi chuyển phe, Tiên tri soi thấy <em>"Là Sói"</em>.
+                  <strong>chuyển sang Phe Sói</strong> (không chết). Sau khi chuyển phe, Tiên tri
+                  soi thấy <em>"Là Sói"</em>.
+                </p>
+              </div>
+              <div>
+                <p class="font-display text-sm font-semibold text-text-primary">Kẻ phản bội 🎭</p>
+                <p class="mt-0.5 text-sm text-text-secondary">
+                  Biết ai là Sói, nhưng Sói không biết bạn. Đêm đầu mở mắt để xem danh sách Sói.
+                  <strong>Thắng nếu phe Sói thắng</strong>. Tiên tri soi thấy <em>"Là Sói"</em>.
                 </p>
               </div>
             </div>
@@ -1346,42 +1615,41 @@ function formatTime(secs: number) {
                 <p class="font-display text-sm font-semibold text-text-primary">Tiên tri 🔮</p>
                 <p class="mt-0.5 text-sm text-text-secondary">
                   Mỗi đêm <strong>soi 1 người</strong> — kết quả chỉ là <em>"Là Sói"</em> hoặc
-                  <em>"Không phải Sói"</em> (không biết vai cụ thể). Ứng dụng sẽ truyền tay điện
-                  thoại để Tiên tri xem kết quả bí mật.
+                  <em>"Không phải Sói"</em>.
                 </p>
               </div>
               <div>
                 <p class="font-display text-sm font-semibold text-text-primary">Bảo vệ 🛡️</p>
                 <p class="mt-0.5 text-sm text-text-secondary">
                   Mỗi đêm <strong>bảo vệ 1 người</strong> khỏi bị Sói cắn.
-                  <strong>Không</strong> được bảo vệ cùng 1 người 2 đêm liên tiếp. Được tự bảo vệ
-                  mình. <strong>Không</strong> chặn được bình độc Phù thủy.
+                  <strong>Không</strong> được bảo vệ cùng 1 người 2 đêm liên tiếp.
                 </p>
               </div>
               <div>
                 <p class="font-display text-sm font-semibold text-text-primary">Phù thủy 🧙</p>
                 <p class="mt-0.5 text-sm text-text-secondary">
                   Có <strong>1 bình cứu</strong> và <strong>1 bình độc</strong>, mỗi loại dùng được
-                  1 lần trong cả game. Mỗi đêm biết ai bị Sói cắn, có thể: <em>cứu nạn nhân</em>,
-                  <em>giết 1 người khác</em>, hoặc <em>không làm gì</em>. Được tự cứu mình. Không
-                  được tự giết. Không được vừa cứu vừa giết cùng 1 đêm. Bình độc
-                  <strong>vượt qua</strong> bảo vệ của Bảo vệ.
+                  1 lần. Bình độc <strong>vượt qua</strong> bảo vệ của Bảo vệ.
                 </p>
               </div>
               <div>
                 <p class="font-display text-sm font-semibold text-text-primary">Thợ săn 🏹</p>
                 <p class="mt-0.5 text-sm text-text-secondary">
-                  Mỗi đêm <strong>chỉ định 1 người</strong> (có thể đổi mỗi đêm). Khi Thợ săn chết —
-                  dù là ban đêm hay bị treo cổ — <strong>người bị chỉ định cũng chết theo</strong>
-                  (trừ khi người đó đã chết rồi). Nếu bị treo cổ ban ngày, người bị chỉ định sẽ chết
-                  vào sáng hôm sau.
+                  Mỗi đêm <strong>chỉ định 1 người</strong>. Khi Thợ săn chết,
+                  <strong>người bị chỉ định cũng chết theo</strong>.
                 </p>
               </div>
               <div>
                 <p class="font-display text-sm font-semibold text-text-primary">Kẻ phá hoại 🤫</p>
                 <p class="mt-0.5 text-sm text-text-secondary">
                   Mỗi đêm <strong>cấm 1 người nói</strong> trong giai đoạn thảo luận sáng hôm sau.
-                  Người bị cấm <strong>vẫn được bỏ phiếu</strong>. Không thể tự cấm mình.
+                </p>
+              </div>
+              <div>
+                <p class="font-display text-sm font-semibold text-text-primary">Thần tình yêu 💘</p>
+                <p class="mt-0.5 text-sm text-text-secondary">
+                  Đêm 1: <strong>chọn 2 người yêu nhau</strong>. Nếu 1 người chết, người kia chết
+                  theo. Hai người yêu sẽ không biết nhau (chỉ quản trò biết).
                 </p>
               </div>
             </div>
@@ -1394,26 +1662,25 @@ function formatTime(secs: number) {
             </p>
             <ol class="space-y-2 text-sm text-text-secondary">
               <li>
-                <span class="text-accent-amber font-semibold">1.</span> App thông báo ai đã chết đêm
+                <span class="font-semibold text-accent-amber">1.</span> App thông báo ai đã chết đêm
                 qua (không nói lý do).
               </li>
               <li>
-                <span class="text-accent-amber font-semibold">2.</span> <strong>Thảo luận</strong> —
+                <span class="font-semibold text-accent-amber">2.</span> <strong>Thảo luận</strong> —
                 đếm ngược, người bị cấm không được nói.
               </li>
               <li>
-                <span class="text-accent-amber font-semibold">3.</span> <strong>Đề cử</strong> —
-                truyền tay: mỗi người chọn 1 nghi phạm hoặc skip. Ai được đề cử nhiều nhất ra vòng
-                trong.
+                <span class="font-semibold text-accent-amber">3.</span> <strong>Đề cử</strong> —
+                truyền tay: mỗi người chọn 1 nghi phạm hoặc skip.
               </li>
               <li>
-                <span class="text-accent-amber font-semibold">4.</span>
+                <span class="font-semibold text-accent-amber">4.</span>
                 <strong>Giải thích</strong> — người bị đề cử lần lượt có thời gian biện hộ.
               </li>
               <li>
-                <span class="text-accent-amber font-semibold">5.</span>
+                <span class="font-semibold text-accent-amber">5.</span>
                 <strong>Bỏ phiếu treo cổ</strong> — truyền tay: mỗi người chọn ai treo hoặc skip.
-                Hòa phiếu hoặc all-skip → không ai chết.
+                Hòa phiếu → không ai chết.
               </li>
             </ol>
           </div>
