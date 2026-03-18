@@ -3,27 +3,64 @@ import type { Map as MapboxMap } from 'mapbox-gl'
 const BUILDING_LAYER_ID = '3d-buildings'
 
 /**
+ * Cache `hasLayer` per map instance — layer 3d-buildings xuất hiện một lần sau khi
+ * style load xong, không bao giờ biến mất trong một session nên cache vô thời hạn.
+ * Dùng WeakMap để tự GC khi map instance bị destroy.
+ */
+const layerPresentCache = new WeakMap<MapboxMap, boolean>()
+
+/**
+ * Spatial cache cho walkability.
+ * Building positions là static (OSM data) nên cache vô thời hạn.
+ * Key = (lat, lng) làm tròn đến lưới 0.00005° (~5m) — nhỏ hơn bước di chuyển zombie.
+ */
+const GRID = 0.00005
+const walkableCache = new Map<string, boolean>()
+
+function walkKey(lat: number, lng: number): string {
+  return `${Math.round(lat / GRID)},${Math.round(lng / GRID)}`
+}
+
+/**
+ * Xóa spatial cache khi map pans xa (gọi từ GameMap khi cần).
+ * Thông thường không cần vì buildings là static.
+ */
+export function clearWalkableCache(): void {
+  walkableCache.clear()
+}
+
+/**
  * Kiểm tra (lat, lng) có nằm trong building footprint không.
  * Dùng map.queryRenderedFeatures trên layer 3d-buildings.
+ * Kết quả được cache theo vị trí để tránh gọi queryRenderedFeatures lặp.
  * Trả về true nếu đi được (không bị chặn), false nếu bị chặn.
- * Trả về true nếu layer chưa có (style chưa load xong) để tránh lỗi.
  */
 export function isWalkable(map: MapboxMap | null, lat: number, lng: number): boolean {
   if (!map) return true
+
   try {
-    const style = map.getStyle()
-    const hasLayer = style?.layers?.some((l) => l.id === BUILDING_LAYER_ID) ?? false
+    // Cache hasLayer — tránh getStyle() đắt tiền mỗi lần gọi
+    let hasLayer = layerPresentCache.get(map)
+    if (hasLayer === undefined) {
+      const style = map.getStyle()
+      hasLayer = style?.layers?.some((l) => l.id === BUILDING_LAYER_ID) ?? false
+      if (hasLayer) layerPresentCache.set(map, true) // chỉ cache khi đã có layer
+    }
     if (!hasLayer) return true
+
+    // Spatial cache — tránh queryRenderedFeatures lặp cho cùng ô lưới
+    const key = walkKey(lat, lng)
+    const cached = walkableCache.get(key)
+    if (cached !== undefined) return cached
 
     const point = map.project([lng, lat])
     const bbox: [[number, number], [number, number]] = [
       [point.x - 2, point.y - 2],
       [point.x + 2, point.y + 2],
     ]
-    const features = map.queryRenderedFeatures(bbox, {
-      layers: [BUILDING_LAYER_ID],
-    })
-    return features.length === 0
+    const result = map.queryRenderedFeatures(bbox, { layers: [BUILDING_LAYER_ID] }).length === 0
+    walkableCache.set(key, result)
+    return result
   } catch {
     return true
   }

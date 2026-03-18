@@ -5,6 +5,8 @@ const DAMAGE_PER_HIT = 8
 const DAMAGE_COOLDOWN_MS = 600
 const TOUCH_RADIUS = 0.00006
 const HIT_FLASH_MS = 300
+/** Throttle collision check — damage cooldown 600ms nên 30fps là quá đủ */
+const TICK_MS = 1000 / 30
 
 export type UsePlayerHPOptions = {
   maxHp?: number
@@ -28,6 +30,7 @@ export function usePlayerHP(
   const hp = ref(max)
   const isHit = ref(false)
   let lastDamageTime = 0
+  let lastTickTime = 0
   let hitFlashId: ReturnType<typeof setTimeout> | null = null
 
   let rafId: number
@@ -37,6 +40,11 @@ export function usePlayerHP(
       return
     }
     const now = Date.now()
+    if (now - lastTickTime < TICK_MS) {
+      rafId = requestAnimationFrame(tick)
+      return
+    }
+    lastTickTime = now
     const pos = playerPosition.value
     const r2 = touchRadius * touchRadius
 
