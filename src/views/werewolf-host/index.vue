@@ -492,6 +492,31 @@ function handleWolfVoteNext() {
           >Tổng vai ({{ g.totalRoles.value }}) phải bằng số người ({{ g.players.value.length }}).
         </span>
       </p>
+
+      <!-- Footer -->
+      <footer
+        class="mt-10 flex flex-wrap items-center justify-between gap-2 border-t border-border-default pt-4 text-xs text-text-dim"
+      >
+        <span>Được tạo bởi <span class="font-semibold text-text-primary">Hachi Tu</span></span>
+        <div class="flex gap-3">
+          <a
+            href="https://github.com/hachitubg"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-1 transition-colors hover:text-accent-coral"
+          >
+            <Icon icon="lucide:github" class="size-3.5" /> GitHub
+          </a>
+          <a
+            href="https://www.facebook.com/tuhachiz/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-1 transition-colors hover:text-accent-coral"
+          >
+            <Icon icon="lucide:facebook" class="size-3.5" /> Facebook
+          </a>
+        </div>
+      </footer>
     </div>
 
     <!-- ══════════════════════════════════════════════ ROLE REVEAL ══ -->
