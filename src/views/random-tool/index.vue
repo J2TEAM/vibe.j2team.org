@@ -8,6 +8,30 @@ import { useLocalStorage } from '@vueuse/core'
 type TabId = 'number' | 'wheel' | 'race' | 'bracket' | 'coin' | 'dice' | 'teams'
 const activeTab = ref<TabId>('number')
 
+const tabNavRef = ref<HTMLElement | null>(null)
+const tabNavCanScrollLeft = ref(false)
+const tabNavCanScrollRight = ref(false)
+
+function updateTabNavScroll() {
+  const el = tabNavRef.value
+  if (!el) return
+  tabNavCanScrollLeft.value = el.scrollLeft > 2
+  tabNavCanScrollRight.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 2
+}
+
+function scrollTabNav(direction: 'left' | 'right') {
+  const el = tabNavRef.value
+  if (!el) return
+  el.scrollBy({ left: direction === 'left' ? -160 : 160, behavior: 'smooth' })
+}
+
+function scrollActiveTabIntoView() {
+  const el = tabNavRef.value
+  if (!el) return
+  const active = el.querySelector<HTMLElement>('[data-active="true"]')
+  if (active) active.scrollIntoView({ inline: 'nearest', behavior: 'smooth' })
+}
+
 const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: 'number', label: 'Số ngẫu nhiên', icon: 'lucide:dice-5' },
   { id: 'wheel', label: 'Hộp ngẫu nhiên', icon: 'lucide:gift' },
@@ -637,10 +661,13 @@ function setSplitBySize() {
 // ── Lifecycle ─────────────────────────────────────────────────────────────
 onMounted(() => {
   shuffleBoxes()
+  updateTabNavScroll()
+  window.addEventListener('resize', updateTabNavScroll)
 })
 
 onUnmounted(() => {
   if (raceAnimFrame) cancelAnimationFrame(raceAnimFrame)
+  window.removeEventListener('resize', updateTabNavScroll)
 })
 </script>
 
@@ -663,21 +690,47 @@ onUnmounted(() => {
 
     <!-- Tab nav -->
     <div class="sticky top-0 z-10 border-b border-border-default bg-bg-surface">
-      <div class="mx-auto flex max-w-4xl overflow-x-auto px-4 scrollbar-hide">
+      <div class="relative mx-auto max-w-4xl">
+        <!-- Left arrow -->
         <button
-          v-for="tab in TABS"
-          :key="tab.id"
-          :class="[
-            'flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors',
-            activeTab === tab.id
-              ? 'border-accent-coral text-accent-coral'
-              : 'border-transparent text-text-dim hover:text-text-primary',
-          ]"
-          @click="activeTab = tab.id"
+          v-if="tabNavCanScrollLeft"
+          class="absolute left-0 top-0 z-10 flex h-full items-center bg-linear-to-r from-bg-surface via-bg-surface/90 to-transparent px-2 text-text-dim transition-colors hover:text-accent-coral"
+          @click="scrollTabNav('left')"
         >
-          <Icon :icon="tab.icon" class="size-4" />
-          {{ tab.label }}
+          <Icon icon="lucide:chevron-left" class="size-4" />
         </button>
+        <!-- Right arrow -->
+        <button
+          v-if="tabNavCanScrollRight"
+          class="absolute right-0 top-0 z-10 flex h-full items-center bg-linear-to-l from-bg-surface via-bg-surface/90 to-transparent px-2 text-text-dim transition-colors hover:text-accent-coral"
+          @click="scrollTabNav('right')"
+        >
+          <Icon icon="lucide:chevron-right" class="size-4" />
+        </button>
+        <div
+          ref="tabNavRef"
+          class="flex overflow-x-auto px-4 scrollbar-hide"
+          @scroll="updateTabNavScroll"
+        >
+          <button
+            v-for="tab in TABS"
+            :key="tab.id"
+            :data-active="activeTab === tab.id"
+            :class="[
+              'flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors',
+              activeTab === tab.id
+                ? 'border-accent-coral text-accent-coral'
+                : 'border-transparent text-text-dim hover:text-text-primary',
+            ]"
+            @click="
+              activeTab = tab.id
+              scrollActiveTabIntoView()
+            "
+          >
+            <Icon :icon="tab.icon" class="size-4" />
+            {{ tab.label }}
+          </button>
+        </div>
       </div>
     </div>
 
