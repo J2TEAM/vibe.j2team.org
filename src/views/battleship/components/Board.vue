@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, toValue } from 'vue'
 import type { Ref } from 'vue'
+import { useWindowSize } from '@vueuse/core'
 import type { Cell } from '../utils/board'
+import { SIZE } from '../utils/board'
 
 defineOptions({ name: 'BattleshipBoard' })
 
@@ -39,7 +41,13 @@ function isCellInPlacement(rr: number, cc: number, p: Placement): boolean {
 }
 
 const gridRef = ref<HTMLElement | null>(null)
-const CELL_SIZE = 34
+const { width: windowWidth } = useWindowSize()
+
+const cellSize = computed(() => {
+  const available = windowWidth.value - 64
+  const raw = Math.floor(available / SIZE) - 2
+  return Math.min(34, Math.max(24, raw))
+})
 
 function onCellDragEnter(e: DragEvent) {
   if (props.droppable) e.preventDefault()
@@ -88,15 +96,16 @@ function onShipDragStart(e: DragEvent, r: number, c: number) {
 <template>
   <div
     ref="gridRef"
-    class="grid gap-[2px] w-fit"
-    :style="{ gridTemplateColumns: `repeat(${board.length},${CELL_SIZE}px)` }"
+    class="grid gap-[2px] w-fit max-w-full"
+    :style="{ gridTemplateColumns: `repeat(${board.length},${cellSize}px)` }"
   >
     <div v-for="(row, r) in board" :key="r" class="contents">
       <div
         v-for="(cell, c) in row"
         :key="`${r}-${c}`"
         :draggable="removable && cell.ship && !cell.hit"
-        class="w-8 h-8 border border-border-default transition select-none"
+        class="border border-border-default transition select-none min-w-0 min-h-0"
+        :style="{ width: `${cellSize}px`, height: `${cellSize}px` }"
         :class="[
           cell.hit && cell.ship && '!bg-accent-coral',
           cell.hit && !cell.ship && 'bg-accent-sky/30',

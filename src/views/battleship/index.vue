@@ -27,8 +27,8 @@ function handlePlaceCell(r: number, c: number, shipIndex?: number) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-bg-deep text-text-primary font-body">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+  <div class="min-h-screen bg-bg-deep text-text-primary font-body overflow-x-hidden">
+    <div class="max-w-5xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
       <RouterLink
         to="/"
         class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-5 py-2.5 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary animate-fade-up"
@@ -43,11 +43,13 @@ function handlePlaceCell(r: number, c: number, shipIndex?: number) {
         v-if="game.phase === 'placement'"
         class="mt-12 space-y-6 animate-fade-up animate-delay-1"
       >
-        <h2 class="font-display text-2xl font-semibold text-text-primary flex items-center gap-3">
+        <h2
+          class="font-display text-xl sm:text-2xl font-semibold text-text-primary flex items-center gap-3"
+        >
           <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
           Đặt tàu của bạn
         </h2>
-        <p class="text-text-secondary text-sm">
+        <p class="text-text-secondary text-sm leading-relaxed">
           Kéo thả tàu vào bảng, kéo tàu trên bảng để di chuyển, hoặc kéo về ô trái để gỡ. Click tàu
           trên bảng (viền đỏ) rồi nhấn
           <kbd class="px-1.5 py-0.5 border border-border-default bg-bg-elevated font-mono text-xs"
@@ -70,14 +72,14 @@ function handlePlaceCell(r: number, c: number, shipIndex?: number) {
             Sắp xếp ngẫu nhiên
           </button>
         </div>
-        <div class="flex flex-col sm:flex-row gap-8 items-start">
+        <div class="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start w-full">
           <ShipDock
             :placed-ship-indices="game.placedShipIndices"
             :rotation="game.shipRotation"
             :droppable="game.placements.length > 0"
             @remove="game.removeShipAt"
           />
-          <div>
+          <div class="w-full min-w-0 overflow-x-auto">
             <Board
               :board="game.playerBoard"
               clickable
@@ -105,21 +107,21 @@ function handlePlaceCell(r: number, c: number, shipIndex?: number) {
       >
         <div
           v-if="game.phase === 'victory'"
-          class="border border-accent-coral bg-accent-coral/10 p-6 text-center"
+          class="border border-accent-coral bg-accent-coral/10 p-4 sm:p-6 text-center"
         >
           <h2 class="font-display text-2xl font-bold text-accent-coral">Bạn thắng!</h2>
           <p class="mt-2 text-text-secondary">Đã tiêu diệt hết tàu đối thủ</p>
         </div>
         <div
           v-else-if="game.phase === 'defeat'"
-          class="border border-accent-coral bg-accent-coral/10 p-6 text-center"
+          class="border border-accent-coral bg-accent-coral/10 p-4 sm:p-6 text-center"
         >
           <h2 class="font-display text-2xl font-bold text-accent-coral">Bạn thua</h2>
           <p class="mt-2 text-text-secondary">Đối thủ đã tiêu diệt hết tàu của bạn</p>
         </div>
         <h2
           v-else
-          class="font-display text-2xl font-semibold text-text-primary flex items-center gap-3"
+          class="font-display text-xl sm:text-2xl font-semibold text-text-primary flex items-center gap-3"
         >
           <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
           Chiến trường
@@ -129,19 +131,19 @@ function handlePlaceCell(r: number, c: number, shipIndex?: number) {
         </p>
         <p
           v-if="game.phase === 'battle'"
-          class="text-accent-amber font-display font-semibold text-lg"
+          class="text-accent-amber font-display font-semibold text-base sm:text-lg"
         >
           {{ game.message }}
         </p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
           <div
-            class="border border-border-default bg-bg-surface p-6 transition-all duration-300 hover:border-accent-amber hover:bg-bg-elevated"
+            class="border border-border-default bg-bg-surface p-4 sm:p-6 transition-all duration-300 hover:border-accent-amber hover:bg-bg-elevated min-w-0 overflow-x-auto"
           >
             <h3 class="font-display text-lg font-semibold mb-4 text-text-primary">Bạn</h3>
             <Board :board="game.playerBoard" />
           </div>
           <div
-            class="border border-border-default bg-bg-surface p-6 transition-all duration-300 hover:border-accent-coral hover:bg-bg-elevated"
+            class="border border-border-default bg-bg-surface p-4 sm:p-6 transition-all duration-300 hover:border-accent-coral hover:bg-bg-elevated min-w-0 overflow-x-auto"
           >
             <h3 class="font-display text-lg font-semibold mb-4 text-text-primary">Đối thủ</h3>
             <Board

@@ -63,8 +63,8 @@ const rotatedShapes = computed(() =>
 
 <template>
   <div
-    class="p-6 border border-border-default bg-bg-surface transition-all duration-300 hover:border-accent-amber"
-    :class="droppable && 'min-h-[200px]'"
+    class="p-4 sm:p-6 border border-border-default bg-bg-surface transition-all duration-300 hover:border-accent-amber w-full sm:w-auto sm:min-w-[200px]"
+    :class="droppable && 'min-h-[180px] sm:min-h-[200px]'"
     @dragenter="droppable && onDragEnter($event)"
     @dragover="droppable && onDragOver($event)"
     @drop="droppable && onDrop($event)"
