@@ -154,7 +154,7 @@ const trackLabelW = computed(() => (isMobile.value ? 72 : 100))
   <div class="min-h-screen bg-bg-deep text-text-primary font-body flex flex-col">
     <!-- ─── Header ──────────────────────────────────────────────── -->
     <header
-      class="flex items-center gap-2 sm:gap-4 px-3 sm:px-4 py-2 sm:py-3 bg-bg-surface border-b border-border-default flex-shrink-0"
+      class="flex items-center gap-2 sm:gap-4 px-3 sm:px-4 py-2 sm:py-3 bg-bg-surface border-b border-border-default flex-shrink-0 animate-fade-up"
     >
       <RouterLink
         to="/"
@@ -209,6 +209,7 @@ const trackLabelW = computed(() => (isMobile.value ? 72 : 100))
 
     <!-- ─── Transport ───────────────────────────────────────────── -->
     <TransportControls
+      class="animate-fade-up animate-delay-1"
       :bpm="bpm"
       :is-playing="isPlaying"
       :metronome-enabled="metronomeEnabled"
@@ -223,6 +224,7 @@ const trackLabelW = computed(() => (isMobile.value ? 72 : 100))
 
     <!-- ─── Pattern Manager ─────────────────────────────────────── -->
     <PatternManager
+      class="animate-fade-up animate-delay-2"
       :patterns="patterns"
       :active-pattern-id="activePatternId"
       @select="activePatternId = $event"
@@ -233,7 +235,7 @@ const trackLabelW = computed(() => (isMobile.value ? 72 : 100))
     />
 
     <!-- ─── Main Workspace ──────────────────────────────────────── -->
-    <div class="flex flex-1 overflow-hidden">
+    <div class="flex flex-1 overflow-hidden animate-fade-up animate-delay-3">
       <!-- Left: Channel Rack (desktop only; on mobile it's a bottom sheet) -->
       <div
         v-if="!isMobile"
@@ -427,7 +429,7 @@ const trackLabelW = computed(() => (isMobile.value ? 72 : 100))
 
     <!-- ─── Status Bar ───────────────────────────────────────────── -->
     <footer
-      class="flex-shrink-0 flex items-center justify-between px-3 sm:px-4 py-1.5 bg-bg-deep border-t border-border-default"
+      class="flex-shrink-0 flex items-center justify-between px-3 sm:px-4 py-1.5 bg-bg-deep border-t border-border-default animate-fade-up animate-delay-4"
     >
       <span
         class="text-[8px] font-display uppercase tracking-widest text-border-default hidden sm:inline"
