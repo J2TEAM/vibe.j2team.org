@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="320" height="320" style="overflow: visible;" id="pulse-buddy-greet-talk-v1">
+    <style>
+        /* === CSS VARIABLES and BASE === */
+        .stroke-main { stroke: #253549; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+        .fill-base { fill: #F0EDE6; }
+        .fill-accent-sky { fill: #38BDF8; }
+        .fill-accent-amber { fill: #FFB830; }
+        .fill-dark { fill: #253549; }
+
+        /* =========================================
+           DEV SPECS and ANIMATION CONFIG
+           - Duration: 1100ms (Character), 5000ms (Bubble)
+           - Easing: cubic-bezier(0.22, 1, 0.36, 1)
+           - Cooldown: 90s
+           - Trigger: idle timeout (25-45s) or post-save (6-10s)
+           - Priority: low (above idle, below saved)
+           ========================================= */
+
+        #pulse-buddy-wrapper {
+            /* Nghiêng trái phải ±2deg rất nhẹ */
+            animation: sway-talk 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            transform-origin: 100px 172px;
+        }
+        #rightArm {
+            /* Tay vẫy 2 nhịp thân thiện */
+            animation: wave-arm 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            transform-origin: 148px 120px;
+        }
+        #heartCore {
+            /* Pulse cực nhẹ 1.05x, không làm lố */
+            animation: pulse-heart-talk 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            transform-origin: 100px 136px;
+        }
+        .pupil-group {
+            /* Chớp mắt vui 1 lần ở giữa animation */
+            animation: blink-talk 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        #speech-bubble {
+            /* Bubble tồn tại 5s: 180ms hiện, chờ, 160ms biến mất */
+            opacity: 0;
+            animation: bubble-pop 5s ease-in-out forwards;
+            transform-origin: 75px 60px; /* Tâm nảy lên từ đuôi bubble */
+        }
+
+        /* =========================================
+           KEYFRAMES
+           ========================================= */
+        @keyframes sway-talk {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(2deg); }
+            75% { transform: rotate(-2deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        @keyframes wave-arm {
+            0% { transform: rotate(0deg) translateX(0); }
+            20% { transform: rotate(-45deg) translateX(4px); } /* Vung lên */
+            40% { transform: rotate(-25deg) translateX(2px); } /* Vẫy vào */
+            60% { transform: rotate(-45deg) translateX(4px); } /* Vẫy ra */
+            80% { transform: rotate(-25deg) translateX(2px); } /* Vẫy vào */
+            100% { transform: rotate(0deg) translateX(0); }    /* Hạ xuống */
+        }
+
+        @keyframes pulse-heart-talk {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); } /* Chỉ scale nhỏ 1.05x */
+        }
+
+        @keyframes blink-talk {
+            0%, 30% { transform: scaleY(1); }
+            40%, 60% { transform: scaleY(0.1); } /* Nhắm mắt (cười) ở giữa */
+            70%, 100% { transform: scaleY(1); }
+        }
+
+        @keyframes bubble-pop {
+            /* 180ms fade in = ~3.6% | 160ms fade out = ~3.2% (từ 96.8%) */
+            0% { transform: translateY(10px); opacity: 0; }
+            3.6% { transform: translateY(0); opacity: 1; }
+            96.8% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-5px); opacity: 0; }
+        }
+    </style>
+
+    <!-- BÓNG ĐỔ DƯỚI ĐẤT -->
+    <g id="shadow">
+        <ellipse cx="100" cy="180" rx="45" ry="8" fill="#253549" />
+    </g>
+
+    <!-- WRAPPER CHÍNH (Nghiêng nhẹ ±2deg) -->
+    <g id="pulse-buddy-wrapper">
+
+        <!-- LEFT ARM -->
+        <g id="leftArm">
+            <path class="stroke-main fill-base" d="M 52 120 C 30 115, 20 130, 32 145 C 38 152, 48 145, 50 135" />
+        </g>
+
+        <!-- RIGHT ARM (Tay này sẽ vẫy chào) -->
+        <g id="rightArm">
+            <path class="stroke-main fill-base" d="M 148 120 C 170 115, 180 130, 168 145 C 162 152, 152 145, 150 135" />
+        </g>
+
+        <!-- THÂN CHÍNH (BODY) -->
+        <g id="body">
+            <path class="stroke-main fill-base" d="M 100 35 C 140 35, 155 80, 155 135 C 155 162, 135 172, 100 172 C 65 172, 45 162, 45 135 C 45 80, 60 35, 100 35 Z" />
+        </g>
+
+        <!-- TRÁI TIM Ở NGỰC (HEART CORE - PULSE NHẸ) -->
+        <g id="heartCore">
+            <path class="fill-accent-sky" d="M 100 146 C 100 146, 86 136, 86 128 C 86 122, 91 118, 97 118 C 100 118, 100 121, 100 121 C 100 121, 100 118, 103 118 C 109 118, 114 122, 114 128 C 114 136, 100 146, 100 146 Z" />
+            <path class="stroke-main" fill="none" d="M 100 146 C 100 146, 86 136, 86 128 C 86 122, 91 118, 97 118 C 100 118, 100 121, 100 121 C 100 121, 100 118, 103 118 C 109 118, 114 122, 114 128 C 114 136, 100 146, 100 146 Z" />
+        </g>
+
+        <!-- KHUÔN MẶT (FACE) -->
+        <g id="face">
+            
+            <!-- Má hồng -->
+            <g id="blush">
+                <ellipse cx="68" cy="104" rx="7" ry="3.5" class="fill-accent-amber" opacity="0.6" />
+                <ellipse cx="132" cy="104" rx="7" ry="3.5" class="fill-accent-amber" opacity="0.6" />
+            </g>
+
+            <!-- Kính Nerd -->
+            <g id="glasses">
+                <path class="stroke-main" fill="none" d="M 92 88 Q 100 84 108 88" stroke-width="4" />
+                <circle cx="76" cy="90" r="16" class="stroke-main" fill="none" stroke-width="4.5" />
+                <circle cx="124" cy="90" r="16" class="stroke-main" fill="none" stroke-width="4.5" />
+            </g>
+
+            <!-- MẮT (EYES) -->
+            <g id="eyes">
+                <g class="pupil-group" style="transform-origin: 76px 90px;">
+                    <circle cx="76" cy="90" r="5" class="fill-dark" />
+                    <circle cx="74" cy="88" r="1.5" fill="#ffffff" />
+                </g>
+                <g class="pupil-group" style="transform-origin: 124px 90px;">
+                    <circle cx="124" cy="90" r="5" class="fill-dark" />
+                    <circle cx="122" cy="88" r="1.5" fill="#ffffff" />
+                </g>
+            </g>
+
+            <!-- MIỆNG (MOUTH) - Cười tươi -->
+            <g id="mouth">
+                <path class="stroke-main" fill="none" d="M 93 102 Q 100 108 107 102" stroke-width="4" />
+            </g>
+            
+        </g>
+    </g>
+
+    <!-- POSITIONING WRAPPER CHO SPEECH BUBBLE (Đã fix tọa độ an toàn) -->
+    <g transform="translate(25, 10) scale(0.9)">
+        <!-- SPEECH BUBBLE CHÍNH -->
+        <g id="speech-bubble">
+            <!-- Box Bong bóng thoại + Đuôi chỉ về phía má phải của mascot -->
+            <path class="stroke-main" fill="#ffffff" d="M 15 0 L 135 0 C 143 0 150 7 150 15 L 150 45 C 150 53 143 60 135 60 L 95 60 L 80 75 L 85 60 L 15 60 C 7 60 0 53 0 45 L 0 15 C 0 7 7 0 15 0 Z" />
+            
+            <!-- Icon Sparkle góc nhỏ -->
+            <path class="fill-accent-amber" d="M 12 16 Q 16 16 16 12 Q 16 16 20 16 Q 16 16 16 20 Q 16 16 12 16 Z" />
+            
+            <!-- Nội dung Text (Font hệ thống, nét đậm vừa phải) -->
+            <text x="26" y="26" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="12" fill="#253549">Hôm nay nhớ uống</text>
+            <text x="26" y="44" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="12" fill="#253549">thêm nước nhé!</text>
+        </g>
+    </g>
+
+</svg>

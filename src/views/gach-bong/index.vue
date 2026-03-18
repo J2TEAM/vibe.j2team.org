@@ -1,16 +1,23 @@
 <script setup lang="ts">
-import { ref, computed, defineAsyncComponent } from 'vue'
+import { ref, computed, watch, defineAsyncComponent, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useWasmEngine } from './composables/useWasmEngine'
 import { useGameState } from './composables/useGameState'
+import { DIFFICULTY_CONFIGS } from './composables/types'
+import type { Difficulty } from './composables/types'
+import { saveHighScore } from './composables/useHighScores'
 
 import GameMenu from './components/GameMenu.vue'
 import ScoreBoard from './components/ScoreBoard.vue'
 import GameBoard from './components/GameBoard.vue'
 import GameOverModal from './components/GameOverModal.vue'
+import ScoreHistoryModal from './components/ScoreHistoryModal.vue'
 
 const MusicVideo = defineAsyncComponent(() => import('./components/MusicVideo.vue'))
 const MusicVideoHoaChanh = defineAsyncComponent(() => import('./components/MusicVideoHoaChanh.vue'))
 
+const route = useRoute()
+const router = useRouter()
 const { engine, loading, error } = useWasmEngine()
 const {
   state,
@@ -24,7 +31,37 @@ const {
 } = useGameState(engine)
 
 const mode = ref<'launcher' | 'game' | 'mv-intro' | 'mv-hoa-chanh'>('launcher')
-const TILE_SIZE = 48
+const showHistory = ref(false)
+
+// Dynamic tile size based on screen and difficulty
+const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 800)
+const windowHeight = ref(typeof window !== 'undefined' ? window.innerHeight : 600)
+
+const tileSize = computed(() => {
+  // Use smaller tile in menu for the logo area
+  if (state.value.status === 'menu') return 60
+
+  const config = DIFFICULTY_CONFIGS[state.value.difficulty]
+  const maxBoardWidth = Math.min(windowWidth.value - 32, 800)
+  const maxBoardHeight = windowHeight.value * 0.55
+  const sizeByWidth = Math.floor(maxBoardWidth / config.cols)
+  const sizeByHeight = Math.floor(maxBoardHeight / config.rows)
+  return Math.min(sizeByWidth, sizeByHeight, 80)
+})
+
+function handleResize() {
+  windowWidth.value = window.innerWidth
+  windowHeight.value = window.innerHeight
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+  checkUrlForLevel()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+})
 
 // Timer logic
 const timerId = ref<ReturnType<typeof setInterval> | null>(null)
@@ -43,8 +80,7 @@ function stopTimer() {
   }
 }
 
-// Watch status để quản lý timer
-import { watch } from 'vue'
+// Watch status to manage timer
 watch(
   () => state.value.status,
   (newStatus, oldStatus) => {
@@ -53,12 +89,53 @@ watch(
     } else if (newStatus !== 'playing' && oldStatus === 'playing') {
       stopTimer()
     }
+
+    // Save high score when game is won
+    if (newStatus === 'won') {
+      saveHighScore(state.value.score, state.value.difficulty)
+    }
   },
 )
 
-function handleStartGame(difficulty: Parameters<typeof startGame>[0]) {
+// Watch URL query param for browser back/forward navigation
+watch(
+  () => route.query.level,
+  (newLevel) => {
+    if (!newLevel || newLevel === '') {
+      // No level in URL - go back to menu
+      if (state.value.status !== 'menu') {
+        backToMenu()
+        mode.value = 'launcher'
+      }
+    } else if (['easy', 'medium', 'hard'].includes(newLevel as string)) {
+      // Level in URL - start game if not already playing
+      if (state.value.status === 'menu' && engine.value && !loading.value) {
+        startGame(newLevel as Difficulty)
+        mode.value = 'game'
+      }
+    }
+  },
+)
+
+function handleStartGame(difficulty: Difficulty) {
   startGame(difficulty)
   mode.value = 'game'
+  // Update URL with level query param
+  router.push({ query: { level: difficulty } })
+}
+
+// Check for level in URL query on mount
+function checkUrlForLevel() {
+  const level = route.query.level as string
+  if (level && ['easy', 'medium', 'hard'].includes(level)) {
+    // Wait for engine to load, then start game
+    const checkAndStart = setInterval(() => {
+      if (!loading.value && engine.value) {
+        clearInterval(checkAndStart)
+        handleStartGame(level as Difficulty)
+      }
+    }, 100)
+  }
 }
 
 function handleMvIntro() {
@@ -69,9 +146,25 @@ function handleMvHoaChanh() {
   mode.value = 'mv-hoa-chanh'
 }
 
+function handleShowHistory() {
+  showHistory.value = true
+}
+
 function handleBackToLauncher() {
   backToMenu()
   mode.value = 'launcher'
+  // Clear query param - browser back will now work correctly
+  router.push({ query: {} })
+}
+
+function handleBackButton() {
+  if (route.query.level) {
+    // Đang chơi game → về menu game
+    handleBackToLauncher()
+  } else {
+    // Đang ở menu → về trang chủ
+    router.push('/')
+  }
 }
 
 const showGameOver = computed(() => state.value.status === 'won' || state.value.status === 'lost')
@@ -84,15 +177,15 @@ const showGameOver = computed(() => state.value.status === 'won' || state.value.
       class="border-b border-border-default bg-bg-surface/80 px-6 py-4 backdrop-blur-md sticky top-0 z-40"
     >
       <div class="mx-auto flex max-w-7xl items-center justify-between">
-        <RouterLink
-          to="/"
+        <button
           class="group flex items-center gap-2 font-display text-sm font-bold tracking-widest text-text-primary transition hover:text-accent-coral"
+          @click="handleBackButton"
         >
           <span class="opacity-50 transition group-hover:-translate-x-1 group-hover:opacity-100"
             >←</span
           >
-          VỀ TRANG CHỦ
-        </RouterLink>
+          VỀ MENU
+        </button>
 
         <!-- Trạng thái load engine -->
         <div v-if="loading" class="flex flex-col items-center">
@@ -126,14 +219,16 @@ const showGameOver = computed(() => state.value.status === 'won' || state.value.
         <div class="mt-8">
           <!-- Launcher Menu -->
           <GameMenu
-            v-if="state.status === 'menu'"
+            v-if="state.status === 'menu' && engine"
+            :engine="engine"
             @start-game="handleStartGame"
             @mv-intro="handleMvIntro"
             @mv-hoa-chanh="handleMvHoaChanh"
+            @show-history="handleShowHistory"
           />
 
           <!-- Game Interface -->
-          <div v-else class="mx-auto max-w-3xl animate-fade-in">
+          <div v-else class="mx-auto animate-fade-in w-full max-w-[min(100%,800px)]">
             <!-- Score & Controls -->
             <div class="mb-6 flex flex-col gap-4">
               <ScoreBoard
@@ -185,12 +280,13 @@ const showGameOver = computed(() => state.value.status === 'won' || state.value.
 
             <!-- Game Board -->
             <div
-              class="flex justify-center border border-border-default bg-bg-surface p-6 shadow-2xl"
+              v-if="engine"
+              class="flex justify-center items-center overflow-auto border border-border-default bg-bg-surface p-0 sm:p-6 shadow-2xl"
             >
               <GameBoard
                 :key="`board-${state.boardVersion}`"
-                :engine="engine!"
-                :tile-size="TILE_SIZE"
+                :engine="engine"
+                :tile-size="tileSize"
                 :status="state.status"
                 :remaining-tiles="state.remainingTiles"
                 :board-version="state.boardVersion"
@@ -216,6 +312,8 @@ const showGameOver = computed(() => state.value.status === 'won' || state.value.
         @play-again="handleStartGame(state.difficulty)"
         @back-to-menu="handleBackToLauncher"
       />
+
+      <ScoreHistoryModal :visible="showHistory" @close="showHistory = false" />
     </main>
   </div>
 </template>

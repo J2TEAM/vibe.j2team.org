@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useClipboard, useTimeoutFn } from '@vueuse/core'
+import { ref, computed, defineAsyncComponent } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useClipboard, useShare, useTimeoutFn } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 import { REPO_URL } from '@/data/constants'
 import { pages } from '@/data/pages-loader'
 import { useFavorites } from '@/composables/useFavorites'
+
+const GiscusModal = defineAsyncComponent(() => import('@/components/GiscusModal.vue'))
 
 const props = defineProps<{
   pagePath: string
@@ -18,6 +20,7 @@ const { toggleFavorite, isFavorite } = useFavorites()
 const isDismissed = ref(false)
 const isOpen = ref(false)
 const isAnimating = ref(false)
+const showComments = ref(false)
 
 const { start: startHideTimer, stop: stopHideTimer } = useTimeoutFn(
   () => {
@@ -66,10 +69,6 @@ function handleFavorite() {
   }
 }
 
-function goHome() {
-  router.push('/')
-}
-
 function dismiss() {
   isDismissed.value = true
   isOpen.value = false
@@ -84,16 +83,20 @@ function goToRandom() {
 
 const { copy, copied } = useClipboard({ copiedDuring: 1500 })
 
-async function sharePage() {
-  const url = window.location.href
-  const title = route.meta.title || document.title
+const shareOptions = computed(() => ({
+  title: (route.meta.title as string) || document.title,
+  url: window.location.href,
+}))
 
-  if (navigator.share) {
-    await navigator.share({ title, url }).catch(() => {})
+const { share, isSupported: isShareSupported } = useShare(shareOptions)
+
+async function sharePage() {
+  if (isShareSupported.value) {
+    await share().catch(() => {})
     return
   }
 
-  await copy(url)
+  await copy(window.location.href)
 }
 
 function reportIssue() {
@@ -172,6 +175,12 @@ function reportIssue() {
           }}</span>
         </button>
 
+        <!-- Comments -->
+        <button class="toolbar-btn group" title="Bình luận" @click="showComments = true">
+          <Icon icon="lucide:message-square" class="w-5 h-5" />
+          <span class="toolbar-label font-display tracking-wide">Bình luận</span>
+        </button>
+
         <!-- Report / Feedback -->
         <button class="toolbar-btn group" title="Góp ý về trang này" @click="reportIssue">
           <Icon icon="lucide:message-circle" class="w-5 h-5" />
@@ -179,10 +188,10 @@ function reportIssue() {
         </button>
 
         <!-- Home -->
-        <button class="toolbar-btn group" title="Về trang chủ" @click="goHome">
+        <RouterLink to="/" class="toolbar-btn group" title="Về trang chủ">
           <Icon icon="lucide:home" class="w-5 h-5" />
           <span class="toolbar-label font-display tracking-wide">Trang chủ</span>
-        </button>
+        </RouterLink>
 
         <!-- Random page -->
         <button class="toolbar-btn group" title="Xem trang ngẫu nhiên" @click="goToRandom">
@@ -200,6 +209,8 @@ function reportIssue() {
       </div>
     </div>
   </div>
+
+  <GiscusModal :show="showComments" @close="showComments = false" />
 </template>
 
 <style scoped>

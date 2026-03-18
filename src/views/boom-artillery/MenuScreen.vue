@@ -1,6 +1,6 @@
 <template>
   <div class="menu-screen">
-    <button class="home-btn-float" @click="goHome" title="Về trang chủ">← Trang chủ</button>
+    <RouterLink to="/" class="home-btn-float" title="Về trang chủ">← Trang chủ</RouterLink>
     <div class="menu-container">
       <h1 class="game-title">
         <span class="title-boom">BOOM</span>
@@ -48,10 +48,8 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { RouterLink } from 'vue-router'
 import { DIFFICULTIES } from './constants'
-
-const router = useRouter()
 
 defineProps<{
   modelValue: string
@@ -63,10 +61,6 @@ defineEmits<{
   'update:gameMode': [value: string]
   start: []
 }>()
-
-function goHome() {
-  router.push('/')
-}
 </script>
 
 <style scoped>

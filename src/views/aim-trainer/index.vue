@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
-import { useLocalStorage } from '@vueuse/core'
+import { useEventListener, useLocalStorage } from '@vueuse/core'
 import { RouterLink } from 'vue-router'
 
 type GameState = 'idle' | 'playing' | 'finished'
@@ -18,13 +18,28 @@ const MIN_TARGET_SIZE = 30
 const MAX_TARGET_SIZE = 90
 const MIN_DURATION = 10
 const MAX_DURATION = 120
+const MIN_SENSITIVITY = 0.5
+const MAX_SENSITIVITY = 2.5
+const MIN_GAME_HEIGHT = 260
+const MAX_GAME_HEIGHT = 680
+const MIN_GAME_WIDTH = 320
+const MAX_GAME_WIDTH = 1200
 
 const gameArea = ref<HTMLElement | null>(null)
+const cursorX = ref(0)
+const cursorY = ref(0)
+const lastPointerX = ref<number | null>(null)
+const lastPointerY = ref<number | null>(null)
+const isPointerLocked = ref(false)
+const settingsOpen = ref(true)
 const state = ref<GameState>('idle')
 const score = ref(0)
 const totalClicks = ref(0)
 const targetSize = useLocalStorage<number>('aim-trainer-target-size', 50)
 const durationSec = useLocalStorage<number>('aim-trainer-duration-sec', 30)
+const sensitivity = useLocalStorage<number>('aim-trainer-sensitivity', 1)
+const gameHeight = useLocalStorage<number>('aim-trainer-game-height', 420)
+const gameWidth = useLocalStorage<number>('aim-trainer-game-width', 100)
 const timeLeft = ref(durationSec.value)
 const reactionSum = ref(0)
 
@@ -57,6 +72,23 @@ const targetSizePx = computed(() =>
 const gameDurationMs = computed(
   () => Math.min(MAX_DURATION, Math.max(MIN_DURATION, durationSec.value)) * 1000,
 )
+const sensitivityValue = computed(() =>
+  Math.min(MAX_SENSITIVITY, Math.max(MIN_SENSITIVITY, sensitivity.value)),
+)
+const gameHeightPx = computed(() => Math.max(120, gameHeight.value))
+const gameWidthPx = computed(() => Math.max(240, gameWidth.value))
+const gameHeightSlider = computed({
+  get: () => Math.min(MAX_GAME_HEIGHT, Math.max(MIN_GAME_HEIGHT, gameHeight.value)),
+  set: (value: number) => {
+    gameHeight.value = value
+  },
+})
+const gameWidthSlider = computed({
+  get: () => Math.min(MAX_GAME_WIDTH, Math.max(MIN_GAME_WIDTH, gameWidth.value)),
+  set: (value: number) => {
+    gameWidth.value = value
+  },
+})
 
 let rafId = 0
 let endAt = 0
@@ -92,8 +124,14 @@ function spawnTarget() {
   const maxY = Math.max(0, el.clientHeight - targetSizePx.value)
 
   targetVisible.value = false
-  targetX.value = Math.random() * maxX
-  targetY.value = Math.random() * maxY
+  const centerX = maxX / 2
+  const centerY = maxY / 2
+  const rangeX = centerX * sensitivityValue.value
+  const rangeY = centerY * sensitivityValue.value
+  const nextX = centerX + (Math.random() * 2 - 1) * rangeX
+  const nextY = centerY + (Math.random() * 2 - 1) * rangeY
+  targetX.value = Math.min(maxX, Math.max(0, nextX))
+  targetY.value = Math.min(maxY, Math.max(0, nextY))
   targetKey.value += 1
   spawnedAt.value = performance.now()
   hitLocked.value = false
@@ -108,6 +146,7 @@ function finishGame() {
   targetVisible.value = false
   cancelAnimationFrame(rafId)
   timeLeft.value = 0
+  if (document.pointerLockElement) document.exitPointerLock()
   saveRun()
   if (score.value > bestScore.value) {
     bestScore.value = score.value
@@ -136,27 +175,73 @@ function startGame() {
   reactionSum.value = 0
   timeLeft.value = durationSec.value
   hitLocked.value = false
+  lastPointerX.value = null
+  lastPointerY.value = null
 
   nextTick(() => {
+    const el = gameArea.value
+    if (el) {
+      cursorX.value = el.clientWidth / 2
+      cursorY.value = el.clientHeight / 2
+      try {
+        el.requestPointerLock()
+      } catch {}
+    }
     spawnTarget()
     endAt = performance.now() + gameDurationMs.value
     rafId = requestAnimationFrame(tick)
   })
 }
 
-function handleMissClick() {
+function handlePointerMove(e: PointerEvent) {
   if (state.value !== 'playing') return
-  totalClicks.value += 1
+  if (e.pointerType !== 'mouse') return
+  const el = gameArea.value
+  if (!el) return
+
+  const rect = el.getBoundingClientRect()
+  let dx = 0
+  let dy = 0
+
+  if (isPointerLocked.value) {
+    dx = e.movementX * sensitivityValue.value
+    dy = e.movementY * sensitivityValue.value
+  } else {
+    if (lastPointerX.value === null || lastPointerY.value === null) {
+      lastPointerX.value = e.clientX
+      lastPointerY.value = e.clientY
+      return
+    }
+    dx = (e.clientX - lastPointerX.value) * sensitivityValue.value
+    dy = (e.clientY - lastPointerY.value) * sensitivityValue.value
+    lastPointerX.value = e.clientX
+    lastPointerY.value = e.clientY
+  }
+
+  const nextX = cursorX.value + dx
+  const nextY = cursorY.value + dy
+  cursorX.value = Math.min(rect.width, Math.max(0, nextX))
+  cursorY.value = Math.min(rect.height, Math.max(0, nextY))
 }
 
-function handleTargetHit() {
+function handleShot() {
   if (state.value !== 'playing' || hitLocked.value || !targetVisible.value) return
 
   hitLocked.value = true
   totalClicks.value += 1
-  score.value += 1
-  reactionSum.value += performance.now() - spawnedAt.value
-  targetVisible.value = false
+
+  const targetCenterX = targetX.value + targetSizePx.value / 2
+  const targetCenterY = targetY.value + targetSizePx.value / 2
+  const dx = cursorX.value - targetCenterX
+  const dy = cursorY.value - targetCenterY
+  const distance = Math.hypot(dx, dy)
+  const hitRadius = targetSizePx.value / 2
+
+  if (distance <= hitRadius) {
+    score.value += 1
+    reactionSum.value += performance.now() - spawnedAt.value
+    targetVisible.value = false
+  }
 
   setTimeout(() => {
     if (state.value === 'playing') {
@@ -165,8 +250,19 @@ function handleTargetHit() {
   }, 60)
 }
 
+useEventListener(document, 'pointermove', handlePointerMove)
+useEventListener(document, 'pointerrawupdate', handlePointerMove, { passive: true })
+useEventListener(document, 'pointerlockchange', () => {
+  isPointerLocked.value = document.pointerLockElement === gameArea.value
+  if (!isPointerLocked.value) {
+    lastPointerX.value = null
+    lastPointerY.value = null
+  }
+})
+
 onBeforeUnmount(() => {
   cancelAnimationFrame(rafId)
+  if (document.pointerLockElement) document.exitPointerLock()
 })
 </script>
 
@@ -210,72 +306,147 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div
-        ref="gameArea"
-        class="relative min-h-[300px] flex-1 overflow-hidden border border-border-default bg-bg-surface animate-fade-up animate-delay-2"
-        @pointerdown="handleMissClick"
-      >
-        <button
-          v-if="state === 'playing' && targetVisible"
-          :key="targetKey"
-          class="target-pop absolute touch-none rounded-full border-2 border-bg-deep bg-accent-coral active:scale-95"
-          :style="{
-            left: `${targetX}px`,
-            top: `${targetY}px`,
-            width: `${targetSizePx}px`,
-            height: `${targetSizePx}px`,
-          }"
-          aria-label="Target"
-          @pointerdown.stop.prevent="handleTargetHit"
-        />
-
+      <div class="flex justify-center">
         <div
-          v-if="state !== 'playing'"
-          class="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-bg-deep/70 px-4 text-center"
+          ref="gameArea"
+          class="relative shrink-0 overflow-hidden border border-border-default bg-bg-surface animate-fade-up animate-delay-2"
+          :class="state === 'playing' ? 'cursor-none' : ''"
+          :style="{ height: `${gameHeightPx}px`, width: `${gameWidthPx}px` }"
+          @pointerdown="handleShot"
+          @pointermove="handlePointerMove"
         >
-          <h1 class="font-display text-3xl text-accent-coral sm:text-5xl">Aim Trainer</h1>
-          <p class="text-sm text-text-secondary sm:text-base">
-            {{ durationSec }} giây • Best score:
-            <span class="font-display text-accent-amber">{{ bestScore }}</span>
-          </p>
+          <div
+            v-if="state === 'playing' && targetVisible"
+            :key="targetKey"
+            class="target-pop absolute rounded-full border-2 border-bg-deep bg-accent-coral"
+            :style="{
+              left: `${targetX}px`,
+              top: `${targetY}px`,
+              width: `${targetSizePx}px`,
+              height: `${targetSizePx}px`,
+            }"
+          />
 
           <div
-            class="w-full max-w-sm space-y-3 border border-border-default bg-bg-surface p-4 text-left"
+            v-if="state === 'playing'"
+            class="pointer-events-none absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent-amber bg-accent-amber/20"
+            :style="{ left: `${cursorX}px`, top: `${cursorY}px` }"
           >
-            <label class="block text-xs text-text-secondary">
-              Target size: <span class="text-text-primary">{{ targetSizePx }}px</span>
-            </label>
-            <input
-              v-model.number="targetSize"
-              :min="MIN_TARGET_SIZE"
-              :max="MAX_TARGET_SIZE"
-              type="range"
-              class="w-full accent-accent-coral"
+            <span
+              class="absolute left-1/2 top-1/2 h-5 w-0.5 -translate-x-1/2 -translate-y-1/2 bg-accent-amber/60"
             />
-
-            <label class="block text-xs text-text-secondary">
-              Duration: <span class="text-text-primary">{{ durationSec }}s</span>
-            </label>
-            <input
-              v-model.number="durationSec"
-              :min="MIN_DURATION"
-              :max="MAX_DURATION"
-              type="range"
-              class="w-full accent-accent-amber"
+            <span
+              class="absolute left-1/2 top-1/2 h-0.5 w-5 -translate-x-1/2 -translate-y-1/2 bg-accent-amber/60"
             />
           </div>
 
-          <div v-if="state === 'finished'" class="space-y-1 text-sm text-text-secondary">
-            <p>Kết quả: {{ score }} hits / {{ totalClicks }} clicks</p>
-            <p>Accuracy: {{ accuracy.toFixed(1) }}% • Avg: {{ avgReaction.toFixed(0) }}ms</p>
-          </div>
-
-          <button
-            class="border border-accent-coral bg-accent-coral px-5 py-2 font-display text-bg-deep transition hover:brightness-110"
-            @click="startGame"
+          <div
+            v-if="state !== 'playing'"
+            class="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-bg-deep/70 px-4 text-center"
           >
-            {{ state === 'idle' ? 'Start' : 'Restart' }}
-          </button>
+            <h1 class="font-display text-3xl text-accent-coral sm:text-5xl">Aim Trainer</h1>
+            <p class="text-sm text-text-secondary sm:text-base">
+              {{ durationSec }} giây • Best score:
+              <span class="font-display text-accent-amber">{{ bestScore }}</span>
+            </p>
+
+            <div class="w-full max-w-sm border border-border-default bg-bg-surface text-left">
+              <button
+                class="flex w-full items-center justify-between border-b border-border-default px-4 py-2 text-xs text-text-secondary transition-all duration-300 hover:bg-bg-elevated"
+                type="button"
+                @click="settingsOpen = !settingsOpen"
+              >
+                <span class="font-display text-xs tracking-wide text-text-primary">SETTINGS</span>
+                <span class="text-text-dim">{{ settingsOpen ? 'Ẩn' : 'Mở' }}</span>
+              </button>
+
+              <div
+                v-if="settingsOpen"
+                class="max-h-[220px] space-y-3 overflow-y-auto px-4 py-3 pb-6"
+              >
+                <label class="block text-xs text-text-secondary">
+                  Target size: <span class="text-text-primary">{{ targetSizePx }}px</span>
+                </label>
+                <input
+                  v-model.number="targetSize"
+                  :min="MIN_TARGET_SIZE"
+                  :max="MAX_TARGET_SIZE"
+                  type="range"
+                  class="w-full accent-accent-coral"
+                />
+
+                <label class="block text-xs text-text-secondary">
+                  Duration: <span class="text-text-primary">{{ durationSec }}s</span>
+                </label>
+                <input
+                  v-model.number="durationSec"
+                  :min="MIN_DURATION"
+                  :max="MAX_DURATION"
+                  type="range"
+                  class="w-full accent-accent-amber"
+                />
+
+                <label class="block text-xs text-text-secondary">
+                  Sensitivity:
+                  <span class="text-text-primary">{{ sensitivityValue.toFixed(2) }}x</span>
+                </label>
+                <input
+                  v-model.number="sensitivity"
+                  :min="MIN_SENSITIVITY"
+                  :max="MAX_SENSITIVITY"
+                  step="0.05"
+                  type="range"
+                  class="w-full accent-accent-sky"
+                />
+
+                <label class="block text-xs text-text-secondary">
+                  Game width: <span class="text-text-primary">{{ gameWidthPx }}px</span>
+                </label>
+                <input
+                  v-model.number="gameWidth"
+                  type="number"
+                  class="w-full border border-border-default bg-bg-deep/40 px-2 py-1 text-xs text-text-primary"
+                />
+                <input
+                  v-model.number="gameWidthSlider"
+                  :min="MIN_GAME_WIDTH"
+                  :max="MAX_GAME_WIDTH"
+                  step="1"
+                  type="range"
+                  class="w-full accent-accent-coral"
+                />
+
+                <label class="block text-xs text-text-secondary">
+                  Game height: <span class="text-text-primary">{{ gameHeightPx }}px</span>
+                </label>
+                <input
+                  v-model.number="gameHeight"
+                  type="number"
+                  class="w-full border border-border-default bg-bg-deep/40 px-2 py-1 text-xs text-text-primary"
+                />
+                <input
+                  v-model.number="gameHeightSlider"
+                  :min="MIN_GAME_HEIGHT"
+                  :max="MAX_GAME_HEIGHT"
+                  step="10"
+                  type="range"
+                  class="w-full accent-accent-amber"
+                />
+              </div>
+            </div>
+
+            <div v-if="state === 'finished'" class="space-y-1 text-sm text-text-secondary">
+              <p>Kết quả: {{ score }} hits / {{ totalClicks }} clicks</p>
+              <p>Accuracy: {{ accuracy.toFixed(1) }}% • Avg: {{ avgReaction.toFixed(0) }}ms</p>
+            </div>
+
+            <button
+              class="border border-accent-coral bg-accent-coral px-5 py-2 font-display text-bg-deep transition hover:brightness-110"
+              @click="startGame"
+            >
+              {{ state === 'idle' ? 'Start' : 'Restart' }}
+            </button>
+          </div>
         </div>
       </div>
 

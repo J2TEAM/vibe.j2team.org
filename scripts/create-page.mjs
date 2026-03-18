@@ -5,7 +5,7 @@ import { stdin, stdout, argv, exit } from 'node:process'
 import { parseArgs } from 'node:util'
 
 const VIEWS_DIR = resolve(import.meta.dirname, '..', 'src', 'views')
-const VALID_CATEGORIES = ['game', 'tool', 'fun', 'learn', 'spiritual', 'connect', 'other']
+const VALID_CATEGORIES = ['game', 'tool', 'creative', 'fun', 'learn', 'health', 'finance', 'spiritual', 'connect', 'other']
 const KEBAB_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 const { values: flags, positionals } = parseArgs({
@@ -25,7 +25,7 @@ const slug = positionals[0]
 
 if (!slug) {
   console.error(
-    'Usage: pnpm create:page <slug> [--name "..."] [--description "..."] [--author "..."] [--category game|tool|fun|learn|spiritual|connect|other] [--facebook "..."] [--hide-toolbar]',
+    'Usage: pnpm create:page <slug> [--name "..."] [--description "..."] [--author "..."] [--category game|tool|creative|fun|learn|health|finance|spiritual|connect|other] [--facebook "..."] [--hide-toolbar]',
   )
   exit(1)
 }

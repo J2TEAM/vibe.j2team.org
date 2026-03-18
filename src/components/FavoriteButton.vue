@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { Icon } from '@iconify/vue'
+import { useTimeoutFn } from '@vueuse/core'
 import { useFavorites } from '@/composables/useFavorites'
 
 const props = defineProps<{
@@ -11,16 +12,17 @@ const props = defineProps<{
 
 const { toggleFavorite, isFavorite } = useFavorites()
 
-const isAnimating = ref(false)
+const favorited = computed(() => isFavorite(props.path))
+
+const { isPending: isAnimating, start: startAnimation } = useTimeoutFn(() => {}, 500, {
+  immediate: false,
+})
 
 function handleClick() {
-  const willBeFavorite = !isFavorite(props.path)
+  const willBeFavorite = !favorited.value
   toggleFavorite(props.path)
   if (willBeFavorite) {
-    isAnimating.value = true
-    setTimeout(() => {
-      isAnimating.value = false
-    }, 500)
+    startAnimation()
   }
 }
 </script>
@@ -29,16 +31,16 @@ function handleClick() {
   <button
     class="heart-btn absolute z-10 p-1.5 transition-all duration-200 hover:scale-110"
     :class="[
-      isFavorite(path)
+      favorited
         ? 'text-accent-coral'
         : alwaysVisible
           ? 'text-text-dim'
           : 'text-text-dim opacity-100 sm:opacity-0 sm:group-hover:opacity-100',
       isAnimating && 'is-animating',
     ]"
-    :aria-label="isFavorite(path) ? 'Bỏ yêu thích' : 'Thêm yêu thích'"
+    :aria-label="favorited ? 'Bỏ yêu thích' : 'Thêm yêu thích'"
     @click.stop.prevent="handleClick"
   >
-    <Icon icon="lucide:heart" class="w-5 h-5" :class="isFavorite(path) && 'icon-filled'" />
+    <Icon icon="lucide:heart" class="w-5 h-5" :class="favorited && 'icon-filled'" />
   </button>
 </template>

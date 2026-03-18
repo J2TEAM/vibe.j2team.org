@@ -11,9 +11,7 @@ import { Icon } from '@iconify/vue'
 
     <div class="flex flex-wrap gap-6">
       <a
-        href="https://t.me/juno_okyo"
-        target="_blank"
-        rel="noopener noreferrer nofollow"
+        href="mailto:junookyo@gmail.com?subject=Sponsorship%20Inquiry%20-%20vibe.j2team.org&body=Hi%2C%0A%0AI%20am%20interested%20in%20becoming%20a%20sponsor%20for%20vibe.j2team.org.%0A%0APlease%20let%20me%20know%20the%20available%20sponsorship%20tiers%20and%20benefits.%0A%0AThank%20you!"
         class="group flex flex-col items-center justify-center border border-dashed border-border-default px-8 py-5 transition-all duration-300 hover:-translate-y-1 hover:border-accent-sky hover:bg-bg-elevated animate-pulse-border"
       >
         <Icon icon="lucide:heart" class="w-5 h-5 text-accent-sky icon-filled" />
