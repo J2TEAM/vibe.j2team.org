@@ -44,6 +44,11 @@ onMounted(() => {
     fetchData()
   }
 })
+
+const handleChangeClan = () => {
+  clanData.value = null
+  clanTag.value = ''
+}
 </script>
 
 <template>
@@ -174,10 +179,7 @@ onMounted(() => {
             </div>
           </div>
           <button
-            @click="
-              clanData = null
-              clanTag = ''
-            "
+            @click="handleChangeClan"
             class="text-sm font-medium text-red-400 hover:text-red-300 px-3 py-1 bg-red-900/20 rounded border border-red-900/30 flex items-center transition-colors"
           >
             <Icon icon="lucide:log-out" class="mr-1.5" /> Đổi Clan
