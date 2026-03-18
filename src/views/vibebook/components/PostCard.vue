@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { getCategoryLabel } from '@/data/categories'
@@ -7,10 +7,15 @@ import type { PageInfo } from '@/types/page'
 
 const props = defineProps<{
   page: PageInfo
+  isFavorite: boolean
+  isInRecentTab?: boolean
 }>()
 
 const emit = defineEmits<{
   openComments: []
+  view: []
+  toggleFavorite: []
+  removeFromHistory: []
 }>()
 
 const router = useRouter()
@@ -132,6 +137,34 @@ function sharePost() {
     navigator.clipboard.writeText(url)
   }
 }
+
+// Actions menu (more button)
+const showActionsMenu = ref(false)
+
+function toggleActionsMenu() {
+  showActionsMenu.value = !showActionsMenu.value
+}
+
+function handleToggleFavorite() {
+  emit('toggleFavorite')
+  showActionsMenu.value = false
+}
+
+// Close menu when clicking outside
+function handleClickOutside(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  if (!target.closest('.actions-menu-container')) {
+    showActionsMenu.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <template>
@@ -172,12 +205,59 @@ function sharePost() {
           </span>
         </button>
       </div>
+
+      <!-- More actions (vertical dots) -->
+      <div class="relative actions-menu-container">
+        <button
+          class="p-1 rounded hover:bg-bg-deep text-text-secondary hover:text-text-primary transition-colors"
+          @click.stop="toggleActionsMenu"
+        >
+          <Icon icon="lucide:more-vertical" class="w-5 h-5" />
+        </button>
+
+        <!-- Dropdown menu -->
+        <div
+          v-if="showActionsMenu"
+          class="absolute right-0 top-full mt-1 w-40 bg-bg-surface border border-border-default rounded shadow-lg z-10"
+        >
+          <button
+            class="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-bg-deep transition-colors"
+            @click="handleToggleFavorite"
+          >
+            <Icon
+              :icon="props.isFavorite ? 'lucide:heart' : 'lucide:heart'"
+              :class="props.isFavorite ? 'text-red-500' : ''"
+              class="w-4 h-4"
+            />
+            {{ props.isFavorite ? 'Bỏ yêu thích' : 'Yêu thích' }}
+          </button>
+          <button
+            class="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-bg-deep transition-colors"
+            @click="sharePost"
+          >
+            <Icon icon="lucide:share-2" class="w-4 h-4" />
+            Chia sẻ
+          </button>
+          <button
+            v-if="props.isInRecentTab"
+            class="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-bg-deep transition-colors"
+            @click="emit('removeFromHistory')"
+          >
+            <Icon icon="lucide:trash-2" class="w-4 h-4" />
+            Xoá khỏi lịch sử
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Content -->
     <div class="px-4 pb-2">
       <h3 class="font-display font-bold text-lg text-text-primary mb-1">
-        <RouterLink :to="page.path" class="hover:text-accent-coral transition-colors">
+        <RouterLink
+          :to="page.path"
+          class="hover:text-accent-coral transition-colors"
+          @click="emit('view')"
+        >
           {{ page.name }}
         </RouterLink>
       </h3>
@@ -191,7 +271,10 @@ function sharePost() {
       <!-- Like -->
       <button
         class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-text-secondary hover:text-accent-coral hover:bg-bg-deep transition-colors whitespace-nowrap"
-        @click="emit('openComments')"
+        @click="
+          emit('view')
+          emit('openComments')
+        "
       >
         <Icon icon="lucide:thumbs-up" class="w-4 h-4" />
         <span class="text-sm font-medium">Thích</span>
@@ -200,7 +283,10 @@ function sharePost() {
       <!-- Comment -->
       <button
         class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-text-secondary hover:text-text-primary hover:bg-bg-deep transition-colors whitespace-nowrap"
-        @click="emit('openComments')"
+        @click="
+          emit('view')
+          emit('openComments')
+        "
       >
         <Icon icon="lucide:message-square" class="w-4 h-4" />
         <span class="text-sm font-medium">Bình luận</span>

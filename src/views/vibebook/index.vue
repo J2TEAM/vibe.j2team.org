@@ -5,12 +5,64 @@ import { useIntersectionObserver } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 import { pages } from '@/data/pages-loader'
 import { categories, type CategoryId } from '@/data/categories'
+import { useFavorites } from '@/composables/useFavorites'
 import PostCard from './components/PostCard.vue'
 import PostSkeleton from './components/PostSkeleton.vue'
 import GiscusComments from './components/GiscusComments.vue'
 
 const router = useRouter()
 const PAGE_SIZE = 10
+
+// ============ Favorites ============
+const { favoritePaths, toggleFavorite, isFavorite } = useFavorites()
+
+// ============ Recently Viewed ============
+const RECENTLY_VIEWED_KEY = 'vibebook-recently-viewed'
+const MAX_RECENT = 20
+
+interface RecentlyViewedItem {
+  path: string
+  name: string
+  viewedAt: number
+}
+
+function getRecentlyViewed(): RecentlyViewedItem[] {
+  try {
+    const data = localStorage.getItem(RECENTLY_VIEWED_KEY)
+    return data ? JSON.parse(data) : []
+  } catch {
+    return []
+  }
+}
+
+function addToRecentlyViewed(path: string) {
+  const allPages = pages
+  const page = allPages.find((p) => p.path === path)
+  if (!page) return
+
+  const recentlyViewed = getRecentlyViewed()
+
+  // Remove if already exists (to move to top)
+  const filtered = recentlyViewed.filter((item) => item.path !== path)
+
+  // Add to top
+  filtered.unshift({
+    path: page.path,
+    name: page.name,
+    viewedAt: Date.now(),
+  })
+
+  // Keep only last MAX_RECENT
+  const trimmed = filtered.slice(0, MAX_RECENT)
+
+  localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(trimmed))
+}
+
+// ============ Tabs ============
+type TabId = 'all' | 'recent' | 'favorites'
+const activeTab = ref<TabId>('all')
+
+const recentPaths = ref(new Set(getRecentlyViewed().map((item) => item.path)))
 
 // Filter state
 const searchQuery = ref('')
@@ -22,6 +74,13 @@ const allPages = computed(() => pages.filter((p) => !p.hidden))
 // Filtered pages
 const filteredPages = computed(() => {
   let result = allPages.value
+
+  // Filter by tab
+  if (activeTab.value === 'recent') {
+    result = result.filter((p) => recentPaths.value.has(p.path))
+  } else if (activeTab.value === 'favorites') {
+    result = result.filter((p) => favoritePaths.value.includes(p.path))
+  }
 
   // Filter by category
   if (selectedCategory.value) {
@@ -74,6 +133,11 @@ function handleFilterChange() {
   visibleCount.value = PAGE_SIZE
 }
 
+// Reset when tab changes
+function handleTabChange() {
+  visibleCount.value = PAGE_SIZE
+}
+
 function goHome() {
   router.push('/')
 }
@@ -89,6 +153,22 @@ function openComments(path: string) {
 
 function closeComments() {
   showComments.value = false
+}
+
+function handleToggleFavorite(path: string) {
+  toggleFavorite(path)
+}
+
+function handleViewPost(path: string) {
+  addToRecentlyViewed(path)
+}
+
+function handleRemoveFromHistory(path: string) {
+  const recentlyViewed = getRecentlyViewed()
+  const filtered = recentlyViewed.filter((item) => item.path !== path)
+  localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(filtered))
+  // Force reactivity update
+  recentPaths.value = new Set(filtered.map((item) => item.path))
 }
 </script>
 
@@ -109,6 +189,55 @@ function closeComments() {
             @click="goHome"
           >
             <Icon icon="lucide:home" class="w-5 h-5 text-text-secondary" />
+          </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex gap-1 bg-bg-deep p-1 rounded">
+          <button
+            class="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-sm font-medium transition-colors"
+            :class="
+              activeTab === 'all'
+                ? 'bg-bg-surface text-text-primary shadow'
+                : 'text-text-secondary hover:text-text-primary'
+            "
+            @click="
+              activeTab = 'all'
+              handleTabChange()
+            "
+          >
+            <Icon icon="lucide:layout-grid" class="w-4 h-4" />
+            Tất cả
+          </button>
+          <button
+            class="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-sm font-medium transition-colors"
+            :class="
+              activeTab === 'recent'
+                ? 'bg-bg-surface text-text-primary shadow'
+                : 'text-text-secondary hover:text-text-primary'
+            "
+            @click="
+              activeTab = 'recent'
+              handleTabChange()
+            "
+          >
+            <Icon icon="lucide:clock" class="w-4 h-4" />
+            Đã xem
+          </button>
+          <button
+            class="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-sm font-medium transition-colors"
+            :class="
+              activeTab === 'favorites'
+                ? 'bg-bg-surface text-text-primary shadow'
+                : 'text-text-secondary hover:text-text-primary'
+            "
+            @click="
+              activeTab = 'favorites'
+              handleTabChange()
+            "
+          >
+            <Icon icon="lucide:heart" class="w-4 h-4" />
+            Yêu thích
           </button>
         </div>
 
@@ -163,7 +292,12 @@ function closeComments() {
           v-for="page in visiblePosts"
           :key="page.path"
           :page="page"
+          :is-favorite="isFavorite(page.path)"
+          :is-in-recent-tab="activeTab === 'recent'"
           @open-comments="openComments(page.path)"
+          @view="handleViewPost(page.path)"
+          @toggle-favorite="handleToggleFavorite(page.path)"
+          @remove-from-history="handleRemoveFromHistory(page.path)"
         />
 
         <!-- Loading skeleton -->
