@@ -1,0 +1,362 @@
+[
+	{
+		"id": 1,
+		"text": "Tôi thích tham gia các bữa tiệc hoặc buổi tụ họp đông người.",
+		"dimension": "EI",
+		"pole": "E"
+	},
+	{
+		"id": 2,
+		"text": "Tôi tin tưởng vào kinh nghiệm thực tế hơn là lý thuyết.",
+		"dimension": "SN",
+		"pole": "S"
+	},
+	{
+		"id": 3,
+		"text": "Khi đưa ra quyết định quan trọng, tôi dựa nhiều vào logic và phân tích hơn là cảm xúc.",
+		"dimension": "TF",
+		"pole": "T"
+	},
+	{
+		"id": 4,
+		"text": "Tôi thích lập kế hoạch chi tiết trước khi bắt đầu bất kỳ dự án nào.",
+		"dimension": "JP",
+		"pole": "J"
+	},
+	{
+		"id": 5,
+		"text": "Sau một ngày bận rộn với nhiều người, tôi cần thời gian ở một mình để phục hồi.",
+		"dimension": "EI",
+		"pole": "I"
+	},
+	{
+		"id": 6,
+		"text": "Tôi thường mơ mộng và suy nghĩ về những khả năng trong tương lai.",
+		"dimension": "SN",
+		"pole": "N"
+	},
+	{
+		"id": 7,
+		"text": "Tôi thường quan tâm đến cảm xúc của người khác khi đưa ra quyết định ảnh hưởng đến họ.",
+		"dimension": "TF",
+		"pole": "F"
+	},
+	{
+		"id": 8,
+		"text": "Tôi thích giữ các lựa chọn mở thay vì quyết định quá sớm.",
+		"dimension": "JP",
+		"pole": "P"
+	},
+	{
+		"id": 9,
+		"text": "Tôi thường chủ động bắt chuyện với người lạ trong các sự kiện.",
+		"dimension": "EI",
+		"pole": "E"
+	},
+	{
+		"id": 10,
+		"text": "Tôi chú ý đến các chi tiết cụ thể trong công việc hàng ngày.",
+		"dimension": "SN",
+		"pole": "S"
+	},
+	{
+		"id": 11,
+		"text": "Tôi thích phân tích vấn đề một cách khách quan, không để cảm xúc chi phối.",
+		"dimension": "TF",
+		"pole": "T"
+	},
+	{
+		"id": 12,
+		"text": "Tôi cảm thấy khó chịu hoặc lo lắng khi kế hoạch bị thay đổi đột ngột.",
+		"dimension": "JP",
+		"pole": "J"
+	},
+	{
+		"id": 13,
+		"text": "Tôi thích xử lý vấn đề trong đầu trước khi chia sẻ với người khác.",
+		"dimension": "EI",
+		"pole": "I"
+	},
+	{
+		"id": 14,
+		"text": "Tôi thích tìm hiểu ý nghĩa sâu xa và mẫu hình ẩn đằng sau sự vật.",
+		"dimension": "SN",
+		"pole": "N"
+	},
+	{
+		"id": 15,
+		"text": "Sự hòa hợp trong nhóm quan trọng hơn việc đạt được kết quả tốt nhất về mặt logic.",
+		"dimension": "TF",
+		"pole": "F"
+	},
+	{
+		"id": 16,
+		"text": "Tôi thích linh hoạt với lịch trình và thích ứng với hoàn cảnh hơn là tuân theo kế hoạch cố định.",
+		"dimension": "JP",
+		"pole": "P"
+	},
+	{
+		"id": 17,
+		"text": "Tôi thích làm việc nhóm và trao đổi ý tưởng với mọi người hơn là làm một mình.",
+		"dimension": "EI",
+		"pole": "E"
+	},
+	{
+		"id": 18,
+		"text": "Tôi thích làm theo quy trình và hướng dẫn cụ thể từng bước.",
+		"dimension": "SN",
+		"pole": "S"
+	},
+	{
+		"id": 19,
+		"text": "Tôi cho rằng sự thật và công bằng quan trọng hơn việc làm hài lòng người khác.",
+		"dimension": "TF",
+		"pole": "T"
+	},
+	{
+		"id": 20,
+		"text": "Tôi thường hoàn thành công việc trước thời hạn để tránh áp lực vào phút cuối.",
+		"dimension": "JP",
+		"pole": "J"
+	},
+	{
+		"id": 21,
+		"text": "Tôi cảm thấy thoải mái hơn trong các cuộc gặp gỡ nhỏ, thân mật hơn là sự kiện đông người.",
+		"dimension": "EI",
+		"pole": "I"
+	},
+	{
+		"id": 22,
+		"text": "Tôi thường nghĩ đến những ý tưởng mới và cách thức đổi mới mọi thứ.",
+		"dimension": "SN",
+		"pole": "N"
+	},
+	{
+		"id": 23,
+		"text": "Tôi dễ dàng cảm thông và chia sẻ cảm xúc với những người gặp khó khăn.",
+		"dimension": "TF",
+		"pole": "F"
+	},
+	{
+		"id": 24,
+		"text": "Tôi thường làm tốt nhất khi có áp lực của deadline gần kề.",
+		"dimension": "JP",
+		"pole": "P"
+	},
+	{
+		"id": 25,
+		"text": "Tôi dễ dàng gặp gỡ và kết bạn với nhiều người mới.",
+		"dimension": "EI",
+		"pole": "E"
+	},
+	{
+		"id": 26,
+		"text": "Tôi tin vào những gì có thể nhìn thấy, chạm vào hoặc kiểm chứng được.",
+		"dimension": "SN",
+		"pole": "S"
+	},
+	{
+		"id": 27,
+		"text": "Tôi đánh giá cao sự hiệu quả và năng suất trong công việc hơn là bầu không khí tốt.",
+		"dimension": "TF",
+		"pole": "T"
+	},
+	{
+		"id": 28,
+		"text": "Tôi thích không gian làm việc gọn gàng, ngăn nắp và có tổ chức.",
+		"dimension": "JP",
+		"pole": "J"
+	},
+	{
+		"id": 29,
+		"text": "Tôi thường suy nghĩ kỹ trước khi lên tiếng trong cuộc thảo luận.",
+		"dimension": "EI",
+		"pole": "I"
+	},
+	{
+		"id": 30,
+		"text": "Tôi thường nhìn thấy mối liên hệ giữa các sự việc tưởng chừng không liên quan.",
+		"dimension": "SN",
+		"pole": "N"
+	},
+	{
+		"id": 31,
+		"text": "Lời khen ngợi và sự công nhận từ người khác tác động nhiều đến động lực của tôi.",
+		"dimension": "TF",
+		"pole": "F"
+	},
+	{
+		"id": 32,
+		"text": "Tôi không ngại bắt đầu nhiều dự án cùng một lúc dù chưa hoàn thành cái trước.",
+		"dimension": "JP",
+		"pole": "P"
+	},
+	{
+		"id": 33,
+		"text": "Tôi thấy mình có năng lượng hơn sau khi ở cùng nhiều người.",
+		"dimension": "EI",
+		"pole": "E"
+	},
+	{
+		"id": 34,
+		"text": "Tôi tập trung vào hiện tại và những việc đang xảy ra hơn là lo lắng về tương lai.",
+		"dimension": "SN",
+		"pole": "S"
+	},
+	{
+		"id": 35,
+		"text": "Tôi có thể đưa ra những quyết định khó khăn mà không bị cảm xúc ảnh hưởng.",
+		"dimension": "TF",
+		"pole": "T"
+	},
+	{
+		"id": 36,
+		"text": "Tôi thích có kế hoạch rõ ràng hơn là tùy cơ ứng biến trong cuộc sống.",
+		"dimension": "JP",
+		"pole": "J"
+	},
+	{
+		"id": 37,
+		"text": "Tôi thích có không gian riêng khi làm việc hơn là văn phòng mở.",
+		"dimension": "EI",
+		"pole": "I"
+	},
+	{
+		"id": 38,
+		"text": "Tôi thích suy nghĩ về những điều chưa tồn tại nhưng có thể xảy ra.",
+		"dimension": "SN",
+		"pole": "N"
+	},
+	{
+		"id": 39,
+		"text": "Tôi thường nghĩ đến tác động của quyết định lên cảm xúc và mối quan hệ của mọi người.",
+		"dimension": "TF",
+		"pole": "F"
+	},
+	{
+		"id": 40,
+		"text": "Tôi thấy thoải mái khi thay đổi kế hoạch vào phút chót nếu có cơ hội tốt hơn.",
+		"dimension": "JP",
+		"pole": "P"
+	},
+	{
+		"id": 41,
+		"text": "Tôi thường là người khởi xướng cuộc trò chuyện trong nhóm bạn bè.",
+		"dimension": "EI",
+		"pole": "E"
+	},
+	{
+		"id": 42,
+		"text": "Tôi nhớ rõ các chi tiết cụ thể và thực tế của những sự kiện đã qua.",
+		"dimension": "SN",
+		"pole": "S"
+	},
+	{
+		"id": 43,
+		"text": "Tôi thích tranh luận dựa trên bằng chứng và lý lẽ hơn là dựa trên cảm nhận.",
+		"dimension": "TF",
+		"pole": "T"
+	},
+	{
+		"id": 44,
+		"text": "Tôi thích đưa ra quyết định sớm và dứt khoát để tiến về phía trước.",
+		"dimension": "JP",
+		"pole": "J"
+	},
+	{
+		"id": 45,
+		"text": "Tôi thấy mệt mỏi sau khi tham dự các sự kiện xã hội kéo dài.",
+		"dimension": "EI",
+		"pole": "I"
+	},
+	{
+		"id": 46,
+		"text": "Tôi bị thu hút bởi các ý tưởng sáng tạo, độc đáo và chưa được khám phá.",
+		"dimension": "SN",
+		"pole": "N"
+	},
+	{
+		"id": 47,
+		"text": "Tôi cảm thấy có trách nhiệm đối với hạnh phúc và cảm xúc của những người xung quanh.",
+		"dimension": "TF",
+		"pole": "F"
+	},
+	{
+		"id": 48,
+		"text": "Tôi thường trì hoãn quyết định vì muốn thu thập thêm thông tin trước.",
+		"dimension": "JP",
+		"pole": "P"
+	},
+	{
+		"id": 49,
+		"text": "Tôi có vòng kết bạn rộng và thường xuyên giao lưu với nhiều người.",
+		"dimension": "EI",
+		"pole": "E"
+	},
+	{
+		"id": 50,
+		"text": "Tôi thích hướng dẫn thực tế hơn là giải thích theo kiểu lý luận trừu tượng.",
+		"dimension": "SN",
+		"pole": "S"
+	},
+	{
+		"id": 51,
+		"text": "Tôi nghĩ rằng phê bình trực tiếp và thẳng thắn có ích hơn là chia sẻ nhẹ nhàng.",
+		"dimension": "TF",
+		"pole": "T"
+	},
+	{
+		"id": 52,
+		"text": "Danh sách việc cần làm và lịch trình giúp tôi cảm thấy an tâm và làm việc hiệu quả hơn.",
+		"dimension": "JP",
+		"pole": "J"
+	},
+	{
+		"id": 53,
+		"text": "Tôi thích giao tiếp qua tin nhắn hoặc email hơn là nói chuyện trực tiếp.",
+		"dimension": "EI",
+		"pole": "I"
+	},
+	{
+		"id": 54,
+		"text": "Tôi thường dựa vào trực giác và linh cảm hơn là dữ liệu khi đưa ra quyết định.",
+		"dimension": "SN",
+		"pole": "N"
+	},
+	{
+		"id": 55,
+		"text": "Tôi thường điều chỉnh lập trường của mình để tránh gây mất lòng người khác.",
+		"dimension": "TF",
+		"pole": "F"
+	},
+	{
+		"id": 56,
+		"text": "Tôi thích khám phá nhiều hướng giải quyết khác nhau thay vì chọn ngay một cách cụ thể.",
+		"dimension": "JP",
+		"pole": "P"
+	},
+	{
+		"id": 57,
+		"text": "Tôi cảm thấy hứng khởi và tràn đầy năng lượng sau các buổi gặp mặt bạn bè.",
+		"dimension": "EI",
+		"pole": "E"
+	},
+	{
+		"id": 58,
+		"text": "Tôi thích những gì quen thuộc và đã được chứng minh hơn là những gì mới và chưa biết.",
+		"dimension": "SN",
+		"pole": "S"
+	},
+	{
+		"id": 59,
+		"text": "Khi ai đó trình bày vấn đề, tôi tập trung vào việc tìm giải pháp hơn là hỏi họ cảm thấy thế nào.",
+		"dimension": "TF",
+		"pole": "T"
+	},
+	{
+		"id": 60,
+		"text": "Tôi cảm thấy hài lòng và nhẹ nhõm khi hoàn thành và \"đóng\" một việc đã xong.",
+		"dimension": "JP",
+		"pole": "J"
+	}
+]
