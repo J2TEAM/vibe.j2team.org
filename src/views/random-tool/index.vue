@@ -10,7 +10,7 @@ const activeTab = ref<TabId>('number')
 
 const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: 'number', label: 'Số ngẫu nhiên', icon: 'lucide:dice-5' },
-  { id: 'wheel', label: 'Vòng quay', icon: 'lucide:rotate-cw' },
+  { id: 'wheel', label: 'Hộp ngẫu nhiên', icon: 'lucide:gift' },
   { id: 'race', label: 'Đua về đích', icon: 'lucide:flag' },
   { id: 'bracket', label: 'Bốc thăm', icon: 'lucide:trophy' },
   { id: 'coin', label: 'Đúng / Sai', icon: 'lucide:circle-dot' },
@@ -80,6 +80,7 @@ const wheelMode = ref<WheelMode>('auto')
 const wheelBoxOrder = ref<string[]>([])
 const wheelOpenedIndices = ref<number[]>([])
 const wheelRevealingIdx = ref<number | null>(null)
+const wheelScanningIdx = ref<number | null>(null) // highlight chạy qua hộp khi auto
 
 const BOX_STYLES = [
   {
@@ -119,11 +120,10 @@ watch(
   { immediate: true },
 )
 
-function openBox(idx: number) {
-  if (wheelSpinning.value || wheelOpenedIndices.value.includes(idx)) return
+function openBox(idx: number, alreadyLocked = false) {
+  if (!alreadyLocked && (wheelSpinning.value || wheelOpenedIndices.value.includes(idx))) return
+  if (!alreadyLocked) wheelSpinning.value = true
   wheelRevealingIdx.value = idx
-  wheelSpinning.value = true
-  wheelResult.value = ''
   setTimeout(() => {
     wheelResult.value = wheelBoxOrder.value[idx] ?? ''
     wheelOpenedIndices.value = [...wheelOpenedIndices.value, idx]
@@ -138,7 +138,35 @@ function autoOpenBox() {
     .map((_, i) => i)
     .filter((i) => !wheelOpenedIndices.value.includes(i))
   if (unopened.length === 0) return
-  openBox(unopened[Math.floor(Math.random() * unopened.length)]!)
+
+  const targetIdx = unopened[Math.floor(Math.random() * unopened.length)]!
+  wheelSpinning.value = true
+  wheelResult.value = ''
+
+  // Scanning: chạy qua tất cả hộp chưa mở, tăng tốc rồi chậm lại trước khi dừng
+  const totalFrames = 28
+  const scanSequence: number[] = []
+  // Tạo chuỗi scan: nhanh đầu → chậm cuối → dừng ở targetIdx
+  for (let f = 0; f < totalFrames; f++) {
+    scanSequence.push(unopened[f % unopened.length]!)
+  }
+  // 5 frame cuối chậm lại và kết thúc ở target
+  for (let f = 0; f < 5; f++) scanSequence.push(targetIdx)
+
+  let frame = 0
+  function tick() {
+    wheelScanningIdx.value = scanSequence[frame] ?? null
+    frame++
+    if (frame < scanSequence.length) {
+      // Delay tăng dần ở cuối (hồi hộp)
+      const delay = frame < totalFrames ? 60 + frame * 4 : 180 + (frame - totalFrames) * 80
+      setTimeout(tick, delay)
+    } else {
+      wheelScanningIdx.value = null
+      openBox(targetIdx, true)
+    }
+  }
+  tick()
 }
 
 function resetBoxes() {
@@ -157,7 +185,9 @@ function handleBoxClick(idx: number) {
 function boxClasses(idx: number): string {
   const s = BOX_STYLES[idx % 3]!
   if (wheelOpenedIndices.value.includes(idx)) return `${s.opened} cursor-default`
-  if (wheelRevealingIdx.value === idx) return 'border-accent-amber bg-accent-amber/20 scale-105'
+  if (wheelRevealingIdx.value === idx) return 'border-accent-amber bg-accent-amber/20 scale-110'
+  if (wheelScanningIdx.value === idx)
+    return 'border-accent-amber bg-accent-amber/15 scale-105 shadow-[0_0_12px_rgba(255,184,48,0.5)]'
   if (wheelMode.value === 'manual' && !wheelSpinning.value)
     return `bg-bg-surface ${s.closed} hover:scale-105 cursor-pointer active:scale-95`
   return `bg-bg-surface ${s.closed} cursor-default opacity-60`
@@ -830,10 +860,22 @@ onUnmounted(() => {
                 <template v-if="!wheelOpenedIndices.includes(idx) && wheelRevealingIdx !== idx">
                   <Icon
                     icon="lucide:gift"
-                    class="mb-1 size-7"
-                    :class="wheelMode === 'manual' ? 'text-text-secondary' : 'text-text-dim'"
+                    class="mb-1 size-7 transition-colors"
+                    :class="
+                      wheelScanningIdx === idx
+                        ? 'text-accent-amber'
+                        : wheelMode === 'manual'
+                          ? 'text-text-secondary'
+                          : 'text-text-dim'
+                    "
                   />
-                  <span class="font-display text-xs text-text-dim">{{ idx + 1 }}</span>
+                  <span
+                    class="font-display text-xs transition-colors"
+                    :class="
+                      wheelScanningIdx === idx ? 'text-accent-amber font-bold' : 'text-text-dim'
+                    "
+                    >{{ idx + 1 }}</span
+                  >
                 </template>
 
                 <!-- Revealing -->
@@ -878,7 +920,13 @@ onUnmounted(() => {
                 class="size-5"
                 :class="wheelSpinning ? 'animate-bounce' : ''"
               />
-              {{ wheelSpinning ? 'Đang mở...' : 'Mở hộp ngẫu nhiên' }}
+              {{
+                wheelScanningIdx !== null
+                  ? 'Đang chọn...'
+                  : wheelSpinning
+                    ? 'Đang mở...'
+                    : 'Mở hộp ngẫu nhiên'
+              }}
             </button>
 
             <!-- Result -->
