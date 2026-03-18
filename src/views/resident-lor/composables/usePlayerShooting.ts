@@ -93,16 +93,44 @@ export function usePlayerShooting(
       if (isHolding) shoot(mouseX, mouseY)
     }, FIRE_RATE_MS)
 
+    const handleTouchStart = (e: TouchEvent) => {
+      for (const touch of Array.from(e.changedTouches)) {
+        if ((touch.target as Element)?.closest('[data-no-shoot]')) continue
+        isHolding = true
+        mouseX = touch.clientX
+        mouseY = touch.clientY
+        shoot(touch.clientX, touch.clientY)
+        break
+      }
+    }
+    const handleTouchMove = (e: TouchEvent) => {
+      for (const touch of Array.from(e.changedTouches)) {
+        if ((touch.target as Element)?.closest('[data-no-shoot]')) continue
+        mouseX = touch.clientX
+        mouseY = touch.clientY
+        break
+      }
+    }
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length === 0) isHolding = false
+    }
+
     window.addEventListener('mousedown', handleMouseDown)
     window.addEventListener('mouseup', handleMouseUp)
     window.addEventListener('mouseleave', handleMouseLeave)
     window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('touchstart', handleTouchStart, { passive: true })
+    window.addEventListener('touchmove', handleTouchMove, { passive: true })
+    window.addEventListener('touchend', handleTouchEnd)
 
     onUnmounted(() => {
       window.removeEventListener('mousedown', handleMouseDown)
       window.removeEventListener('mouseup', handleMouseUp)
       window.removeEventListener('mouseleave', handleMouseLeave)
       window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchend', handleTouchEnd)
       clearInterval(fireInterval)
     })
   })

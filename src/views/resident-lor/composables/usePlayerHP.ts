@@ -4,6 +4,7 @@ import type { Zombie } from '../types'
 const DAMAGE_PER_HIT = 8
 const DAMAGE_COOLDOWN_MS = 600
 const TOUCH_RADIUS = 0.00006
+const HIT_FLASH_MS = 300
 
 export type UsePlayerHPOptions = {
   maxHp?: number
@@ -25,7 +26,9 @@ export function usePlayerHP(
   } = options ?? {}
 
   const hp = ref(max)
+  const isHit = ref(false)
   let lastDamageTime = 0
+  let hitFlashId: ReturnType<typeof setTimeout> | null = null
 
   let rafId: number
   const tick = () => {
@@ -45,13 +48,22 @@ export function usePlayerHP(
       if (dist2 < r2 && now - lastDamageTime >= damageCooldownMs) {
         hp.value = Math.max(0, hp.value - damagePerHit)
         lastDamageTime = now
+        isHit.value = true
+        if (hitFlashId) clearTimeout(hitFlashId)
+        hitFlashId = setTimeout(() => {
+          isHit.value = false
+        }, HIT_FLASH_MS)
         break
       }
     }
     rafId = requestAnimationFrame(tick)
   }
   rafId = requestAnimationFrame(tick)
-  onUnmounted(() => cancelAnimationFrame(rafId))
 
-  return { hp, maxHp: max }
+  onUnmounted(() => {
+    cancelAnimationFrame(rafId)
+    if (hitFlashId) clearTimeout(hitFlashId)
+  })
+
+  return { hp, maxHp: max, isHit }
 }

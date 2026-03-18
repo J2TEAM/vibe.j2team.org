@@ -42,7 +42,11 @@ const bullets = usePlayerShooting(position, mapRef, {
   onZombieHit,
 })
 
-const { hp, maxHp } = usePlayerHP(position, zombies)
+const { hp, maxHp, isHit } = usePlayerHP(position, zombies)
+
+function setKey(dir: 'w' | 'a' | 's' | 'd', val: boolean) {
+  keys.value = { ...keys.value, [dir]: val }
+}
 
 const isGameOver = ref(false)
 const finalScore = ref(0)
@@ -59,6 +63,7 @@ function playAgain() {
   hp.value = maxHp
   score.value = 0
   position.value = { lat: INITIAL_LAT, lng: INITIAL_LNG }
+  keys.value = { w: false, a: false, s: false, d: false }
   resetZombies()
   bullets.value = []
 }
@@ -93,6 +98,45 @@ function playAgain() {
         <span class="hud-label">Điểm</span>
         <span class="score-value">{{ score }}</span>
       </div>
+    </div>
+
+    <!-- Màn hình đỏ khi zombie đánh -->
+    <div v-if="isHit" class="damage-flash" />
+
+    <!-- D-pad di chuyển trên mobile -->
+    <div v-show="!isGameOver" class="dpad" data-no-shoot>
+      <button
+        class="dpad-btn dpad-up"
+        @touchstart.prevent.stop="setKey('w', true)"
+        @touchend.prevent.stop="setKey('w', false)"
+        @touchcancel.prevent.stop="setKey('w', false)"
+      >
+        ▲
+      </button>
+      <button
+        class="dpad-btn dpad-left"
+        @touchstart.prevent.stop="setKey('a', true)"
+        @touchend.prevent.stop="setKey('a', false)"
+        @touchcancel.prevent.stop="setKey('a', false)"
+      >
+        ◀
+      </button>
+      <button
+        class="dpad-btn dpad-right"
+        @touchstart.prevent.stop="setKey('d', true)"
+        @touchend.prevent.stop="setKey('d', false)"
+        @touchcancel.prevent.stop="setKey('d', false)"
+      >
+        ▶
+      </button>
+      <button
+        class="dpad-btn dpad-down"
+        @touchstart.prevent.stop="setKey('s', true)"
+        @touchend.prevent.stop="setKey('s', false)"
+        @touchcancel.prevent.stop="setKey('s', false)"
+      >
+        ▼
+      </button>
     </div>
 
     <RouterLink to="/" class="home-link" title="Về trang chủ"> 🏠 Về trang chủ </RouterLink>
@@ -235,5 +279,79 @@ function playAgain() {
 
 .btn-play-again:hover {
   background: #16a34a;
+}
+
+/* Màn hình đỏ khi bị damage */
+.damage-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+  background: rgba(220, 38, 38, 0.45);
+  animation: flash-out 0.3s ease-out forwards;
+}
+
+@keyframes flash-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* D-pad di chuyển trên mobile */
+.dpad {
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
+  z-index: 20;
+  display: grid;
+  grid-template-areas:
+    '. up .'
+    'left . right'
+    '. down .';
+  gap: 6px;
+}
+
+.dpad-btn {
+  width: 60px;
+  height: 60px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+}
+
+.dpad-btn:active {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.dpad-up {
+  grid-area: up;
+}
+.dpad-left {
+  grid-area: left;
+}
+.dpad-right {
+  grid-area: right;
+}
+.dpad-down {
+  grid-area: down;
+}
+
+/* Ẩn D-pad trên desktop */
+@media (hover: hover) and (pointer: fine) {
+  .dpad {
+    display: none;
+  }
 }
 </style>
