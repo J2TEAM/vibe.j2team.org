@@ -17,6 +17,8 @@ const g = useGame()
 
 // Show/hide time config
 const showTimeConfig = ref(false)
+// Show/hide guide modal
+const showGuide = ref(false)
 
 // Night step labels
 const STEP_LABELS: Record<NightStep, string> = {
@@ -126,9 +128,13 @@ function formatTime(secs: number) {
           <Icon icon="lucide:arrow-left" class="size-3.5" />
           Trang chủ
         </RouterLink>
-        <span class="font-display text-xs tracking-widest text-text-dim uppercase">
-          <span class="text-accent-coral">//</span> MA SÓI
-        </span>
+        <button
+          class="flex items-center gap-1.5 border border-border-default bg-bg-surface px-3 py-1.5 text-sm text-text-secondary transition hover:border-accent-sky hover:text-accent-sky"
+          @click="showGuide = true"
+        >
+          <Icon icon="lucide:book-open" class="size-3.5" />
+          Hướng dẫn
+        </button>
       </div>
 
       <h1 class="mb-1 font-display text-3xl font-bold">Quản trò Ma Sói</h1>
@@ -1218,5 +1224,208 @@ function formatTime(secs: number) {
         </footer>
       </div>
     </div>
+
+    <!-- Floating guide button (visible in all non-setup phases) -->
+    <button
+      v-if="g.phase.value !== 'setup'"
+      class="fixed right-4 top-4 z-40 flex size-10 items-center justify-center border border-border-default bg-bg-surface text-text-dim shadow-lg transition hover:border-accent-sky hover:text-accent-sky"
+      @click="showGuide = true"
+    >
+      <Icon icon="lucide:book-open" class="size-4" />
+    </button>
+
+    <!-- ══════════════════════════════════════════════ GUIDE MODAL ══ -->
+    <Teleport to="body">
+      <div
+        v-if="showGuide"
+        class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-bg-deep/95 px-4 py-8 backdrop-blur"
+        @click.self="showGuide = false"
+      >
+        <div class="w-full max-w-lg">
+          <!-- Modal header -->
+          <div class="mb-6 flex items-center justify-between">
+            <h2 class="font-display text-2xl font-bold">
+              <span class="text-accent-sky">📖</span> Hướng dẫn chơi
+            </h2>
+            <button
+              class="flex size-9 items-center justify-center border border-border-default text-text-dim transition hover:border-accent-coral hover:text-accent-coral"
+              @click="showGuide = false"
+            >
+              <Icon icon="lucide:x" class="size-4" />
+            </button>
+          </div>
+
+          <!-- Flow overview -->
+          <div class="mb-6 border border-border-default bg-bg-surface p-5">
+            <p class="mb-3 font-display text-sm font-semibold text-accent-amber">
+              <span class="text-accent-amber">//</span> Luật chung
+            </p>
+            <div class="space-y-2 text-sm text-text-secondary">
+              <p>
+                🎯 <span class="text-text-primary font-semibold">Phe Sói thắng</span> khi số Sói ≥
+                số Dân còn sống.
+              </p>
+              <p>
+                🎯 <span class="text-text-primary font-semibold">Phe Dân thắng</span> khi tất cả Sói
+                bị loại.
+              </p>
+              <p>🔒 Không ai được tiết lộ vai trò của mình trong lúc chơi.</p>
+              <p>🤐 Người chết <strong>không được</strong> nói chuyện hay tiết lộ thông tin.</p>
+            </div>
+          </div>
+
+          <!-- Night order -->
+          <div class="mb-6 border border-border-default bg-bg-surface p-5">
+            <p class="mb-3 font-display text-sm font-semibold text-accent-amber">
+              <span class="text-accent-amber">//</span> Thứ tự mỗi đêm
+            </p>
+            <div class="flex flex-wrap gap-2 text-xs">
+              <span
+                v-for="(s, i) in [
+                  '🤫 Kẻ phá hoại',
+                  '🐺 Bầy Sói',
+                  '🔮 Tiên tri',
+                  '🛡️ Bảo vệ',
+                  '🧙 Phù thủy',
+                  '🏹 Thợ săn',
+                ]"
+                :key="i"
+                class="flex items-center gap-1 border border-border-default bg-bg-elevated px-2 py-1"
+              >
+                <span class="text-text-dim">{{ i + 1 }}.</span> {{ s }}
+              </span>
+            </div>
+            <p class="mt-2 text-xs text-text-dim italic">
+              * Vai nào không có trong game sẽ bị bỏ qua. Vai chết vẫn được gọi (chờ ngẫu nhiên) để
+              tránh lộ thông tin.
+            </p>
+          </div>
+
+          <!-- Wolf faction -->
+          <div class="mb-4 border border-accent-coral/20 bg-bg-surface p-5">
+            <p class="mb-3 font-display text-sm font-semibold text-accent-coral">🐺 Phe Sói</p>
+            <div class="space-y-4">
+              <div>
+                <p class="font-display text-sm font-semibold text-text-primary">Sói thường</p>
+                <p class="mt-0.5 text-sm text-text-secondary">
+                  Mỗi đêm cùng các Sói khác <strong>chọn 1 người</strong> để cắn chết. Sói biết nhau
+                  từ đầu game.
+                </p>
+              </div>
+              <div>
+                <p class="font-display text-sm font-semibold text-text-primary">Sói con 🐺</p>
+                <p class="mt-0.5 text-sm text-text-secondary">
+                  Khi Sói con chết (bất kỳ lý do nào), <strong>đêm ngay sau đó</strong> bầy Sói được
+                  cắn <strong>2 người</strong>. Hiệu ứng chỉ 1 đêm.
+                </p>
+              </div>
+              <div>
+                <p class="font-display text-sm font-semibold text-text-primary">Sói nguyền 😈</p>
+                <p class="mt-0.5 text-sm text-text-secondary">
+                  Ban đầu thuộc <strong>Phe Dân</strong> — Tiên tri soi thấy
+                  <em>"Không phải Sói"</em>. Khi bị Sói cắn mà không được bảo vệ/cứu →
+                  <strong>chuyển sang Phe Sói</strong> (không chết). Nếu được Bảo vệ bảo vệ → không
+                  bị cắn, không chuyển phe. Nếu được Phù thủy cứu → không chuyển phe (bình cứu bị
+                  dùng). Sau khi chuyển phe, Tiên tri soi thấy <em>"Là Sói"</em>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Villager faction -->
+          <div class="mb-4 border border-accent-sky/20 bg-bg-surface p-5">
+            <p class="mb-3 font-display text-sm font-semibold text-accent-sky">👥 Phe Dân</p>
+            <div class="space-y-4">
+              <div>
+                <p class="font-display text-sm font-semibold text-text-primary">Dân thường 👤</p>
+                <p class="mt-0.5 text-sm text-text-secondary">
+                  Không có kỹ năng đặc biệt. Sử dụng lý lẽ để tìm Sói trong ngày.
+                </p>
+              </div>
+              <div>
+                <p class="font-display text-sm font-semibold text-text-primary">Tiên tri 🔮</p>
+                <p class="mt-0.5 text-sm text-text-secondary">
+                  Mỗi đêm <strong>soi 1 người</strong> — kết quả chỉ là <em>"Là Sói"</em> hoặc
+                  <em>"Không phải Sói"</em> (không biết vai cụ thể). Ứng dụng sẽ truyền tay điện
+                  thoại để Tiên tri xem kết quả bí mật.
+                </p>
+              </div>
+              <div>
+                <p class="font-display text-sm font-semibold text-text-primary">Bảo vệ 🛡️</p>
+                <p class="mt-0.5 text-sm text-text-secondary">
+                  Mỗi đêm <strong>bảo vệ 1 người</strong> khỏi bị Sói cắn.
+                  <strong>Không</strong> được bảo vệ cùng 1 người 2 đêm liên tiếp. Được tự bảo vệ
+                  mình. <strong>Không</strong> chặn được bình độc Phù thủy.
+                </p>
+              </div>
+              <div>
+                <p class="font-display text-sm font-semibold text-text-primary">Phù thủy 🧙</p>
+                <p class="mt-0.5 text-sm text-text-secondary">
+                  Có <strong>1 bình cứu</strong> và <strong>1 bình độc</strong>, mỗi loại dùng được
+                  1 lần trong cả game. Mỗi đêm biết ai bị Sói cắn, có thể: <em>cứu nạn nhân</em>,
+                  <em>giết 1 người khác</em>, hoặc <em>không làm gì</em>. Được tự cứu mình. Không
+                  được tự giết. Không được vừa cứu vừa giết cùng 1 đêm. Bình độc
+                  <strong>vượt qua</strong> bảo vệ của Bảo vệ.
+                </p>
+              </div>
+              <div>
+                <p class="font-display text-sm font-semibold text-text-primary">Thợ săn 🏹</p>
+                <p class="mt-0.5 text-sm text-text-secondary">
+                  Mỗi đêm <strong>chỉ định 1 người</strong> (có thể đổi mỗi đêm). Khi Thợ săn chết —
+                  dù là ban đêm hay bị treo cổ — <strong>người bị chỉ định cũng chết theo</strong>
+                  (trừ khi người đó đã chết rồi). Nếu bị treo cổ ban ngày, người bị chỉ định sẽ chết
+                  vào sáng hôm sau.
+                </p>
+              </div>
+              <div>
+                <p class="font-display text-sm font-semibold text-text-primary">Kẻ phá hoại 🤫</p>
+                <p class="mt-0.5 text-sm text-text-secondary">
+                  Mỗi đêm <strong>cấm 1 người nói</strong> trong giai đoạn thảo luận sáng hôm sau.
+                  Người bị cấm <strong>vẫn được bỏ phiếu</strong>. Không thể tự cấm mình.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Day flow -->
+          <div class="mb-6 border border-border-default bg-bg-surface p-5">
+            <p class="mb-3 font-display text-sm font-semibold text-accent-amber">
+              <span class="text-accent-amber">//</span> Quy trình ban ngày
+            </p>
+            <ol class="space-y-2 text-sm text-text-secondary">
+              <li>
+                <span class="text-accent-amber font-semibold">1.</span> App thông báo ai đã chết đêm
+                qua (không nói lý do).
+              </li>
+              <li>
+                <span class="text-accent-amber font-semibold">2.</span> <strong>Thảo luận</strong> —
+                đếm ngược, người bị cấm không được nói.
+              </li>
+              <li>
+                <span class="text-accent-amber font-semibold">3.</span> <strong>Đề cử</strong> —
+                truyền tay: mỗi người chọn 1 nghi phạm hoặc skip. Ai được đề cử nhiều nhất ra vòng
+                trong.
+              </li>
+              <li>
+                <span class="text-accent-amber font-semibold">4.</span>
+                <strong>Giải thích</strong> — người bị đề cử lần lượt có thời gian biện hộ.
+              </li>
+              <li>
+                <span class="text-accent-amber font-semibold">5.</span>
+                <strong>Bỏ phiếu treo cổ</strong> — truyền tay: mỗi người chọn ai treo hoặc skip.
+                Hòa phiếu hoặc all-skip → không ai chết.
+              </li>
+            </ol>
+          </div>
+
+          <button
+            class="w-full border border-accent-sky bg-accent-sky/10 py-3 font-display font-semibold text-accent-sky transition hover:bg-accent-sky/20"
+            @click="showGuide = false"
+          >
+            Đã hiểu — Đóng
+          </button>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

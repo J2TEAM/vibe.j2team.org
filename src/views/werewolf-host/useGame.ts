@@ -268,10 +268,24 @@ export function useGame() {
     runNightPhase()
   }
 
+  // Check if a role was included in this game's config at all
+  function isRoleInGame(step: NightStep): boolean {
+    if (step === 'wolves') {
+      return (
+        roleConfig.value.wolf + roleConfig.value['wolf-cub'] + roleConfig.value['cursed-wolf'] > 0
+      )
+    }
+    const stepRoles = ROLE_STEP_MAP[step]
+    if (!stepRoles) return false
+    const roleList = Array.isArray(stepRoles) ? stepRoles : [stepRoles]
+    return roleList.some((r) => (roleConfig.value as Record<string, number>)[r]! > 0)
+  }
+
   async function runNightPhase() {
     await speak(`Đêm thứ ${roundNumber.value} xuống. Mọi người hãy nhắm mắt.`)
 
     for (const step of NIGHT_ORDER) {
+      if (!isRoleInGame(step)) continue // role not in this game — skip entirely
       await runNightStep(step)
     }
 
