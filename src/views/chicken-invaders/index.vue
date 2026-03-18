@@ -6,6 +6,7 @@ import { useGame } from './composables/useGame'
 import GameHeader from './components/GameHeader.vue'
 import GameOverlays from './components/GameOverlays.vue'
 import GameEntities from './components/GameEntities.vue'
+import VfxLayer from './components/VfxLayer.vue'
 
 const game = useGame()
 // Đẩy toàn bộ state xuống cho các components con thoải mái dùng
@@ -120,6 +121,7 @@ watch(boardRotation, () => {
         ></div>
 
         <GameEntities />
+        <VfxLayer />
       </div>
     </div>
   </div>

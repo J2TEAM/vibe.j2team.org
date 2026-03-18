@@ -12,6 +12,8 @@ import type { useControls } from './useControls'
 import type { GameActions } from './useGameActions'
 import type { Enemy, Boss } from '../utils/types'
 
+import { vfx } from '../utils/vfx' // CHÈN IMPORT VFX
+
 export function useGameLoop(
   state: GameState,
   controls: ReturnType<typeof useControls>,
@@ -784,6 +786,12 @@ export function useGameLoop(
 
       if (allBossesDead && !engine.isTransitioningWave) {
         sfx.explode()
+
+        // ---- KÍCH HOẠT HIỆU ỨNG SÓNG XUNG KÍCH KHI BOSS CHẾT ----
+        bosses.value.forEach((b) =>
+          vfx.spawnExplosion(b.x + b.width / 2, b.y + b.height / 2, '#facc15', true),
+        )
+
         engine.isTransitioningWave = true
         addScore(1000 * ptMult)
         const nextW = currentWave.value + 1

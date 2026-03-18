@@ -6,6 +6,8 @@ import type { GameState } from './useGameState'
 import type { useControls } from './useControls'
 import type { Enemy } from '../utils/types'
 
+import { vfx } from '../utils/vfx' // CHÈN IMPORT VFX
+
 export function useGameActions(state: GameState, controls: ReturnType<typeof useControls>) {
   const {
     gameState,
@@ -116,7 +118,6 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     engine.waveEnemySpeed = Math.min(1.2 + wave * 0.02, 4.0)
     engine.waveEggFireRate = Math.min(0.005 + wave * 0.0002, 0.02)
 
-    // Đã thay hue bằng mã Hex trực tiếp
     const SHIRT_COLORS = [
       '#ef4444',
       '#3b82f6',
@@ -404,8 +405,6 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     powerUps.value = []
     engine.pendingSpawns = []
     activeDots.value = []
-
-    // FIX TRIỆT ĐỂ BÓNG MA QUÁI VẬT: Dọn sạch mảng khi bắt đầu ván mới!
     enemies.value = []
     bosses.value = []
 
@@ -528,13 +527,21 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
   }
 
   const handleEnemyDeath = (enemy: Enemy, ptMult: number) => {
+    // ---- KÍCH HOẠT HIỆU ỨNG VFX KHI QUÁI CHẾT TẠI ĐÂY ----
+    const cx = enemy.x + enemy.width / 2
+    const cy = enemy.y + enemy.height / 2
+    if (enemy.isMeteor) vfx.spawnDebris(cx, cy, '#ea580c')
+    else if (enemy.isStash) vfx.spawnExplosion(cx, cy, '#cbd5e1')
+    else vfx.spawnFeathers(cx, cy, enemy.shirtColor || '#ef4444')
+
     sfx.explode()
+
     if (enemy.isStash) {
       powerUps.value.push({
         id: engine.objCounter++,
         x: enemy.x + enemy.width / 2 - 18,
         y: enemy.y + enemy.height / 2 - 18,
-        width: 36, // Hitbox chuẩn w-9 h-9
+        width: 36,
         height: 36,
         wType: -1,
       })
@@ -544,7 +551,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
           id: engine.objCounter++,
           x: enemy.x + enemy.width / 2 - 18,
           y: enemy.y + enemy.height / 2 - 18,
-          width: 36, // Hitbox chuẩn w-9 h-9
+          width: 36,
           height: 36,
           wType: Math.random() < 0.4 ? -1 : Math.floor(Math.random() * WEAPON_TYPES.length),
         })

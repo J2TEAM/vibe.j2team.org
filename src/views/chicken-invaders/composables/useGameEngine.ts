@@ -10,6 +10,7 @@ import {
 } from '../utils/utils'
 import type { GameState } from './useGameState'
 import type { useControls } from './useControls'
+import { vfx } from '../utils/vfx'
 
 export function useGameEngine(state: GameState, controls: ReturnType<typeof useControls>) {
   const {
@@ -588,6 +589,11 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
   }
 
   const handleEnemyDeath = (enemy: Enemy, ptMult: number) => {
+    const cx = enemy.x + enemy.width / 2
+    const cy = enemy.y + enemy.height / 2
+    if (enemy.isMeteor) vfx.spawnDebris(cx, cy, '#ea580c')
+    else if (enemy.isStash) vfx.spawnExplosion(cx, cy, '#cbd5e1')
+    else vfx.spawnFeathers(cx, cy, enemy.shirtColor || '#ef4444')
     sfx.explode()
     if (enemy.isStash) {
       powerUps.value.push({
@@ -1304,6 +1310,9 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
       const allBossesDead = bosses.value.length > 0 && bosses.value.every((b) => b.hp <= 0)
       if (allBossesDead && !isTransitioningWave) {
         sfx.explode()
+        bosses.value.forEach((b) =>
+          vfx.spawnExplosion(b.x + b.width / 2, b.y + b.height / 2, '#facc15', true),
+        )
         isTransitioningWave = true
         addScore(1000 * ptMult)
         const nextW = currentWave.value + 1

@@ -118,7 +118,7 @@ const {
       <div
         v-for="enemy in enemies"
         :key="'e' + enemy.id"
-        class="absolute top-0 left-0 flex flex-col items-center justify-center backdrop-blur-sm z-10 will-change-transform pointer-events-none"
+        class="absolute top-0 left-0 flex flex-col items-center justify-center z-10 will-change-transform pointer-events-none"
         :style="{
           transform: `translate3d(${enemy.x}px, ${enemy.y}px, 0)`,
           width: `${enemy.width}px`,

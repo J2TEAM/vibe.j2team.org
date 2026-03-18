@@ -1,7 +1,21 @@
 export const SPRITES = {
   // Phi thuyền
-  player: `<svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-[0_0_12px_rgba(56,189,248,0.8)]"><defs><linearGradient id="shipGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#bae6fd" /><stop offset="100%" stop-color="#0284c7" /></linearGradient><linearGradient id="wingGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#7dd3fc" /><stop offset="100%" stop-color="#0369a1" /></linearGradient></defs><path d="M 32 24 Q 56 30 60 48 C 60 52 54 52 50 48 Q 32 40 32 40 Q 14 40 4 48 C 0 52 4 52 4 48 Q 8 30 32 24 Z" fill="url(#wingGrad)" stroke="#38BDF8" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M 32 8 C 44 8 44 38 40 50 C 38 56 26 56 24 50 C 20 38 20 8 32 8 Z" fill="url(#shipGrad)" stroke="#38BDF8" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><ellipse cx="32" cy="28" rx="6" ry="10" fill="#e0f2fe" stroke="#38BDF8" stroke-width="1.5"/><path d="M 30 22 Q 34 22 36 28" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.8"/></svg>`,
-
+  player: `<svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-[0_0_12px_rgba(56,189,248,0.8)]">
+    <defs>
+      <linearGradient id="shipGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#bae6fd" />
+        <stop offset="100%" stop-color="#0284c7" />
+      </linearGradient>
+      <linearGradient id="wingGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#7dd3fc" />
+        <stop offset="100%" stop-color="#0369a1" />
+      </linearGradient>
+    </defs>
+    <path d="M 32 22 Q 56 26 60 50 Q 46 44 32 44 Q 18 44 4 50 Q 8 26 32 22 Z" fill="url(#wingGrad)" stroke="#38BDF8" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M 32 8 C 44 8 44 38 40 50 C 38 56 26 56 24 50 C 20 38 20 8 32 8 Z" fill="url(#shipGrad)" stroke="#38BDF8" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <ellipse cx="32" cy="28" rx="6" ry="10" fill="#e0f2fe" stroke="#38BDF8" stroke-width="1.5"/>
+    <path d="M 30 22 Q 34 22 36 28" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.8"/>
+  </svg>`,
   // Gà Minion thường
   chicken: `<svg viewBox="0 0 64 64" class="w-full h-full"><path d="M 10 36 C 4 36 4 46 12 44 M 54 36 C 60 36 60 46 52 44" fill="none" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/><ellipse cx="32" cy="36" rx="22" ry="24" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/><path d="M 11 40 C 11 52 20 60 32 60 C 44 60 53 52 53 40 Q 32 48 11 40 Z" fill="currentColor" opacity="0.85" /><path d="M 11 40 Q 32 48 53 40" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1.5" stroke-linecap="round"/><circle cx="24" cy="26" r="4" fill="#0f172a"/><circle cx="40" cy="26" r="4" fill="#0f172a"/><circle cx="25" cy="25" r="1.5" fill="#ffffff"/><circle cx="41" cy="25" r="1.5" fill="#ffffff"/><path d="M 28 32 Q 32 38 36 32 Q 32 30 28 32 Z" fill="#f59e0b" stroke="#d97706" stroke-width="1.5" stroke-linejoin="round"/><path d="M 32 12 C 26 2 20 8 24 14 C 24 14 30 18 32 20 C 34 18 40 14 40 14 C 44 8 38 2 32 12 Z" fill="#ef4444" stroke="#b91c1c" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
 
