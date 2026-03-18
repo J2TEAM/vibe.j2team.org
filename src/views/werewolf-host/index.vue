@@ -22,6 +22,10 @@ const showTimeConfig = ref(false)
 // Show/hide guide modal
 const showGuide = ref(false)
 const showResetConfirm = ref(false)
+const showSpeechSettings = ref(false)
+
+const viVoices = computed(() => g.availableVoices.value.filter((v) => v.lang.startsWith('vi')))
+const otherVoices = computed(() => g.availableVoices.value.filter((v) => !v.lang.startsWith('vi')))
 
 function handleReset() {
   showResetConfirm.value = false
@@ -222,6 +226,13 @@ function handleWolfVoteNext() {
         >
           <Icon icon="lucide:book-open" class="size-3.5" />
           Hướng dẫn
+        </button>
+        <button
+          class="flex items-center gap-1.5 border border-border-default bg-bg-surface px-3 py-1.5 text-sm text-text-secondary transition hover:border-accent-amber hover:text-accent-amber"
+          @click="showSpeechSettings = true"
+        >
+          <Icon icon="lucide:settings-2" class="size-3.5" />
+          Giọng đọc
         </button>
       </div>
 
@@ -1460,6 +1471,13 @@ function handleWolfVoteNext() {
         Chơi lại
       </button>
       <button
+        class="flex items-center gap-1.5 border border-border-default bg-bg-deep/90 px-3 py-2 text-xs text-text-secondary backdrop-blur transition hover:border-accent-amber hover:text-accent-amber"
+        @click="showSpeechSettings = true"
+      >
+        <Icon icon="lucide:settings-2" class="size-3.5" />
+        Giọng đọc
+      </button>
+      <button
         class="flex items-center gap-1.5 border px-3 py-2 text-xs backdrop-blur transition"
         :class="
           g.isPaused.value
@@ -1471,6 +1489,119 @@ function handleWolfVoteNext() {
         <Icon :icon="g.isPaused.value ? 'lucide:play' : 'lucide:pause'" class="size-3.5" />
         {{ g.isPaused.value ? 'Tiếp tục' : 'Tạm dừng' }}
       </button>
+    </div>
+
+    <!-- Speech Settings modal -->
+    <div
+      v-if="showSpeechSettings"
+      class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-bg-deep/80 p-4 backdrop-blur"
+    >
+      <div class="w-full max-w-sm border border-border-default bg-bg-surface">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-border-default px-5 py-4">
+          <h3 class="font-display text-base font-bold">
+            <Icon icon="lucide:settings-2" class="mr-2 inline size-4 text-accent-amber" />
+            Cài đặt giọng đọc
+          </h3>
+          <button class="text-text-dim hover:text-text-primary" @click="showSpeechSettings = false">
+            <Icon icon="lucide:x" class="size-5" />
+          </button>
+        </div>
+
+        <div class="space-y-5 p-5">
+          <!-- Speed slider -->
+          <div>
+            <div class="mb-2 flex items-center justify-between">
+              <label class="text-sm font-semibold text-text-primary">Tốc độ đọc</label>
+              <span class="font-display text-sm font-bold text-accent-amber">
+                {{ g.speechRate.value.toFixed(1) }}x
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0.5"
+              max="2.0"
+              step="0.1"
+              :value="g.speechRate.value"
+              class="h-1.5 w-full cursor-pointer accent-amber-400 appearance-none rounded bg-border-default"
+              @input="(e) => (g.speechRate.value = +(e.target as HTMLInputElement).value)"
+            />
+            <div class="mt-1 flex justify-between text-xs text-text-dim">
+              <span>Chậm (0.5×)</span>
+              <span>Bình thường (1.0×)</span>
+              <span>Nhanh (2.0×)</span>
+            </div>
+          </div>
+
+          <!-- Voice selection -->
+          <div>
+            <label class="mb-2 block text-sm font-semibold text-text-primary">Chọn giọng</label>
+
+            <div v-if="g.availableVoices.value.length === 0" class="text-xs text-text-dim italic">
+              Không tìm thấy giọng đọc. Thử tải lại trang hoặc bật TTS trong cài đặt thiết bị.
+            </div>
+
+            <div v-else class="max-h-56 overflow-y-auto space-y-1 border border-border-default p-1">
+              <!-- Vietnamese voices first -->
+              <div v-if="viVoices.length > 0" class="mb-1">
+                <p class="px-2 py-1 text-xs font-semibold text-accent-sky">🇻🇳 Tiếng Việt</p>
+                <button
+                  v-for="v in viVoices"
+                  :key="v.voiceURI"
+                  class="flex w-full items-center justify-between px-3 py-2 text-left text-sm transition"
+                  :class="
+                    g.selectedVoiceURI.value === v.voiceURI
+                      ? 'bg-accent-amber/15 text-accent-amber'
+                      : 'text-text-secondary hover:bg-bg-elevated'
+                  "
+                  @click="g.selectedVoiceURI.value = v.voiceURI"
+                >
+                  <span>{{ v.name }}</span>
+                  <Icon
+                    v-if="g.selectedVoiceURI.value === v.voiceURI"
+                    icon="lucide:check"
+                    class="size-3.5 shrink-0"
+                  />
+                </button>
+              </div>
+
+              <!-- Other voices -->
+              <div v-if="otherVoices.length > 0">
+                <p class="px-2 py-1 text-xs font-semibold text-text-dim">Giọng khác</p>
+                <button
+                  v-for="v in otherVoices"
+                  :key="v.voiceURI"
+                  class="flex w-full items-center justify-between px-3 py-2 text-left text-xs transition"
+                  :class="
+                    g.selectedVoiceURI.value === v.voiceURI
+                      ? 'bg-accent-amber/15 text-accent-amber'
+                      : 'text-text-dim hover:bg-bg-elevated'
+                  "
+                  @click="g.selectedVoiceURI.value = v.voiceURI"
+                >
+                  <span
+                    >{{ v.name }} <span class="opacity-60">({{ v.lang }})</span></span
+                  >
+                  <Icon
+                    v-if="g.selectedVoiceURI.value === v.voiceURI"
+                    icon="lucide:check"
+                    class="size-3.5 shrink-0"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Test button -->
+          <button
+            class="w-full border border-accent-amber bg-accent-amber/10 py-2.5 font-display text-sm font-semibold text-accent-amber transition hover:bg-accent-amber/20"
+            @click="g.testSpeak"
+          >
+            <Icon icon="lucide:play-circle" class="mr-2 inline size-4" />
+            Thử giọng đọc
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Reset confirm dialog -->

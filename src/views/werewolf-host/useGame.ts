@@ -1,4 +1,5 @@
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useLocalStorage } from '@vueuse/core'
 import type {
   DayRecord,
   DeathRecord,
@@ -21,8 +22,12 @@ let _isPaused = false
 // ── Module-level night abort ID ───────────────────────────────────────────
 let _currentNightId = 0
 
+// ── Module-level speech settings (synced from useGame reactive state) ─────
+let _speechRate = 0.9
+let _voiceURI = ''
+
 // ── Speech ────────────────────────────────────────────────────────────────────
-function speakNow(text: string, rate: number): Promise<void> {
+function speakNow(text: string): Promise<void> {
   return new Promise((resolve) => {
     if (!('speechSynthesis' in window)) {
       resolve()
@@ -31,10 +36,13 @@ function speakNow(text: string, rate: number): Promise<void> {
     window.speechSynthesis.cancel()
     const utter = new SpeechSynthesisUtterance(text)
     utter.lang = 'vi-VN'
-    utter.rate = rate
+    utter.rate = _speechRate
     const voices = window.speechSynthesis.getVoices()
-    const viVoice = voices.find((v) => v.lang.startsWith('vi'))
-    if (viVoice) utter.voice = viVoice
+    const voice = _voiceURI
+      ? (voices.find((v) => v.voiceURI === _voiceURI) ??
+        voices.find((v) => v.lang.startsWith('vi')))
+      : voices.find((v) => v.lang.startsWith('vi'))
+    if (voice) utter.voice = voice
     // Timeout fallback: ~80ms per char + 3s buffer (Chrome TTS onend bug)
     const timeout = setTimeout(resolve, Math.max(4000, text.length * 80 + 3000))
     utter.onend = () => {
@@ -49,9 +57,9 @@ function speakNow(text: string, rate: number): Promise<void> {
   })
 }
 
-async function speak(text: string, rate = 0.9): Promise<void> {
+async function speak(text: string): Promise<void> {
   while (_isPaused) await sleep(200)
-  return speakNow(text, rate)
+  return speakNow(text)
 }
 
 function sleep(ms: number): Promise<void> {
@@ -73,6 +81,41 @@ function shuffle<T>(arr: T[]): T[] {
 
 // ── State ─────────────────────────────────────────────────────────────────────
 export function useGame() {
+  // ── Speech settings (persisted) ──────────────────────────────────────────
+  const speechRate = useLocalStorage('ww:speech-rate', 0.9)
+  const selectedVoiceURI = useLocalStorage('ww:voice-uri', '')
+  const availableVoices = ref<SpeechSynthesisVoice[]>([])
+
+  function loadVoices() {
+    if (!('speechSynthesis' in window)) return
+    availableVoices.value = window.speechSynthesis.getVoices()
+    // Auto-select first Vietnamese voice if none chosen yet
+    if (!selectedVoiceURI.value) {
+      const vi = availableVoices.value.find((v) => v.lang.startsWith('vi'))
+      if (vi) selectedVoiceURI.value = vi.voiceURI
+    }
+    _voiceURI = selectedVoiceURI.value
+    _speechRate = speechRate.value
+  }
+
+  onMounted(() => {
+    loadVoices()
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = loadVoices
+    }
+  })
+
+  watch(speechRate, (v) => {
+    _speechRate = v
+  })
+  watch(selectedVoiceURI, (v) => {
+    _voiceURI = v
+  })
+
+  function testSpeak() {
+    speakNow('Xin chào, đây là giọng đọc thử nghiệm.')
+  }
+
   const phase = ref<GamePhase>('setup')
   const roundNumber = ref(1)
   const winnerFaction = ref<Faction | null>(null)
@@ -1014,6 +1057,11 @@ export function useGame() {
     playerNameInput,
     roleConfig,
     timeConfig,
+    // Speech settings
+    speechRate,
+    selectedVoiceURI,
+    availableVoices,
+    testSpeak,
     // Pause
     isPaused,
     togglePause,
