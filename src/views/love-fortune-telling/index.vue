@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { Icon } from '@iconify/vue'
 import { RouterLink } from 'vue-router'
 
@@ -19,6 +19,7 @@ const isCalculating = ref(false)
 const currentStepIndex = ref(0)
 const showModal = ref(false)
 const showConfetti = ref(false)
+const stepContainerRef = ref<HTMLElement>()
 
 const isHighPercentage = computed(() => (finalPercentage.value ?? 0) >= 70)
 const isLowPercentage = computed(() => (finalPercentage.value ?? 0) < 30)
@@ -174,6 +175,17 @@ const formatPercentageBg = (): string => {
   }
   return 'bg-accent-amber/10'
 }
+
+// Auto-scroll to steps container when new steps are added
+watch(
+  () => calculateSteps.value.length,
+  async () => {
+    await nextTick()
+    if (stepContainerRef.value) {
+      stepContainerRef.value.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  },
+)
 </script>
 
 <template>
@@ -198,6 +210,17 @@ const formatPercentageBg = (): string => {
     </div>
 
     <div class="mx-auto max-w-2xl">
+      <!-- Back to Home Button -->
+      <div class="mb-8 animate-fade-up">
+        <RouterLink
+          to="/"
+          class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-4 py-2 text-sm text-text-secondary transition hover:border-accent-coral hover:text-accent-coral"
+        >
+          <Icon icon="lucide:arrow-left" class="text-lg" />
+          Trang Chủ
+        </RouterLink>
+      </div>
+
       <!-- Header -->
       <div class="mb-12 animate-fade-up text-center">
         <h1 class="font-display text-5xl font-bold text-accent-coral md:text-6xl">
@@ -221,7 +244,7 @@ const formatPercentageBg = (): string => {
           <input
             v-model="maleName"
             type="text"
-            placeholder="Ví dụ: Nguyễn Đình Linh"
+            placeholder="Ví dụ: Dương Thanh Tâm"
             :disabled="isCalculating"
             class="w-full border border-border-default bg-bg-deep px-4 py-3 text-text-primary placeholder-text-dim transition focus:border-accent-coral focus:outline-none disabled:opacity-50"
           />
@@ -236,7 +259,7 @@ const formatPercentageBg = (): string => {
           <input
             v-model="femaleName"
             type="text"
-            placeholder="Ví dụ: Hoàng Thị Liên"
+            placeholder="Ví dụ: Dương Thị Tâm"
             :disabled="isCalculating"
             class="w-full border border-border-default bg-bg-deep px-4 py-3 text-text-primary placeholder-text-dim transition focus:border-accent-coral focus:outline-none disabled:opacity-50"
           />
@@ -254,7 +277,11 @@ const formatPercentageBg = (): string => {
       </div>
 
       <!-- Calculation Steps -->
-      <div v-if="calculateSteps.length > 0" class="mb-8 space-y-4 animate-fade-up animate-delay-3">
+      <div
+        v-if="calculateSteps.length > 0"
+        ref="stepContainerRef"
+        class="mb-8 space-y-4 animate-fade-up animate-delay-3"
+      >
         <h2 class="flex items-center gap-3 font-display text-xl font-semibold">
           <span class="text-accent-coral">//</span>
           Quá Trình Tính Toán
@@ -345,7 +372,8 @@ const formatPercentageBg = (): string => {
                 />
 
                 <h3 class="mt-4 font-display text-2xl font-bold text-text-primary">
-                  {{ displayMaleName }} & {{ displayFemaleName }}
+                  {{ displayMaleName }}<br />
+                  & <br />{{ displayFemaleName }}
                 </h3>
 
                 <div
