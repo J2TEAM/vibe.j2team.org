@@ -7,15 +7,15 @@ import GameHeader from './components/GameHeader.vue'
 import GameOverlays from './components/GameOverlays.vue'
 import GameEntities from './components/GameEntities.vue'
 import VfxLayer from './components/VfxLayer.vue'
+import Leaderboard from './components/GameLeaderboard.vue'
 
 const game = useGame()
-// Đẩy toàn bộ state xuống cho các components con thoải mái dùng
 provide('game', game)
 
 const { bgHue, boardRotation, setPointerState, handleBoardPointerDown } = game
 
 const gameScale = ref(1)
-const headerScale = ref(1) // Thêm biến scale dành riêng cho Header
+const headerScale = ref(1)
 const boardWrapper = ref<HTMLElement | null>(null)
 
 const updateScale = () => {
@@ -28,11 +28,11 @@ const updateScale = () => {
 
   if (window.innerWidth < 1024) {
     gameScale.value = Math.min(scaleX, scaleY)
-    headerScale.value = scaleX // Ép Header lấy 100% chiều ngang của thiết bị
+    headerScale.value = scaleX
   } else {
     const minScale = Math.min(scaleX, scaleY, 1.2)
     gameScale.value = minScale
-    headerScale.value = minScale // PC thì Header vừa khít với Game
+    headerScale.value = minScale
   }
 }
 
@@ -98,7 +98,7 @@ watch(boardRotation, () => {
         </div>
 
         <GameOverlays />
-
+        <Leaderboard />
         <div
           id="touch-layer"
           class="absolute inset-0 z-200 cursor-crosshair touch-none"

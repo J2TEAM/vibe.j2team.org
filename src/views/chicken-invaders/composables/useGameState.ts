@@ -1,12 +1,15 @@
 import { ref, reactive } from 'vue'
 import { GAME_WIDTH, GAME_HEIGHT } from '../utils/config'
-import type { Bullet, Enemy, Boss, Egg, PowerUp, ActiveDot } from '../utils/types'
+import type { Bullet, Enemy, Boss, Egg, PowerUp, ActiveDot, LeaderboardEntry } from '../utils/types'
 
 export function useGameState() {
-  const gameState = ref<'menu' | 'starting' | 'playing' | 'gameover' | 'paused' | 'resuming'>(
-    'menu',
-  )
+  // ---> THÊM 'leaderboard' VÀO ĐÂY <---
+  const gameState = ref<
+    'menu' | 'starting' | 'playing' | 'gameover' | 'paused' | 'resuming' | 'leaderboard'
+  >('menu')
+
   const gamePhase = ref<'minions' | 'meteors' | 'boss'>('minions')
+  const difficulty = ref<'easy' | 'normal' | 'hard' | 'hardcore'>('easy')
   const currentWave = ref(1)
   const weaponType = ref(0)
   const weaponLevel = ref(1)
@@ -41,7 +44,14 @@ export function useGameState() {
   const waveAnnouncement = ref('')
   const activeDots = ref<ActiveDot[]>([])
 
-  // CÁC BIẾN NỘI BỘ CỦA ENGINE (Gom lại để share giữa các file Actions và Loop)
+  const leaderboard = ref<LeaderboardEntry[]>([])
+  try {
+    const stored = localStorage.getItem('chicken_invaders_leaderboard')
+    if (stored) leaderboard.value = JSON.parse(stored)
+  } catch (e) {
+    console.error('Không thể đọc Leaderboard', e)
+  }
+
   const engine = reactive({
     pendingSpawns: [] as Enemy[],
     hazardSpawnCooldown: 0,
@@ -60,6 +70,7 @@ export function useGameState() {
   return {
     gameState,
     gamePhase,
+    difficulty,
     currentWave,
     weaponType,
     weaponLevel,
@@ -83,6 +94,7 @@ export function useGameState() {
     waveAnnouncement,
     activeDots,
     engine,
+    leaderboard,
   }
 }
 

@@ -64,3 +64,10 @@ export interface ActiveDot {
   endTime: number
   lastTick: number
 }
+
+export interface LeaderboardEntry {
+  score: number
+  wave: number
+  difficulty: string
+  date: number
+}

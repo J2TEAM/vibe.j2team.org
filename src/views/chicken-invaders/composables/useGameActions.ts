@@ -5,8 +5,7 @@ import { getWeaponStats, arrangeFormation, getRotationForWave } from '../utils/u
 import type { GameState } from './useGameState'
 import type { useControls } from './useControls'
 import type { Enemy } from '../utils/types'
-
-import { vfx } from '../utils/vfx' // CHÈN IMPORT VFX
+import { vfx } from '../utils/vfx'
 
 export function useGameActions(state: GameState, controls: ReturnType<typeof useControls>) {
   const {
@@ -35,6 +34,8 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     waveAnnouncement,
     activeDots,
     engine,
+    difficulty,
+    leaderboard,
   } = state
 
   const { space, mousePressed, mobileKeys, pointerState, Escape } = controls
@@ -92,10 +93,28 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
   )
 
   const addScore = (pts: number) => {
-    const oldMilestone = Math.floor(score.value / 10000)
-    score.value += pts
-    const newMilestone = Math.floor(score.value / 10000)
-    if (newMilestone > oldMilestone) {
+    // 1. ÁP DỤNG HỆ SỐ ĐIỂM THEO ĐỘ KHÓ (Cập nhật mốc 25k và 50k)
+    let mult = 1
+    let milestone = 10000
+
+    if (difficulty.value === 'normal') {
+      mult = 1.5
+      milestone = 25000 // Đã sửa thành 25000
+    } else if (difficulty.value === 'hard') {
+      mult = 2
+      milestone = 50000 // Đã sửa thành 50000
+    } else if (difficulty.value === 'hardcore') {
+      mult = 3
+      milestone = Infinity
+    }
+
+    const actualPts = pts * mult
+    const oldMilestone = Math.floor(score.value / milestone)
+    score.value += actualPts
+    const newMilestone = Math.floor(score.value / milestone)
+
+    // CỘNG MẠNG NẾU QUA MỐC
+    if (newMilestone > oldMilestone && difficulty.value !== 'hardcore') {
       lives.value += newMilestone - oldMilestone
       sfx.powerup()
     }
@@ -107,7 +126,21 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     lives.value -= 1
     weaponLevel.value = Math.max(1, weaponLevel.value - 1)
     player.value.invulnerable = 120
-    if (lives.value <= 0) gameState.value = 'gameover'
+    if (lives.value <= 0) {
+      gameState.value = 'gameover'
+
+      // ---> LƯU LEADERBOARD KHI CHẾT <---
+      leaderboard.value.push({
+        score: score.value,
+        wave: currentWave.value,
+        difficulty: difficulty.value,
+        date: Date.now(),
+      })
+      // Sắp xếp điểm từ cao xuống thấp và lấy top 10
+      leaderboard.value.sort((a, b) => b.score - a.score)
+      leaderboard.value = leaderboard.value.slice(0, 10)
+      localStorage.setItem('chicken_invaders_leaderboard', JSON.stringify(leaderboard.value))
+    }
   }
 
   const startWave = (wave: number) => {
@@ -115,8 +148,21 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     enemyBullets.value = []
     activeDots.value = []
     bgHue.value = (Math.floor((wave - 1) / 10) * 45) % 360
-    engine.waveEnemySpeed = Math.min(1.2 + wave * 0.02, 4.0)
-    engine.waveEggFireRate = Math.min(0.005 + wave * 0.0002, 0.02)
+
+    // TÍNH TOÁN HP VÀ TỐC ĐỘ BẮN THEO ĐỘ KHÓ
+    let hpMult = 1
+    let eggRateMult = 1
+    if (difficulty.value === 'normal') {
+      hpMult = 1.5
+      eggRateMult = 1.5
+    } else if (difficulty.value === 'hard' || difficulty.value === 'hardcore') {
+      hpMult = 2
+      eggRateMult = 2
+    }
+
+    engine.waveEnemySpeed =
+      Math.min(1.2 + wave * 0.02, 4.0) * (difficulty.value !== 'easy' ? 1.2 : 1)
+    engine.waveEggFireRate = Math.min(0.005 + wave * 0.0002, 0.02) * eggRateMult
 
     const SHIRT_COLORS = [
       '#ef4444',
@@ -151,7 +197,8 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
       else if (wave >= 40) bType = Math.floor(Math.random() * 3)
       else if (wave >= 20) bType = Math.random() > 0.5 ? 1 : 0
       else bType = 0
-      const baseHp = 1000 + wave * 400
+
+      const baseHp = (1000 + wave * 400) * hpMult
 
       if (bType === 1) {
         bosses.value.push({
@@ -233,8 +280,8 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
           y: -100 - Math.random() * 50,
           width: size,
           height: size,
-          hp: 40 + wave * 5,
-          maxHp: 40 + wave * 5,
+          hp: (40 + wave * 5) * hpMult,
+          maxHp: (40 + wave * 5) * hpMult,
           isMeteor: !isFallingChickenZone,
           isFallingChicken: isFallingChickenZone,
           shirtColor: isFallingChickenZone ? getRandomColor() : undefined,
@@ -247,7 +294,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
 
     gamePhase.value = 'minions'
     engine.enemyDirection = 1
-    const minionHp = wave === 1 ? 10 : 15 + wave * 10
+    const minionHp = (wave === 1 ? 10 : 15 + wave * 10) * hpMult
     const generatedMinions: Enemy[] = []
 
     if (wave % 10 === 6) {
@@ -309,7 +356,21 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
           }
         }
       }
-      if (generatedMinions[0]) generatedMinions[0].isStash = true
+
+      if (generatedMinions[0]) {
+        if (wave % 10 === 4) {
+          generatedMinions[0].isStash = true
+        } else if (wave % 10 === 9) {
+          if (difficulty.value === 'easy') {
+            generatedMinions[0].isStash = true
+          } else {
+            const bossTier = Math.floor(wave / 10) + 1
+            if (weaponLevel.value <= bossTier) {
+              generatedMinions[0].isStash = true
+            }
+          }
+        }
+      }
     } else if (wave % 10 === 3) {
       if (Math.random() > 0.5) {
         for (let i = 0; i < 14; i++)
@@ -399,7 +460,11 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     weaponType.value = 0
     weaponLevel.value = 1
     score.value = 0
-    lives.value = 3
+
+    // MẠNG KHỞI ĐẦU THEO ĐỘ KHÓ
+    if (difficulty.value === 'hardcore') lives.value = 1
+    else lives.value = 3
+
     bullets.value = []
     enemyBullets.value = []
     powerUps.value = []
@@ -527,7 +592,6 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
   }
 
   const handleEnemyDeath = (enemy: Enemy, ptMult: number) => {
-    // ---- KÍCH HOẠT HIỆU ỨNG VFX KHI QUÁI CHẾT TẠI ĐÂY ----
     const cx = enemy.x + enemy.width / 2
     const cy = enemy.y + enemy.height / 2
     if (enemy.isMeteor) vfx.spawnDebris(cx, cy, '#ea580c')
@@ -535,6 +599,11 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     else vfx.spawnFeathers(cx, cy, enemy.shirtColor || '#ef4444')
 
     sfx.explode()
+
+    // GIẢM TỶ LỆ RỚT VŨ KHÍ NẾU CHƠI KHÓ
+    let dropRate = enemy.isMeteor ? 0.012 : 0.12
+    if (difficulty.value === 'normal') dropRate *= 0.6
+    else if (difficulty.value === 'hard' || difficulty.value === 'hardcore') dropRate *= 0.3
 
     if (enemy.isStash) {
       powerUps.value.push({
@@ -546,7 +615,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
         wType: -1,
       })
     } else if (!enemy.isHazard) {
-      if (Math.random() < (enemy.isMeteor ? 0.012 : 0.12))
+      if (Math.random() < dropRate)
         powerUps.value.push({
           id: engine.objCounter++,
           x: enemy.x + enemy.width / 2 - 18,
@@ -556,8 +625,10 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
           wType: Math.random() < 0.4 ? -1 : Math.floor(Math.random() * WEAPON_TYPES.length),
         })
     }
+
     const idx = enemies.value.findIndex((e) => e.id === enemy.id)
     if (idx !== -1) enemies.value.splice(idx, 1)
+
     addScore((enemy.isStash ? 100 : enemy.isMeteor ? 20 : 10) * ptMult)
   }
 

@@ -1,25 +1,135 @@
 <script setup lang="ts">
-import { inject } from 'vue'
+import { ref, computed, inject } from 'vue'
 import type { GameContext } from '../composables/useGame'
 
-const { gameState, startGame, initGame, score, resumingCountdown, waveAnnouncement } = inject(
+const { gameState, initGame, score, resumingCountdown, waveAnnouncement, difficulty } = inject(
   'game',
 ) as GameContext
+
+const diffOptions = [
+  {
+    id: 'easy',
+    name: 'DỄ',
+    desc: '• Hệ số điểm: x1\n• 10,000 điểm = +1 Mạng\n• Trải nghiệm cơ bản, dễ thở.',
+    color: 'text-green-400',
+    border: 'border-green-500',
+    hover: 'hover:bg-green-500',
+    shadow: 'shadow-[0_0_15px_#22c55e]',
+  },
+  {
+    id: 'normal',
+    name: 'VỪA',
+    desc: '• Hệ số điểm: x1.5\n• 25,000 điểm = +1 Mạng\n',
+    color: 'text-yellow-400',
+    border: 'border-yellow-500',
+    hover: 'hover:bg-yellow-500',
+    shadow: 'shadow-[0_0_15px_#eab308]',
+  },
+  {
+    id: 'hard',
+    name: 'KHÓ',
+    desc: '• Hệ số điểm: x2\n• 50,000 điểm = +1 Mạng\n',
+    color: 'text-orange-400',
+    border: 'border-orange-500',
+    hover: 'hover:bg-orange-500',
+    shadow: 'shadow-[0_0_15px_#f97316]',
+  },
+  {
+    id: 'hardcore',
+    name: 'HARDCORE',
+    desc: '• Hệ số điểm: x3\n• KHÔNG CỘNG MẠNG (Chỉ 1 mạng duy nhất)\n• Sai một ly, đi một dặm. Dành cho Pro.',
+    color: 'text-red-500',
+    border: 'border-red-600',
+    hover: 'hover:bg-red-600',
+    shadow: 'shadow-[0_0_15px_#dc2626]',
+  },
+] as const
+
+const currentIndex = ref(0)
+const currentDiff = computed(() => diffOptions[currentIndex.value] || diffOptions[0])
+
+const nextDiff = () => {
+  currentIndex.value = (currentIndex.value + 1) % diffOptions.length
+}
+const prevDiff = () => {
+  currentIndex.value = (currentIndex.value - 1 + diffOptions.length) % diffOptions.length
+}
+
+const handlePlay = () => {
+  difficulty.value = currentDiff.value.id
+  initGame()
+}
 </script>
 
 <template>
   <div
     v-if="gameState === 'menu'"
-    class="absolute inset-0 z-600 bg-bg-deep/80 backdrop-blur-md flex flex-col items-center justify-center pointer-events-auto"
+    class="inset-0 z-600 bg-bg-deep/80 backdrop-blur-md flex flex-col items-center pointer-events-auto overflow-y-auto py-8 relative"
   >
     <button
-      @click="startGame"
-      class="px-12 py-4 mb-6 bg-accent-coral text-bg-deep text-2xl sm:text-3xl font-display font-bold tracking-widest transition-all hover:bg-accent-amber hover:scale-105 active:scale-95 shadow-[0_0_20px_#FF6B4A] rounded-sm"
+      @click="gameState = 'leaderboard'"
+      class="absolute top-4 right-4 lg:top-6 lg:right-6 w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center bg-bg-surface border border-accent-amber rounded-sm text-xl lg:text-2xl transition-all hover:bg-accent-amber hover:scale-105 active:scale-95 shadow-md z-[610]"
+      title="Bảng Thành Tích"
     >
-      CHƠI NGAY
+      🏆
     </button>
+
     <div
-      class="border border-border-default bg-bg-surface p-6 max-w-sm w-full text-center shadow-xl"
+      class="border border-border-default bg-bg-surface p-6 max-w-md w-full text-center shadow-xl mb-6 shrink-0 mt-auto"
+    >
+      <h3
+        class="text-xl font-display font-bold text-accent-sky tracking-widest mb-6 uppercase border-b border-border-default pb-2"
+      >
+        CHỌN ĐỘ KHÓ
+      </h3>
+
+      <div class="flex items-center justify-between mb-6">
+        <button
+          @click="prevDiff"
+          class="w-12 h-12 shrink-0 flex items-center justify-center bg-bg-elevated border border-border-default text-text-secondary hover:text-accent-sky hover:border-accent-sky transition-colors text-2xl font-bold rounded-sm active:scale-95"
+        >
+          &lt;
+        </button>
+
+        <button
+          @click="handlePlay"
+          class="flex-1 mx-3 py-3 bg-bg-elevated border-2 transition-all rounded-sm group active:scale-95 flex flex-col items-center justify-center"
+          :class="[currentDiff.border, currentDiff.hover, currentDiff.shadow]"
+        >
+          <span
+            class="font-display font-bold text-2xl tracking-widest transition-colors group-hover:text-bg-deep"
+            :class="currentDiff.color"
+          >
+            {{ currentDiff.name }}
+          </span>
+          <span
+            class="text-xs font-body font-bold uppercase tracking-widest opacity-80 mt-1 transition-colors group-hover:text-bg-deep text-text-secondary"
+          >
+            CHƠI NGAY
+          </span>
+        </button>
+
+        <button
+          @click="nextDiff"
+          class="w-12 h-12 shrink-0 flex items-center justify-center bg-bg-elevated border border-border-default text-text-secondary hover:text-accent-sky hover:border-accent-sky transition-colors text-2xl font-bold rounded-sm active:scale-95"
+        >
+          &gt;
+        </button>
+      </div>
+
+      <div
+        class="bg-bg-elevated p-4 border border-border-default min-h-28 flex items-center justify-center text-left"
+      >
+        <p
+          class="text-text-secondary whitespace-pre-line leading-relaxed font-semibold text-sm w-full"
+        >
+          {{ currentDiff.desc }}
+        </p>
+      </div>
+    </div>
+
+    <div
+      class="border border-border-default bg-bg-surface p-6 max-w-md w-full text-center shadow-xl shrink-0 mb-auto"
     >
       <h3
         class="text-xl font-display font-bold text-accent-sky tracking-widest mb-4 uppercase border-b border-border-default pb-2"
@@ -65,10 +175,10 @@ const { gameState, startGame, initGame, score, resumingCountdown, waveAnnounceme
     </h2>
     <p class="text-3xl text-accent-amber font-display font-bold mb-10">ĐIỂM: {{ score }}</p>
     <button
-      @click="initGame"
+      @click="gameState = 'menu'"
       class="px-10 py-4 bg-bg-surface border border-border-default text-text-primary font-display font-bold text-xl transition-all hover:border-accent-coral hover:text-accent-coral cursor-pointer active:scale-95 shadow-lg"
     >
-      CHƠI LẠI 🔄
+      MENU CHÍNH 🔄
     </button>
   </div>
 
