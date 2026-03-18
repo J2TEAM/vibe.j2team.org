@@ -38,15 +38,33 @@ onMounted(async () => {
   }
 })
 
+interface GeocodeFeature {
+  center: [number, number]
+  bbox?: [number, number, number, number] // [minLng, minLat, maxLng, maxLat]
+}
+
 async function geocodeProvince(name: string): Promise<{ lat: number; lng: number } | null> {
   const encoded = encodeURIComponent(name + ', Việt Nam')
   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encoded}.json?country=vn&types=place,region&language=vi&access_token=${MAPBOX_TOKEN}`
   try {
     const res = await fetch(url)
-    const data = (await res.json()) as { features: { center: [number, number] }[] }
-    const center = data.features[0]?.center
-    if (!center) return null
-    return { lat: center[1], lng: center[0] }
+    const data = (await res.json()) as { features: GeocodeFeature[] }
+    const feature = data.features[0]
+    if (!feature) return null
+
+    // Random điểm trong bbox của tỉnh thay vì luôn lấy center
+    if (feature.bbox) {
+      const [minLng, minLat, maxLng, maxLat] = feature.bbox
+      // Lấy 70% vùng giữa để tránh biên tỉnh
+      const margin = 0.15
+      const latRange = maxLat - minLat
+      const lngRange = maxLng - minLng
+      const lat = minLat + latRange * (margin + Math.random() * (1 - margin * 2))
+      const lng = minLng + lngRange * (margin + Math.random() * (1 - margin * 2))
+      return { lat, lng }
+    }
+
+    return { lat: feature.center[1], lng: feature.center[0] }
   } catch {
     return null
   }
