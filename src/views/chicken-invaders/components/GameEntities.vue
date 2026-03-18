@@ -16,6 +16,7 @@ const {
   bosses,
   player,
   gamePhase,
+  currentWave,
 } = inject('game') as GameContext
 </script>
 
@@ -46,18 +47,18 @@ const {
       >
         <div
           v-if="pu.wType === -1"
-          class="w-9 h-9 animate-pulse drop-shadow-md"
+          class="w-10 h-10 animate-pulse drop-shadow-md"
           v-html="SPRITES.stash"
         ></div>
 
         <div
           v-else
-          class="relative flex items-center justify-center w-9 h-9 aspect-square animate-pulse rounded-full border-2 border-border-default bg-bg-deep"
+          class="relative flex items-center justify-center w-10 h-10 animate-bounce"
           :class="WEAPON_TYPES[pu.wType]?.color || ''"
-          style="box-shadow: 0 0 10px currentColor"
         >
+          <div class="w-full h-full" v-html="SPRITES.giftBox"></div>
           <div
-            class="relative z-10 w-2/3 h-2/3 drop-shadow-md"
+            class="absolute inset-0 m-auto w-1/3 h-1/3 text-white drop-shadow-sm"
             v-html="WEAPON_TYPES[pu.wType]?.icon || ''"
           ></div>
         </div>
@@ -83,6 +84,7 @@ const {
         bullet.shape === 'blob' ? 'bg-lime-400 rounded-full shadow-[0_0_10px_#a3e635] z-10' : '',
         bullet.shape === 'shard' ? 'bullet-shard z-10' : '',
         bullet.shape === 'needle' ? 'bg-purple-500 rounded-[50%] z-10' : '',
+        bullet.shape === 'pellet' ? 'bullet-pellet z-10' : '',
       ]"
       :style="{
         transform: `translate3d(${bullet.x}px, ${bullet.y}px, 0) rotate(${bullet.rotation}deg)`,
@@ -164,36 +166,45 @@ const {
       <template v-for="b in bosses" :key="'b' + b.id">
         <template v-if="b.hp > 0">
           <template v-if="b.bossType === 0 || b.bossType === 2 || b.bossType === 3">
-            <div
-              v-if="b.state === 'laser_warning'"
-              class="absolute top-0 left-0 bg-accent-coral/20 border-x-2 border-dashed border-accent-coral z-0 animate-pulse will-change-transform pointer-events-none"
-              :style="{
-                transform: `translate3d(${b.laserX ?? b.x + b.width / 2 - 40}px, ${b.y + b.height}px, 0)`,
-                width: `80px`,
-                height: `${activeHeight}px`,
-              }"
-            >
+            <template v-if="b.state === 'laser_warning'">
               <div
-                class="w-full h-full flex flex-col items-center pt-20"
-                :class="{ 'transition-transform duration-1000 ease-in-out': isRotating }"
-                :style="{ transform: `rotate(${-boardRotation}deg)` }"
+                v-for="(lx, i) in b.laserXs ||
+                (b.laserX !== undefined ? [b.laserX] : [b.x + b.width / 2 - 40])"
+                :key="'warn' + b.id + i"
+                class="absolute top-0 left-0 bg-accent-coral/20 border-x-2 border-dashed border-accent-coral z-0 animate-pulse will-change-transform pointer-events-none"
+                :style="{
+                  transform: `translate3d(${lx}px, ${b.y + b.height}px, 0)`,
+                  width: `80px`,
+                  height: `${activeHeight}px`,
+                }"
               >
                 <div
-                  class="text-center text-accent-coral font-display font-bold drop-shadow-md text-2xl"
+                  class="w-full h-full flex flex-col items-center pt-20"
+                  :class="{ 'transition-transform duration-1000 ease-in-out': isRotating }"
+                  :style="{ transform: `rotate(${-boardRotation}deg)` }"
                 >
-                  ⚠️ DANGER ⚠️
+                  <div
+                    class="text-center text-accent-coral font-display font-bold drop-shadow-md text-2xl"
+                  >
+                    ⚠️ DANGER ⚠️
+                  </div>
                 </div>
               </div>
-            </div>
-            <div
-              v-if="b.state === 'laser_firing'"
-              class="absolute top-0 left-0 z-20 shadow-[0_0_40px_#FF6B4A] bg-linear-to-r from-accent-coral via-white to-accent-coral will-change-transform pointer-events-none"
-              :style="{
-                transform: `translate3d(${b.laserX ?? b.x + b.width / 2 - 40}px, ${b.y + b.height}px, 0)`,
-                width: `80px`,
-                height: `${activeHeight}px`,
-              }"
-            ></div>
+            </template>
+
+            <template v-if="b.state === 'laser_firing'">
+              <div
+                v-for="(lx, i) in b.laserXs ||
+                (b.laserX !== undefined ? [b.laserX] : [b.x + b.width / 2 - 40])"
+                :key="'fire' + b.id + i"
+                class="absolute top-0 left-0 z-20 shadow-[0_0_40px_#FF6B4A] bg-linear-to-r from-accent-coral via-white to-accent-coral will-change-transform pointer-events-none"
+                :style="{
+                  transform: `translate3d(${lx}px, ${b.y + b.height}px, 0)`,
+                  width: `80px`,
+                  height: `${activeHeight}px`,
+                }"
+              ></div>
+            </template>
           </template>
 
           <div
@@ -236,15 +247,21 @@ const {
                       : {}
                 "
                 v-html="
-                  b.bossType === 0
-                    ? SPRITES.bossGiantChicken
-                    : b.bossType === 1
-                      ? SPRITES.bossRooster
-                      : b.bossType === 2
-                        ? SPRITES.ufo
-                        : b.bossType === 3
-                          ? SPRITES.bossMecha
-                          : SPRITES.bossRooster
+                  b.bossType === 5 && currentWave >= 100
+                    ? SPRITES.megaBoss // Gà Chúa biến hình
+                    : b.bossType === 5
+                      ? SPRITES.bossGiantChicken // Gà Chúa thường
+                      : b.bossType === 0
+                        ? SPRITES.chicken // Gà Boss thường
+                        : b.bossType === 1
+                          ? SPRITES.bossRooster
+                          : b.bossType === 2
+                            ? SPRITES.ufo
+                            : b.bossType === 3
+                              ? SPRITES.bossMecha
+                              : b.bossType === 4
+                                ? SPRITES.bossRooster
+                                : SPRITES.chicken
                 "
               ></div>
             </div>
@@ -300,23 +317,7 @@ const {
 .bullet-shard {
   background: radial-gradient(circle, #ffb830 10%, #ff6b4a 50%, #9a3412 90%);
   border-radius: 50%;
-  animation: magmaPulse 0.4s infinite alternate;
-}
-
-@keyframes magmaPulse {
-  from {
-    box-shadow:
-      0 0 20px #ffb830,
-      0 0 40px #ff6b4a;
-    filter: brightness(1);
-  }
-
-  to {
-    box-shadow:
-      0 0 40px #ffb830,
-      0 0 80px #ff6b4a;
-    filter: brightness(1.3);
-  }
+  box-shadow: 0 0 10px #ff6b4a;
 }
 
 .bullet-wavy {
@@ -358,6 +359,12 @@ const {
     opacity: 0.8;
     filter: drop-shadow(0 0 12px #38bdf8) drop-shadow(0 0 25px #38bdf8) brightness(1.4);
   }
+}
+
+.bullet-pellet {
+  background: linear-gradient(to top, #6b7280, #f3f4f6);
+  border-radius: 50% 50% 2px 2px;
+  box-shadow: 0 0 6px #9ca3af;
 }
 
 .boss-explode-anim {

@@ -96,4 +96,14 @@ export const WEAPON_TYPES = [
     type: 'orange',
     shape: 'shard',
   },
+  {
+    id: 9,
+    name: 'Shotgun',
+    icon: iconWeapon,
+    color: 'text-gray-300 drop-shadow-[0_0_5px_currentColor]',
+    speed: 24,
+    size: 8,
+    type: 'gray',
+    shape: 'pellet',
+  },
 ]

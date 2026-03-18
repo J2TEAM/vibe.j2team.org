@@ -571,6 +571,14 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
           bulletY = cy - bulletHeight / 2
           dy = -3
           break
+        case 'gray':
+          rotation = offsetIndex * 4 + (Math.random() - 0.5) * 10
+          dx = offsetIndex * 1.5 + (Math.random() - 0.5) * 2
+          dy = -(wConfig.speed || 15) + Math.random() * 4
+          offsetX = offsetIndex * 8
+          bulletHeight = 16
+          bulletWidth = wConfig.size || 8
+          break
       }
       bullets.value.push({
         id: `b-${engine.objCounter++}-${Math.random()}`,
@@ -600,10 +608,11 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
 
     sfx.explode()
 
-    // GIẢM TỶ LỆ RỚT VŨ KHÍ NẾU CHƠI KHÓ
+    // GIẢM TỶ LỆ RỚT VŨ KHÍ TÙY THEO ĐỘ KHÓ
     let dropRate = enemy.isMeteor ? 0.012 : 0.12
-    if (difficulty.value === 'normal') dropRate *= 0.6
-    else if (difficulty.value === 'hard' || difficulty.value === 'hardcore') dropRate *= 0.3
+    if (difficulty.value === 'normal')
+      dropRate *= 0.4 // Đã giảm từ 0.6 xuống 0.4
+    else if (difficulty.value === 'hard' || difficulty.value === 'hardcore') dropRate *= 0.2 // Giảm Khó xuống 0.2 cho gắt
 
     if (enemy.isStash) {
       powerUps.value.push({

@@ -38,7 +38,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="absolute top-1/2 left-1/2 pointer-events-none z-[60]"
+    class="absolute top-1/2 left-1/2 pointer-events-none z-60"
     :class="{ 'transition-transform duration-1000 ease-in-out': isRotating }"
     :style="{
       width: `${activeWidth}px`,

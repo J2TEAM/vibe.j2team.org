@@ -2,9 +2,8 @@
 import { ref, computed, inject } from 'vue'
 import type { GameContext } from '../composables/useGame'
 
-const { gameState, initGame, score, resumingCountdown, waveAnnouncement, difficulty } = inject(
-  'game',
-) as GameContext
+const { gameState, initGame, score, resumingCountdown, waveAnnouncement, difficulty, resumeGame } =
+  inject('game') as GameContext
 
 const diffOptions = [
   {
@@ -19,7 +18,7 @@ const diffOptions = [
   {
     id: 'normal',
     name: 'VỪA',
-    desc: '• Hệ số điểm: x1.5\n• 25,000 điểm = +1 Mạng\n',
+    desc: '• Hệ số điểm: x1.5\n• 25,000 điểm = +1 Mạng\n• Độ khó thông thường',
     color: 'text-yellow-400',
     border: 'border-yellow-500',
     hover: 'hover:bg-yellow-500',
@@ -28,7 +27,7 @@ const diffOptions = [
   {
     id: 'hard',
     name: 'KHÓ',
-    desc: '• Hệ số điểm: x2\n• 50,000 điểm = +1 Mạng\n',
+    desc: '• Hệ số điểm: x2\n• 50,000 điểm = +1 Mạng\n• Tỷ lệ rớt súng giảm mạnh.',
     color: 'text-orange-400',
     border: 'border-orange-500',
     hover: 'hover:bg-orange-500',
@@ -37,7 +36,7 @@ const diffOptions = [
   {
     id: 'hardcore',
     name: 'HARDCORE',
-    desc: '• Hệ số điểm: x3\n• KHÔNG CỘNG MẠNG (Chỉ 1 mạng duy nhất)\n• Sai một ly, đi một dặm. Dành cho Pro.',
+    desc: '• Hệ số điểm: x3\n• KHÔNG CỘNG MẠNG (Chỉ 1 mạng duy nhất)\n• Sai một ly, đi một dặm.',
     color: 'text-red-500',
     border: 'border-red-600',
     hover: 'hover:bg-red-600',
@@ -59,16 +58,24 @@ const handlePlay = () => {
   difficulty.value = currentDiff.value.id
   initGame()
 }
+
+// Biến trạng thái để hiển thị Popup xác nhận thoát
+const showExitConfirm = ref(false)
+
+const confirmExit = () => {
+  showExitConfirm.value = false
+  gameState.value = 'menu'
+}
 </script>
 
 <template>
   <div
     v-if="gameState === 'menu'"
-    class="inset-0 z-600 bg-bg-deep/80 backdrop-blur-md flex flex-col items-center pointer-events-auto overflow-y-auto py-8 relative"
+    class="absolute inset-0 z-600 bg-bg-deep/80 backdrop-blur-md flex flex-col items-center pointer-events-auto overflow-y-auto py-8"
   >
     <button
       @click="gameState = 'leaderboard'"
-      class="absolute top-4 right-4 lg:top-6 lg:right-6 w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center bg-bg-surface border border-accent-amber rounded-sm text-xl lg:text-2xl transition-all hover:bg-accent-amber hover:scale-105 active:scale-95 shadow-md z-[610]"
+      class="fixed top-4 right-4 lg:top-8 lg:right-8 w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center bg-bg-surface border border-accent-amber rounded-sm text-xl lg:text-2xl transition-all hover:bg-accent-amber hover:scale-105 active:scale-95 shadow-md z-610"
       title="Bảng Thành Tích"
     >
       🏆
@@ -184,15 +191,64 @@ const handlePlay = () => {
 
   <div
     v-if="gameState === 'paused'"
-    class="absolute inset-0 bg-bg-deep/80 backdrop-blur-md flex flex-col items-center justify-center z-400 pointer-events-none"
+    class="absolute inset-0 bg-bg-deep/80 backdrop-blur-md flex flex-col items-center justify-center z-400 pointer-events-auto"
   >
-    <h2 class="text-7xl font-display font-bold text-accent-coral mb-4 tracking-widest uppercase">
+    <h2 class="text-7xl font-display font-bold text-accent-coral mb-8 tracking-widest uppercase">
       TẠM DỪNG
     </h2>
-    <p class="text-xl text-text-secondary font-body text-center leading-relaxed">
-      <span class="hidden lg:inline">Nhấn SPACE / CLICK để tiếp tục</span>
-      <span class="lg:hidden">Nhấn nút ▶ trên thanh điều khiển để tiếp tục</span>
+
+    <div class="flex flex-col gap-4 w-64">
+      <button
+        @click="resumeGame"
+        class="px-8 py-4 bg-accent-sky text-bg-deep font-display font-bold text-xl transition-all hover:bg-white active:scale-95 shadow-lg cursor-pointer"
+      >
+        TIẾP TỤC ▶
+      </button>
+
+      <button
+        @click="showExitConfirm = true"
+        class="px-8 py-4 bg-accent-coral border border-border-default text-bg-deep font-display font-bold text-xl transition-all hover:bg-white active:scale-95 cursor-pointer"
+      >
+        MENU
+      </button>
+    </div>
+
+    <p class="font-display text-xl text-text-secondary mt-8 text-center leading-relaxed">
+      <span class="hidden lg:inline">Nhấn SPACE để tiếp tục nhanh</span>
     </p>
+
+    <div
+      v-if="showExitConfirm"
+      class="fixed inset-0 z-700 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+    >
+      <div
+        class="bg-bg-surface border-2 border-accent-coral p-8 max-w-sm w-full text-center shadow-[0_0_30px_rgba(255,107,74,0.3)] scale-in-center"
+      >
+        <h3
+          class="text-2xl font-display font-bold text-text-primary mb-4 uppercase tracking-tighter"
+        >
+          Xác nhận thoát?
+        </h3>
+        <p class="text-text-secondary mb-8 leading-relaxed">
+          Tiến trình chơi hiện tại của bạn sẽ bị mất hoàn toàn!
+        </p>
+
+        <div class="grid grid-cols-2 gap-4">
+          <button
+            @click="showExitConfirm = false"
+            class="font-display py-3 bg-bg-elevated border border-border-default text-text-primary font-bold hover:bg-bg-surface transition-colors cursor-pointer"
+          >
+            QUAY LẠI
+          </button>
+          <button
+            @click="confirmExit"
+            class="font-display py-3 bg-accent-coral text-bg-deep font-bold hover:brightness-110 transition-all cursor-pointer"
+          >
+            THOÁT
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div
@@ -201,8 +257,9 @@ const handlePlay = () => {
   >
     <span
       class="text-[150px] font-display font-bold text-accent-amber drop-shadow-[0_0_20px_#FFB830]"
-      >{{ resumingCountdown }}</span
     >
+      {{ resumingCountdown }}
+    </span>
   </div>
 
   <div
@@ -216,3 +273,21 @@ const handlePlay = () => {
     </h2>
   </div>
 </template>
+
+<style scoped>
+.scale-in-center {
+  animation: scale-in-center 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes scale-in-center {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+</style>

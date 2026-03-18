@@ -38,11 +38,12 @@ export interface Enemy extends GameObject {
 export interface Boss extends Enemy {
   bossType: number
   direction: number
-  state: 'idle' | 'dash' | 'burst' | 'laser_warning' | 'laser_firing'
+  state: 'idle' | 'dash' | 'burst' | 'laser_warning' | 'laser_firing' | 'circle_burst'
   stateTimer: number
   burstCount?: number
   laserTimer?: number
   laserX?: number
+  laserXs?: number[] // Hỗ trợ bắn nhiều tia laser cùng lúc
 }
 
 export interface Egg extends GameObject {

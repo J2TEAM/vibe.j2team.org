@@ -54,8 +54,9 @@ const diffMap: Record<string, { name: string; color: string }> = {
         <div
           class="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 inline-block"
           :class="WEAPON_TYPES[weaponType]?.color"
-          v-html="WEAPON_TYPES[weaponType]?.icon"
+          v-html="SPRITES.giftBox"
         ></div>
+
         <span class="hidden lg:inline text-accent-amber pl-1">{{
           WEAPON_TYPES[weaponType]?.name || ''
         }}</span>

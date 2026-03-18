@@ -41,6 +41,9 @@ export const getWeaponStats = (typeId: number, level: number) => {
   } else if (typeId === 8) {
     rays = 1
     damage = 40 + level * 15
+  } else if (typeId === 9) {
+    rays = Math.min(3 + Math.floor(level / 3) * 2, 5)
+    damage = 10 + level * 2
   }
   return { rays, damage }
 }
