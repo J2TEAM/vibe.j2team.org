@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { multiAppAuthors } from '@/data/leaderboard'
+import { multiAppAuthors, toAuthorSlug } from '@/data/authors'
 import { getCategoryLabel } from '@/data/categories'
 
 interface RankStyle {
@@ -33,7 +33,7 @@ const rankStyles: Record<number, RankStyle> = {
 
 const defaultStyle: RankStyle = {
   card: 'border-border-default hover:border-border-hover',
-  badge: 'bg-bg-elevated',
+  badge: 'bg-text-dim',
   text: 'text-text-primary',
   hover: 'hover:text-accent-coral',
 }
@@ -47,9 +47,16 @@ const styledAuthors = multiAppAuthors.map((stat) => ({
 <template>
   <div class="min-h-screen bg-bg-deep text-text-primary font-body">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+      <RouterLink
+        to="/"
+        class="inline-flex items-center gap-2 text-sm text-text-secondary transition hover:text-accent-coral"
+      >
+        &larr; Về trang chủ
+      </RouterLink>
+
       <!-- Header -->
       <h1
-        class="font-display text-3xl sm:text-4xl font-bold text-text-primary flex items-center gap-3"
+        class="mt-8 font-display text-3xl sm:text-4xl font-bold text-text-primary flex items-center gap-3"
       >
         <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
         Bảng xếp hạng tác giả
@@ -74,17 +81,13 @@ const styledAuthors = multiAppAuthors.map((stat) => ({
 
           <!-- Author -->
           <h2 class="mt-2 font-display text-xl font-bold">
-            <a
-              v-if="stat.facebook"
-              :href="stat.facebook"
-              target="_blank"
-              rel="noopener noreferrer"
+            <RouterLink
+              :to="`/author/${toAuthorSlug(stat.author)}`"
               class="transition-colors"
               :class="style.hover"
             >
               {{ stat.author }}
-            </a>
-            <span v-else>{{ stat.author }}</span>
+            </RouterLink>
           </h2>
 
           <p class="mt-1 text-sm text-text-secondary">
@@ -113,7 +116,7 @@ const styledAuthors = multiAppAuthors.map((stat) => ({
             <span
               v-for="cat in stat.categories"
               :key="cat"
-              class="text-[10px] px-1.5 py-0.5 bg-bg-elevated text-text-dim font-display tracking-wide"
+              class="text-[10px] px-1.5 py-0.5 bg-bg-elevated text-text-dim font-display tracking-wide border border-border-default"
             >
               {{ getCategoryLabel(cat) }}
             </span>

@@ -2,7 +2,14 @@ import { computed } from 'vue'
 import type { Ref } from 'vue'
 import { maxRoundsByMode } from '../data'
 import { formatClock } from '../utils/stateUtils'
-import type { GameMode, Incident, LearningEntry, Metrics, RoundLog, Severity } from '../types'
+import type {
+  GameMode,
+  Incident,
+  LearningEntry,
+  Metrics,
+  RoundLog,
+  Severity,
+} from '../types'
 
 type LearningSeverityFilter = 'all' | Severity
 
@@ -81,9 +88,7 @@ export function useBugWarRoomComputed(options: UseBugWarRoomComputedOptions) {
 
   const maxRounds = computed<number>(() => maxRoundsByMode[mode.value])
   const isFinished = computed<boolean>(() => {
-    return (
-      round.value > maxRounds.value || metrics.value.timeLeft <= 0 || metrics.value.chaos >= 100
-    )
+    return round.value > maxRounds.value || metrics.value.timeLeft <= 0 || metrics.value.chaos >= 100
   })
 
   const jitter = (base: number, phase: number, amplitude: number): number => {
@@ -103,12 +108,7 @@ export function useBugWarRoomComputed(options: UseBugWarRoomComputedOptions) {
   }))
 
   const score = computed<number>(() => {
-    const value =
-      (metrics.value.stability +
-        metrics.value.trust +
-        metrics.value.energy +
-        (100 - metrics.value.chaos)) /
-      4
+    const value = (metrics.value.stability + metrics.value.trust + metrics.value.energy + (100 - metrics.value.chaos)) / 4
     return Math.round(value)
   })
 
@@ -154,8 +154,7 @@ export function useBugWarRoomComputed(options: UseBugWarRoomComputedOptions) {
 
   const verdict = computed<string>(() => {
     if (campaignScore.value >= 80) return 'Bạn giữ hệ thống rất tốt. Team có thể ngủ yên.'
-    if (campaignScore.value >= 65)
-      return 'Bạn xử lý ổn định. Còn vài điểm có thể tối ưu sau postmortem.'
+    if (campaignScore.value >= 65) return 'Bạn xử lý ổn định. Còn vài điểm có thể tối ưu sau postmortem.'
     if (campaignScore.value >= 45) return 'Đã dập được cháy, nhưng hệ thống còn mong manh.'
     return 'War room vỡ trận. Cần viết runbook và luyện incident drill ngay.'
   })
@@ -225,7 +224,7 @@ export function useBugWarRoomComputed(options: UseBugWarRoomComputedOptions) {
 
   const incomingCount = computed<number>(() => Math.max(0, maxRounds.value - round.value))
 
-  const modeLabel = computed<string>(() => (mode.value === 'hardcore' ? 'Hardcore' : 'Normal'))
+  const modeLabel = computed<string>(() => mode.value === 'hardcore' ? 'Hardcore' : 'Normal')
 
   const feedMessage = computed<string>(() => {
     const incident = currentIncident.value
@@ -246,9 +245,7 @@ export function useBugWarRoomComputed(options: UseBugWarRoomComputedOptions) {
     `INCIDENT LEFT ${incomingCount.value}`,
   ])
 
-  const canContinue = computed<boolean>(
-    () => !isFinished.value && currentIncident.value.choices.length > 0 && !showRandomEvent.value,
-  )
+  const canContinue = computed<boolean>(() => !isFinished.value && currentIncident.value.choices.length > 0 && !showRandomEvent.value)
 
   const operationPhase = computed<string>(() => {
     if (metrics.value.chaos >= 80) return 'Containment'
@@ -258,10 +255,7 @@ export function useBugWarRoomComputed(options: UseBugWarRoomComputedOptions) {
   })
 
   const pressureIndex = computed<number>(() => {
-    const pressure =
-      metrics.value.chaos * 0.45 +
-      (100 - metrics.value.energy) * 0.25 +
-      (100 - metrics.value.stability) * 0.3
+    const pressure = (metrics.value.chaos * 0.45) + ((100 - metrics.value.energy) * 0.25) + ((100 - metrics.value.stability) * 0.3)
     return Math.round(Math.max(0, Math.min(100, pressure)))
   })
 
@@ -271,34 +265,17 @@ export function useBugWarRoomComputed(options: UseBugWarRoomComputedOptions) {
       {
         name: 'Gateway Front',
         status: chaos >= 70 ? 'Hot' : chaos >= 45 ? 'Warm' : 'Stable',
-        tone:
-          chaos >= 70 ? 'text-accent-coral' : chaos >= 45 ? 'text-accent-amber' : 'text-accent-sky',
+        tone: chaos >= 70 ? 'text-accent-coral' : chaos >= 45 ? 'text-accent-amber' : 'text-accent-sky',
       },
       {
         name: 'Data Front',
-        status:
-          metrics.value.stability < 50
-            ? 'Risky'
-            : metrics.value.stability < 70
-              ? 'Guarded'
-              : 'Healthy',
-        tone:
-          metrics.value.stability < 50
-            ? 'text-accent-coral'
-            : metrics.value.stability < 70
-              ? 'text-accent-amber'
-              : 'text-accent-sky',
+        status: metrics.value.stability < 50 ? 'Risky' : metrics.value.stability < 70 ? 'Guarded' : 'Healthy',
+        tone: metrics.value.stability < 50 ? 'text-accent-coral' : metrics.value.stability < 70 ? 'text-accent-amber' : 'text-accent-sky',
       },
       {
         name: 'Team Front',
-        status:
-          metrics.value.energy < 40 ? 'Fatigued' : metrics.value.energy < 65 ? 'Strained' : 'Ready',
-        tone:
-          metrics.value.energy < 40
-            ? 'text-accent-coral'
-            : metrics.value.energy < 65
-              ? 'text-accent-amber'
-              : 'text-accent-sky',
+        status: metrics.value.energy < 40 ? 'Fatigued' : metrics.value.energy < 65 ? 'Strained' : 'Ready',
+        tone: metrics.value.energy < 40 ? 'text-accent-coral' : metrics.value.energy < 65 ? 'text-accent-amber' : 'text-accent-sky',
       },
     ]
   })
@@ -359,33 +336,23 @@ export function useBugWarRoomComputed(options: UseBugWarRoomComputedOptions) {
     const actions: string[] = []
 
     if (metrics.value.chaos >= 70) {
-      actions.push(
-        'Chaos cuối trận cao: ưu tiên phương án có chaosDelta thấp ở 2 vòng đầu để tránh snowball.',
-      )
+      actions.push('Chaos cuối trận cao: ưu tiên phương án có chaosDelta thấp ở 2 vòng đầu để tránh snowball.')
     }
 
     if (metrics.value.energy < 50) {
-      actions.push(
-        'Energy thấp: dùng chiến thuật giảm tải on-call, hạn chế fix nóng liên tục qua nhiều vòng.',
-      )
+      actions.push('Energy thấp: dùng chiến thuật giảm tải on-call, hạn chế fix nóng liên tục qua nhiều vòng.')
     }
 
     if (metrics.value.trust < 55) {
-      actions.push(
-        'Trust giảm sâu: thêm cập nhật trạng thái sớm cho user và stakeholder ở các sự cố SEV-1/SEV-2.',
-      )
+      actions.push('Trust giảm sâu: thêm cập nhật trạng thái sớm cho user và stakeholder ở các sự cố SEV-1/SEV-2.')
     }
 
     if (metrics.value.timeLeft <= 20) {
-      actions.push(
-        'Time buffer mỏng: chọn giải pháp rollback/feature flag trước, tối ưu dài hạn để sau postmortem.',
-      )
+      actions.push('Time buffer mỏng: chọn giải pháp rollback/feature flag trước, tối ưu dài hạn để sau postmortem.')
     }
 
     if (actions.length === 0) {
-      actions.push(
-        'Đội hình đang vận hành tốt. Thử Hardcore + Daily Seed để benchmark chiến lược mới.',
-      )
+      actions.push('Đội hình đang vận hành tốt. Thử Hardcore + Daily Seed để benchmark chiến lược mới.')
     }
 
     return actions
@@ -406,21 +373,18 @@ export function useBugWarRoomComputed(options: UseBugWarRoomComputedOptions) {
   })
 
   const learningBySeverity = computed<Record<Severity, number>>(() => {
-    return learningJournal.value.reduce(
-      (acc, item) => {
-        acc[item.severity] += 1
-        return acc
-      },
-      {
-        'SEV-1': 0,
-        'SEV-2': 0,
-        'SEV-3': 0,
-      } as Record<Severity, number>,
-    )
+    return learningJournal.value.reduce((acc, item) => {
+      acc[item.severity] += 1
+      return acc
+    }, {
+      'SEV-1': 0,
+      'SEV-2': 0,
+      'SEV-3': 0,
+    } as Record<Severity, number>)
   })
 
   const learningRecent7dCount = computed<number>(() => {
-    const threshold = Date.now() - 7 * 24 * 60 * 60 * 1000
+    const threshold = Date.now() - (7 * 24 * 60 * 60 * 1000)
     return learningJournal.value.filter((entry) => {
       const ts = Number(entry.id.split('-')[0])
       return !Number.isNaN(ts) && ts >= threshold
@@ -428,8 +392,7 @@ export function useBugWarRoomComputed(options: UseBugWarRoomComputedOptions) {
   })
 
   const learningMasteryScore = computed<number>(() => {
-    const diversityBonus =
-      Object.values(learningBySeverity.value).filter((count) => count > 0).length * 6
+    const diversityBonus = Object.values(learningBySeverity.value).filter((count) => count > 0).length * 6
     const lessonBonus = Math.min(38, learningJournal.value.length * 3)
     const xpBonus = Math.min(44, Math.round(careerLearningXp.value / 6))
     return Math.min(100, diversityBonus + lessonBonus + xpBonus)
@@ -507,9 +470,7 @@ export function useBugWarRoomComputed(options: UseBugWarRoomComputedOptions) {
   })
 
   const currentSlimeAsset = computed<string>(() => {
-    return activeOverlaySlimeMood.value
-      ? slimeAssetMap[activeOverlaySlimeMood.value]
-      : slimeIdleAsset
+    return activeOverlaySlimeMood.value ? slimeAssetMap[activeOverlaySlimeMood.value] : slimeIdleAsset
   })
 
   const currentSlimeMoodLabel = computed<string>(() => {

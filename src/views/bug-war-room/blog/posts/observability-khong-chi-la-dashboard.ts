@@ -4,15 +4,13 @@ export const observabilityKhongChiLaDashboardPost: BlogPost = {
   id: 'post-observability-003',
   slug: 'observability-khong-chi-la-dashboard',
   title: 'Observability Không Chỉ Là Dashboard: Thiết Kế Tín Hiệu Đủ Để Điều Tra Sự Cố',
-  excerpt:
-    'Nhiều đội có rất nhiều biểu đồ nhưng vẫn mất nhiều thời gian để chẩn đoán lỗi. Bài viết này hướng dẫn cách thiết kế log, metric và trace để điều tra nhanh hơn trong tình huống áp lực cao.',
+  excerpt: 'Nhiều đội có rất nhiều biểu đồ nhưng vẫn mất nhiều thời gian để chẩn đoán lỗi. Bài viết này hướng dẫn cách thiết kế log, metric và trace để điều tra nhanh hơn trong tình huống áp lực cao.',
   author: 'TranQui004',
   publishedAt: '2026-03-07',
   updatedAt: '2026-03-07',
   tags: ['observability', 'metrics', 'tracing'],
   readMinutes: 16,
-  coverImageUrl:
-    'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1600&q=80',
+  coverImageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1600&q=80',
   coverImageAlt: 'Dashboard giám sát hệ thống với nhiều biểu đồ vận hành',
   imageLinks: [
     {

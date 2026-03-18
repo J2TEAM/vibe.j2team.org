@@ -1,15 +1,22 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, watch } from 'vue'
 import type { SolarTerm } from '../types'
-import { articles } from '../articles'
+import { getArticle } from '../articles'
+import type { Article } from '../articles'
 
 const props = defineProps<{
   term: SolarTerm
 }>()
 
-const articleData = computed(() => {
-  return articles[props.term.name] || articles[props.term.name.replace(/\s*\([^)]*\)/, '')]
-})
+// Lazy-load article data cho theme colors
+const articleData = ref<Article | null>(null)
+
+const loadArticle = async () => {
+  articleData.value = await getArticle(props.term.name)
+}
+
+// Tải article khi component mount hoặc term thay đổi
+watch(() => props.term.name, loadArticle, { immediate: true })
 
 const cardRef = ref<HTMLElement | null>(null)
 const isGenerating = ref(false)

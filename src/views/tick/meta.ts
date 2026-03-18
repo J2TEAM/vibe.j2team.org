@@ -5,7 +5,7 @@ const meta: PageMeta = {
   description: 'Đồng hồ đẹp cho desktop — hẹn giờ, đếm ngược, Pomodoro',
   author: 'duckocancode',
   facebook: 'https://www.facebook.com/ngdh4720',
-  category: 'learn',
+  category: 'tool',
 }
 
 export default meta

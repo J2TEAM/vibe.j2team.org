@@ -68,6 +68,7 @@ export interface GachBongModule {
   getBoardRows(): number
   getBoardCols(): number
   getTileAt(row: number, col: number): number
+  getPaletteIdx(row: number, col: number): number
   getPatternCount(): number
   getPatternName(patternIdx: number): string
   getPaletteCount(): number

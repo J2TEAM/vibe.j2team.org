@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import type { Province } from '../types'
 import { provinces } from '../data/provinces'
-import { mapPaths, vietnamOutline } from '../data/map-paths'
 import { useMapZoom } from '../composables/useMapZoom'
+
+// [Optimization] MapPathData type được inline thay vì import từ map-paths.ts.
+// File map-paths.ts (412 kB) đã được convert sang public/data/blind-map-paths.json
+// và load async qua fetch() để tránh bundle 442 kB vào GameScreen chunk.
+type MapPathData = { id: string; d: string; cx: number; cy: number }
 
 const props = defineProps<{
   gameProvinces: Province[]
@@ -23,6 +27,27 @@ const emit = defineEmits<{
 const hoveredPath = ref<string | null>(null)
 const mapContainer = ref<HTMLDivElement | null>(null)
 const zoom = useMapZoom(mapContainer)
+
+const isMobile = ref(false)
+
+// [Optimization] Thay vì import { mapPaths, vietnamOutline } from '../data/map-paths' (412 kB),
+// dữ liệu được fetch lazy từ public/data/blind-map-paths.json khi component mount.
+// Điều này giúp GameScreen chunk giảm từ ~442 kB xuống ~25 kB.
+// JSON được tạo bằng: node scripts/generate-map-data.mjs (cần chạy lại sau khi cập nhật map-paths.ts).
+const mapPaths = ref<MapPathData[]>([])
+const vietnamOutline = ref('')
+const mapDataLoading = ref(true)
+
+onMounted(async () => {
+  isMobile.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent,
+  )
+  const response = await fetch('/data/blind-map-paths.json')
+  const mapData = (await response.json()) as { mapPaths: MapPathData[]; vietnamOutline: string }
+  mapPaths.value = mapData.mapPaths
+  vietnamOutline.value = mapData.vietnamOutline
+  mapDataLoading.value = false
+})
 
 // Build a map from svgPathId to province for quick lookup
 const svgIdToProvince = computed(() => {
@@ -131,20 +156,27 @@ const hoveredProvinceName = computed(() => {
 
 <template>
   <div class="relative w-full h-full select-none">
+    <!-- Map loading skeleton -->
+    <div v-if="mapDataLoading" class="absolute inset-0 flex items-center justify-center bg-bg-base">
+      <Icon icon="lucide:loader-circle" class="size-8 text-accent-sky animate-spin" />
+    </div>
+
     <!-- Map viewport (handles zoom/pan) -->
     <div
+      v-if="!mapDataLoading"
       ref="mapContainer"
       class="relative w-full h-full overflow-hidden touch-none"
       :class="{ 'cursor-grabbing': zoom.isPanning.value, 'cursor-grab': !zoom.isPanning.value }"
     >
       <div
-        class="w-full h-full flex items-center justify-center transition-transform duration-100 ease-out"
+        class="w-full h-full flex items-center justify-center transition-transform duration-100 ease-out will-change-transform"
         :style="{ transform: zoom.transform.value, transformOrigin: 'center center' }"
       >
         <svg
-          viewBox="-10 -10 440 960"
-          class="w-full h-full max-h-[70vh] md:max-h-full"
+          viewBox="-20 -20 743 920"
+          class="w-full h-full max-h-[80vh] md:max-h-full"
           preserveAspectRatio="xMidYMid meet"
+          shape-rendering="geometricPrecision"
         >
           <defs>
             <!-- Sea gradient -->
@@ -171,27 +203,7 @@ const hoveredProvinceName = computed(() => {
           </defs>
 
           <!-- Sea background -->
-          <rect x="-10" y="-10" width="440" height="960" fill="url(#sea-gradient)" />
-
-          <!-- Grid lines for geographic feel -->
-          <g opacity="0.04" stroke="#38BDF8" stroke-width="0.3">
-            <line
-              v-for="i in 9"
-              :key="'h' + i"
-              x1="-10"
-              :y1="i * 100 - 10"
-              x2="430"
-              :y2="i * 100 - 10"
-            />
-            <line
-              v-for="i in 4"
-              :key="'v' + i"
-              :x1="i * 100 + 10"
-              y1="-10"
-              :x2="i * 100 + 10"
-              y2="950"
-            />
-          </g>
+          <rect x="-20" y="-20" width="743" height="920" fill="url(#sea-gradient)" />
 
           <!-- Vietnam national outline (coastline shadow) -->
           <path :d="vietnamOutline" fill="none" stroke="#1E3448" stroke-width="3" opacity="0.3" />
@@ -201,7 +213,6 @@ const hoveredProvinceName = computed(() => {
             <path
               v-for="p in mapPaths"
               :key="p.id"
-              :data-id="p.id"
               :d="p.d"
               :fill="getPathFill(p.id)"
               :stroke="getPathStroke(p.id)"
@@ -215,11 +226,13 @@ const hoveredProvinceName = computed(() => {
                 'province-hovered': hoveredPath === p.id && selectedProvinceId,
               }"
               :filter="
-                hintedProvinceId === p.id
-                  ? 'url(#glow-hint)'
-                  : correctSvgIds.has(p.id)
-                    ? 'url(#glow-correct)'
-                    : undefined
+                isMobile
+                  ? undefined
+                  : hintedProvinceId === p.id
+                    ? 'url(#glow-hint)'
+                    : correctSvgIds.has(p.id)
+                      ? 'url(#glow-correct)'
+                      : undefined
               "
               @mouseenter="onMouseEnter(p.id)"
               @mouseleave="onMouseLeave()"
@@ -315,6 +328,10 @@ const hoveredProvinceName = computed(() => {
 </template>
 
 <style scoped>
+.will-change-transform {
+  will-change: transform;
+}
+
 .map-province {
   transition:
     fill 0.2s ease,
