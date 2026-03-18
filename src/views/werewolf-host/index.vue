@@ -21,6 +21,12 @@ const g = useGame()
 const showTimeConfig = ref(false)
 // Show/hide guide modal
 const showGuide = ref(false)
+const showResetConfirm = ref(false)
+
+function handleReset() {
+  showResetConfirm.value = false
+  g.resetGame()
+}
 
 // Night step labels
 const STEP_LABELS: Record<NightStep, string> = {
@@ -1447,6 +1453,13 @@ function handleWolfVoteNext() {
         Đêm trước
       </button>
       <button
+        class="flex items-center gap-1.5 border border-border-default bg-bg-deep/90 px-3 py-2 text-xs text-text-secondary backdrop-blur transition hover:border-accent-coral hover:text-accent-coral"
+        @click="showResetConfirm = true"
+      >
+        <Icon icon="lucide:refresh-cw" class="size-3.5" />
+        Chơi lại
+      </button>
+      <button
         class="flex items-center gap-1.5 border px-3 py-2 text-xs backdrop-blur transition"
         :class="
           g.isPaused.value
@@ -1458,6 +1471,32 @@ function handleWolfVoteNext() {
         <Icon :icon="g.isPaused.value ? 'lucide:play' : 'lucide:pause'" class="size-3.5" />
         {{ g.isPaused.value ? 'Tiếp tục' : 'Tạm dừng' }}
       </button>
+    </div>
+
+    <!-- Reset confirm dialog -->
+    <div
+      v-if="showResetConfirm"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-bg-deep/80 backdrop-blur"
+    >
+      <div class="border border-accent-coral/30 bg-bg-surface p-8 text-center">
+        <Icon icon="lucide:alert-triangle" class="mx-auto mb-3 size-10 text-accent-coral" />
+        <p class="font-display text-lg font-bold text-text-primary">Bắt đầu game mới?</p>
+        <p class="mt-2 text-sm text-text-dim">Toàn bộ dữ liệu game hiện tại sẽ bị xóa.</p>
+        <div class="mt-5 flex gap-3">
+          <button
+            class="flex-1 border border-border-default bg-bg-deep py-2.5 text-sm text-text-secondary transition hover:border-text-secondary"
+            @click="showResetConfirm = false"
+          >
+            Huỷ
+          </button>
+          <button
+            class="flex-1 border border-accent-coral bg-accent-coral/10 py-2.5 text-sm font-semibold text-accent-coral transition hover:bg-accent-coral/20"
+            @click="handleReset"
+          >
+            Chơi lại
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Pause overlay -->
