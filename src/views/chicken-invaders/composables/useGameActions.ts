@@ -58,11 +58,9 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
 
   const togglePause = () => {
     sfx.init()
-    if (gameState.value === 'playing') {
-      gameState.value = 'paused'
-    } else if (gameState.value === 'paused') {
-      resumeGame()
-    } else if (gameState.value === 'resuming') {
+    if (gameState.value === 'playing') gameState.value = 'paused'
+    else if (gameState.value === 'paused') resumeGame()
+    else if (gameState.value === 'resuming') {
       if (resumeInterval.value) clearInterval(resumeInterval.value)
       gameState.value = 'paused'
     }
@@ -117,7 +115,20 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     bgHue.value = (Math.floor((wave - 1) / 10) * 45) % 360
     engine.waveEnemySpeed = Math.min(1.2 + wave * 0.02, 4.0)
     engine.waveEggFireRate = Math.min(0.005 + wave * 0.0002, 0.02)
-    const numColors = Math.min(1 + Math.floor((wave - 1) / 10), 6)
+
+    // Đã thay hue bằng mã Hex trực tiếp
+    const SHIRT_COLORS = [
+      '#ef4444',
+      '#3b82f6',
+      '#22c55e',
+      '#a855f7',
+      '#facc15',
+      '#ec4899',
+      '#06b6d4',
+    ]
+    const unlockedCount = Math.min(1 + Math.floor((wave - 1) / 10), SHIRT_COLORS.length)
+    const availableColors = SHIRT_COLORS.slice(0, unlockedCount)
+    const getRandomColor = () => availableColors[Math.floor(Math.random() * availableColors.length)]
 
     if (hiddenEventWavesLeft.value > 0) hiddenEventWavesLeft.value--
     if (hiddenEventWavesLeft.value === 0 && wave > 30 && wave % 10 === 6 && Math.random() < 0.1)
@@ -225,7 +236,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
           maxHp: 40 + wave * 5,
           isMeteor: !isFallingChickenZone,
           isFallingChicken: isFallingChickenZone,
-          hue: isFallingChickenZone ? Math.floor(Math.random() * numColors) * 60 : 0,
+          shirtColor: isFallingChickenZone ? getRandomColor() : undefined,
           dx,
           dy,
         })
@@ -249,7 +260,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
           hp: minionHp,
           maxHp: minionHp,
           isStash: i === 0,
-          hue: Math.floor(Math.random() * numColors) * 60,
+          shirtColor: getRandomColor(),
           targetOffsetX: 0,
           targetOffsetY: 0,
         })
@@ -276,7 +287,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
                 height: 40,
                 hp: minionHp,
                 maxHp: minionHp,
-                hue: Math.floor(Math.random() * numColors) * 60,
+                shirtColor: getRandomColor(),
               })
           } else {
             if (
@@ -292,7 +303,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
                 height: 40,
                 hp: minionHp,
                 maxHp: minionHp,
-                hue: Math.floor(Math.random() * numColors) * 60,
+                shirtColor: getRandomColor(),
               })
           }
         }
@@ -310,7 +321,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
             height: 40,
             hp: minionHp,
             maxHp: minionHp,
-            hue: Math.floor(Math.random() * numColors) * 60,
+            shirtColor: getRandomColor(),
           })
       } else {
         for (let i = 0; i < 11; i++)
@@ -323,7 +334,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
             height: 40,
             hp: minionHp,
             maxHp: minionHp,
-            hue: Math.floor(Math.random() * numColors) * 60,
+            shirtColor: getRandomColor(),
           })
       }
     } else {
@@ -342,7 +353,6 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
               hp: minionHp * 15,
               maxHp: minionHp * 15,
               isStash: true,
-              hue: 0,
             })
             continue
           }
@@ -362,7 +372,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
             hp: minionHp,
             maxHp: minionHp,
             isStash: false,
-            hue: Math.floor(Math.random() * numColors) * 60,
+            shirtColor: getRandomColor(),
           })
         }
       }
@@ -393,6 +403,12 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     enemyBullets.value = []
     powerUps.value = []
     engine.pendingSpawns = []
+    activeDots.value = []
+
+    // FIX TRIỆT ĐỂ BÓNG MA QUÁI VẬT: Dọn sạch mảng khi bắt đầu ván mới!
+    enemies.value = []
+    bosses.value = []
+
     isRotating.value = false
     boardRotation.value = getRotationForWave(1)
     activeWidth.value = GAME_WIDTH
@@ -403,7 +419,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     engine.isTransitioningWave = false
     waveAnnouncement.value = ''
     hiddenEventWavesLeft.value = 0
-    activeDots.value = []
+
     startGame()
   }
 
@@ -516,20 +532,20 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     if (enemy.isStash) {
       powerUps.value.push({
         id: engine.objCounter++,
-        x: enemy.x + 25,
-        y: enemy.y + 25,
-        width: 32,
-        height: 32,
+        x: enemy.x + enemy.width / 2 - 18,
+        y: enemy.y + enemy.height / 2 - 18,
+        width: 36, // Hitbox chuẩn w-9 h-9
+        height: 36,
         wType: -1,
       })
     } else if (!enemy.isHazard) {
       if (Math.random() < (enemy.isMeteor ? 0.012 : 0.12))
         powerUps.value.push({
           id: engine.objCounter++,
-          x: enemy.x,
-          y: enemy.y,
-          width: 32,
-          height: 32,
+          x: enemy.x + enemy.width / 2 - 18,
+          y: enemy.y + enemy.height / 2 - 18,
+          width: 36, // Hitbox chuẩn w-9 h-9
+          height: 36,
           wType: Math.random() < 0.4 ? -1 : Math.floor(Math.random() * WEAPON_TYPES.length),
         })
     }

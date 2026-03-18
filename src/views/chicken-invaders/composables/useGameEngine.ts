@@ -92,11 +92,9 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
 
   const togglePause = () => {
     sfx.init()
-    if (gameState.value === 'playing') {
-      gameState.value = 'paused'
-    } else if (gameState.value === 'paused') {
-      resumeGame()
-    } else if (gameState.value === 'resuming') {
+    if (gameState.value === 'playing') gameState.value = 'paused'
+    else if (gameState.value === 'paused') resumeGame()
+    else if (gameState.value === 'resuming') {
       if (resumeInterval) clearInterval(resumeInterval)
       gameState.value = 'paused'
     }
@@ -134,7 +132,6 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
       if (translated) {
         const logical_cx = activeWidth.value / 2
         const logical_cy = activeHeight.value / 2
-
         player.value.x = Math.max(
           0,
           Math.min(
@@ -154,11 +151,8 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
   }
 
   const handleBoardPointerDown = (e: PointerEvent) => {
-    if (gameState.value === 'paused' && e.pointerType === 'mouse') {
-      resumeGame()
-    } else {
-      setPointerState(e.clientX, e.clientY, true)
-    }
+    if (gameState.value === 'paused' && e.pointerType === 'mouse') resumeGame()
+    else setPointerState(e.clientX, e.clientY, true)
   }
 
   const addScore = (pts: number) => {
@@ -187,7 +181,19 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
     bgHue.value = (Math.floor((wave - 1) / 10) * 45) % 360
     waveEnemySpeed = Math.min(1.2 + wave * 0.02, 4.0)
     waveEggFireRate = Math.min(0.005 + wave * 0.0002, 0.02)
-    const numColors = Math.min(1 + Math.floor((wave - 1) / 10), 6)
+
+    const SHIRT_COLORS = [
+      '#ef4444',
+      '#3b82f6',
+      '#22c55e',
+      '#a855f7',
+      '#facc15',
+      '#ec4899',
+      '#06b6d4',
+    ]
+    const unlockedCount = Math.min(1 + Math.floor((wave - 1) / 10), SHIRT_COLORS.length)
+    const availableColors = SHIRT_COLORS.slice(0, unlockedCount)
+    const getRandomColor = () => availableColors[Math.floor(Math.random() * availableColors.length)]
 
     if (hiddenEventWavesLeft.value > 0) hiddenEventWavesLeft.value--
     if (hiddenEventWavesLeft.value === 0 && wave > 30 && wave % 10 === 6 && Math.random() < 0.1)
@@ -295,7 +301,7 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
           maxHp: 40 + wave * 5,
           isMeteor: !isFallingChickenZone,
           isFallingChicken: isFallingChickenZone,
-          hue: isFallingChickenZone ? Math.floor(Math.random() * numColors) * 60 : 0,
+          shirtColor: isFallingChickenZone ? getRandomColor() : undefined,
           dx,
           dy,
         })
@@ -319,7 +325,7 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
           hp: minionHp,
           maxHp: minionHp,
           isStash: i === 0,
-          hue: Math.floor(Math.random() * numColors) * 60,
+          shirtColor: getRandomColor(),
           targetOffsetX: 0,
           targetOffsetY: 0,
         })
@@ -346,7 +352,7 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
                 height: 40,
                 hp: minionHp,
                 maxHp: minionHp,
-                hue: Math.floor(Math.random() * numColors) * 60,
+                shirtColor: getRandomColor(),
               })
           } else {
             if (
@@ -362,7 +368,7 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
                 height: 40,
                 hp: minionHp,
                 maxHp: minionHp,
-                hue: Math.floor(Math.random() * numColors) * 60,
+                shirtColor: getRandomColor(),
               })
           }
         }
@@ -380,7 +386,7 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
             height: 40,
             hp: minionHp,
             maxHp: minionHp,
-            hue: Math.floor(Math.random() * numColors) * 60,
+            shirtColor: getRandomColor(),
           })
       } else {
         for (let i = 0; i < 11; i++)
@@ -393,7 +399,7 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
             height: 40,
             hp: minionHp,
             maxHp: minionHp,
-            hue: Math.floor(Math.random() * numColors) * 60,
+            shirtColor: getRandomColor(),
           })
       }
     } else {
@@ -412,7 +418,6 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
               hp: minionHp * 15,
               maxHp: minionHp * 15,
               isStash: true,
-              hue: 0,
             })
             continue
           }
@@ -432,7 +437,7 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
             hp: minionHp,
             maxHp: minionHp,
             isStash: false,
-            hue: Math.floor(Math.random() * numColors) * 60,
+            shirtColor: getRandomColor(),
           })
         }
       }
@@ -463,6 +468,12 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
     enemyBullets.value = []
     powerUps.value = []
     pendingSpawns = []
+    activeDots.value = []
+
+    // FIX QUAN TRỌNG NHẤT: CLEAR SẠCH BÓNG MA QUÁI VÀ BOSS TỪ VÁN CŨ ĐỂ KHÔNG CHẾT OAN
+    enemies.value = []
+    bosses.value = []
+
     isRotating.value = false
     boardRotation.value = getRotationForWave(1)
     activeWidth.value = GAME_WIDTH
@@ -473,7 +484,6 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
     isTransitioningWave = false
     waveAnnouncement.value = ''
     hiddenEventWavesLeft.value = 0
-    activeDots.value = []
     startGame()
   }
 
@@ -485,7 +495,6 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
       mousePressed.value
     if (!isFiring) return
     sfx.init()
-
     const isTap = isFiring && !wasSpaceDown
     const wType = weaponType.value
     if (wType === 6 || wType === 5) return
@@ -495,13 +504,11 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
     if (wType === 8) currentFireRate = 800
 
     if (Date.now() - lastFireTime < currentFireRate) return
-
     sfx.shoot()
     const cx = player.value.x + player.value.width / 2
     const cy = player.value.y
     const wConfig = WEAPON_TYPES[wType]
     if (!wConfig) return
-
     const { rays, damage } = getWeaponStats(wType, weaponLevel.value)
 
     for (let i = 0; i < rays; i++) {
@@ -513,7 +520,6 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
         bulletHeight = 20,
         bulletY = cy,
         rotation = 0
-
       switch (wConfig.type) {
         case 'yellow':
           dx = 0
@@ -586,20 +592,20 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
     if (enemy.isStash) {
       powerUps.value.push({
         id: objCounter++,
-        x: enemy.x + 25,
-        y: enemy.y + 25,
-        width: 32,
-        height: 32,
+        x: enemy.x + enemy.width / 2 - 24,
+        y: enemy.y + enemy.height / 2 - 24,
+        width: 48,
+        height: 48,
         wType: -1,
       })
     } else if (!enemy.isHazard) {
       if (Math.random() < (enemy.isMeteor ? 0.012 : 0.12))
         powerUps.value.push({
           id: objCounter++,
-          x: enemy.x,
-          y: enemy.y,
-          width: 32,
-          height: 32,
+          x: enemy.x + enemy.width / 2 - 24,
+          y: enemy.y + enemy.height / 2 - 24,
+          width: 48,
+          height: 48,
           wType: Math.random() < 0.4 ? -1 : Math.floor(Math.random() * WEAPON_TYPES.length),
         })
     }
@@ -613,7 +619,6 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
       animationFrameId = requestAnimationFrame(gameLoop)
       return
     }
-
     if (player.value.invulnerable > 0) player.value.invulnerable--
 
     let vvx = 0,
@@ -653,9 +658,8 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
         if (
           currentAttached.length > 0 &&
           (currentAttached.length !== rays || currentAttached[0]?.shape !== wp.shape)
-        ) {
+        )
           bullets.value = bullets.value.filter((b) => !b.isAttached)
-        }
 
         for (let i = 0; i < rays; i++) {
           const offsetIndex = i - (rays - 1) / 2
@@ -688,7 +692,6 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
 
           const beamHeight = player.value.y - targetY + 20
           const beamY = targetY
-
           const existingBeam = bullets.value.find((b) => b.isAttached && b.attachedId === i)
           if (!existingBeam) {
             bullets.value.push({
@@ -751,15 +754,12 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
         )
         if (!target && gamePhase.value === 'boss')
           target = bosses.value.find((b) => b.id === dot.targetId)
-
         if (target && target.hp > 0) {
           target.hp -= dot.damagePerTick
           dot.lastTick = now
           if (target.hp <= 0 && !bosses.value.some((b) => b.id === target?.id))
             handleEnemyDeath(target as Enemy, ptMult)
-        } else {
-          activeDots.value.splice(i, 1)
-        }
+        } else activeDots.value.splice(i, 1)
       }
     }
 
@@ -781,12 +781,19 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
       const pu = powerUps.value[i]
       if (!pu) continue
       pu.y += 2.5
+
       if (checkCollision(pu, player.value)) {
         sfx.powerup()
-        if (pu.wType === -1) weaponLevel.value++
-        else {
-          if (weaponType.value === pu.wType) weaponLevel.value++
-          else weaponType.value = pu.wType
+
+        if (pu.wType === -1) {
+          weaponLevel.value++
+        } else {
+          if (weaponType.value === pu.wType) {
+            weaponLevel.value++
+          } else {
+            weaponType.value = pu.wType
+            weaponLevel.value = Math.max(1, weaponLevel.value)
+          }
         }
         addScore(50)
         powerUps.value.splice(i, 1)
@@ -803,9 +810,8 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
       if (checkCollision(egg, player.value)) {
         enemyBullets.value.splice(i, 1)
         takeDamage()
-      } else if (egg.y > activeHeight.value || egg.x < -100 || egg.x > activeWidth.value + 100) {
+      } else if (egg.y > activeHeight.value || egg.x < -100 || egg.x > activeWidth.value + 100)
         enemyBullets.value.splice(i, 1)
-      }
     }
 
     if (gamePhase.value === 'minions' || gamePhase.value === 'meteors') {
@@ -821,16 +827,10 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
               const nextHazard = pendingSpawns.pop()
               if (nextHazard) enemies.value.push(nextHazard)
             }
-            if (isMeteorZ) {
-              hazardSpawnCooldown = 15 + Math.random() * 10
-            } else if (currentWave.value % 10 === 8) {
-              hazardSpawnCooldown = 35 + Math.random() * 25
-            } else {
-              hazardSpawnCooldown = 25 + Math.random() * 20
-            }
-          } else {
-            hazardSpawnCooldown--
-          }
+            if (isMeteorZ) hazardSpawnCooldown = 15 + Math.random() * 10
+            else if (currentWave.value % 10 === 8) hazardSpawnCooldown = 35 + Math.random() * 25
+            else hazardSpawnCooldown = 25 + Math.random() * 20
+          } else hazardSpawnCooldown--
         }
       }
 
@@ -847,7 +847,6 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
             arrangeFormation(enemies.value, formationType)
             arrangeFormation(pendingSpawns, formationType)
           }
-
           enemies.value.forEach((enemy) => {
             if (
               !enemy.isHazard &&
@@ -863,7 +862,6 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
               if (enemy.dx) enemy.x += enemy.dx
             }
           })
-
           if (
             Math.random() < waveEggFireRate &&
             enemies.value.length > 0 &&
@@ -875,13 +873,14 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
             if (shootingEnemies.length > 0) {
               const randomEnemy =
                 shootingEnemies[Math.floor(Math.random() * shootingEnemies.length)]
+              // ĐÃ GIẢM KÍCH THƯỚC TRỨNG ĐI 2 PIXEL (TỪ 44x56 -> 42x54)
               if (randomEnemy)
                 enemyBullets.value.push({
                   id: objCounter++,
-                  x: randomEnemy.x + randomEnemy.width / 2 - 8,
+                  x: randomEnemy.x + randomEnemy.width / 2 - 21,
                   y: randomEnemy.y + randomEnemy.height,
-                  width: 20,
-                  height: 25,
+                  width: 42,
+                  height: 54,
                   isBossEgg: false,
                 })
             }
@@ -928,20 +927,20 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
               if (shootingEnemies.length > 0) {
                 const randomEnemy =
                   shootingEnemies[Math.floor(Math.random() * shootingEnemies.length)]
+                // ĐÃ GIẢM KÍCH THƯỚC TRỨNG
                 if (randomEnemy)
                   enemyBullets.value.push({
                     id: objCounter++,
-                    x: randomEnemy.x + randomEnemy.width / 2 - 8,
+                    x: randomEnemy.x + randomEnemy.width / 2 - 21,
                     y: randomEnemy.y + randomEnemy.height,
-                    width: 20,
-                    height: 25,
+                    width: 42,
+                    height: 54,
                     isBossEgg: false,
                   })
               }
             }
           }
         }
-
         if (
           hiddenEventWavesLeft.value > 0 &&
           Math.random() < 0.02 &&
@@ -978,17 +977,17 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
           if (fallingChickens.length > 0) {
             const randomChicken =
               fallingChickens[Math.floor(Math.random() * fallingChickens.length)]
-            if (randomChicken) {
+            // ĐÃ GIẢM KÍCH THƯỚC TRỨNG
+            if (randomChicken)
               enemyBullets.value.push({
                 id: `falling-egg-${objCounter++}`,
-                x: randomChicken.x + randomChicken.width / 2 - 8,
+                x: randomChicken.x + randomChicken.width / 2 - 21,
                 y: randomChicken.y + randomChicken.height,
-                width: 20,
-                height: 25,
+                width: 42,
+                height: 54,
                 isBossEgg: false,
                 dy: EGG_SPEED,
               })
-            }
           }
         }
       }
@@ -1004,32 +1003,24 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
             if (bullet.hitTargets.has(enemy.id)) continue
             enemy.hp -= bullet.damage
             sfx.hit()
-
             if (bullet.shape === 'blob') {
               const existingDot = activeDots.value.find((d) => d.targetId === enemy.id)
               const dotDamage = bullet.damage * 0.4
               if (existingDot) {
                 existingDot.endTime = Date.now() + 2000
                 existingDot.damagePerTick = dotDamage
-              } else {
+              } else
                 activeDots.value.push({
                   targetId: enemy.id,
                   damagePerTick: dotDamage,
                   endTime: Date.now() + 2000,
                   lastTick: Date.now(),
                 })
-              }
             }
-
-            if (['beam', 'wavy-beam', 'shard', 'bolt'].includes(bullet.shape)) {
+            if (['beam', 'wavy-beam', 'shard', 'bolt'].includes(bullet.shape))
               bullet.hitTargets.add(enemy.id)
-            } else {
-              bulletHit = true
-            }
-
-            if (enemy.hp <= 0) {
-              handleEnemyDeath(enemy, ptMult)
-            }
+            else bulletHit = true
+            if (enemy.hp <= 0) handleEnemyDeath(enemy, ptMult)
             if (bulletHit) break
           }
         }
@@ -1055,7 +1046,6 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
       }
 
       const activeEnemies = enemies.value.filter((e) => !e.isHazard)
-
       if (activeEnemies.length === 0 && pendingSpawns.length === 0 && !isTransitioningWave) {
         isTransitioningWave = true
         addScore(1000 * ptMult)
@@ -1063,7 +1053,6 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
         const nextRot = getRotationForWave(nextW)
         const willRotate = boardRotation.value !== nextRot
         waveAnnouncement.value = `WAVE ${nextW}${hiddenEventWavesLeft.value > 0 ? '\n☄️ x2 ĐIỂM ☄️' : ''}`
-
         if (willRotate) {
           bullets.value = []
           enemyBullets.value = []
@@ -1102,33 +1091,29 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
     } else if (gamePhase.value === 'boss') {
       bosses.value.forEach((b) => {
         if (b.hp <= 0) return
-        if (checkCollision(b, player.value)) {
-          takeDamage()
-        }
+        if (checkCollision(b, player.value)) takeDamage()
 
-        if (b.targetY !== undefined && b.y < b.targetY) {
-          b.y += 4
-        } else if (gameState.value === 'playing') {
+        if (b.targetY !== undefined && b.y < b.targetY) b.y += 4
+        else if (gameState.value === 'playing') {
           if (b.bossType === 1) {
             b.x += (waveEnemySpeed + 2) * b.direction
             if (b.x <= 0 || b.x + b.width >= activeWidth.value) b.direction *= -1
             b.y = b.targetY! + Math.sin(Date.now() / 300) * 30
-            if (Math.random() < waveEggFireRate * 1.5) {
+            // ĐÃ GIẢM KÍCH THƯỚC TRỨNG (-2px)
+            if (Math.random() < waveEggFireRate * 1.5)
               enemyBullets.value.push({
                 id: `boss-egg-${objCounter++}`,
-                x: b.x + b.width / 2 - 12,
+                x: b.x + b.width / 2 - 23,
                 y: b.y + b.height,
-                width: 30,
-                height: 35,
+                width: 46,
+                height: 62,
                 isBossEgg: true,
               })
-            }
           } else if (b.bossType === 2) {
             b.x += waveEnemySpeed * b.direction
             if (b.x <= 0 || b.x + b.width >= activeWidth.value) b.direction *= -1
-            if (b.laserTimer !== undefined && b.laserTimer > 0) {
-              b.laserTimer--
-            } else {
+            if (b.laserTimer !== undefined && b.laserTimer > 0) b.laserTimer--
+            else {
               if (b.state === 'idle') {
                 b.state = 'laser_warning'
                 b.laserTimer = 50
@@ -1175,7 +1160,6 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
               b.direction *= -1
               b.x = Math.max(0, Math.min(b.x, activeWidth.value - b.width))
             }
-
             if (
               b.state === 'burst' &&
               b.burstCount !== undefined &&
@@ -1183,13 +1167,13 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
               b.stateTimer !== undefined &&
               b.stateTimer % 40 === 0
             ) {
-              ;[-4, 0, 4].forEach((eggDx) => {
+              ;[-6, 0, 6].forEach((eggDx) => {
                 enemyBullets.value.push({
                   id: `boss-egg-${objCounter++}`,
-                  x: b.x + b.width / 2 - 12,
+                  x: b.x + b.width / 2 - 29,
                   y: b.y + b.height - 20,
-                  width: 30,
-                  height: 35,
+                  width: 58,
+                  height: 74,
                   isBossEgg: true,
                   dx: eggDx,
                   dy: 6,
@@ -1197,19 +1181,17 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
               })
               b.burstCount--
             }
-            if (Math.random() < waveEggFireRate * 1.0 && b.state !== 'burst') {
+            if (Math.random() < waveEggFireRate * 1.0 && b.state !== 'burst')
               enemyBullets.value.push({
                 id: `boss-egg-${objCounter++}`,
-                x: b.x + b.width / 2 - 12,
+                x: b.x + b.width / 2 - 29,
                 y: b.y + b.height - 20,
-                width: 30,
-                height: 35,
+                width: 58,
+                height: 74,
                 isBossEgg: true,
               })
-            }
-            if (b.laserTimer !== undefined && b.laserTimer > 0) {
-              b.laserTimer--
-            } else {
+            if (b.laserTimer !== undefined && b.laserTimer > 0) b.laserTimer--
+            else {
               if (b.state === 'idle' || b.state === 'dash') {
                 b.state = 'laser_warning'
                 b.laserTimer = 60
@@ -1234,35 +1216,32 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
           } else if (b.bossType === 4) {
             b.x += (waveEnemySpeed + 1) * b.direction
             if (b.x <= 0 || b.x + b.width >= activeWidth.value) b.direction *= -1
-            if (Math.random() < waveEggFireRate * 1.5) {
+            if (Math.random() < waveEggFireRate * 1.5)
               enemyBullets.value.push({
                 id: `boss-meteor-${objCounter++}`,
-                x: b.x + b.width / 2 - 20,
+                x: b.x + b.width / 2 - 34,
                 y: b.y + b.height - 10,
-                width: 40,
-                height: 40,
+                width: 68,
+                height: 68,
                 isBossEgg: true,
                 isMeteor: true,
                 dy: EGG_SPEED + 1,
                 dx: (Math.random() - 0.5) * 2,
               })
-            }
           } else {
             b.x += (waveEnemySpeed + 1) * b.direction
             if (b.x <= 0 || b.x + b.width >= activeWidth.value) b.direction *= -1
-            if (Math.random() < waveEggFireRate * 1.0) {
+            if (Math.random() < waveEggFireRate * 1.0)
               enemyBullets.value.push({
                 id: `boss-egg-${objCounter++}`,
-                x: b.x + b.width / 2 - 12,
+                x: b.x + b.width / 2 - 29,
                 y: b.y + b.height - 20,
-                width: 30,
-                height: 35,
+                width: 58,
+                height: 74,
                 isBossEgg: true,
               })
-            }
-            if (b.laserTimer !== undefined && b.laserTimer > 0) {
-              b.laserTimer--
-            } else {
+            if (b.laserTimer !== undefined && b.laserTimer > 0) b.laserTimer--
+            else {
               if (b.state === 'idle') {
                 b.state = 'laser_warning'
                 b.laserTimer = 60
@@ -1298,26 +1277,23 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
             if (bullet.hitTargets.has(b.id)) continue
             b.hp -= bullet.damage
             sfx.hit()
-
             if (bullet.shape === 'blob') {
               const existingDot = activeDots.value.find((d) => d.targetId === b.id)
               const dotDamage = bullet.damage * 0.4
               if (existingDot) {
                 existingDot.endTime = Date.now() + 2000
                 existingDot.damagePerTick = dotDamage
-              } else {
+              } else
                 activeDots.value.push({
                   targetId: b.id,
                   damagePerTick: dotDamage,
                   endTime: Date.now() + 2000,
                   lastTick: Date.now(),
                 })
-              }
             }
-
-            if (['beam', 'wavy-beam', 'shard', 'bolt'].includes(bullet.shape)) {
+            if (['beam', 'wavy-beam', 'shard', 'bolt'].includes(bullet.shape))
               bullet.hitTargets.add(b.id)
-            } else {
+            else {
               bullets.value.splice(bIndex, 1)
               break
             }
@@ -1326,7 +1302,6 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
       }
 
       const allBossesDead = bosses.value.length > 0 && bosses.value.every((b) => b.hp <= 0)
-
       if (allBossesDead && !isTransitioningWave) {
         sfx.explode()
         isTransitioningWave = true
@@ -1353,7 +1328,6 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
           }
           player.value.x = activeWidth.value / 2 - player.value.width / 2
           player.value.y = activeHeight.value - 90
-
           setTimeout(() => {
             isRotating.value = false
             setTimeout(() => {
@@ -1384,12 +1358,5 @@ export function useGameEngine(state: GameState, controls: ReturnType<typeof useC
     cancelAnimationFrame(animationFrameId)
   })
 
-  return {
-    togglePause,
-    toggleMute,
-    setPointerState,
-    handleBoardPointerDown,
-    startGame,
-    initGame,
-  }
+  return { togglePause, toggleMute, setPointerState, handleBoardPointerDown, startGame, initGame }
 }

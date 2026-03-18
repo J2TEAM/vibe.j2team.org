@@ -3,12 +3,14 @@ export const GAME_HEIGHT = 600
 export const SHIP_SPEED = 7
 export const FIRE_RATE = 150
 
+const iconWeapon = `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round" class="w-full h-full"><path d="M12 2L15 10H22L16 15L18 22L12 17L6 22L8 15L2 10H9L12 2Z"/></svg>`
+
 export const WEAPON_TYPES = [
   {
     id: 0,
     name: 'Ion Laser',
-    icon: '☀️',
-    color: 'bg-yellow-400',
+    icon: iconWeapon,
+    color: 'text-yellow-400 drop-shadow-[0_0_5px_currentColor]',
     speed: 25,
     size: 6,
     type: 'yellow',
@@ -17,8 +19,8 @@ export const WEAPON_TYPES = [
   {
     id: 1,
     name: 'Laser',
-    icon: '⚡',
-    color: 'bg-cyan-400',
+    icon: iconWeapon,
+    color: 'text-cyan-400 drop-shadow-[0_0_5px_currentColor]',
     speed: 20,
     size: 4,
     type: 'blue',
@@ -27,8 +29,8 @@ export const WEAPON_TYPES = [
   {
     id: 2,
     name: 'Plasma',
-    icon: '🔥',
-    color: 'bg-red-500',
+    icon: iconWeapon,
+    color: 'text-red-500 drop-shadow-[0_0_5px_currentColor]',
     speed: 12,
     size: 10,
     type: 'red',
@@ -37,8 +39,8 @@ export const WEAPON_TYPES = [
   {
     id: 3,
     name: 'Energy Wave',
-    icon: '✨',
-    color: 'bg-green-400',
+    icon: iconWeapon,
+    color: 'text-green-400 drop-shadow-[0_0_5px_currentColor]',
     speed: 20,
     size: 12,
     type: 'green',
@@ -47,8 +49,8 @@ export const WEAPON_TYPES = [
   {
     id: 4,
     name: 'Neutron',
-    icon: '🟣',
-    color: 'bg-purple-500',
+    icon: iconWeapon,
+    color: 'text-purple-500 drop-shadow-[0_0_5px_currentColor]',
     speed: 25,
     size: 6,
     type: 'purple',
@@ -57,8 +59,8 @@ export const WEAPON_TYPES = [
   {
     id: 5,
     name: 'Lightning',
-    icon: '🌩️',
-    color: 'bg-blue-200',
+    icon: iconWeapon,
+    color: 'text-blue-300 drop-shadow-[0_0_5px_currentColor]',
     speed: 22,
     size: 24,
     type: 'lightning',
@@ -67,8 +69,8 @@ export const WEAPON_TYPES = [
   {
     id: 6,
     name: 'Wavy Beam',
-    icon: '🌀',
-    color: 'bg-pink-500',
+    icon: iconWeapon,
+    color: 'text-pink-500 drop-shadow-[0_0_5px_currentColor]',
     speed: 40,
     size: 40,
     type: 'pink',
@@ -77,8 +79,8 @@ export const WEAPON_TYPES = [
   {
     id: 7,
     name: 'Acid Glob',
-    icon: '🧪',
-    color: 'bg-lime-500',
+    icon: iconWeapon,
+    color: 'text-lime-500 drop-shadow-[0_0_5px_currentColor]',
     speed: 10,
     size: 14,
     type: 'lime',
@@ -87,8 +89,8 @@ export const WEAPON_TYPES = [
   {
     id: 8,
     name: 'Magma Shard',
-    icon: '🌋',
-    color: 'bg-orange-600',
+    icon: iconWeapon,
+    color: 'text-orange-600 drop-shadow-[0_0_5px_currentColor]',
     speed: 18,
     size: 12,
     type: 'orange',

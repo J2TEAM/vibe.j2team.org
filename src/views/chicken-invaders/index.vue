@@ -14,6 +14,7 @@ provide('game', game)
 const { bgHue, boardRotation, setPointerState, handleBoardPointerDown } = game
 
 const gameScale = ref(1)
+const headerScale = ref(1) // Thêm biến scale dành riêng cho Header
 const boardWrapper = ref<HTMLElement | null>(null)
 
 const updateScale = () => {
@@ -26,8 +27,11 @@ const updateScale = () => {
 
   if (window.innerWidth < 1024) {
     gameScale.value = Math.min(scaleX, scaleY)
+    headerScale.value = scaleX // Ép Header lấy 100% chiều ngang của thiết bị
   } else {
-    gameScale.value = Math.min(scaleX, scaleY, 1.2)
+    const minScale = Math.min(scaleX, scaleY, 1.2)
+    gameScale.value = minScale
+    headerScale.value = minScale // PC thì Header vừa khít với Game
   }
 }
 
@@ -48,7 +52,7 @@ watch(boardRotation, () => {
   <div
     class="h-dvh w-screen bg-bg-deep text-text-primary font-body flex flex-col items-center select-none overflow-hidden touch-none relative"
   >
-    <GameHeader :gameScale="gameScale" />
+    <GameHeader :gameScale="headerScale" />
 
     <div
       ref="boardWrapper"

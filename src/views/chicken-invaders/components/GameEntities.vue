@@ -2,6 +2,7 @@
 import { inject } from 'vue'
 import { WEAPON_TYPES } from '../utils/config'
 import type { GameContext } from '../composables/useGame'
+import { SPRITES } from '../utils/sprites'
 
 const {
   boardRotation,
@@ -16,22 +17,6 @@ const {
   player,
   gamePhase,
 } = inject('game') as GameContext
-
-const getTailwindColor = (colorClass: string) => {
-  const colors: Record<string, string> = {
-    yellow: 'border-yellow-400 text-yellow-400 drop-shadow-[0_0_10px_#facc15]',
-    cyan: 'border-cyan-400 text-cyan-400 drop-shadow-[0_0_10px_#22d3ee]',
-    red: 'border-red-500 text-red-500 drop-shadow-[0_0_10px_#ef4444]',
-    green: 'border-green-400 text-green-400 drop-shadow-[0_0_10px_#4ade80]',
-    purple: 'border-purple-500 text-purple-500 drop-shadow-[0_0_10px_#a855f7]',
-    blue: 'border-blue-400 text-blue-400 drop-shadow-[0_0_10px_#60a5fa]',
-    pink: 'border-pink-500 text-pink-500 drop-shadow-[0_0_10px_#ec4899]',
-    lime: 'border-lime-500 text-lime-500 drop-shadow-[0_0_10px_#84cc16]',
-    orange: 'border-orange-500 text-orange-500 drop-shadow-[0_0_10px_#f97316]',
-  }
-  const key = Object.keys(colors).find((k) => colorClass.includes(k))
-  return key ? colors[key] : 'border-border-default text-text-primary'
-}
 </script>
 
 <template>
@@ -59,18 +44,22 @@ const getTailwindColor = (colorClass: string) => {
         :class="{ 'transition-transform duration-1000 ease-in-out': isRotating }"
         :style="{ transform: `rotate(${-boardRotation}deg)` }"
       >
-        <span v-if="pu.wType === -1" class="text-3xl drop-shadow-[0_0_10px_#FFB830] animate-pulse"
-          >🎁</span
-        >
+        <div
+          v-if="pu.wType === -1"
+          class="w-9 h-9 animate-pulse drop-shadow-md"
+          v-html="SPRITES.stash"
+        ></div>
+
         <div
           v-else
-          class="relative flex items-center justify-center w-8 h-8 animate-pulse drop-shadow-md"
+          class="relative flex items-center justify-center w-9 h-9 aspect-square animate-pulse rounded-full border-2 border-border-default bg-bg-deep"
+          :class="WEAPON_TYPES[pu.wType]?.color || ''"
+          style="box-shadow: 0 0 10px currentColor"
         >
           <div
-            class="absolute inset-0 rotate-45 border-[3px] opacity-100 bg-bg-deep transition-colors"
-            :class="getTailwindColor(WEAPON_TYPES[pu.wType]?.color || '')"
+            class="relative z-10 w-2/3 h-2/3 drop-shadow-md"
+            v-html="WEAPON_TYPES[pu.wType]?.icon || ''"
           ></div>
-          <span class="relative z-10 text-[12px]">{{ WEAPON_TYPES[pu.wType]?.icon || '' }}</span>
         </div>
       </div>
     </div>
@@ -117,18 +106,11 @@ const getTailwindColor = (colorClass: string) => {
         :class="{ 'transition-transform duration-1000 ease-in-out': isRotating }"
         :style="{ transform: `rotate(${-boardRotation}deg)` }"
       >
-        <span
-          :class="
-            egg.isMeteor
-              ? 'text-4xl animate-[spin_3s_linear_infinite]'
-              : egg.isBossEgg
-                ? 'text-4xl'
-                : 'text-xl'
-          "
-          class="drop-shadow-[0_0_8px_white]"
-        >
-          {{ egg.isMeteor ? '🪨' : '🥚' }}
-        </span>
+        <div
+          class="w-full h-full"
+          :class="egg.isMeteor ? 'animate-[spin_3s_linear_infinite]' : ''"
+          v-html="egg.isMeteor ? SPRITES.meteor : SPRITES.egg"
+        ></div>
       </div>
     </div>
 
@@ -137,25 +119,15 @@ const getTailwindColor = (colorClass: string) => {
         v-for="enemy in enemies"
         :key="'e' + enemy.id"
         class="absolute top-0 left-0 flex flex-col items-center justify-center backdrop-blur-sm z-10 will-change-transform pointer-events-none"
-        :class="[
-          enemy.isMeteor
-            ? 'bg-[#3b2314] border-2 border-[#ea580c] shadow-[0_0_15px_#ea580c]'
-            : enemy.isFallingChicken
-              ? 'bg-accent-coral/20 border border-accent-coral shadow-[0_0_15px_#FF6B4A]'
-              : enemy.isStash
-                ? 'bg-accent-amber/20 border-2 border-accent-amber shadow-[0_0_20px_#FFB830]'
-                : 'bg-accent-coral/20 border border-accent-coral shadow-[0_0_15px_#FF6B4A]',
-        ]"
         :style="{
           transform: `translate3d(${enemy.x}px, ${enemy.y}px, 0)`,
           width: `${enemy.width}px`,
           height: `${enemy.height}px`,
-          filter: enemy.hue ? `hue-rotate(${enemy.hue}deg)` : 'none',
         }"
       >
         <div
           v-if="enemy.hp < enemy.maxHp"
-          class="absolute -top-3 w-full h-1 bg-bg-deep border border-border-default overflow-hidden z-20"
+          class="absolute -top-3 w-[80%] h-1 bg-bg-deep border border-border-default overflow-hidden z-20"
           :class="{ 'transition-transform duration-1000 ease-in-out': isRotating }"
           :style="{ transform: `rotate(${-boardRotation}deg)` }"
         >
@@ -165,24 +137,25 @@ const getTailwindColor = (colorClass: string) => {
           ></div>
         </div>
         <div
-          class="w-full h-full flex items-center justify-center"
+          class="w-[90%] h-[90%] flex items-center justify-center"
           :class="{ 'transition-transform duration-1000 ease-in-out': isRotating }"
           :style="{ transform: `rotate(${-boardRotation}deg)` }"
         >
-          <span
-            class="relative z-10 drop-shadow-md"
-            :class="
-              enemy.isMeteor
-                ? 'text-4xl animate-[spin_6s_linear_infinite]'
-                : enemy.isStash
-                  ? 'text-6xl animate-pulse'
-                  : enemy.isFallingChicken
-                    ? 'text-4xl'
-                    : 'text-2xl'
+          <div
+            class="w-full h-full"
+            :class="enemy.isMeteor ? 'animate-[spin_6s_linear_infinite]' : ''"
+            :style="
+              !enemy.isMeteor && !enemy.isStash
+                ? {
+                    color: (enemy as any).shirtColor || '#ef4444',
+                    filter: `drop-shadow(0 0 10px ${(enemy as any).shirtColor || '#ef4444'})`,
+                  }
+                : {}
             "
-          >
-            {{ enemy.isMeteor ? '🪨' : enemy.isStash ? '📦' : '🐔' }}
-          </span>
+            v-html="
+              enemy.isMeteor ? SPRITES.meteor : enemy.isStash ? SPRITES.safe : SPRITES.chicken
+            "
+          ></div>
         </div>
       </div>
     </template>
@@ -225,13 +198,6 @@ const getTailwindColor = (colorClass: string) => {
 
           <div
             class="absolute top-0 left-0 flex flex-col items-center justify-center z-10 will-change-transform pointer-events-none"
-            :class="[
-              b.bossType === 1 || b.bossType === 4
-                ? 'bg-amber-900/50 border-4 border-dashed border-yellow-500 rounded-full shadow-[0_0_50px_rgba(234,179,8,0.4)]'
-                : b.bossType === 2
-                  ? 'bg-slate-900/80 border-y-4 border-accent-sky rounded-[50%] shadow-[0_0_60px_rgba(56,189,248,0.6)]'
-                  : 'bg-[#3b1212] border-2 border-accent-coral shadow-[0_0_50px_rgba(255,107,74,0.4)]',
-            ]"
             :style="{
               transform: `translate3d(${b.x}px, ${b.y}px, 0)`,
               width: `${b.width}px`,
@@ -239,7 +205,7 @@ const getTailwindColor = (colorClass: string) => {
             }"
           >
             <div
-              class="absolute -top-6 w-full h-3 bg-bg-deep border border-border-default overflow-hidden shadow-lg z-10"
+              class="absolute -top-6 w-[80%] h-3 bg-bg-deep border border-border-default overflow-hidden shadow-lg z-10"
               :class="{ 'transition-transform duration-1000 ease-in-out': isRotating }"
               :style="{ transform: `rotate(${-boardRotation}deg)` }"
             >
@@ -260,20 +226,27 @@ const getTailwindColor = (colorClass: string) => {
               :class="{ 'transition-transform duration-1000 ease-in-out': isRotating }"
               :style="{ transform: `rotate(${-boardRotation}deg)` }"
             >
-              <span
-                class="drop-shadow-2xl"
-                :class="b.bossType === 1 || b.bossType === 4 ? 'text-[70px]' : 'text-[90px]'"
-              >
-                {{
-                  b.bossType === 1 || b.bossType === 4
-                    ? '🐔'
-                    : b.bossType === 2
-                      ? '🛸'
-                      : b.bossType === 3
-                        ? '💥'
-                        : '👿'
-                }}
-              </span>
+              <div
+                class="w-full h-full"
+                :style="
+                  b.bossType === 0
+                    ? { color: '#ef4444', filter: 'drop-shadow(0 0 15px #ef4444)' }
+                    : b.bossType === 1 || b.bossType === 4
+                      ? { color: '#eab308', filter: 'drop-shadow(0 0 15px #eab308)' }
+                      : {}
+                "
+                v-html="
+                  b.bossType === 0
+                    ? SPRITES.bossGiantChicken
+                    : b.bossType === 1
+                      ? SPRITES.bossRooster
+                      : b.bossType === 2
+                        ? SPRITES.ufo
+                        : b.bossType === 3
+                          ? SPRITES.bossMecha
+                          : SPRITES.bossRooster
+                "
+              ></div>
             </div>
           </div>
         </template>
@@ -307,7 +280,7 @@ const getTailwindColor = (colorClass: string) => {
       }"
     >
       <div class="w-full h-full flex flex-col items-center justify-center relative">
-        <span class="text-5xl drop-shadow-[0_0_15px_#38BDF8] z-10 relative block -top-2.5">🚀</span>
+        <div class="w-full h-full z-10 relative" v-html="SPRITES.player"></div>
         <div
           class="absolute -bottom-2 w-5 h-10 bg-linear-to-t from-accent-sky via-accent-coral to-transparent animate-[pulse_0.5s_linear_infinite] opacity-80 blur-[2px]"
         ></div>

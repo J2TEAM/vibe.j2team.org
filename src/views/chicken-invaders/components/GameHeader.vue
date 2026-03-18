@@ -3,6 +3,7 @@ import { inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { GAME_WIDTH, WEAPON_TYPES } from '../utils/config'
 import type { GameContext } from '../composables/useGame'
+import { SPRITES } from '../utils/sprites' // THÊM DÒNG NÀY
 
 defineProps<{ gameScale: number }>()
 
@@ -32,18 +33,22 @@ const {
       >
         ĐIỂM: {{ score }}
       </h1>
+
       <div
         class="flex items-center gap-1 lg:gap-2 border-l border-border-default pl-2 lg:pl-4 text-sm sm:text-base lg:text-xl font-display font-bold text-text-primary"
       >
-        {{ lives }} <span class="text-accent-coral animate-pulse">💗</span>
+        {{ lives }}
+        <div class="w-5 h-5 lg:w-6 lg:h-6 animate-pulse" v-html="SPRITES.heart"></div>
       </div>
 
       <div
         class="flex items-center gap-1 lg:gap-2 font-display font-bold border border-border-default bg-bg-elevated px-1.5 py-1 lg:px-3 lg:py-1.5 transition-colors hover:border-accent-amber"
       >
-        <span class="text-xs sm:text-sm lg:text-lg">{{
-          WEAPON_TYPES[weaponType]?.icon || ''
-        }}</span>
+        <div
+          class="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 inline-block"
+          :class="WEAPON_TYPES[weaponType]?.color"
+          v-html="WEAPON_TYPES[weaponType]?.icon"
+        ></div>
         <span class="hidden lg:inline text-accent-amber pl-1">{{
           WEAPON_TYPES[weaponType]?.name || ''
         }}</span>

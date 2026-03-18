@@ -27,7 +27,7 @@ export interface Enemy extends GameObject {
   isFallingChicken?: boolean
   isHazard?: boolean
   isStash?: boolean
-  hue?: number
+  shirtColor?: string
   targetY?: number
   dx?: number
   dy?: number
