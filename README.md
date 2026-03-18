@@ -39,74 +39,13 @@ pnpm install
 pnpm dev
 ```
 
+## Hướng dẫn đóng góp
+
+Muốn vibe code cùng J2TEAM Community? Tuyệt vời! Chúng mình rất hoan nghênh mọi đóng góp từ bạn.
+
+Để biết chi tiết về cách đóng góp, bao gồm cách tạo trang mới, code style, quy ước commit message và quy trình gửi Pull Request, vui lòng xem [Hướng dẫn đóng góp đầy đủ](CONTRIBUTING.md).
+
 ## Nguyên tắc
 
 1. **Không có database** — dự án không sử dụng database
-2. **Luôn có link về trang chủ** — mỗi trang con phải có link quay lại trang chủ
-3. **Ngôn ngữ: tiếng Việt (ưu tiên) hoặc tiếng Anh**
-4. **Không trùng ứng dụng con đã có** — kiểm tra danh sách trang trước khi tạo mới
-5. **Mỗi trang con hoạt động độc lập** — chỉ làm việc trong thư mục trang của mình
-6. **Responsive** — trang phải hiển thị tốt trên mobile
-7. **Không thêm dependency mới** trừ khi thật sự cần và được approve. Các thư viện sau đã được **cài sẵn** — tự do sử dụng:
-   - `@vueuse/core` — 200+ composables cho Vue
-   - `@iconify/vue` — 200,000+ icons từ 150+ bộ icon
-   - `shiki` — Syntax highlighter
-
-   Các thư viện sau được **chấp thuận sẵn** và có thể thêm mà không cần approve:
-   - `vue-konva` — Thư viện canvas 2D cho vẽ, game, đồ hoạ tương tác
-8. **Ghi rõ tên tác giả** trong file `meta.ts` của trang
-
-## Cách tham gia
-
-1. Fork repo và clone về máy
-2. Tạo branch mới từ `main` (ví dụ: `git checkout -b feat/tên-trang`)
-3. Tạo trang mới bằng script:
-   ```sh
-   pnpm create:page <tên-trang>
-   ```
-   Script sẽ hỏi tên hiển thị, mô tả, tác giả, Facebook URL (tuỳ chọn) và danh mục, rồi tự tạo `src/views/<tên-trang>/index.vue` + `meta.ts`.
-4. Code trang của bạn trong `index.vue`
-5. Tạo Pull Request và chờ merge!
-
-Xem trang mẫu: [`src/views/hello-world/`](src/views/hello-world/)
-
-Xem hướng dẫn thiết kế: [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md)
-
-## Cấu trúc dự án
-
-```
-src/
-  views/
-    HomePage.vue                 # Trang chủ (launcher)
-    hello-world/
-      index.vue                  # Trang mẫu
-      meta.ts                    # Thông tin trang (tên, mô tả, tác giả)
-    <tên-của-bạn>/
-      index.vue                  # Trang của bạn
-      meta.ts                    # Thông tin trang của bạn
-  router/index.ts                # Cấu hình routes
-  stores/                        # Pinia stores
-```
-
-## Các lệnh thường dùng
-
-| Lệnh | Mô tả |
-|------|-------|
-| `pnpm dev` | Chạy dev server |
-| `pnpm build` | Build production |
-| `pnpm test:unit` | Chạy unit tests |
-| `pnpm lint` | Lint code |
-| `pnpm format` | Format code |
-| `pnpm create:page <slug>` | Tạo trang mới từ template |
-
-## IDE
-
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
-
-## Contributors
-
-<a href="https://github.com/J2TEAM/vibe.j2team.org/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=J2TEAM/vibe.j2team.org" />
-</a>
-
-Made with [contrib.rocks](https://contrib.rocks).
+2.
