@@ -13,6 +13,7 @@ import GameZombies from './components/GameZombies.vue'
 import GameBullets from './components/GameBullets.vue'
 import type { Map as MapboxMap } from 'mapbox-gl'
 
+const BASE = '/resident-lor'
 const INITIAL_LAT = 10.799
 const INITIAL_LNG = 106.7
 
@@ -48,8 +49,13 @@ function setKey(dir: 'w' | 'a' | 's' | 'd', val: boolean) {
   keys.value = { ...keys.value, [dir]: val }
 }
 
+const isStarted = ref(false)
 const isGameOver = ref(false)
 const finalScore = ref(0)
+
+function startGame() {
+  isStarted.value = true
+}
 
 watch(hp, (val) => {
   if (val <= 0) {
@@ -60,6 +66,7 @@ watch(hp, (val) => {
 
 function playAgain() {
   isGameOver.value = false
+  isStarted.value = false
   hp.value = maxHp
   score.value = 0
   position.value = { lat: INITIAL_LAT, lng: INITIAL_LNG }
@@ -71,75 +78,86 @@ function playAgain() {
 
 <template>
   <div class="resident-lor-view">
-    <GameMap :center="position" />
-    <GamePlayer :keys="keys" />
-    <GameZombies :zombies="zombies" :walk-frame="walkFrame" />
-    <GameBullets :bullets="bullets" />
-
-    <div v-if="isGameOver" class="game-over-overlay">
-      <div class="game-over-box">
-        <h2 class="game-over-title">Hết màn</h2>
-        <p class="game-over-score">
-          Điểm: <strong>{{ finalScore }}</strong>
-        </p>
-        <button type="button" class="btn-play-again" @click="playAgain">Chơi lại</button>
+    <!-- Màn hình bắt đầu -->
+    <div v-if="!isStarted" class="start-screen">
+      <img :src="`${BASE}/bg-final.jpg`" alt="Resident Lỏ" class="start-bg" />
+      <div class="start-menu">
+        <button type="button" class="btn-start" @click="startGame">▶ BẮT ĐẦU</button>
+        <RouterLink to="/" class="btn-home-start">🏠 Về trang chủ</RouterLink>
       </div>
     </div>
 
-    <div v-show="!isGameOver" class="hud">
-      <div class="hud-row">
-        <span class="hud-label">HP</span>
-        <div class="hp-bar">
-          <div class="hp-fill" :style="{ width: `${Math.max(0, (hp / maxHp) * 100)}%` }" />
+    <template v-else>
+      <GameMap :center="position" />
+      <GamePlayer :keys="keys" />
+      <GameZombies :zombies="zombies" :walk-frame="walkFrame" />
+      <GameBullets :bullets="bullets" />
+
+      <div v-if="isGameOver" class="game-over-overlay">
+        <div class="game-over-box">
+          <h2 class="game-over-title">Hết màn</h2>
+          <p class="game-over-score">
+            Điểm: <strong>{{ finalScore }}</strong>
+          </p>
+          <button type="button" class="btn-play-again" @click="playAgain">Chơi lại</button>
         </div>
-        <span class="hp-text">{{ Math.max(0, hp) }} / {{ maxHp }}</span>
       </div>
-      <div class="hud-row score-row">
-        <span class="hud-label">Điểm</span>
-        <span class="score-value">{{ score }}</span>
+
+      <div v-show="!isGameOver" class="hud">
+        <div class="hud-row">
+          <span class="hud-label">HP</span>
+          <div class="hp-bar">
+            <div class="hp-fill" :style="{ width: `${Math.max(0, (hp / maxHp) * 100)}%` }" />
+          </div>
+          <span class="hp-text">{{ Math.max(0, hp) }} / {{ maxHp }}</span>
+        </div>
+        <div class="hud-row score-row">
+          <span class="hud-label">Điểm</span>
+          <span class="score-value">{{ score }}</span>
+        </div>
       </div>
-    </div>
 
-    <!-- Màn hình đỏ khi zombie đánh -->
-    <div v-if="isHit" class="damage-flash" />
+      <!-- Màn hình đỏ khi zombie đánh -->
+      <div v-if="isHit" class="damage-flash" />
 
-    <!-- D-pad di chuyển trên mobile -->
-    <div v-show="!isGameOver" class="dpad" data-no-shoot>
-      <button
-        class="dpad-btn dpad-up"
-        @touchstart.prevent.stop="setKey('w', true)"
-        @touchend.prevent.stop="setKey('w', false)"
-        @touchcancel.prevent.stop="setKey('w', false)"
-      >
-        ▲
-      </button>
-      <button
-        class="dpad-btn dpad-left"
-        @touchstart.prevent.stop="setKey('a', true)"
-        @touchend.prevent.stop="setKey('a', false)"
-        @touchcancel.prevent.stop="setKey('a', false)"
-      >
-        ◀
-      </button>
-      <button
-        class="dpad-btn dpad-right"
-        @touchstart.prevent.stop="setKey('d', true)"
-        @touchend.prevent.stop="setKey('d', false)"
-        @touchcancel.prevent.stop="setKey('d', false)"
-      >
-        ▶
-      </button>
-      <button
-        class="dpad-btn dpad-down"
-        @touchstart.prevent.stop="setKey('s', true)"
-        @touchend.prevent.stop="setKey('s', false)"
-        @touchcancel.prevent.stop="setKey('s', false)"
-      >
-        ▼
-      </button>
-    </div>
+      <!-- D-pad di chuyển trên mobile -->
+      <div v-show="!isGameOver" class="dpad" data-no-shoot>
+        <button
+          class="dpad-btn dpad-up"
+          @touchstart.prevent.stop="setKey('w', true)"
+          @touchend.prevent.stop="setKey('w', false)"
+          @touchcancel.prevent.stop="setKey('w', false)"
+        >
+          ▲
+        </button>
+        <button
+          class="dpad-btn dpad-left"
+          @touchstart.prevent.stop="setKey('a', true)"
+          @touchend.prevent.stop="setKey('a', false)"
+          @touchcancel.prevent.stop="setKey('a', false)"
+        >
+          ◀
+        </button>
+        <button
+          class="dpad-btn dpad-right"
+          @touchstart.prevent.stop="setKey('d', true)"
+          @touchend.prevent.stop="setKey('d', false)"
+          @touchcancel.prevent.stop="setKey('d', false)"
+        >
+          ▶
+        </button>
+        <button
+          class="dpad-btn dpad-down"
+          @touchstart.prevent.stop="setKey('s', true)"
+          @touchend.prevent.stop="setKey('s', false)"
+          @touchcancel.prevent.stop="setKey('s', false)"
+        >
+          ▼
+        </button>
+      </div>
 
-    <RouterLink to="/" class="home-link" title="Về trang chủ"> 🏠 Về trang chủ </RouterLink>
+      <RouterLink to="/" class="home-link" title="Về trang chủ"> 🏠 Về trang chủ </RouterLink>
+    </template>
   </div>
 </template>
 
@@ -279,6 +297,73 @@ function playAgain() {
 
 .btn-play-again:hover {
   background: #16a34a;
+}
+
+/* Màn hình bắt đầu */
+.start-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 3.5rem;
+}
+
+.start-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.start-menu {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-start {
+  padding: 0.875rem 3rem;
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #fff;
+  background: #dc2626;
+  border: 3px solid #fff;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  transition:
+    transform 0.1s,
+    background 0.15s;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.btn-start:hover {
+  background: #b91c1c;
+  transform: scale(1.04);
+}
+
+.btn-start:active {
+  transform: scale(0.97);
+}
+
+.btn-home-start {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  transition: color 0.15s;
+}
+
+.btn-home-start:hover {
+  color: #fff;
 }
 
 /* Màn hình đỏ khi bị damage */
