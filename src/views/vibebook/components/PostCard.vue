@@ -271,10 +271,7 @@ onUnmounted(() => {
       <!-- Like -->
       <button
         class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-text-secondary hover:text-accent-coral hover:bg-bg-deep transition-colors whitespace-nowrap"
-        @click="
-          emit('view')
-          emit('openComments')
-        "
+        @click="(emit('view'), emit('openComments'))"
       >
         <Icon icon="lucide:thumbs-up" class="w-4 h-4" />
         <span class="text-sm font-medium">Thích</span>
@@ -283,10 +280,7 @@ onUnmounted(() => {
       <!-- Comment -->
       <button
         class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-text-secondary hover:text-text-primary hover:bg-bg-deep transition-colors whitespace-nowrap"
-        @click="
-          emit('view')
-          emit('openComments')
-        "
+        @click="(emit('view'), emit('openComments'))"
       >
         <Icon icon="lucide:message-square" class="w-4 h-4" />
         <span class="text-sm font-medium">Bình luận</span>

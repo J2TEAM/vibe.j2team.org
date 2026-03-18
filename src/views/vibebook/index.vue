@@ -201,10 +201,7 @@ function handleRemoveFromHistory(path: string) {
                 ? 'bg-bg-surface text-text-primary shadow'
                 : 'text-text-secondary hover:text-text-primary'
             "
-            @click="
-              activeTab = 'all'
-              handleTabChange()
-            "
+            @click="((activeTab = 'all'), handleTabChange())"
           >
             <Icon icon="lucide:layout-grid" class="w-4 h-4" />
             Tất cả
@@ -216,10 +213,7 @@ function handleRemoveFromHistory(path: string) {
                 ? 'bg-bg-surface text-text-primary shadow'
                 : 'text-text-secondary hover:text-text-primary'
             "
-            @click="
-              activeTab = 'recent'
-              handleTabChange()
-            "
+            @click="((activeTab = 'recent'), handleTabChange())"
           >
             <Icon icon="lucide:clock" class="w-4 h-4" />
             Đã xem
@@ -231,10 +225,7 @@ function handleRemoveFromHistory(path: string) {
                 ? 'bg-bg-surface text-text-primary shadow'
                 : 'text-text-secondary hover:text-text-primary'
             "
-            @click="
-              activeTab = 'favorites'
-              handleTabChange()
-            "
+            @click="((activeTab = 'favorites'), handleTabChange())"
           >
             <Icon icon="lucide:heart" class="w-4 h-4" />
             Yêu thích
