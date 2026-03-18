@@ -157,7 +157,7 @@ function drawCurrentCell(r: number, c: number, color: string) {
 
 // ─── Grid init ────────────────────────────────────────────────────
 function initGrid() {
-  grid = Array.from({ length: rows }, () => Array.from<number>({ length: cols }, () => WALL))
+  grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => WALL as number))
 }
 
 // ─── Slider handlers ──────────────────────────────────────────────
@@ -428,7 +428,7 @@ async function genEller(animated: boolean) {
       if (!sets[s]) sets[s] = []
       sets[s]!.push(c)
     }
-    const newSetOf = Array.from<number>({ length: roomCols }, () => 0)
+    const newSetOf = Array.from({ length: roomCols }, () => 0)
     for (const [s, members] of Object.entries(sets)) {
       members.sort(() => Math.random() - 0.5)
       const cnt = Math.max(1, Math.floor(Math.random() * members.length) + 1)
@@ -544,14 +544,10 @@ function reconstructPath(parent: ({ r: number; c: number } | null)[][]) {
 
 async function solveAStar() {
   const delay = getSolveDelay()
-  const visited = Array.from({ length: rows }, () =>
-    Array.from<boolean>({ length: cols }, () => false),
-  )
-  const gScore = Array.from({ length: rows }, () =>
-    Array.from<number>({ length: cols }, () => Infinity),
-  )
+  const visited = Array.from({ length: rows }, () => Array.from({ length: cols }, () => false))
+  const gScore = Array.from({ length: rows }, () => Array.from({ length: cols }, () => Infinity))
   const parent = Array.from({ length: rows }, () =>
-    Array.from<{ r: number; c: number } | null>({ length: cols }, () => null),
+    Array.from({ length: cols }, () => null as { r: number; c: number } | null),
   )
   gScore[startCell!.r]![startCell!.c] = 0
   const open = [{ r: startCell!.r, c: startCell!.c, f: manhattan(startCell!.r, startCell!.c) }]
@@ -589,11 +585,9 @@ async function solveAStar() {
 
 async function solveBFS() {
   const delay = getSolveDelay()
-  const visited = Array.from({ length: rows }, () =>
-    Array.from<boolean>({ length: cols }, () => false),
-  )
+  const visited = Array.from({ length: rows }, () => Array.from({ length: cols }, () => false))
   const parent = Array.from({ length: rows }, () =>
-    Array.from<{ r: number; c: number } | null>({ length: cols }, () => null),
+    Array.from({ length: cols }, () => null as { r: number; c: number } | null),
   )
   const queue = [{ r: startCell!.r, c: startCell!.c }]
   visited[startCell!.r]![startCell!.c] = true
@@ -625,11 +619,9 @@ async function solveBFS() {
 
 async function solveDFS() {
   const delay = getSolveDelay()
-  const visited = Array.from({ length: rows }, () =>
-    Array.from<boolean>({ length: cols }, () => false),
-  )
+  const visited = Array.from({ length: rows }, () => Array.from({ length: cols }, () => false))
   const parent = Array.from({ length: rows }, () =>
-    Array.from<{ r: number; c: number } | null>({ length: cols }, () => null),
+    Array.from({ length: cols }, () => null as { r: number; c: number } | null),
   )
   const stack = [{ r: startCell!.r, c: startCell!.c }]
   let explored = 0,
@@ -665,15 +657,11 @@ async function solveDFS() {
 
 async function solveDijkstra() {
   const delay = getSolveDelay()
-  const dist = Array.from({ length: rows }, () =>
-    Array.from<number>({ length: cols }, () => Infinity),
-  )
+  const dist = Array.from({ length: rows }, () => Array.from({ length: cols }, () => Infinity))
   const parent = Array.from({ length: rows }, () =>
-    Array.from<{ r: number; c: number } | null>({ length: cols }, () => null),
+    Array.from({ length: cols }, () => null as { r: number; c: number } | null),
   )
-  const visited = Array.from({ length: rows }, () =>
-    Array.from<boolean>({ length: cols }, () => false),
-  )
+  const visited = Array.from({ length: rows }, () => Array.from({ length: cols }, () => false))
   dist[startCell!.r]![startCell!.c] = 0
   const pq = [{ r: startCell!.r, c: startCell!.c, d: 0 }]
   let explored = 0
