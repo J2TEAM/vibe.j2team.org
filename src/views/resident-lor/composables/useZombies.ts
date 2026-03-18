@@ -15,6 +15,8 @@ const TICK_MS = 33 // ~30fps game logic
 const WALK_FRAME_MS = 100 // 10fps walk animation
 const WALK_TOTAL_FRAMES = 6
 const DEATH_FRAME_MS = 100
+/** Zombie không di chuyển quá 3s → coi là kẹt tường → kill */
+const STUCK_TIMEOUT_MS = 3000
 
 function getDirectionToward(
   from: { lat: number; lng: number },
@@ -44,13 +46,15 @@ function randomSpeed() {
 }
 
 function spawnZombieAt(lat: number, lng: number, id: string): Zombie {
+  const now = Date.now()
   return {
     id,
     lat,
     lng,
     direction: 'south',
     state: 'alive',
-    spawnTime: Date.now(),
+    spawnTime: now,
+    lastMoveTime: now,
     speed: randomSpeed(),
   }
 }
@@ -184,12 +188,22 @@ export function useZombies(
       const newLat = z.lat + (dLat / dist) * step
       const newLng = z.lng + (dLng / dist) * step
 
-      if (isWalkable && !isWalkable(newLat, newLng)) continue
+      if (isWalkable && !isWalkable(newLat, newLng)) {
+        // Kẹt tường — kiểm tra stuck timeout
+        if (now - z.lastMoveTime >= STUCK_TIMEOUT_MS) {
+          z.state = 'dying' as ZombieState
+          z.deathStartTime = now
+          z.deathFrame = 0
+          changed = true
+        }
+        continue
+      }
 
       const direction = getDirectionToward({ lat: z.lat, lng: z.lng }, pos)
       z.lat = newLat
       z.lng = newLng
       z.direction = direction
+      z.lastMoveTime = now
       changed = true
     }
 
