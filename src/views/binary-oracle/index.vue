@@ -139,7 +139,12 @@ async function castOracle() {
           tiên của nhân loại với 0 là Âm, 1 là Dương.
         </p>
         <div class="mt-6 flex flex-col items-center">
-          <img :src="batquaiImg" alt="bát quái" class="w-48 sm:w-64 md:w-80 block object-contain" />
+          <img
+            :src="batquaiImg"
+            alt="bát quái"
+            loading="lazy"
+            class="w-48 sm:w-64 md:w-80 block object-contain"
+          />
           <p class="mt-4 max-w-2xl text-sm text-text-secondary leading-relaxed text-center">
             Kinh Dịch Nhị Phân là phiên bản giải trí lấy cảm hứng từ Kinh Dịch cổ truyền, sử dụng 6
             lần gieo (mỗi lần gồm 3 đồng xu) để tạo ra một chuỗi nhị phân 6 bit tương ứng với 64

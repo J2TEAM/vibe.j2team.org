@@ -1,448 +1,38 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useEventListener, useIntervalFn } from '@vueuse/core'
 import { RouterLink } from 'vue-router'
-import { getTermContent } from './content'
 import type { SolarTerm } from './types'
+import { solarTermsData } from './data/solarTerms'
+import { useSolarTermNavigation } from './composables/useSolarTermNavigation'
 import GlobalBackground from './components/GlobalBackground.vue'
 import SolarWheel from './components/SolarWheel.vue'
 import AudioController from './components/AudioController.vue'
-import SolarCardGenerator from './components/SolarCardGenerator.vue'
-import ArticleReader from './components/ArticleReader.vue'
 import LinhKhiCalculator from './components/LinhKhiCalculator.vue'
 import PremiumDatePicker from './components/PremiumDatePicker.vue'
-import { articles } from './articles'
+import TermDetailModal from './components/TermDetailModal.vue'
+import { downloadICS } from './utils/icsExporter'
+import { getLunarFromDisplayDate } from './utils/lunarCalendar'
 
-const solarTerms = ref<SolarTerm[]>([
-  {
-    id: '1',
-    name: 'Lập Xuân',
-    chineseName: '立春',
-    translation: 'Khúc Dạo Đầu Của Hy Vọng',
-    description: 'Đông phong khởi động, vạn vật hồi sinh.',
-    season: 'Xuân',
-    approxDate: '02-04',
-    displayDate: '04/02/2026',
-    tips: 'Nên ăn thực phẩm tươi mới, giữ ấm đôi chân.',
-    proverb: 'Lập xuân hoa nở rộ, gió hiền đưa hương bay.',
-  },
-  {
-    id: '2',
-    name: 'Vũ Thủy',
-    chineseName: '雨水',
-    translation: 'Dòng Chảy Của Sự Sống',
-    description: 'Xuân vũ nhuận hoa, cỏ cây tươi mới.',
-    season: 'Xuân',
-    approxDate: '02-19',
-    displayDate: '19/02/2026',
-    tips: 'Phòng tránh ẩm thấp, bồi bổ tỳ vị.',
-    proverb: 'Vũ thủy mưa về cho lúa trổ, rồng thiêng vờn mây đón xuân sang.',
-  },
-  {
-    id: '3',
-    name: 'Kinh Trập',
-    chineseName: '惊蛰',
-    translation: 'Tiếng Sấm Xuân Đánh Thức Vạn Vật',
-    description: 'Lôi thanh khởi động, sinh linh bừng tỉnh.',
-    season: 'Xuân',
-    approxDate: '03-05',
-    displayDate: '05/03/2026',
-    tips: 'Ăn lê để dưỡng phổi, tránh làm việc quá sức.',
-    proverb: 'Kinh trập sấm vang ngàn dặm hỉ, đào hồng hé nụ đón lời chim.',
-  },
-  {
-    id: '4',
-    name: 'Xuân Phân',
-    chineseName: '春分',
-    translation: 'Điểm Cân Bằng Của Vũ Trụ',
-    description: 'Nhật nguyệt cân bằng, xuân quang rực rỡ.',
-    season: 'Xuân',
-    approxDate: '03-20',
-    displayDate: '20/03/2026',
-    tips: 'Giữ cân bằng sinh hoạt, vận động nhẹ nhàng.',
-    proverb: 'Xuân phân nhật nguyệt cân bằng sắc, cỏ nội hoa ngàn rực rỡ tươi.',
-  },
-  {
-    id: '5',
-    name: 'Thanh Minh',
-    chineseName: '清明',
-    translation: 'Sự Trong Trẻo Của Đất Trời',
-    description: 'Khí thanh cảnh minh, vạn vật giai hiển.',
-    season: 'Xuân',
-    approxDate: '04-04',
-    displayDate: '04/04/2026',
-    tips: 'Tảo mộ tổ tiên, đạp thanh du xuân.',
-    proverb: 'Thanh minh trong tiết tháng ba, lễ là tảo mộ hội là đạp thanh.',
-  },
-  {
-    id: '6',
-    name: 'Cốc Vũ',
-    chineseName: '谷雨',
-    translation: 'Mưa Sinh Ngũ Cốc',
-    description: 'Vũ sinh bách cốc, xuân tận hạ sơ.',
-    season: 'Xuân',
-    approxDate: '04-20',
-    displayDate: '20/04/2026',
-    tips: 'Uống trà Xuân, đề phòng dị ứng phấn hoa.',
-    proverb: 'Cốc vũ mưa rơi ươm lúa mạ, trà thơm mới hái ấm lòng người.',
-  },
-  {
-    id: '7',
-    name: 'Lập Hạ',
-    chineseName: '立夏',
-    translation: 'Khởi Nguyên Cùa Mùa Hè',
-    description: 'Vạn vật phồn mậu, thiên địa giao thái.',
-    season: 'Hạ',
-    approxDate: '05-05',
-    displayDate: '05/05/2026',
-    tips: 'Dưỡng tâm an thần, ăn thức ăn thanh đạm.',
-    proverb: 'Lập hạ đầu cành cành điểm lộc, sen hồng lấp ló đón mặt trời.',
-  },
-  {
-    id: '8',
-    name: 'Tiểu Mãn',
-    chineseName: '小满',
-    translation: 'Sự Mãn Nguyện Bé Nhỏ',
-    description: 'Vật chí thử tiểu đắc doanh mãn.',
-    season: 'Hạ',
-    approxDate: '05-21',
-    displayDate: '21/05/2026',
-    tips: 'Tránh ăn đồ quá lạnh, cẩn thận chứng thấp nhiệt.',
-    proverb: 'Tiểu mãn lúa chiêm vừa ngậm sữa, hương đưa thoang thoảng khắp cánh đồng.',
-  },
-  {
-    id: '9',
-    name: 'Mang Chủng',
-    chineseName: '芒种',
-    translation: 'Gieo Hạt Chờ Mùa Màng',
-    description: 'Hữu mang chi cốc khả chủng hĩ.',
-    season: 'Hạ',
-    approxDate: '06-05',
-    displayDate: '05/06/2026',
-    tips: 'Ngủ muộn dậy sớm, ăn canh thanh nhiệt.',
-    proverb: 'Mang chủng mưa dầm qua tháng sáu, nông phu hối hả đi cấy cày.',
-  },
-  {
-    id: '10',
-    name: 'Hạ Chí',
-    chineseName: '夏至',
-    translation: 'Ánh Sáng Rực Rỡ Nhất',
-    description: 'Nhật cực trường, dương khí cực thịnh.',
-    season: 'Hạ',
-    approxDate: '06-21',
-    displayDate: '21/06/2026',
-    tips: 'Tránh ánh nắng gắt buổi trưa, ăn mướp đắng.',
-    proverb: 'Hạ chí trưa hè ran tiếng cuốc, sen hồng phe phẩy gợn hồ trong.',
-  },
-  {
-    id: '11',
-    name: 'Tiểu Thử',
-    chineseName: '小暑',
-    translation: 'Cái Nóng Bắt Đầu',
-    description: 'Kỳ khí dĩ nhiệt, thử khí dĩ cực.',
-    season: 'Hạ',
-    approxDate: '07-07',
-    displayDate: '07/07/2026',
-    tips: 'Cẩn thận say nắng, bù đủ nước cho cơ thể.',
-    proverb: 'Tiểu thử nắng vàng thiêu cỏ cháy, tiếng ve râm ran gọi hè về.',
-  },
-  {
-    id: '12',
-    name: 'Đại Thử',
-    chineseName: '大暑',
-    translation: 'Thử Thách Của Nhiệt Độ',
-    description: 'Viêm nhiệt chí cực, vạn vật phát uất.',
-    season: 'Hạ',
-    approxDate: '07-22',
-    displayDate: '22/07/2026',
-    tips: 'Nên ăn thức ăn dễ tiêu hóa, uống chè giải nhiệt.',
-    proverb: 'Đại thử viêm thiên mồ hôi đổ, nông dâu nhọc nhằn lúc giữa trưa.',
-  },
-  {
-    id: '13',
-    name: 'Lập Thu',
-    chineseName: '立秋',
-    translation: 'Cơn Gió Mát Lành Nơi Cuối Hạ',
-    description: 'Thu phong khởi, lãnh khí manh.',
-    season: 'Thu',
-    approxDate: '08-07',
-    displayDate: '07/08/2026',
-    tips: 'Ngủ sớm dậy sớm, ăn thực phẩm bổ âm.',
-    proverb: 'Lập thu rả rích mưa xui xén, lá ngô đồng rụng biết thu sang.',
-  },
-  {
-    id: '14',
-    name: 'Xử Thử',
-    chineseName: '处暑',
-    translation: 'Chia Xa Mùa Hạ Cũ',
-    description: 'Thử khí chí thử nhi chỉ.',
-    season: 'Thu',
-    approxDate: '08-23',
-    displayDate: '23/08/2026',
-    tips: 'Phòng ngừa táo bón mùa thu, ăn nhiều trái cây.',
-    proverb: 'Xử thử mây trôi trời cao vợi, bầy nhạn tha hương gọi rủ nhau.',
-  },
-  {
-    id: '15',
-    name: 'Bạch Lộ',
-    chineseName: '白露',
-    translation: 'Giọt Sương Trắng Ngưng Tụ',
-    description: 'Khí thu bắt đầu, sương trắng ngưng đọng.',
-    season: 'Thu',
-    approxDate: '09-07',
-    displayDate: '07/09/2026',
-    tips: 'Không để phơi bụng lạnh ban đêm, giữ ấm phổi.',
-    proverb: 'Bạch lộ thu lai hoa tàn tạ, dế mèn réo rắt khúc sầu thương.',
-  },
-  {
-    id: '16',
-    name: 'Thu Phân',
-    chineseName: '秋分',
-    translation: 'Bình Thản & Quân Bình',
-    description: 'Nhật nguyệt ngang hàng, tiết thu điều hòa.',
-    season: 'Thu',
-    approxDate: '09-23',
-    displayDate: '23/09/2026',
-    tips: 'Ăn thực phẩm bổ âm mỡ, tránh đồ khô nóng.',
-    proverb: 'Thu phân trăng sáng gương soi chiếu, đất trời hòa hợp đón trùng dương.',
-  },
-  {
-    id: '17',
-    name: 'Hàn Lộ',
-    chineseName: '寒露',
-    translation: 'Sương Giá Buốt Lạnh',
-    description: 'Lộ khí hàn lãnh, sắp kết tụ thành băng.',
-    season: 'Thu',
-    approxDate: '10-08',
-    displayDate: '08/10/2026',
-    tips: 'Giữ ấm đôi chân (hàn tòng cước hạ khởi).',
-    proverb: 'Hàn lộ heo may reo hiên vắng, cúc thu rạng rỡ đượm sắc vàng.',
-  },
-  {
-    id: '18',
-    name: 'Sương Giáng',
-    chineseName: '霜降',
-    translation: 'Sương Giá Phủ Trắng',
-    description: 'Giọt sương rơi nặng, trời đất sang đông.',
-    season: 'Thu',
-    approxDate: '10-23',
-    displayDate: '23/10/2026',
-    tips: 'Ăn hồng, lê để dưỡng họng và phổi.',
-    proverb: 'Sương giáng tuyết sa mờ đỉnh núi, cúc vàng rực rỡ đón đông sang.',
-  },
-  {
-    id: '19',
-    name: 'Lập Đông',
-    chineseName: '立冬',
-    translation: 'Nuôi Dưỡng Nội Lực',
-    description: 'Đông phong nổi dậy, vạn vật quy tàng.',
-    season: 'Đông',
-    approxDate: '11-07',
-    displayDate: '07/11/2026',
-    tips: 'Ăn thực phẩm giàu năng lượng, giữ ấm cơ thể.',
-    proverb: 'Lập đông gió bấc lùa khe cửa, nhà nhà nhóm lửa đợi xuân về.',
-  },
-  {
-    id: '20',
-    name: 'Tiểu Tuyết',
-    chineseName: '小雪',
-    translation: 'Khúc Dạo Đầu Mùa Đông Tĩnh Lặng',
-    description: 'Hoa tuyết chớm rơi, sơn xuyên nhuộm bạc.',
-    season: 'Đông',
-    approxDate: '11-22',
-    displayDate: '22/11/2026',
-    tips: 'Tránh trầm cảm mùa đông, tiếp xúc ánh nắng.',
-    proverb: 'Tiểu tuyết trắng trời mây xám ngắt, trà thơm bên bếp ấm lòng nhau.',
-  },
-  {
-    id: '21',
-    name: 'Đại Tuyết',
-    chineseName: '大雪',
-    translation: 'Tuyết Phủ Trắng Trời',
-    description: 'Băng tuyết dày đặc, thiên địa ngủ yên.',
-    season: 'Đông',
-    approxDate: '12-07',
-    displayDate: '07/12/2026',
-    tips: 'Giữ ấm đầu và ngực, bồi bổ thận.',
-    proverb: 'Đại tuyết tuyết rơi đầy ngõ vắng, mai vàng ấp ủ đợi giao thừa.',
-  },
-  {
-    id: '22',
-    name: 'Đông Chí',
-    chineseName: '冬至',
-    translation: 'Khởi Đầu Của Sự Hồi Sinh',
-    description: 'Dạ trường cực điểm, dương quang tái sinh.',
-    season: 'Đông',
-    approxDate: '12-21',
-    displayDate: '21/12/2026',
-    tips: 'Lễ hội gia đình, ăn đồ ấm nóng.',
-    proverb: 'Đông chí đêm dài sương lạnh buốt, chén chè trôi nước ấm tình thân.',
-  },
-  {
-    id: '23',
-    name: 'Tiểu Hàn',
-    chineseName: '小寒',
-    translation: 'Sự Kiên Cường Trước Bình Minh',
-    description: 'Gió rét căm căm, bếp lửa sưởi lòng.',
-    season: 'Đông',
-    approxDate: '01-05',
-    displayDate: '05/01/2026',
-    tips: 'Tăng cường vận động để sinh nhiệt.',
-    proverb: 'Tiểu hàn giá rét tê đôi bàn tay, bếp hồng củi lửa đượm hương nồng.',
-  },
-  {
-    id: '24',
-    name: 'Đại Hàn',
-    chineseName: '大寒',
-    translation: 'Đỉnh Điểm Của Giá Lạnh',
-    description: 'Hàn khí chí cực, xuân quang chực đến.',
-    season: 'Đông',
-    approxDate: '01-20',
-    displayDate: '20/01/2026',
-    tips: 'Dọn dẹp nhà cửa, chuẩn bị tâm thế mới.',
-    proverb: 'Đại hàn nén sức chờ xuân tới, vạn vật chuyển mình đón bình minh.',
-  },
-])
+const solarTerms = ref<SolarTerm[]>(solarTermsData)
 
-const searchQuery = ref('')
-const selectedSeason = ref<string | null>(null)
-const selectedDate = ref(new Date().toISOString().slice(0, 10))
+const {
+  searchQuery,
+  selectedSeason,
+  selectedDate,
+  activeTermIndex,
+  currentSeason,
+  nextTermCountdown,
+  filteredTerms,
+  handleTermSelect,
+  getSeasonColor,
+} = useSolarTermNavigation(solarTerms)
+
 const showModal = ref(false)
 const activeTerm = ref<SolarTerm | null>(null)
-const activeModalTab = ref<'content' | 'share' | 'article'>('content')
-
-const nextTermCountdown = computed(() => {
-  const target = currentMonthDay.value
-  const sorted = [...solarTerms.value].sort((a, b) => a.approxDate.localeCompare(b.approxDate))
-  let next = sorted.find((t) => t.approxDate > target)
-  if (!next) next = sorted[0]
-
-  if (!next) return ''
-
-  // Simple day calculation (approx)
-  const dateParts = next.approxDate.split('-').map(Number)
-  const m = dateParts[0]
-  const d = dateParts[1]
-
-  if (m === undefined || d === undefined) return ''
-
-  const now = new Date()
-  const year = now.getFullYear()
-  const nextDate = new Date(year, m - 1, d)
-  if (nextDate < now) nextDate.setFullYear(year + 1)
-
-  const diffTime = Math.abs(nextDate.getTime() - now.getTime())
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-  return `Còn ${diffDays} ngày nữa là đến Tiết ${next.name}`
-})
-
-// Solar term content is lazy-loaded from content.ts instead of statically importing all 24 HTML files
-const modalContent = ref('')
-const loadingContent = `
-  <div style="background: #111; color: #fff; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif;">
-    <h1>Đang tải nội dung...</h1>
-  </div>
-`
-const fallbackContent = `
-  <div style="background: #111; color: #fff; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif;">
-    <h1>Nội dung đang được cập nhật...</h1>
-  </div>
-`
-
-watch(
-  () => activeTerm.value?.name,
-  async (termName) => {
-    if (!termName) {
-      modalContent.value = ''
-      return
-    }
-    modalContent.value = loadingContent
-    const content = await getTermContent(termName)
-    modalContent.value = content ?? fallbackContent
-  },
-)
-
-const currentMonthDay = computed(() => {
-  if (selectedDate.value) return selectedDate.value.slice(5)
-  return new Date().toISOString().slice(5, 10)
-})
-
-const filteredTerms = computed(() => {
-  return solarTerms.value.filter((term) => {
-    const matchesSearch =
-      term.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      term.translation.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesSeason = !selectedSeason.value || term.season === selectedSeason.value
-    return matchesSearch && matchesSeason
-  })
-})
-
-const selectedTermIndex = ref(-1)
-
-const activeTermIndex = computed({
-  get: () => {
-    if (selectedTermIndex.value !== -1) return selectedTermIndex.value
-    const target = currentMonthDay.value
-    let bestIndex = -1
-    const sorted = [...solarTerms.value].sort((a, b) => a.approxDate.localeCompare(b.approxDate))
-    for (let i = 0; i < sorted.length; i++) {
-      const term = sorted[i]
-      if (term && term.approxDate <= target) bestIndex = i
-    }
-    if (bestIndex === -1) bestIndex = sorted.length - 1
-    const activeTermRaw = sorted[bestIndex]
-    return solarTerms.value.findIndex((t) => t.id === (activeTermRaw?.id || ''))
-  },
-  set: (val) => {
-    selectedTermIndex.value = val
-  },
-})
-
-const handleTermSelect = (index: number) => {
-  activeTermIndex.value = index
-  // Scroll to the selected term in the grid if it exists
-  const term = solarTerms.value[index]
-  if (term) {
-    const el = document.getElementById(`term-${term.id}`)
-    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }
-}
-
-const currentSeason = computed(() => {
-  const index = activeTermIndex.value
-  if (index !== -1 && solarTerms.value[index]) return solarTerms.value[index].season
-  return 'Xuân'
-})
-
-watch(
-  () => activeTermIndex.value,
-  (newIdx) => {
-    const term = solarTerms.value[newIdx]
-    if (term) {
-      document.title = `${term.name} - ${term.translation} | Nhân Gian Tiết Khí`
-    }
-  },
-  { immediate: true },
-)
-
-const getSeasonColor = (season: string) => {
-  switch (season) {
-    case 'Xuân':
-      return 'from-emerald-500/20 to-green-500/20 text-emerald-400 border-emerald-500/30'
-    case 'Hạ':
-      return 'from-orange-500/20 to-red-500/20 text-orange-400 border-orange-500/30'
-    case 'Thu':
-      return 'from-amber-600/20 to-orange-600/20 text-amber-400 border-amber-600/30'
-    case 'Đông':
-      return 'from-blue-500/20 to-cyan-500/20 text-blue-400 border-blue-500/30'
-    default:
-      return 'from-white/10 to-white/5 text-white border-white/10'
-  }
-}
 
 const openDetail = (term: SolarTerm) => {
   activeTerm.value = term
-  activeModalTab.value = 'content'
   showModal.value = true
   document.body.style.overflow = 'hidden'
 }
@@ -452,11 +42,22 @@ const closeModal = () => {
   document.body.style.overflow = 'auto'
 }
 
+// Xuất lịch .ics
+const exportCalendar = () => {
+  downloadICS(solarTerms.value, new Date().getFullYear())
+}
+
 const isScrolled = ref(false)
 
-const handleScroll = () => {
+useEventListener(window, 'scroll', () => {
   isScrolled.value = window.scrollY > 50
-}
+})
+
+useEventListener(window, 'keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && showModal.value) {
+    closeModal()
+  }
+})
 
 const isZenMode = ref(false)
 const toggleZenMode = () => {
@@ -464,7 +65,6 @@ const toggleZenMode = () => {
   if (isZenMode.value) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } else {
-    // Force reveal all sections when exiting Zen Mode to ensure visibility
     nextTick(() => {
       document.querySelectorAll('.reveal-on-scroll').forEach((el) => {
         el.classList.add('is-revealed')
@@ -473,7 +73,7 @@ const toggleZenMode = () => {
   }
 }
 
-// Phase 3: Day/Night Cycle Theming
+// Day/Night Cycle Theming
 const currentHour = ref(new Date().getHours())
 
 const timeTheme = computed(() => {
@@ -484,26 +84,20 @@ const timeTheme = computed(() => {
   return 'theme-night'
 })
 
-// Update hour periodically
-let timeInterval: ReturnType<typeof setInterval>
-onMounted(() => {
-  timeInterval = setInterval(() => {
-    currentHour.value = new Date().getHours()
-  }, 60000) // Check every minute
-})
+useIntervalFn(() => {
+  currentHour.value = new Date().getHours()
+}, 60000)
 
-onUnmounted(() => {
-  if (timeInterval) clearInterval(timeInterval)
-})
+// IntersectionObserver (tái sử dụng, không leak)
+let sectionObserver: IntersectionObserver | null = null
 
 const observeSections = () => {
-  const observer = new IntersectionObserver(
+  sectionObserver?.disconnect()
+  sectionObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add('is-revealed')
-          // Tùy chọn: ngừng theo dõi sau khi hiện ra
-          // observer.unobserve(entry.target)
         }
       })
     },
@@ -511,7 +105,7 @@ const observeSections = () => {
   )
 
   document.querySelectorAll('.reveal-on-scroll').forEach((el) => {
-    observer.observe(el)
+    sectionObserver!.observe(el)
   })
 }
 
@@ -527,14 +121,15 @@ watch(
 
 onMounted(() => {
   selectedDate.value = new Date().toISOString().slice(0, 10)
-  // Initial title
   document.title = 'Tra cứu 24 Tiết Khí - Nhân Gian Tiết Khí'
-
-  window.addEventListener('scroll', handleScroll)
-
   nextTick(() => {
     observeSections()
   })
+})
+
+onUnmounted(() => {
+  sectionObserver?.disconnect()
+  document.body.style.overflow = 'auto'
 })
 </script>
 
@@ -594,14 +189,14 @@ onMounted(() => {
 
     <main class="pt-32 pb-24 px-4 max-w-7xl mx-auto relative z-10">
       <!-- Hero -->
-      <div class="relative mb-32 flex flex-col items-center text-center pt-10">
+      <div class="relative mb-20 sm:mb-32 flex flex-col items-center text-center pt-6 sm:pt-10">
         <div
-          class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-accent-coral/5 blur-[120px] rounded-full -z-10"
+          class="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] bg-accent-coral/5 blur-[120px] rounded-full -z-10"
         ></div>
 
         <div class="reveal-on-scroll">
           <h1
-            class="font-display text-6xl md:text-8xl font-black mb-12 tracking-tighter leading-none"
+            class="font-display text-4xl sm:text-6xl md:text-8xl font-black mb-8 sm:mb-12 tracking-tighter leading-none"
           >
             Nhân Gian <br />
             <span
@@ -626,7 +221,7 @@ onMounted(() => {
         <div class="reveal-on-scroll" style="animation-delay: 0.4s">
           <p
             v-if="solarTerms[activeTermIndex]?.proverb"
-            class="font-script text-3xl md:text-5xl text-accent-coral mb-10 italic opacity-90 leading-tight"
+            class="font-script text-xl sm:text-3xl md:text-5xl text-accent-coral mb-6 sm:mb-10 italic opacity-90 leading-tight"
           >
             "{{ solarTerms[activeTermIndex]?.proverb }}"
           </p>
@@ -660,7 +255,7 @@ onMounted(() => {
       <!-- Zen Mode Toggle -->
       <button
         @click="toggleZenMode"
-        class="fixed bottom-36 right-[236px] z-[100] p-4 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-full text-accent-coral/60 hover:text-accent-coral hover:scale-110 transition-all shadow-2xl group cursor-pointer"
+        class="fixed bottom-6 left-4 sm:bottom-36 sm:right-[236px] sm:left-auto z-[100] p-3 sm:p-4 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-full text-accent-coral/60 hover:text-accent-coral hover:scale-110 transition-all shadow-2xl group cursor-pointer"
         :title="isZenMode ? 'Thoát chế độ Thiền' : 'Chế độ Thiền (Zen Mode)'"
       >
         <svg
@@ -703,15 +298,15 @@ onMounted(() => {
       </button>
 
       <!-- Controls -->
-      <div v-show="!isZenMode" class="sticky top-24 z-40 mb-20 reveal-on-scroll">
+      <div v-show="!isZenMode" class="sticky top-20 sm:top-24 z-40 mb-12 sm:mb-20 reveal-on-scroll">
         <div
-          class="flex flex-col lg:flex-row gap-4 justify-center items-stretch lg:items-center bg-bg-surface/30 backdrop-blur-3xl p-4 rounded-[2.5rem] border border-white/10 shadow-2xl"
+          class="flex flex-col lg:flex-row gap-3 sm:gap-4 justify-center items-stretch lg:items-center bg-bg-surface/30 backdrop-blur-3xl p-3 sm:p-4 rounded-2xl sm:rounded-[2.5rem] border border-white/10 shadow-2xl"
         >
           <input
             v-model="searchQuery"
             type="text"
             placeholder="Tìm tiết khí..."
-            class="flex-1 bg-black/20 border border-white/10 px-8 py-4 rounded-2xl focus:outline-none focus:border-accent-coral/50 transition-all font-light"
+            class="flex-1 bg-black/20 border border-white/10 px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl focus:outline-none focus:border-accent-coral/50 transition-all font-light text-sm sm:text-base"
           />
           <div class="relative group">
             <PremiumDatePicker v-model="selectedDate" placeholder="Chọn ngày tra cứu..." />
@@ -757,8 +352,11 @@ onMounted(() => {
           <div
             class="relative bg-bg-surface/20 backdrop-blur-3xl border border-white/10 p-10 rounded-[2.5rem] h-full flex flex-col items-center text-center shadow-xl transition-all"
           >
-            <div class="absolute top-6 right-8 text-[10px] font-mono opacity-30">
-              {{ term.displayDate }}
+            <div class="absolute top-6 right-8 text-right">
+              <div class="text-xs font-mono opacity-40">{{ term.displayDate }}</div>
+              <div class="text-[11px] font-mono text-accent-coral/50">
+                {{ getLunarFromDisplayDate(term.displayDate) }}
+              </div>
             </div>
             <div
               :class="[
@@ -858,6 +456,31 @@ onMounted(() => {
 
         <div class="w-12 h-[1px] bg-white/10"></div>
 
+        <!-- Nút Xuất Lịch -->
+        <button
+          @click="exportCalendar"
+          class="group flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 hover:text-accent-coral hover:border-accent-coral/30 transition-all"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="group-hover:scale-110 transition-transform"
+          >
+            <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+            <line x1="16" x2="16" y1="2" y2="6" />
+            <line x1="8" x2="8" y1="2" y2="6" />
+            <line x1="3" x2="21" y1="10" y2="10" />
+          </svg>
+          📅 Xuất lịch 24 Tiết Khí (.ics)
+        </button>
+
         <p class="text-xs italic tracking-wide text-white/30 max-w-md leading-relaxed">
           Nội dung được biên soạn và hệ thống hóa dựa trên nguyên lý Thiên văn & Văn hóa Đông Phương
           cổ truyền.
@@ -877,118 +500,8 @@ onMounted(() => {
       </div>
     </footer>
 
-    <!-- Fullscreen Modal -->
-    <Transition name="modal">
-      <div
-        v-if="showModal"
-        class="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-12 overflow-hidden"
-      >
-        <div class="absolute inset-0 bg-black/90 backdrop-blur-3xl" @click="closeModal"></div>
-        <div
-          class="relative w-full h-full max-w-6xl bg-bg-deep rounded-none md:rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl flex flex-col scale-up"
-        >
-          <button
-            @click="closeModal"
-            class="absolute top-6 right-8 z-[110] p-4 bg-black/50 backdrop-blur-xl rounded-full text-white/40 hover:text-white transition-all border border-white/10"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M18 6 6 18" />
-              <path d="m6 6 12 12" />
-            </svg>
-          </button>
-
-          <!-- Modal Tabs -->
-          <div class="flex border-b border-white/10 bg-black/20">
-            <button
-              @click="activeModalTab = 'content'"
-              :class="[
-                'px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] transition-all relative',
-                activeModalTab === 'content'
-                  ? 'text-accent-coral'
-                  : 'text-white/40 hover:text-white',
-              ]"
-            >
-              Chi tiết Tiết khí
-              <div
-                v-if="activeModalTab === 'content'"
-                class="absolute bottom-0 left-0 w-full h-0.5 bg-accent-coral"
-              ></div>
-            </button>
-            <button
-              @click="activeModalTab = 'article'"
-              :class="[
-                'px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] transition-all relative',
-                activeModalTab === 'article'
-                  ? 'text-accent-coral'
-                  : 'text-white/40 hover:text-white',
-              ]"
-            >
-              Khai tâm (Đọc sâu)
-              <div
-                v-if="activeModalTab === 'article'"
-                class="absolute bottom-0 left-0 w-full h-0.5 bg-accent-coral"
-              ></div>
-            </button>
-            <button
-              @click="activeModalTab = 'share'"
-              :class="[
-                'px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] transition-all relative',
-                activeModalTab === 'share' ? 'text-accent-coral' : 'text-white/40 hover:text-white',
-              ]"
-            >
-              Tạo thiệp chia sẻ
-              <div
-                v-if="activeModalTab === 'share'"
-                class="absolute bottom-0 left-0 w-full h-0.5 bg-accent-coral"
-              ></div>
-            </button>
-          </div>
-
-          <div class="flex-1 overflow-hidden relative bg-black/40">
-            <Transition name="tab-fade" mode="out-in">
-              <div :key="activeModalTab" class="absolute inset-0 overflow-y-auto custom-scrollbar">
-                <iframe
-                  v-if="activeModalTab === 'content'"
-                  :srcdoc="modalContent"
-                  class="w-full h-full border-none"
-                ></iframe>
-                <div v-else-if="activeModalTab === 'article' && activeTerm" class="h-full">
-                  <ArticleReader
-                    v-if="
-                      articles[activeTerm.name] ||
-                      articles[activeTerm.name.replace(/\s*\([^)]*\)/, '')]
-                    "
-                    :article="
-                      (articles[activeTerm.name] ||
-                        articles[activeTerm.name.replace(/\s*\([^)]*\)/, '')])!
-                    "
-                  />
-                  <div v-else class="h-full flex items-center justify-center text-white/20 italic">
-                    Đang cập nhật nội dung...
-                  </div>
-                </div>
-                <div
-                  v-else-if="activeModalTab === 'share'"
-                  class="p-8 flex justify-center items-center h-full"
-                >
-                  <SolarCardGenerator v-if="activeTerm" :term="activeTerm" />
-                </div>
-              </div>
-            </Transition>
-          </div>
-        </div>
-      </div>
-    </Transition>
+    <!-- Modal Chi Tiết Tiết Khí (Component độc lập) -->
+    <TermDetailModal :term="activeTerm" :show="showModal" @close="closeModal" />
   </div>
 </template>
 

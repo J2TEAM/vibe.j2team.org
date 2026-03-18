@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="320" height="320" style="overflow: visible;" id="pulse-buddy-hide-context">
+    <style>
+        /* === CSS VARIABLES and BASE === */
+        .stroke-main { stroke: #253549; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+        .fill-base { fill: #F0EDE6; }
+        .fill-accent-sky { fill: #38BDF8; }
+        .fill-accent-amber { fill: #FFB830; }
+        .fill-dark { fill: #253549; }
+
+        /* =========================================
+           ANIMATIONS FOR HIDE CONTEXT (250ms One-shot)
+           ========================================= */
+        #pulse-buddy-wrapper {
+            /* Hiệu ứng rướn nhẹ rồi thu nhỏ tan biến (Shrink and Fade) */
+            animation: shrink-fade 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            transform-origin: 100px 140px; /* Tâm thu nhỏ ở giữa bụng */
+        }
+        #shadow {
+            /* Bóng thu nhỏ và mờ đi */
+            animation: shadow-fade 0.25s ease-in forwards;
+            transform-origin: 100px 180px;
+        }
+        #poof-sparks {
+            /* Tia lửa nổ lách tách (Poof burst) */
+            opacity: 0;
+            animation: poof-burst 0.3s ease-out forwards;
+            transform-origin: 100px 120px; /* Tâm nổ ở ngay mặt nhân vật */
+        }
+
+        /* =========================================
+           KEYFRAMES
+           ========================================= */
+        @keyframes shrink-fade {
+            0% { transform: scale(1) translateY(0); opacity: 1; }
+            30% { transform: scale(1.05) translateY(-3px); opacity: 1; } /* Anticipation: Rướn nhẹ lên */
+            100% { transform: scale(0) translateY(20px); opacity: 0; }   /* Biến mất hoàn toàn */
+        }
+        
+        @keyframes shadow-fade {
+            0% { transform: scale(1); opacity: 0.15; }
+            30% { transform: scale(1.05); opacity: 0.12; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        @keyframes poof-burst {
+            0% { transform: scale(0.2) rotate(-20deg); opacity: 0; }
+            40% { transform: scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: scale(1.4) rotate(15deg); opacity: 0; } /* Tia sáng bung rộng và mờ dần */
+        }
+    </style>
+
+    <!-- BÓNG ĐỔ DƯỚI ĐẤT (Sẽ thu nhỏ và biến mất) -->
+    <g id="shadow">
+        <ellipse cx="100" cy="180" rx="45" ry="8" fill="#253549" />
+    </g>
+
+    <!-- HIỆU ỨNG TIA SÁNG (POOF/SPARKS) NẰM SAU LƯNG -->
+    <g id="poof-sparks">
+        <!-- 8 tia sáng bung ra xung quanh tạo cảm giác "Pop" -->
+        <path stroke="#38BDF8" stroke-width="6" stroke-linecap="round" fill="none"
+              d="M 100 65 L 100 35 
+                 M 100 175 L 100 205 
+                 M 45 120 L 15 120 
+                 M 155 120 L 185 120 
+                 M 60 80 L 40 60 
+                 M 140 80 L 160 60 
+                 M 60 160 L 40 180 
+                 M 140 160 L 160 180" />
+        <!-- Vài đốm tròn nhỏ văng ra -->
+        <circle cx="70" cy="50" r="4" fill="#FFB830" />
+        <circle cx="140" cy="170" r="3" fill="#38BDF8" />
+        <circle cx="160" cy="100" r="5" fill="#FFB830" />
+    </g>
+
+    <!-- WRAPPER CHÍNH (Sẽ bị thu nhỏ và xoá sổ) -->
+    <g id="pulse-buddy-wrapper">
+
+        <!-- LEFT ARM -->
+        <g id="leftArm">
+            <path class="stroke-main fill-base" d="M 52 120 C 30 115, 20 130, 32 145 C 38 152, 48 145, 50 135" />
+        </g>
+
+        <!-- RIGHT ARM -->
+        <g id="rightArm">
+            <path class="stroke-main fill-base" d="M 148 120 C 170 115, 180 130, 168 145 C 162 152, 152 145, 150 135" />
+        </g>
+
+        <!-- THÂN CHÍNH (BODY) -->
+        <g id="body">
+            <path class="stroke-main fill-base" d="M 100 35 C 140 35, 155 80, 155 135 C 155 162, 135 172, 100 172 C 65 172, 45 162, 45 135 C 45 80, 60 35, 100 35 Z" />
+        </g>
+
+        <!-- TRÁI TIM Ở NGỰC (HEART CORE) -->
+        <g id="heartCore">
+            <path class="fill-accent-sky" d="M 100 146 C 100 146, 86 136, 86 128 C 86 122, 91 118, 97 118 C 100 118, 100 121, 100 121 C 100 121, 100 118, 103 118 C 109 118, 114 122, 114 128 C 114 136, 100 146, 100 146 Z" />
+            <path class="stroke-main" fill="none" d="M 100 146 C 100 146, 86 136, 86 128 C 86 122, 91 118, 97 118 C 100 118, 100 121, 100 121 C 100 121, 100 118, 103 118 C 109 118, 114 122, 114 128 C 114 136, 100 146, 100 146 Z" />
+        </g>
+
+        <!-- KHUÔN MẶT (FACE) -->
+        <g id="face">
+            
+            <!-- Má hồng -->
+            <g id="blush">
+                <ellipse cx="68" cy="104" rx="7" ry="3.5" class="fill-accent-amber" opacity="0.6" />
+                <ellipse cx="132" cy="104" rx="7" ry="3.5" class="fill-accent-amber" opacity="0.6" />
+            </g>
+
+            <!-- Kính Nerd -->
+            <g id="glasses">
+                <path class="stroke-main" fill="none" d="M 92 88 Q 100 84 108 88" stroke-width="4" />
+                <circle cx="76" cy="90" r="16" class="stroke-main" fill="none" stroke-width="4.5" />
+                <circle cx="124" cy="90" r="16" class="stroke-main" fill="none" stroke-width="4.5" />
+            </g>
+
+            <!-- MẮT (EYES) -->
+            <g id="eyes">
+                <g class="pupil-group" style="transform-origin: 76px 90px;">
+                    <circle cx="76" cy="90" r="5" class="fill-dark" />
+                    <circle cx="74" cy="88" r="1.5" fill="#ffffff" />
+                </g>
+                <g class="pupil-group" style="transform-origin: 124px 90px;">
+                    <circle cx="124" cy="90" r="5" class="fill-dark" />
+                    <circle cx="122" cy="88" r="1.5" fill="#ffffff" />
+                </g>
+            </g>
+
+            <!-- MIỆNG (MOUTH) -->
+            <g id="mouth">
+                <!-- Miệng hơi hé ra ngạc nhiên ngay trước khi biến mất -->
+                <ellipse cx="100" cy="106" rx="3.5" ry="4.5" class="fill-dark" />
+            </g>
+            
+        </g>
+    </g>
+</svg>

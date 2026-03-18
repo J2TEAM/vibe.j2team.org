@@ -1,13 +1,13 @@
-import type { WordData } from '../data'
-
-// Lazy-load the dictionary (~49K lines, ~510 kB) into a separate chunk,
+// Lazy-load the dictionary (~510 kB) via JSON fetch,
 // only fetched when the user actually visits the Word Chain page. Cached after first load.
+type WordData = Record<string, string[]>
+
 let _data: WordData | null = null
 
 async function loadData(): Promise<WordData> {
   if (_data) return _data
-  const mod = await import('../data')
-  _data = mod.data
+  const response = await fetch('/data/word-chain-king.json')
+  _data = (await response.json()) as WordData
   return _data
 }
 

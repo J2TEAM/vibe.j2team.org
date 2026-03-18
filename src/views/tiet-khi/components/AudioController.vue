@@ -17,7 +17,7 @@ const _ambientPlaylists: Record<string, string> = {
   'Hạ': 'https://raw.githubusercontent.com/rafael-lua/ambient-sounds/main/sounds/rain.mp3',
   'Thu': 'https://raw.githubusercontent.com/rafael-lua/ambient-sounds/main/sounds/crickets.mp3',
   'Đông': 'https://raw.githubusercontent.com/rafael-lua/ambient-sounds/main/sounds/wind.mp3',
-  
+
   // Specific Soundscapes
   'Kinh Trập': 'https://raw.githubusercontent.com/rafael-lua/ambient-sounds/main/sounds/thunder.mp3',
   'Xuân Phân': 'https://raw.githubusercontent.com/rafael-lua/ambient-sounds/main/sounds/river.mp3',
@@ -206,7 +206,7 @@ onUnmounted(() => {
     <button
       @click="toggleAmbient"
       :class="[
-        'fixed bottom-36 right-[164px] z-[100] p-4 rounded-full backdrop-blur-3xl border transition-all duration-500 flex items-center justify-center group pointer-events-auto',
+        'fixed bottom-20 right-4 sm:bottom-36 sm:right-[164px] z-[100] p-3 sm:p-4 rounded-full backdrop-blur-3xl border transition-all duration-500 flex items-center justify-center group pointer-events-auto',
         !isAmbientMuted
           ? 'bg-blue-500/20 border-blue-500/50 text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.2)]'
           : 'bg-black/40 border-white/10 text-white/40',

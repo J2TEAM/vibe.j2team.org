@@ -66,7 +66,7 @@ import { REPO_URL } from '@/data/constants'
         <img
           alt="GitHub Repo stars"
           src="https://img.shields.io/github/stars/J2TEAM/vibe.j2team.org?style=for-the-badge&logo=github&label=Stars"
-          loading="lazy"
+          fetchpriority="high"
           class="relative h-[46px]"
         />
       </a>

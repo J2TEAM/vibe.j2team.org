@@ -16,4 +16,6 @@ export interface PageMeta {
 /** Full page info with computed path (used by router and PagesGrid) */
 export interface PageInfo extends PageMeta {
   path: string
+  /** Hand-picked by Juno — pinned to top of homepage and shown before full list loads */
+  featured?: boolean
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 
 const props = defineProps<{
   modelValue: string // YYYY-MM-DD
@@ -13,7 +13,25 @@ const emit = defineEmits<{
 
 const isOpen = ref(false)
 const containerRef = ref<HTMLElement | null>(null)
+const inputRef = ref<HTMLElement | null>(null)
 const inputValue = ref('')
+const dropdownPos = ref({ top: 0, left: 0, width: 300 })
+
+const updateDropdownPos = () => {
+  if (!inputRef.value) return
+  const rect = inputRef.value.getBoundingClientRect()
+  dropdownPos.value = {
+    top: rect.bottom + 8,
+    left: rect.left + rect.width / 2 - 150,
+    width: 300,
+  }
+}
+
+watch(isOpen, (open) => {
+  if (open) {
+    nextTick(updateDropdownPos)
+  }
+})
 
 // Initialize internal input value from prop
 watch(
@@ -175,6 +193,7 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
     </div>
 
     <div
+      ref="inputRef"
       class="relative flex items-center bg-black/40 border border-white/10 rounded-2xl hover:border-accent-coral/30 transition-all duration-300 overflow-hidden"
       :class="{ 'ring-1 ring-accent-coral/20 border-accent-coral/40': isOpen }"
     >
@@ -207,92 +226,99 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
       />
     </div>
 
-    <!-- Calendar Dropdown -->
-    <Transition name="calendar">
-      <div
-        v-if="isOpen"
-        class="absolute top-full left-1/2 -translate-x-1/2 mt-3 z-[100] bg-black/80 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-3xl p-6 min-w-[300px]"
-      >
-        <!-- Header -->
-        <div class="flex items-center justify-between mb-6">
-          <button
-            @click="changeMonth(-1)"
-            class="p-2 hover:bg-white/5 rounded-full text-white/40 hover:text-white transition-all"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+    <!-- Calendar Dropdown (Teleport to body to escape modal overflow) -->
+    <Teleport to="body">
+      <Transition name="calendar">
+        <div
+          v-if="isOpen"
+          class="fixed z-[200] bg-black/90 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-3xl p-6"
+          :style="{
+            top: dropdownPos.top + 'px',
+            left: dropdownPos.left + 'px',
+            width: dropdownPos.width + 'px',
+          }"
+        >
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-6">
+            <button
+              @click="changeMonth(-1)"
+              class="p-2 hover:bg-white/5 rounded-full text-white/40 hover:text-white transition-all"
             >
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-          </button>
-          <div class="font-display font-bold text-sm tracking-widest text-white">
-            {{ monthYear }}
-          </div>
-          <button
-            @click="changeMonth(1)"
-            class="p-2 hover:bg-white/5 rounded-full text-white/40 hover:text-white transition-all"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+            </button>
+            <div class="font-display font-bold text-sm tracking-widest text-white">
+              {{ monthYear }}
+            </div>
+            <button
+              @click="changeMonth(1)"
+              class="p-2 hover:bg-white/5 rounded-full text-white/40 hover:text-white transition-all"
             >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-          </button>
-        </div>
-
-        <!-- Weekdays -->
-        <div class="grid grid-cols-7 mb-4">
-          <div
-            v-for="day in ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']"
-            :key="day"
-            class="text-[9px] font-bold text-center opacity-30"
-          >
-            {{ day }}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </button>
           </div>
-        </div>
 
-        <!-- Days Grid -->
-        <div class="grid grid-cols-7 gap-1">
-          <button
-            v-for="(dateObj, idx) in calendarDays"
-            :key="idx"
-            @click="selectDate(dateObj.date)"
-            :class="[
-              'aspect-square flex items-center justify-center text-xs rounded-xl transition-all duration-300 relative',
-              dateObj.current ? 'text-white' : 'text-white/20',
-              isSelected(dateObj.date)
-                ? 'bg-accent-coral text-white font-bold shadow-lg shadow-accent-coral/30'
-                : 'hover:bg-white/5',
-              isToday(dateObj.date) && !isSelected(dateObj.date)
-                ? 'border border-accent-coral/30'
-                : '',
-            ]"
-          >
-            {{ dateObj.day }}
+          <!-- Weekdays -->
+          <div class="grid grid-cols-7 mb-4">
             <div
-              v-if="isToday(dateObj.date)"
-              class="absolute bottom-1.5 w-1 h-1 bg-accent-coral rounded-full"
-            ></div>
-          </button>
+              v-for="day in ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']"
+              :key="day"
+              class="text-[9px] font-bold text-center opacity-30"
+            >
+              {{ day }}
+            </div>
+          </div>
+
+          <!-- Days Grid -->
+          <div class="grid grid-cols-7 gap-1">
+            <button
+              v-for="(dateObj, idx) in calendarDays"
+              :key="idx"
+              @click="selectDate(dateObj.date)"
+              :class="[
+                'aspect-square flex items-center justify-center text-xs rounded-xl transition-all duration-300 relative',
+                dateObj.current ? 'text-white' : 'text-white/20',
+                isSelected(dateObj.date)
+                  ? 'bg-accent-coral text-white font-bold shadow-lg shadow-accent-coral/30'
+                  : 'hover:bg-white/5',
+                isToday(dateObj.date) && !isSelected(dateObj.date)
+                  ? 'border border-accent-coral/30'
+                  : '',
+              ]"
+            >
+              {{ dateObj.day }}
+              <div
+                v-if="isToday(dateObj.date)"
+                class="absolute bottom-1.5 w-1 h-1 bg-accent-coral rounded-full"
+              ></div>
+            </button>
+          </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 

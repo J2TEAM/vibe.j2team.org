@@ -102,8 +102,23 @@ export function useMapZoom(containerRef: Ref<HTMLElement | null>) {
       const p1 = pts[0]!
       const p2 = pts[1]!
       const dist = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY)
+
       if (pinchStartDist > 0) {
-        scale.value = clampScale(pinchStartScale * (dist / pinchStartDist))
+        const newScale = clampScale(pinchStartScale * (dist / pinchStartDist))
+        if (newScale === scale.value) return
+
+        const container = containerRef.value
+        if (container) {
+          const rect = container.getBoundingClientRect()
+          // Center of pinch in viewport coordinates
+          const centerX = (p1.clientX + p2.clientX) / 2 - rect.left - rect.width / 2
+          const centerY = (p1.clientY + p2.clientY) / 2 - rect.top - rect.height / 2
+
+          const ratio = newScale / scale.value
+          panX.value = centerX - ratio * (centerX - panX.value)
+          panY.value = centerY - ratio * (centerY - panY.value)
+        }
+        scale.value = newScale
       }
       return
     }
