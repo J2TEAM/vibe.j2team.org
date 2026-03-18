@@ -18,6 +18,7 @@ export interface Zombie {
   state: ZombieState
   spawnTime: number
   deathStartTime?: number
+  deathFrame?: number
   /** Hệ số tốc độ (0.6–1.5), mỗi zombie khác nhau */
   speed: number
 }

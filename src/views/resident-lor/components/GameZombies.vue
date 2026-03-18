@@ -4,7 +4,7 @@ import { useMap } from '../composables/useMap'
 import type { Zombie } from '../types'
 import ZombieSprite from './ZombieSprite.vue'
 
-const props = defineProps<{ zombies: Zombie[] }>()
+const props = defineProps<{ zombies: Zombie[]; walkFrame: number }>()
 
 const mapRef = useMap()
 
@@ -25,5 +25,6 @@ const zombiesWithCoords = computed(() => {
     :zombie="item.zombie"
     :x="item.x"
     :y="item.y"
+    :walk-frame="walkFrame"
   />
 </template>

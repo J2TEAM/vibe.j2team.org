@@ -28,7 +28,7 @@ const { position, keys } = usePlayerMovement(INITIAL_LAT, INITIAL_LNG, {
   getUnstuck,
 })
 
-const { zombies, hitZombie, reset: resetZombies } = useZombies(position, { isWalkable })
+const { zombies, hitZombie, reset: resetZombies, walkFrame } = useZombies(position, { isWalkable })
 
 const score = ref(0)
 const onZombieHit = (id: string) => {
@@ -68,7 +68,7 @@ function playAgain() {
   <div class="resident-lor-view">
     <GameMap :center="position" />
     <GamePlayer :keys="keys" />
-    <GameZombies :zombies="zombies" />
+    <GameZombies :zombies="zombies" :walk-frame="walkFrame" />
     <GameBullets :bullets="bullets" />
 
     <div v-if="isGameOver" class="game-over-overlay">
