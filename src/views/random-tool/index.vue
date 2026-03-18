@@ -32,6 +32,11 @@ function scrollActiveTabIntoView() {
   if (active) active.scrollIntoView({ inline: 'nearest', behavior: 'smooth' })
 }
 
+function selectTab(id: TabId) {
+  activeTab.value = id
+  scrollActiveTabIntoView()
+}
+
 const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: 'number', label: 'Số ngẫu nhiên', icon: 'lucide:dice-5' },
   { id: 'wheel', label: 'Hộp ngẫu nhiên', icon: 'lucide:gift' },
@@ -722,10 +727,7 @@ onUnmounted(() => {
                 ? 'border-accent-coral text-accent-coral'
                 : 'border-transparent text-text-dim hover:text-text-primary',
             ]"
-            @click="
-              activeTab = tab.id
-              scrollActiveTabIntoView()
-            "
+            @click="selectTab(tab.id)"
           >
             <Icon :icon="tab.icon" class="size-4" />
             {{ tab.label }}
