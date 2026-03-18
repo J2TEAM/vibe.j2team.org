@@ -10,16 +10,16 @@ const lon1 = ref('')
 const lat2 = ref('')
 const lon2 = ref('')
 
-const setLat1 = (value: string) => {
+const setLat1 = (value = '') => {
   lat1.value = value
 }
-const setLon1 = (value: string) => {
+const setLon1 = (value = '') => {
   lon1.value = value
 }
-const setLat2 = (value: string) => {
+const setLat2 = (value = '') => {
   lat2.value = value
 }
-const setLon2 = (value: string) => {
+const setLon2 = (value = '') => {
   lon2.value = value
 }
 
@@ -33,8 +33,8 @@ const errorMessage = ref('Vui lòng nhập đầy đủ tọa độ hợp lệ.'
 
 function parseInput(
   rawValue: string,
-  setLat: (value: string) => void,
-  setLon: (value: string) => void,
+  setLat: (value?: string) => void,
+  setLon: (value?: string) => void,
 ) {
   if (!rawValue) return
 
