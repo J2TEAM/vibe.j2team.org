@@ -1,0 +1,67 @@
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotateZ(360deg);
+    opacity: 0;
+  }
+}
+
+.firework-particle {
+  position: absolute;
+  border-radius: 9999px;
+  box-shadow:
+    0 0 12px rgb(255 255 255 / 55%),
+    0 0 28px rgb(255 255 255 / 35%);
+  filter: saturate(1.35) brightness(1.2);
+  opacity: 0;
+  transform: translate(0, 0) scale(0.4);
+  animation: explode var(--particle-duration) ease-out forwards;
+  animation-delay: var(--particle-delay);
+}
+
+.firework-core {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 90%);
+  transform: translate(-50%, -50%) scale(0.2);
+  opacity: 0;
+  box-shadow:
+    0 0 24px rgb(255 255 255 / 95%),
+    0 0 52px rgb(255 107 74 / 65%);
+  animation: core-flash 0.9s ease-out forwards;
+  animation-delay: var(--core-delay);
+}
+
+@keyframes explode {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.3);
+  }
+
+  40% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(1);
+  }
+}
+
+@keyframes core-flash {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+
+  45% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) scale(1.25);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.4);
+  }
+}
