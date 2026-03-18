@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { useLocalStorage } from '@vueuse/core'
@@ -66,11 +66,6 @@ const wheelInputText = useLocalStorage(
 )
 const wheelResult = ref('')
 const wheelSpinning = ref(false)
-const wheelAngle = ref(0)
-const wheelHasSpun = ref(false)
-const canvasRef = ref<HTMLCanvasElement | null>(null)
-const wheelRemoveWon = ref(false)
-const wheelRemovedItems = ref<string[]>([])
 
 const wheelItems = computed(() =>
   wheelInputText.value
@@ -79,110 +74,102 @@ const wheelItems = computed(() =>
     .filter(Boolean),
 )
 
-const activeWheelItems = computed(() =>
-  wheelItems.value.filter((item) => !wheelRemovedItems.value.includes(item)),
+// ── Box open mode ──────────────────────────────────────────────────────────
+type WheelMode = 'manual' | 'auto'
+const wheelMode = ref<WheelMode>('auto')
+const wheelBoxOrder = ref<string[]>([])
+const wheelOpenedIndices = ref<number[]>([])
+const wheelRevealingIdx = ref<number | null>(null)
+
+const BOX_STYLES = [
+  {
+    closed: 'border-accent-coral/30 hover:border-accent-coral',
+    opened: 'border-accent-coral bg-accent-coral/10',
+    icon: 'text-accent-coral',
+    text: 'text-accent-coral',
+  },
+  {
+    closed: 'border-accent-amber/30 hover:border-accent-amber',
+    opened: 'border-accent-amber bg-accent-amber/10',
+    icon: 'text-accent-amber',
+    text: 'text-accent-amber',
+  },
+  {
+    closed: 'border-accent-sky/30 hover:border-accent-sky',
+    opened: 'border-accent-sky bg-accent-sky/10',
+    icon: 'text-accent-sky',
+    text: 'text-accent-sky',
+  },
+] as const
+
+function shuffleBoxes() {
+  const arr = [...wheelItems.value]
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[arr[i], arr[j]] = [arr[j]!, arr[i]!]
+  }
+  wheelBoxOrder.value = arr
+  wheelOpenedIndices.value = []
+  wheelResult.value = ''
+}
+
+watch(
+  () => wheelItems.value.length,
+  () => shuffleBoxes(),
+  { immediate: true },
 )
 
-const WHEEL_COLORS = [
-  '#FF6B4A',
-  '#FFB830',
-  '#38BDF8',
-  '#FF8C61',
-  '#FFD070',
-  '#61CBF7',
-  '#E8553D',
-  '#E6A420',
-]
-
-function drawWheel() {
-  const canvas = canvasRef.value
-  if (!canvas) return
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-  const items = activeWheelItems.value
-  if (items.length === 0) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    return
-  }
-
-  const size = canvas.width
-  const center = size / 2
-  const radius = center - 4
-  const segAngle = (2 * Math.PI) / items.length
-
-  ctx.clearRect(0, 0, size, size)
-
-  items.forEach((item, i) => {
-    const startAngle = i * segAngle - Math.PI / 2
-    const endAngle = startAngle + segAngle
-
-    ctx.beginPath()
-    ctx.moveTo(center, center)
-    ctx.arc(center, center, radius, startAngle, endAngle)
-    ctx.closePath()
-    ctx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length]!
-    ctx.fill()
-    ctx.strokeStyle = '#0F1923'
-    ctx.lineWidth = 2
-    ctx.stroke()
-
-    ctx.save()
-    ctx.translate(center, center)
-    ctx.rotate(startAngle + segAngle / 2)
-    ctx.textAlign = 'right'
-    ctx.fillStyle = '#fff'
-    ctx.font = `bold ${items.length > 10 ? 10 : 13}px sans-serif`
-    const displayText = item.length > 13 ? item.substring(0, 12) + '…' : item
-    ctx.fillText(displayText, radius - 12, 5)
-    ctx.restore()
-  })
-
-  ctx.beginPath()
-  ctx.arc(center, center, 20, 0, 2 * Math.PI)
-  ctx.fillStyle = '#0F1923'
-  ctx.fill()
-  ctx.strokeStyle = '#FF6B4A'
-  ctx.lineWidth = 3
-  ctx.stroke()
-}
-
-function spinWheel() {
-  if (wheelSpinning.value || activeWheelItems.value.length < 2) return
+function openBox(idx: number) {
+  if (wheelSpinning.value || wheelOpenedIndices.value.includes(idx)) return
+  wheelRevealingIdx.value = idx
   wheelSpinning.value = true
-  wheelHasSpun.value = true
   wheelResult.value = ''
-
-  const extraSpins = (5 + Math.floor(Math.random() * 4)) * 360
-  const extraAngle = Math.random() * 360
-  wheelAngle.value += extraSpins + extraAngle
-
-  const targetAngle = wheelAngle.value
   setTimeout(() => {
-    const items = activeWheelItems.value
-    const segAngle = 360 / items.length
-    const finalAngle = ((targetAngle % 360) + 360) % 360
-    const canvasTopAngle = (360 - finalAngle) % 360
-    const winnerIdx = Math.floor(((canvasTopAngle + 90) % 360) / segAngle) % items.length
-    const winner = items[winnerIdx] ?? ''
+    wheelResult.value = wheelBoxOrder.value[idx] ?? ''
+    wheelOpenedIndices.value = [...wheelOpenedIndices.value, idx]
+    wheelRevealingIdx.value = null
     wheelSpinning.value = false
-    wheelResult.value = winner
-    if (wheelRemoveWon.value && winner) {
-      wheelRemovedItems.value = [...wheelRemovedItems.value, winner]
-    }
-  }, 4400)
+  }, 700)
 }
 
-function restoreWheelItems() {
-  wheelRemovedItems.value = []
+function autoOpenBox() {
+  if (wheelSpinning.value) return
+  const unopened = wheelBoxOrder.value
+    .map((_, i) => i)
+    .filter((i) => !wheelOpenedIndices.value.includes(i))
+  if (unopened.length === 0) return
+  openBox(unopened[Math.floor(Math.random() * unopened.length)]!)
 }
 
-function onWheelInput() {
-  drawWheel()
+function resetBoxes() {
+  shuffleBoxes()
 }
 
-watch([wheelItems, wheelRemovedItems], () => {
-  nextTick(() => drawWheel())
-})
+function setWheelMode(mode: WheelMode) {
+  wheelMode.value = mode
+}
+
+function handleBoxClick(idx: number) {
+  if (wheelMode.value !== 'manual') return
+  openBox(idx)
+}
+
+function boxClasses(idx: number): string {
+  const s = BOX_STYLES[idx % 3]!
+  if (wheelOpenedIndices.value.includes(idx)) return `${s.opened} cursor-default`
+  if (wheelRevealingIdx.value === idx) return 'border-accent-amber bg-accent-amber/20 scale-105'
+  if (wheelMode.value === 'manual' && !wheelSpinning.value)
+    return `bg-bg-surface ${s.closed} hover:scale-105 cursor-pointer active:scale-95`
+  return `bg-bg-surface ${s.closed} cursor-default opacity-60`
+}
+
+function openedBoxIconClass(idx: number): string {
+  return BOX_STYLES[idx % 3]!.icon
+}
+
+function openedBoxTextClass(idx: number): string {
+  return BOX_STYLES[idx % 3]!.text
+}
 
 // ── TAB 3: Race ───────────────────────────────────────────────────────────
 interface Racer {
@@ -619,17 +606,11 @@ function setSplitBySize() {
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────
 onMounted(() => {
-  nextTick(() => drawWheel())
+  shuffleBoxes()
 })
 
 onUnmounted(() => {
   if (raceAnimFrame) cancelAnimationFrame(raceAnimFrame)
-})
-
-watch(activeTab, (tab) => {
-  if (tab === 'wheel') {
-    nextTick(() => drawWheel())
-  }
 })
 </script>
 
@@ -778,39 +759,126 @@ watch(activeTab, (tab) => {
         <div class="mb-8 text-center">
           <p class="mb-1 text-sm text-text-dim">
             <span class="font-display text-sm tracking-widest text-accent-coral">//</span>
-            VÒNG QUAY MAY MẮN
+            MỞ HỘP MAY MẮN
           </p>
-          <h2 class="font-display text-2xl font-bold">Vòng quay ngẫu nhiên</h2>
+          <h2 class="font-display text-2xl font-bold">Mở hộp ngẫu nhiên</h2>
         </div>
 
         <div class="grid gap-8 md:grid-cols-2">
-          <!-- Wheel canvas -->
-          <div class="flex flex-col items-center gap-4">
-            <div class="relative h-72 w-72">
-              <div
-                class="pointer-triangle absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1"
-              />
-              <div
-                class="absolute inset-0"
-                :class="{ 'wheel-spin': wheelHasSpun }"
-                :style="{ transform: `rotate(${wheelAngle}deg)` }"
+          <!-- Left: boxes + controls -->
+          <div class="flex flex-col gap-4">
+            <!-- Mode toggle -->
+            <div class="flex gap-2">
+              <button
+                class="flex-1 border py-2 font-display text-sm font-bold uppercase tracking-wider transition-all"
+                :class="
+                  wheelMode === 'manual'
+                    ? 'border-accent-coral bg-accent-coral/10 text-accent-coral'
+                    : 'border-border-default text-text-dim hover:border-accent-coral/50'
+                "
+                @click="setWheelMode('manual')"
               >
-                <canvas ref="canvasRef" width="288" height="288" class="h-full w-full" />
-              </div>
+                <Icon icon="lucide:hand" class="mr-1.5 inline size-3.5" />
+                Tự chọn
+              </button>
+              <button
+                class="flex-1 border py-2 font-display text-sm font-bold uppercase tracking-wider transition-all"
+                :class="
+                  wheelMode === 'auto'
+                    ? 'border-accent-coral bg-accent-coral/10 text-accent-coral'
+                    : 'border-border-default text-text-dim hover:border-accent-coral/50'
+                "
+                @click="setWheelMode('auto')"
+              >
+                <Icon icon="lucide:zap" class="mr-1.5 inline size-3.5" />
+                Auto
+              </button>
             </div>
 
-            <!-- Spin button -->
+            <!-- Mode hint -->
+            <p class="text-xs text-text-dim">
+              <span v-if="wheelMode === 'manual'">
+                <Icon icon="lucide:hand" class="mr-1 inline size-3" />
+                Bấm vào hộp bất kỳ để mở và xem nội dung bên trong.
+              </span>
+              <span v-else>
+                <Icon icon="lucide:zap" class="mr-1 inline size-3" />
+                Bấm nút bên dưới để hệ thống chọn và mở hộp ngẫu nhiên.
+              </span>
+            </p>
+
+            <!-- Boxes grid -->
+            <div
+              class="grid gap-2"
+              :class="
+                wheelBoxOrder.length <= 4
+                  ? 'grid-cols-2'
+                  : wheelBoxOrder.length <= 9
+                    ? 'grid-cols-3'
+                    : 'grid-cols-4'
+              "
+            >
+              <button
+                v-for="(item, idx) in wheelBoxOrder"
+                :key="idx"
+                class="relative flex aspect-square flex-col items-center justify-center border-2 p-3 text-center transition-all duration-200"
+                :class="boxClasses(idx)"
+                :disabled="wheelOpenedIndices.includes(idx) || wheelSpinning"
+                @click="handleBoxClick(idx)"
+              >
+                <!-- Closed -->
+                <template v-if="!wheelOpenedIndices.includes(idx) && wheelRevealingIdx !== idx">
+                  <Icon
+                    icon="lucide:gift"
+                    class="mb-1 size-7"
+                    :class="wheelMode === 'manual' ? 'text-text-secondary' : 'text-text-dim'"
+                  />
+                  <span class="font-display text-xs text-text-dim">{{ idx + 1 }}</span>
+                </template>
+
+                <!-- Revealing -->
+                <template v-else-if="wheelRevealingIdx === idx">
+                  <Icon
+                    icon="lucide:package-open"
+                    class="mb-1 size-7 animate-spin text-accent-amber"
+                  />
+                  <span class="font-display text-xs text-accent-amber">...</span>
+                </template>
+
+                <!-- Opened -->
+                <template v-else>
+                  <Icon
+                    icon="lucide:package-open"
+                    class="mb-1 size-5"
+                    :class="openedBoxIconClass(idx)"
+                  />
+                  <span
+                    class="font-display text-xs font-bold leading-tight"
+                    :class="openedBoxTextClass(idx)"
+                  >
+                    {{ item }}
+                  </span>
+                </template>
+              </button>
+            </div>
+
+            <!-- Auto open button -->
             <button
-              :disabled="wheelSpinning || activeWheelItems.length < 2"
-              class="flex items-center gap-2 bg-accent-coral px-8 py-3 font-display font-bold tracking-widest text-white uppercase transition-all hover:bg-accent-coral/80 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-              @click="spinWheel"
+              v-if="wheelMode === 'auto'"
+              class="flex items-center justify-center gap-2 bg-accent-coral px-8 py-3 font-display font-bold tracking-widest text-white uppercase transition-all hover:bg-accent-coral/80 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="
+                wheelSpinning ||
+                wheelOpenedIndices.length >= wheelBoxOrder.length ||
+                wheelBoxOrder.length < 1
+              "
+              @click="autoOpenBox"
             >
               <Icon
-                icon="lucide:rotate-cw"
+                icon="lucide:package-open"
                 class="size-5"
-                :class="wheelSpinning ? 'animate-spin' : ''"
+                :class="wheelSpinning ? 'animate-bounce' : ''"
               />
-              {{ wheelSpinning ? 'Đang quay...' : 'QUAY' }}
+              {{ wheelSpinning ? 'Đang mở...' : 'Mở hộp ngẫu nhiên' }}
             </button>
 
             <!-- Result -->
@@ -820,75 +888,40 @@ watch(activeTab, (tab) => {
             >
               <p class="mb-1 text-xs tracking-widest text-text-dim">KẾT QUẢ</p>
               <p class="font-display text-xl font-bold text-accent-coral">{{ wheelResult }}</p>
-              <p v-if="wheelRemoveWon" class="mt-1 text-xs text-text-dim">Đã loại khỏi vòng quay</p>
+            </div>
+
+            <!-- Progress + reset -->
+            <div v-if="wheelBoxOrder.length > 0" class="flex items-center justify-between text-xs">
+              <span class="text-text-dim">
+                Đã mở
+                <span class="font-semibold text-text-secondary">{{
+                  wheelOpenedIndices.length
+                }}</span>
+                /{{ wheelBoxOrder.length }} hộp
+              </span>
+              <button
+                class="flex items-center gap-1 text-accent-sky hover:underline"
+                @click="resetBoxes"
+              >
+                <Icon icon="lucide:shuffle" class="size-3" />
+                Xáo trộn lại
+              </button>
             </div>
           </div>
 
-          <!-- Settings + input -->
+          <!-- Right: input -->
           <div class="flex flex-col gap-3">
-            <!-- Remove-won toggle -->
-            <div
-              class="flex items-center justify-between border border-border-default bg-bg-surface px-3 py-2"
-            >
-              <div>
-                <p class="text-sm font-medium text-text-primary">Loại bỏ sau khi quay trúng</p>
-                <p class="text-xs text-text-dim">Mục đã quay sẽ không xuất hiện lại</p>
-              </div>
-              <button
-                :class="[
-                  'flex items-center gap-1.5 border px-2.5 py-1.5 font-display text-xs font-bold uppercase tracking-wide transition-all',
-                  wheelRemoveWon
-                    ? 'border-accent-coral bg-accent-coral text-white'
-                    : 'border-border-default text-text-dim hover:border-accent-coral/50',
-                ]"
-                @click="wheelRemoveWon = !wheelRemoveWon"
-              >
-                <Icon :icon="wheelRemoveWon ? 'lucide:check' : 'lucide:minus'" class="size-3" />
-                {{ wheelRemoveWon ? 'BẬT' : 'TẮT' }}
-              </button>
-            </div>
-
-            <!-- Removed items list -->
-            <div
-              v-if="wheelRemovedItems.length > 0"
-              class="border border-border-default bg-bg-surface p-3"
-            >
-              <div class="mb-2 flex items-center justify-between">
-                <span class="text-xs tracking-widest text-text-dim">
-                  <span class="text-accent-amber">//</span>
-                  ĐÃ LOẠI ({{ wheelRemovedItems.length }})
-                </span>
-                <button
-                  class="flex items-center gap-1 text-xs text-accent-sky hover:underline"
-                  @click="restoreWheelItems"
-                >
-                  <Icon icon="lucide:rotate-ccw" class="size-3" />
-                  Khôi phục tất cả
-                </button>
-              </div>
-              <div class="flex flex-wrap gap-1.5">
-                <span
-                  v-for="(item, i) in wheelRemovedItems"
-                  :key="i"
-                  class="border border-border-default px-2 py-0.5 text-xs text-text-dim line-through"
-                  >{{ item }}</span
-                >
-              </div>
-            </div>
-
-            <!-- Items textarea -->
             <label class="text-xs tracking-widest text-text-dim">
               <span class="text-accent-sky">//</span> DANH SÁCH (mỗi dòng 1 mục)
             </label>
             <textarea
               v-model="wheelInputText"
-              class="h-48 resize-none border border-border-default bg-bg-surface p-3 font-mono text-sm text-text-primary placeholder-text-dim focus:border-accent-coral focus:outline-none"
+              class="h-56 resize-none border border-border-default bg-bg-surface p-3 font-mono text-sm text-text-primary placeholder-text-dim focus:border-accent-coral focus:outline-none"
               placeholder="Nhập danh sách..."
-              @input="onWheelInput"
             />
             <p class="text-xs text-text-dim">
-              {{ activeWheelItems.length }} / {{ wheelItems.length }} mục còn lại · tối thiểu 2 để
-              quay
+              {{ wheelBoxOrder.length }} hộp ·
+              {{ wheelBoxOrder.length - wheelOpenedIndices.length }} chưa mở
             </p>
           </div>
         </div>
@@ -1799,18 +1832,24 @@ watch(activeTab, (tab) => {
   transform: rotateY(180deg);
 }
 
-/* ── Wheel ───────────────────────────────────────────────────────────────── */
-.wheel-spin {
-  transition: transform 4.2s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+/* ── Box open ────────────────────────────────────────────────────────────── */
+@keyframes box-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.18) rotate(-4deg);
+  }
+  70% {
+    transform: scale(1.12) rotate(3deg);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
-.pointer-triangle {
-  width: 0;
-  height: 0;
-  border-left: 11px solid transparent;
-  border-right: 11px solid transparent;
-  border-top: 18px solid #ff6b4a;
-  filter: drop-shadow(0 2px 6px rgba(255, 107, 74, 0.6));
+.box-pop {
+  animation: box-pop 0.65s ease-in-out;
 }
 
 /* ── Number bounce ───────────────────────────────────────────────────────── */
