@@ -561,7 +561,7 @@ function formatTime(secs: number) {
               <button
                 v-if="currentWolfVoter && g.wolfVotes.value[currentWolfVoter.id]"
                 class="flex-1 border border-accent-amber bg-accent-amber/10 py-3 font-display text-sm font-semibold text-accent-amber transition hover:bg-accent-amber/20"
-                @click="wolfVotePlayerIndex++"
+                @click="g.wolfVotePlayerIndex.value++"
               >
                 {{ wolvesYetToVote.length > 1 ? 'Sói tiếp theo' : 'Xong' }}
               </button>
