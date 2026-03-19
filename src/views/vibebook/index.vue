@@ -193,7 +193,7 @@ function handleRemoveFromHistory(path: string) {
         </div>
 
         <!-- Tabs -->
-        <div class="flex gap-1 bg-bg-deep p-1 rounded">
+        <div class="flex gap-1 bg-bg-deep p-1">
           <button
             class="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded text-sm font-medium transition-colors"
             :class="
@@ -228,7 +228,7 @@ function handleRemoveFromHistory(path: string) {
             @click="((activeTab = 'favorites'), handleTabChange())"
           >
             <Icon icon="lucide:heart" class="w-4 h-4" />
-            Yêu thích
+            Đã lưu
           </button>
         </div>
 
@@ -244,7 +244,7 @@ function handleRemoveFromHistory(path: string) {
               v-model="searchQuery"
               type="text"
               placeholder="Tìm kiếm..."
-              class="w-full pl-9 pr-3 py-2 bg-bg-deep border border-border-default rounded text-sm text-text-primary placeholder-text-dim focus:outline-none focus:border-accent-coral"
+              class="w-full pl-9 pr-3 py-2 bg-bg-deep border border-border-default text-sm text-text-primary placeholder-text-dim focus:outline-none focus:border-accent-coral"
               @input="handleFilterChange"
             />
           </div>
@@ -253,7 +253,7 @@ function handleRemoveFromHistory(path: string) {
           <div class="relative flex-shrink-0">
             <select
               v-model="selectedCategory"
-              class="w-full px-3 py-2 pr-8 bg-bg-deep border border-border-default rounded text-sm text-text-primary focus:outline-none focus:border-accent-coral cursor-pointer appearance-none"
+              class="w-full px-3 py-2 pr-8 bg-bg-deep border border-border-default text-sm text-text-primary focus:outline-none focus:border-accent-coral cursor-pointer appearance-none"
               @change="handleFilterChange"
             >
               <option value="">Tất cả</option>

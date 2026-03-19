@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { getCategoryLabel } from '@/data/categories'
+import { useGithubAvatar } from '../composables/useGithubAvatars'
 import type { PageInfo } from '@/types/page'
 
 const props = defineProps<{
@@ -20,107 +21,7 @@ const emit = defineEmits<{
 
 const router = useRouter()
 
-// ============ Rate Limit Handler ============
-const RATE_LIMIT_KEY = 'vibebook-rate-limit'
-
-function getRateLimitInfo(): { until: number } {
-  try {
-    const data = localStorage.getItem(RATE_LIMIT_KEY)
-    return data ? JSON.parse(data) : { until: 0 }
-  } catch {
-    return { until: 0 }
-  }
-}
-
-function setRateLimit(until: number) {
-  localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify({ until }))
-}
-
-function isRateLimited(): boolean {
-  const { until } = getRateLimitInfo()
-  return Date.now() < until
-}
-
-// ============ Avatar with caching (permanent) ============
-const avatarUrl = ref<string | null>(null)
-
-const AVATAR_CACHE_KEY = 'vibebook-github-avatars'
-
-function getAvatarCache(): Record<string, string> {
-  try {
-    const cached = localStorage.getItem(AVATAR_CACHE_KEY)
-    return cached ? JSON.parse(cached) : {}
-  } catch {
-    return {}
-  }
-}
-
-function setAvatarCache(cache: Record<string, string>) {
-  localStorage.setItem(AVATAR_CACHE_KEY, JSON.stringify(cache))
-}
-
-const avatarColor = computed(() => {
-  const colors = [
-    '#f87171',
-    '#fb923c',
-    '#fbbf24',
-    '#a3e635',
-    '#34d399',
-    '#22d3ee',
-    '#60a5fa',
-    '#818cf8',
-    '#c084fc',
-    '#f472b6',
-  ]
-  let hash = 0
-  for (let i = 0; i < props.page.author.length; i++) {
-    hash = props.page.author.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return colors[Math.abs(hash) % colors.length]
-})
-
-const initial = computed(() => props.page.author.charAt(0).toUpperCase())
-
-// Fetch avatar on mount with caching and rate limit check
-onMounted(async () => {
-  const cache = getAvatarCache()
-
-  // Check cache first (permanent cache)
-  const cachedUrl = cache[props.page.author]
-  if (cachedUrl) {
-    avatarUrl.value = cachedUrl
-    return
-  }
-
-  // Check rate limit - skip API call if rate limited
-  if (isRateLimited()) {
-    return // Use fallback avatar
-  }
-
-  const isLikelyGitHubUsername = /^[a-zA-Z0-9-]+$/.test(props.page.author)
-  if (!isLikelyGitHubUsername) return
-
-  try {
-    const res = await fetch(`https://api.github.com/users/${props.page.author}`)
-
-    // Handle rate limit (403/429)
-    if (res.status === 403 || res.status === 429) {
-      const resetTime = res.headers.get('X-RateLimit-Reset')
-      const until = resetTime ? parseInt(resetTime) * 1000 : Date.now() + 60 * 60 * 1000
-      setRateLimit(until)
-      return
-    }
-
-    if (res.ok) {
-      const data = await res.json()
-      avatarUrl.value = data.avatar_url
-      cache[props.page.author] = data.avatar_url
-      setAvatarCache(cache)
-    }
-  } catch {
-    // Silent fail
-  }
-})
+const { avatarUrl, avatarColor, initial } = useGithubAvatar(props.page.author)
 
 const categoryLabel = computed(() => getCategoryLabel(props.page.category))
 
@@ -229,14 +130,7 @@ onUnmounted(() => {
               :class="props.isFavorite ? 'text-red-500' : ''"
               class="w-4 h-4"
             />
-            {{ props.isFavorite ? 'Bỏ yêu thích' : 'Yêu thích' }}
-          </button>
-          <button
-            class="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-bg-deep transition-colors"
-            @click="sharePost"
-          >
-            <Icon icon="lucide:share-2" class="w-4 h-4" />
-            Chia sẻ
+            {{ props.isFavorite ? 'Bỏ lưu' : 'Lưu' }}
           </button>
           <button
             v-if="props.isInRecentTab"
