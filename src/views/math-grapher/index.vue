@@ -1,140 +1,7 @@
-<template>
-  <div class="grapher" :class="theme">
-    <header class="header">
-      <a href="/" class="back-link">← Trang chủ</a>
-      <h1 class="title">Đồ Thị Toán Học</h1>
-      <button class="theme-toggle" @click="toggleTheme">
-        <span v-if="theme === 'dark'">☀️</span><span v-else>🌙</span>
-      </button>
-      <span class="author">by deku</span>
-    </header>
-
-    <div class="workspace">
-      <div v-if="sidebarOpen" class="sidebar-backdrop" @click="sidebarOpen = false" />
-
-      <aside class="sidebar" :class="{ 'sidebar-open': sidebarOpen }">
-        <div class="fn-list">
-          <div
-            v-for="(fn, i) in functions"
-            :key="fn.id"
-            class="fn-item"
-            :class="{ 'fn-active': activeIdx === i, error: !!fn.error, disabled: !fn.enabled }"
-            @click="selectFn(i)"
-          >
-            <button
-              class="color-dot"
-              :style="{ background: fn.color }"
-              @click.stop="toggleEnabled(i)"
-            />
-            <div class="fn-expr-display">
-              <template v-if="activeIdx === i">
-                <span class="expr-text">{{ fn.expr.slice(0, cursorPos) }}</span>
-                <span class="fn-caret" />
-                <span class="expr-text">{{ fn.expr.slice(cursorPos) }}</span>
-              </template>
-              <span v-else class="expr-text muted">{{ fn.expr || 'Nhập hàm số…' }}</span>
-            </div>
-            <span v-if="fn.error" class="fn-error-icon" :title="fn.error">!</span>
-            <button class="fn-remove" @click.stop="removeFn(i)">×</button>
-          </div>
-        </div>
-
-        <input
-          ref="hiddenInput"
-          class="hidden-input"
-          :value="activeExpr"
-          @input="onHiddenInput"
-          @paste="onPaste"
-          @keydown="onKeyDown"
-          spellcheck="false"
-          autocomplete="off"
-        />
-
-        <button class="add-btn" @click="addFn">+ Thêm hàm số</button>
-
-        <div class="vkb">
-          <div class="vkb-header"><span class="vkb-title">Bàn phím toán học</span></div>
-          <div class="vkb-tabs">
-            <button
-              v-for="tab in kbTabs"
-              :key="tab.id"
-              class="vkb-tab"
-              :class="{ active: activeTab === tab.id }"
-              @click="activeTab = tab.id"
-            >
-              {{ tab.label }}
-            </button>
-          </div>
-          <div class="vkb-grid">
-            <button
-              v-for="key in currentTabKeys"
-              :key="key.label"
-              class="vkb-btn"
-              :class="key.cls"
-              @click="insertKey(key)"
-            >
-              {{ key.label }}
-            </button>
-          </div>
-          <div class="vkb-actions">
-            <button class="vkb-btn vkb-del" @click="deleteChar">⌫</button>
-            <button class="vkb-clear vkb-btn" @click="clearExpr">CLR</button>
-            <button class="vkb-btn vkb-nav" @click="moveCursor(-1)">◀</button>
-            <button class="vkb-btn vkb-nav" @click="moveCursor(1)">▶</button>
-          </div>
-          <div class="vkb-preview" v-if="activeFn">
-            <span class="preview-label">f =</span>
-            <span class="preview-body">
-              <span class="expr-text">{{ activeFn.expr.slice(0, cursorPos) }}</span>
-              <span class="fn-caret" />
-              <span class="expr-text">{{ activeFn.expr.slice(cursorPos) }}</span>
-            </span>
-          </div>
-        </div>
-
-        <div class="divider" />
-
-        <div class="controls">
-          <label>X min<input v-model.number="view.xMin" type="number" @change="render()" /></label>
-          <label>X max<input v-model.number="view.xMax" type="number" @change="render()" /></label>
-          <label>Y min<input v-model.number="view.yMin" type="number" @change="render()" /></label>
-          <label>Y max<input v-model.number="view.yMax" type="number" @change="render()" /></label>
-          <button class="reset-btn" @click="resetView">↺ Reset</button>
-        </div>
-
-        <div class="divider" />
-        <div class="hints">
-          <p><strong>Hàm số:</strong> sin(x), x^2, sqrt(x)</p>
-          <p><strong>Ẩn:</strong> x^2+y^2=1 (vòng tròn)</p>
-          <p><strong>Trái tim:</strong> (x^2+y^2-1)^3-x^2*y^3=0</p>
-        </div>
-      </aside>
-
-      <div class="canvas-area">
-        <button class="sidebar-toggle" @click="sidebarOpen = !sidebarOpen">
-          {{ sidebarOpen ? '✕ Đóng' : '⚙ Hàm số' }}
-        </button>
-        <div class="canvas-wrap" ref="canvasWrap">
-          <canvas
-            ref="canvas"
-            @wheel.prevent="onWheel"
-            @mousedown="onMouseDown"
-            @mousemove="onMouseMove"
-            @mouseup="onMouseUp"
-            @mouseleave="onMouseUp"
-            @touchstart.prevent="onTouchStart"
-            @touchmove.prevent="onTouchMove"
-            @touchend="onTouchEnd"
-          />
-          <div class="canvas-hint">Cuộn để zoom · Kéo để di chuyển</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, reactive, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { RouterLink } from 'vue-router'
+import { Icon } from '@iconify/vue'
 
 interface FnItem {
   id: number
@@ -152,14 +19,14 @@ interface VKey {
 type CompiledFn = (x: number, y?: number) => number
 
 const COLORS: string[] = [
-  '#e05252',
-  '#4f9ef8',
-  '#3ecf8e',
-  '#f7a84a',
-  '#b06ef7',
-  '#f74ab0',
-  '#50c8c8',
-  '#f7e24a',
+  '#FF6B4A',
+  '#FFB830',
+  '#38BDF8',
+  '#a78bfa',
+  '#34d399',
+  '#f472b6',
+  '#60a5fa',
+  '#fbbf24',
 ]
 let idCounter = 0
 
@@ -171,8 +38,8 @@ const kbTabs = [
 
 const KB: Record<string, VKey[]> = {
   basic: [
-    { label: 'x', insert: 'x', cls: 'vkb-var' },
-    { label: 'y', insert: 'y', cls: 'vkb-var' },
+    { label: 'x', insert: 'x', cls: 'key-var' },
+    { label: 'y', insert: 'y', cls: 'key-var' },
     { label: '7', insert: '7' },
     { label: '8', insert: '8' },
     { label: '9', insert: '9' },
@@ -192,32 +59,32 @@ const KB: Record<string, VKey[]> = {
     { label: '=', insert: '=' },
     { label: '(', insert: '(' },
     { label: ')', insert: ')' },
-    { label: 'π', insert: 'pi', cls: 'vkb-fn' },
-    { label: 'e', insert: 'e', cls: 'vkb-fn' },
+    { label: 'π', insert: 'pi', cls: 'key-fn' },
+    { label: 'e', insert: 'e', cls: 'key-fn' },
   ],
   trig: [
-    { label: 'sin', insert: 'sin()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'cos', insert: 'cos()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'tan', insert: 'tan()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'asin', insert: 'asin()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'acos', insert: 'acos()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'atan', insert: 'atan()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'sinh', insert: 'sinh()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'cosh', insert: 'cosh()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'tanh', insert: 'tanh()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'atan2', insert: 'atan2(,)', cls: 'vkb-fn', moveBefore: 2 },
+    { label: 'sin', insert: 'sin()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'cos', insert: 'cos()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'tan', insert: 'tan()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'asin', insert: 'asin()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'acos', insert: 'acos()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'atan', insert: 'atan()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'sinh', insert: 'sinh()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'cosh', insert: 'cosh()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'tanh', insert: 'tanh()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'atan2', insert: 'atan2(,)', cls: 'key-fn', moveBefore: 2 },
   ],
   misc: [
-    { label: '√', insert: 'sqrt()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: '|x|', insert: 'abs()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'exp', insert: 'exp()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'log', insert: 'log()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'log2', insert: 'log2()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'floor', insert: 'floor()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'ceil', insert: 'ceil()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'round', insert: 'round()', cls: 'vkb-fn', moveBefore: 1 },
-    { label: 'min', insert: 'min(,)', cls: 'vkb-fn', moveBefore: 2 },
-    { label: 'max', insert: 'max(,)', cls: 'vkb-fn', moveBefore: 2 },
+    { label: '√', insert: 'sqrt()', cls: 'key-fn', moveBefore: 1 },
+    { label: '|x|', insert: 'abs()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'exp', insert: 'exp()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'log', insert: 'log()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'log2', insert: 'log2()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'floor', insert: 'floor()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'ceil', insert: 'ceil()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'round', insert: 'round()', cls: 'key-fn', moveBefore: 1 },
+    { label: 'min', insert: 'min(,)', cls: 'key-fn', moveBefore: 2 },
+    { label: 'max', insert: 'max(,)', cls: 'key-fn', moveBefore: 2 },
     { label: '<', insert: '<' },
     { label: '>', insert: '>' },
     { label: '≤', insert: '<=' },
@@ -225,7 +92,7 @@ const KB: Record<string, VKey[]> = {
   ],
 }
 
-const theme = ref<'dark' | 'light'>('dark')
+// ─── State ────────────────────────────────────────────────────────────────
 const sidebarOpen = ref(false)
 const activeTab = ref('basic')
 const activeIdx = ref(0)
@@ -240,7 +107,7 @@ const functions = reactive<FnItem[]>([
   {
     id: idCounter++,
     expr: '(x^2+y^2-1)^3-x^2*y^3=0',
-    color: COLORS[4] as string,
+    color: COLORS[2] as string,
     enabled: true,
     error: '',
   },
@@ -260,13 +127,7 @@ const currentTabKeys = computed(() => KB[activeTab.value] ?? [])
 const activeFn = computed(() => functions[activeIdx.value] ?? null)
 const activeExpr = computed(() => activeFn.value?.expr ?? '')
 
-const colors = computed(() =>
-  theme.value === 'dark'
-    ? { bg: '#0f1117', grid: '#1e2130', axis: '#3a4060', label: '#4a5068' }
-    : { bg: '#f0f4ff', grid: '#dde2f0', axis: '#a0b0d0', label: '#8090b0' },
-)
-
-// ─── Expression compiler ───────────────────────────────────────────────────
+// ─── Expression compiler ──────────────────────────────────────────────────
 function compileExpr(raw: string): { mode: 'explicit' | 'implicit'; fn: CompiledFn } {
   const expr = raw
     .trim()
@@ -317,7 +178,7 @@ function compileExpr(raw: string): { mode: 'explicit' | 'implicit'; fn: Compiled
   }
 }
 
-// ─── Coordinate helpers ────────────────────────────────────────────────────
+// ─── Coordinate helpers ───────────────────────────────────────────────────
 function toCanvasX(x: number, w: number) {
   return ((x - view.xMin) / (view.xMax - view.xMin)) * w
 }
@@ -331,18 +192,18 @@ function toWorldY(cy: number, h: number) {
   return view.yMin + ((h - cy) / h) * (view.yMax - view.yMin)
 }
 
-// ─── Render ────────────────────────────────────────────────────────────────
+// ─── Render ───────────────────────────────────────────────────────────────
 function render() {
   const cvs = canvas.value
   if (!cvs) return
   const ctx = cvs.getContext('2d')!
   const w = cvs.width,
-    h = cvs.height,
-    c = colors.value
-  ctx.fillStyle = c.bg
+    h = cvs.height
+
+  ctx.fillStyle = '#0F1923'
   ctx.fillRect(0, 0, w, h)
-  drawGrid(ctx, w, h, c)
-  drawAxes(ctx, w, h, c)
+  drawGrid(ctx, w, h)
+  drawAxes(ctx, w, h)
   for (const fn of functions) {
     if (!fn.enabled || !fn.expr.trim()) continue
     fn.error = ''
@@ -362,15 +223,10 @@ function niceStep(minStep: number) {
   return 10 * mag
 }
 
-function drawGrid(
-  ctx: CanvasRenderingContext2D,
-  w: number,
-  h: number,
-  c: { bg: string; grid: string; axis: string; label: string },
-) {
+function drawGrid(ctx: CanvasRenderingContext2D, w: number, h: number) {
   const pxPerUnit = w / (view.xMax - view.xMin)
   const step = niceStep(60 / pxPerUnit)
-  ctx.strokeStyle = c.grid
+  ctx.strokeStyle = '#253549'
   ctx.lineWidth = 1
   for (let x = Math.ceil(view.xMin / step) * step; x <= view.xMax + step * 0.01; x += step) {
     ctx.beginPath()
@@ -384,7 +240,7 @@ function drawGrid(
     ctx.lineTo(w, toCanvasY(y, h))
     ctx.stroke()
   }
-  ctx.fillStyle = c.label
+  ctx.fillStyle = '#4A6180'
   ctx.font = '11px monospace'
   const axisY = Math.min(Math.max(toCanvasY(0, h), 2), h - 14)
   const axisX = Math.min(Math.max(toCanvasX(0, w), 4), w - 4)
@@ -400,13 +256,8 @@ function drawGrid(
   }
 }
 
-function drawAxes(
-  ctx: CanvasRenderingContext2D,
-  w: number,
-  h: number,
-  c: { bg: string; grid: string; axis: string; label: string },
-) {
-  ctx.strokeStyle = c.axis
+function drawAxes(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  ctx.strokeStyle = '#8B9DB5'
   ctx.lineWidth = 1.5
   ctx.beginPath()
   ctx.moveTo(0, toCanvasY(0, h))
@@ -469,7 +320,6 @@ function drawImplicit(
   const CELL = 4
   const cols = Math.ceil(w / CELL),
     rows = Math.ceil(h / CELL)
-  // Use flat typed arrays to avoid undefined indexing
   const vals = new Float64Array((rows + 1) * (cols + 1))
   for (let row = 0; row <= rows; row++) {
     for (let col = 0; col <= cols; col++) {
@@ -522,12 +372,11 @@ function drawImplicit(
   ctx.stroke()
 }
 
-// ─── Virtual keyboard ──────────────────────────────────────────────────────
+// ─── Virtual keyboard ─────────────────────────────────────────────────────
 function clampCursor() {
   const fn = activeFn.value
   if (fn) cursorPos.value = Math.max(0, Math.min(fn.expr.length, cursorPos.value))
 }
-
 function insertKey(key: VKey) {
   const fn = activeFn.value
   if (!fn) return
@@ -537,7 +386,6 @@ function insertKey(key: VKey) {
   cursorPos.value = p + key.insert.length - (key.moveBefore ?? 0)
   scheduleRender()
 }
-
 function deleteChar() {
   const fn = activeFn.value
   if (!fn || cursorPos.value === 0) return
@@ -546,7 +394,6 @@ function deleteChar() {
   cursorPos.value--
   scheduleRender()
 }
-
 function clearExpr() {
   const fn = activeFn.value
   if (!fn) return
@@ -554,7 +401,6 @@ function clearExpr() {
   cursorPos.value = 0
   scheduleRender()
 }
-
 function moveCursor(d: number) {
   const fn = activeFn.value
   if (!fn) return
@@ -567,7 +413,6 @@ function selectFn(i: number) {
   cursorPos.value = functions[i]?.expr.length ?? 0
   nextTick(() => hiddenInput.value?.focus())
 }
-
 function onHiddenInput(e: Event) {
   const fn = activeFn.value
   if (!fn) return
@@ -576,7 +421,6 @@ function onHiddenInput(e: Event) {
   cursorPos.value = input.selectionStart ?? fn.expr.length
   scheduleRender()
 }
-
 function onPaste(e: ClipboardEvent) {
   e.preventDefault()
   const text = e.clipboardData?.getData('text') ?? ''
@@ -592,7 +436,6 @@ function onPaste(e: ClipboardEvent) {
   })
   scheduleRender()
 }
-
 function onKeyDown(e: KeyboardEvent) {
   const fn = activeFn.value
   if (!fn) return
@@ -612,7 +455,6 @@ function onKeyDown(e: KeyboardEvent) {
     scheduleRender()
   }
 }
-
 watch(activeIdx, () => {
   nextTick(() => {
     if (hiddenInput.value) hiddenInput.value.value = activeFn.value?.expr ?? ''
@@ -632,27 +474,20 @@ function addFn() {
   cursorPos.value = 0
   nextTick(() => hiddenInput.value?.focus())
 }
-
 function removeFn(i: number) {
   functions.splice(i, 1)
   activeIdx.value = Math.max(0, Math.min(activeIdx.value, functions.length - 1))
   scheduleRender()
 }
-
 function toggleEnabled(i: number) {
   const fn = functions[i]
   if (!fn) return
   fn.enabled = !fn.enabled
   scheduleRender()
 }
-
 function resetView() {
   Object.assign(view, DEFAULT_VIEW)
   fitCanvas()
-}
-function toggleTheme() {
-  theme.value = theme.value === 'dark' ? 'light' : 'dark'
-  nextTick(render)
 }
 
 // ─── Canvas interactions ───────────────────────────────────────────────────
@@ -668,7 +503,6 @@ function onWheel(e: WheelEvent) {
   view.yMax = wy + (view.yMax - wy) * f
   scheduleRender()
 }
-
 function onMouseDown(e: MouseEvent) {
   dragging = true
   dragStart = { x: e.clientX, y: e.clientY }
@@ -688,16 +522,13 @@ function onMouseMove(e: MouseEvent) {
 function onMouseUp() {
   dragging = false
 }
-
 function onTouchStart(e: TouchEvent) {
   const t0 = e.touches[0]
   if (e.touches.length === 1 && t0) {
     dragging = true
     dragStart = { x: t0.clientX, y: t0.clientY }
     dragView = { ...view }
-  } else if (e.touches.length === 2) {
-    lastTouchDist = getTouchDist(e)
-  }
+  } else if (e.touches.length === 2) lastTouchDist = getTouchDist(e)
 }
 function onTouchMove(e: TouchEvent) {
   const cvs = canvas.value!
@@ -715,10 +546,8 @@ function onTouchMove(e: TouchEvent) {
     const f = lastTouchDist / dist
     const t1 = e.touches[1]
     if (!t0 || !t1) return
-    const mx = (t0.clientX + t1.clientX) / 2
-    const my = (t0.clientY + t1.clientY) / 2
-    const wx = toWorldX(mx, cvs.width),
-      wy = toWorldY(my, cvs.height)
+    const wx = toWorldX((t0.clientX + t1.clientX) / 2, cvs.width)
+    const wy = toWorldY((t0.clientY + t1.clientY) / 2, cvs.height)
     view.xMin = wx + (view.xMin - wx) * f
     view.xMax = wx + (view.xMax - wx) * f
     view.yMin = wy + (view.yMin - wy) * f
@@ -736,12 +565,10 @@ function getTouchDist(e: TouchEvent) {
   if (!t0 || !t1) return 0
   return Math.sqrt((t0.clientX - t1.clientX) ** 2 + (t0.clientY - t1.clientY) ** 2)
 }
-
 function scheduleRender() {
   if (renderTimer) clearTimeout(renderTimer)
   renderTimer = setTimeout(render, 20)
 }
-
 function fitCanvas() {
   const cvs = canvas.value,
     wrap = canvasWrap.value
@@ -755,7 +582,6 @@ function fitCanvas() {
   view.yMax = yMid + yRange / 2
   render()
 }
-
 onMounted(async () => {
   await nextTick()
   fitCanvas()
@@ -770,243 +596,309 @@ onUnmounted(() => {
 })
 </script>
 
+<template>
+  <div class="flex flex-col bg-bg-deep min-h-screen font-body text-text-primary">
+    <!-- Header -->
+    <header
+      class="flex flex-shrink-0 items-center gap-4 bg-bg-surface px-4 sm:px-6 py-3 border-border-default border-b"
+    >
+      <RouterLink
+        to="/"
+        class="inline-flex flex-shrink-0 items-center gap-2 px-3 py-1.5 border border-border-default hover:border-accent-coral text-text-secondary hover:text-text-primary text-sm transition"
+      >
+        <Icon icon="lucide:arrow-left" class="size-3.5" />
+        Trang chủ
+      </RouterLink>
+      <h1 class="flex-1 font-display font-semibold text-lg truncate text-accent-coral">
+        Đồ Thị Toán Học
+      </h1>
+      <span class="hidden sm:block font-display text-text-dim text-xs">by deku</span>
+    </header>
+
+    <!-- Workspace -->
+    <div class="relative flex flex-1 overflow-hidden">
+      <!-- Mobile backdrop -->
+      <div
+        v-if="sidebarOpen"
+        class="sm:hidden z-10 absolute inset-0 bg-bg-deep/70"
+        @click="sidebarOpen = false"
+      />
+
+      <!-- Sidebar -->
+      <aside
+        class="top-0 left-0 z-20 absolute sm:relative flex flex-col flex-shrink-0 bg-bg-surface border-border-default border-r w-64 h-full overflow-y-auto transition-transform sm:translate-y-0 duration-300"
+        :class="sidebarOpen ? 'translate-y-0' : '-translate-y-full sm:translate-y-0'"
+      >
+        <div class="flex flex-col flex-1 gap-3 p-3">
+          <!-- Section: Hàm số -->
+          <div>
+            <h2
+              class="flex items-center gap-2 mb-2 font-display text-text-dim text-xs tracking-widest"
+            >
+              <span class="text-accent-coral">//</span> HÀM SỐ
+            </h2>
+            <div class="flex flex-col gap-1.5">
+              <div
+                v-for="(fn, i) in functions"
+                :key="fn.id"
+                class="flex items-center gap-2 bg-bg-deep px-2.5 py-2 border border-border-default transition cursor-pointer"
+                :class="{
+                  'border-accent-coral': activeIdx === i,
+                  'border-red-500/60': !!fn.error,
+                  'opacity-40': !fn.enabled,
+                  'hover:border-border-default': activeIdx !== i && !fn.error,
+                }"
+                @click="selectFn(i)"
+              >
+                <button
+                  class="flex-shrink-0 rounded-full size-3 hover:scale-125 transition"
+                  :style="{ background: fn.color }"
+                  @click.stop="toggleEnabled(i)"
+                />
+                <div
+                  class="flex flex-1 items-center min-w-0 overflow-hidden font-mono text-text-primary text-xs whitespace-nowrap"
+                >
+                  <template v-if="activeIdx === i">
+                    <span class="whitespace-pre">{{ fn.expr.slice(0, cursorPos) }}</span>
+                    <span
+                      class="inline-block flex-shrink-0 mx-px w-0.5 h-3.5 animate-[blink_0.85s_step-start_infinite] bg-accent-coral"
+                    />
+                    <span class="whitespace-pre">{{ fn.expr.slice(cursorPos) }}</span>
+                  </template>
+                  <span v-else class="text-text-secondary truncate italic">{{
+                    fn.expr || 'Nhập hàm số…'
+                  }}</span>
+                </div>
+                <span
+                  v-if="fn.error"
+                  class="flex-shrink-0 text-red-400 text-xs cursor-help"
+                  :title="fn.error"
+                  >!</span
+                >
+                <button
+                  class="flex-shrink-0 text-text-dim hover:text-red-400 text-sm transition"
+                  @click.stop="removeFn(i)"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            <!-- Hidden input for paste/keyboard -->
+            <input
+              ref="hiddenInput"
+              class="-left-[9999px] absolute opacity-0 w-px h-px pointer-events-none"
+              :value="activeExpr"
+              @input="onHiddenInput"
+              @paste="onPaste"
+              @keydown="onKeyDown"
+              spellcheck="false"
+              autocomplete="off"
+            />
+
+            <button
+              class="mt-2 py-1.5 border border-border-default hover:border-accent-coral border-dashed w-full font-display text-text-dim text-xs tracking-wide transition hover:text-accent-coral"
+              @click="addFn"
+            >
+              + Thêm hàm số
+            </button>
+          </div>
+
+          <!-- Section: Bàn phím -->
+          <div>
+            <h2
+              class="flex items-center gap-2 mb-2 font-display text-text-dim text-xs tracking-widest"
+            >
+              <span class="text-accent-amber">//</span> BÀN PHÍM
+            </h2>
+
+            <!-- Preview -->
+            <div
+              class="flex items-center gap-1 bg-bg-deep mb-2 px-3 py-1.5 border border-accent-coral/40 min-h-8 overflow-hidden font-mono text-xs"
+            >
+              <span class="flex-shrink-0 text-text-dim">f =</span>
+              <span class="flex items-center overflow-hidden text-text-primary whitespace-pre">
+                <template v-if="activeFn">
+                  <span class="whitespace-pre">{{ activeFn.expr.slice(0, cursorPos) }}</span>
+                  <span
+                    class="inline-block flex-shrink-0 mx-px w-0.5 h-3.5 animate-[blink_0.85s_step-start_infinite] bg-accent-coral"
+                  />
+                  <span class="whitespace-pre">{{ activeFn.expr.slice(cursorPos) }}</span>
+                </template>
+              </span>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex gap-1 mb-1.5">
+              <button
+                v-for="tab in kbTabs"
+                :key="tab.id"
+                class="flex-1 py-1 border font-display text-xs tracking-wide transition"
+                :class="
+                  activeTab === tab.id
+                    ? 'border-accent-amber bg-accent-amber/10 text-accent-amber'
+                    : 'border-border-default text-text-dim hover:text-text-secondary hover:border-border-default'
+                "
+                @click="activeTab = tab.id"
+              >
+                {{ tab.label }}
+              </button>
+            </div>
+
+            <!-- Keys -->
+            <div class="gap-1 grid grid-cols-5">
+              <button
+                v-for="key in currentTabKeys"
+                :key="key.label"
+                class="py-1.5 border font-mono text-xs active:scale-95 transition"
+                :class="{
+                  'border-accent-sky/40 bg-accent-sky/10 text-accent-sky hover:bg-accent-sky/20':
+                    key.cls === 'key-fn',
+                  'border-accent-coral/40 bg-accent-coral/10 text-accent-coral font-bold hover:bg-accent-coral/20':
+                    key.cls === 'key-var',
+                  'border-border-default text-text-secondary hover:border-accent-amber hover:text-text-primary':
+                    !key.cls,
+                }"
+                @click="insertKey(key)"
+              >
+                {{ key.label }}
+              </button>
+            </div>
+
+            <!-- Actions -->
+            <div class="gap-1 grid grid-cols-4 mt-1">
+              <button
+                class="py-1.5 border border-border-default hover:border-red-500/50 text-red-400 text-xs active:scale-95 transition"
+                @click="deleteChar"
+              >
+                ⌫
+              </button>
+              <button
+                class="py-1.5 border border-border-default hover:border-red-500/50 font-display text-red-400 text-xs tracking-wide active:scale-95 transition"
+                @click="clearExpr"
+              >
+                CLR
+              </button>
+              <button
+                class="py-1.5 border border-border-default hover:border-accent-sky/50 text-xs active:scale-95 transition text-accent-sky"
+                @click="moveCursor(-1)"
+              >
+                ◀
+              </button>
+              <button
+                class="py-1.5 border border-border-default hover:border-accent-sky/50 text-xs active:scale-95 transition text-accent-sky"
+                @click="moveCursor(1)"
+              >
+                ▶
+              </button>
+            </div>
+          </div>
+
+          <!-- Section: Viewport -->
+          <div>
+            <h2
+              class="flex items-center gap-2 mb-2 font-display text-text-dim text-xs tracking-widest"
+            >
+              <span class="text-accent-sky">//</span> VIEWPORT
+            </h2>
+            <div class="gap-1.5 grid grid-cols-2">
+              <label class="flex flex-col gap-0.5">
+                <span class="text-text-dim text-xs">X min</span>
+                <input
+                  v-model.number="view.xMin"
+                  type="number"
+                  @change="render()"
+                  class="bg-bg-deep px-2 py-1 border border-border-default focus:border-accent-coral focus:outline-none font-mono text-text-primary text-xs transition"
+                />
+              </label>
+              <label class="flex flex-col gap-0.5">
+                <span class="text-text-dim text-xs">X max</span>
+                <input
+                  v-model.number="view.xMax"
+                  type="number"
+                  @change="render()"
+                  class="bg-bg-deep px-2 py-1 border border-border-default focus:border-accent-coral focus:outline-none font-mono text-text-primary text-xs transition"
+                />
+              </label>
+              <label class="flex flex-col gap-0.5">
+                <span class="text-text-dim text-xs">Y min</span>
+                <input
+                  v-model.number="view.yMin"
+                  type="number"
+                  @change="render()"
+                  class="bg-bg-deep px-2 py-1 border border-border-default focus:border-accent-coral focus:outline-none font-mono text-text-primary text-xs transition"
+                />
+              </label>
+              <label class="flex flex-col gap-0.5">
+                <span class="text-text-dim text-xs">Y max</span>
+                <input
+                  v-model.number="view.yMax"
+                  type="number"
+                  @change="render()"
+                  class="bg-bg-deep px-2 py-1 border border-border-default focus:border-accent-coral focus:outline-none font-mono text-text-primary text-xs transition"
+                />
+              </label>
+            </div>
+            <button
+              class="mt-1.5 py-1.5 border border-border-default hover:border-accent-sky w-full font-display text-text-dim text-xs tracking-wide transition hover:text-accent-sky"
+              @click="resetView"
+            >
+              ↺ Reset view
+            </button>
+          </div>
+
+          <!-- Hints -->
+          <div class="space-y-1 bg-bg-deep p-3 border border-border-default text-text-dim text-xs">
+            <p>
+              <span class="text-accent-coral">sin(x)</span> ·
+              <span class="text-accent-coral">x^2</span> ·
+              <span class="text-accent-coral">sqrt(x)</span>
+            </p>
+            <p><span class="text-accent-amber">x^2+y^2=1</span> — vòng tròn</p>
+            <p><span class="text-accent-sky">(x^2+y^2-1)^3-x^2*y^3=0</span></p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Canvas area -->
+      <div class="flex flex-col flex-1 overflow-hidden">
+        <!-- Mobile toggle -->
+        <button
+          class="sm:hidden flex items-center gap-2 bg-bg-surface px-4 py-2.5 border-border-default border-b text-text-secondary text-sm transition hover:text-accent-coral"
+          @click="sidebarOpen = !sidebarOpen"
+        >
+          <Icon :icon="sidebarOpen ? 'lucide:x' : 'lucide:sliders-horizontal'" class="size-4" />
+          {{ sidebarOpen ? 'Đóng' : 'Hàm số & Bàn phím' }}
+        </button>
+
+        <div
+          class="relative flex-1 overflow-hidden cursor-grab active:cursor-grabbing"
+          ref="canvasWrap"
+        >
+          <canvas
+            ref="canvas"
+            class="block w-full h-full"
+            @wheel.prevent="onWheel"
+            @mousedown="onMouseDown"
+            @mousemove="onMouseMove"
+            @mouseup="onMouseUp"
+            @mouseleave="onMouseUp"
+            @touchstart.prevent="onTouchStart"
+            @touchmove.prevent="onTouchMove"
+            @touchend="onTouchEnd"
+          />
+          <p
+            class="right-4 bottom-3 absolute opacity-40 text-text-dim text-xs pointer-events-none select-none"
+          >
+            Cuộn để zoom · Kéo để di chuyển
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <style scoped>
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-.grapher.dark {
-  --bg: #0f1117;
-  --surface: #13161f;
-  --surface2: #1a1e2e;
-  --border: #1e2130;
-  --border2: #23273a;
-  --text: #c8cde4;
-  --text-title: #e8ecff;
-  --text-muted: #4a5068;
-  --accent: #4a9ef7;
-  --accent-hover: #1e2438;
-  --error: #e05252;
-  --vkb-btn: #1a1e2e;
-  --vkb-btn-hover: #232840;
-  --vkb-fn: #1a2a3a;
-  --vkb-fn-hover: #1e3456;
-  --vkb-fn-text: #4a9ef7;
-  --vkb-var: #1a2e1a;
-  --vkb-var-text: #3ecf8e;
-  --active-border: #4a9ef7;
-}
-.grapher.light {
-  --bg: #f0f4ff;
-  --surface: #ffffff;
-  --surface2: #f4f6fb;
-  --border: #dde2f0;
-  --border2: #e8ecf8;
-  --text: #2a3050;
-  --text-title: #111827;
-  --text-muted: #8090b0;
-  --accent: #2563eb;
-  --accent-hover: #eff3ff;
-  --error: #dc2626;
-  --vkb-btn: #e8ecf8;
-  --vkb-btn-hover: #dce3f5;
-  --vkb-fn: #dbeafe;
-  --vkb-fn-hover: #bfdbfe;
-  --vkb-fn-text: #1d4ed8;
-  --vkb-var: #dcfce7;
-  --vkb-var-text: #15803d;
-  --active-border: #2563eb;
-}
-
-.grapher {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Fira Code', 'Cascadia Code', 'Menlo', monospace;
-  overflow: hidden;
-  transition:
-    background 0.2s,
-    color 0.2s;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.back-link {
-  color: var(--accent);
-  text-decoration: none;
-  font-size: 13px;
-  opacity: 0.8;
-  transition: opacity 0.15s;
-  white-space: nowrap;
-}
-.back-link:hover {
-  opacity: 1;
-}
-.title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-title);
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.theme-toggle {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  width: 34px;
-  height: 34px;
-  cursor: pointer;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s;
-}
-.theme-toggle:hover {
-  background: var(--accent-hover);
-}
-.author {
-  font-size: 11px;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-.workspace {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-  position: relative;
-}
-
-.sidebar-backdrop {
-  display: none;
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 15;
-}
-
-.sidebar {
-  width: 260px;
-  flex-shrink: 0;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  padding: 12px 10px;
-  gap: 0;
-  transition: background 0.2s;
-}
-
-.fn-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.fn-item {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  background: var(--surface2);
-  border: 1.5px solid var(--border2);
-  border-radius: 8px;
-  padding: 7px 8px;
-  cursor: pointer;
-  transition: border-color 0.15s;
-  min-height: 36px;
-}
-.fn-item:hover {
-  border-color: var(--text-muted);
-}
-.fn-item.fn-active {
-  border-color: var(--active-border);
-}
-.fn-item.error {
-  border-color: var(--error);
-}
-.fn-item.disabled {
-  opacity: 0.4;
-}
-
-.color-dot {
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: transform 0.15s;
-}
-.color-dot:hover {
-  transform: scale(1.3);
-}
-
-.fn-expr-display {
-  flex: 1;
-  font-size: 13px;
-  color: var(--text-title);
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-}
-.expr-text {
-  white-space: pre;
-}
-.expr-text.muted {
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-.fn-error-icon {
-  color: var(--error);
-  font-weight: bold;
-  font-size: 13px;
-  cursor: help;
-  flex-shrink: 0;
-}
-.fn-remove {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 16px;
-  cursor: pointer;
-  padding: 0 2px;
-  transition: color 0.15s;
-  flex-shrink: 0;
-}
-.fn-remove:hover {
-  color: var(--error);
-}
-
-.fn-caret {
-  display: inline-block;
-  width: 2px;
-  height: 1em;
-  background: var(--active-border);
-  border-radius: 1px;
-  margin: 0 1px;
-  flex-shrink: 0;
-  vertical-align: text-bottom;
-  animation: blink 0.85s step-start infinite;
-}
 @keyframes blink {
   0%,
   100% {
@@ -1014,297 +906,6 @@ onUnmounted(() => {
   }
   50% {
     opacity: 0;
-  }
-}
-
-.hidden-input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  width: 1px;
-  height: 1px;
-  left: -9999px;
-}
-
-.add-btn {
-  margin-top: 8px;
-  background: var(--surface2);
-  border: 1px dashed var(--border2);
-  border-radius: 8px;
-  color: var(--accent);
-  font-family: inherit;
-  font-size: 13px;
-  padding: 7px;
-  cursor: pointer;
-  transition: background 0.15s;
-  text-align: center;
-  flex-shrink: 0;
-}
-.add-btn:hover {
-  background: var(--accent-hover);
-}
-
-.vkb {
-  margin-top: 10px;
-  flex-shrink: 0;
-}
-.vkb-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-.vkb-title {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-.vkb-tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 6px;
-}
-.vkb-tab {
-  background: var(--vkb-btn);
-  border: 1px solid var(--border2);
-  border-radius: 6px;
-  color: var(--text-muted);
-  font-family: inherit;
-  font-size: 11px;
-  padding: 4px 8px;
-  cursor: pointer;
-  transition:
-    background 0.1s,
-    color 0.1s;
-}
-.vkb-tab.active {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-}
-.vkb-tab:not(.active):hover {
-  background: var(--vkb-btn-hover);
-  color: var(--text);
-}
-
-.vkb-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 4px;
-}
-.vkb-btn {
-  background: var(--vkb-btn);
-  border: 1px solid var(--border2);
-  border-radius: 6px;
-  color: var(--text);
-  font-family: inherit;
-  font-size: 12px;
-  padding: 7px 2px;
-  cursor: pointer;
-  transition:
-    background 0.1s,
-    transform 0.08s;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.vkb-btn:hover {
-  background: var(--vkb-btn-hover);
-}
-.vkb-btn:active {
-  transform: scale(0.93);
-}
-.vkb-btn.vkb-fn {
-  background: var(--vkb-fn);
-  color: var(--vkb-fn-text);
-  font-size: 11px;
-}
-.vkb-btn.vkb-fn:hover {
-  background: var(--vkb-fn-hover);
-}
-.vkb-btn.vkb-var {
-  background: var(--vkb-var);
-  color: var(--vkb-var-text);
-  font-weight: 700;
-  font-size: 13px;
-}
-
-.vkb-actions {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-  margin-top: 4px;
-}
-.vkb-del,
-.vkb-clear {
-  color: var(--error) !important;
-}
-.vkb-nav {
-  color: var(--accent) !important;
-}
-.vkb-clear {
-  font-size: 11px !important;
-}
-
-.vkb-preview {
-  margin-top: 8px;
-  background: var(--surface2);
-  border: 1px solid var(--active-border);
-  border-radius: 7px;
-  padding: 6px 10px;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 34px;
-  overflow: hidden;
-}
-.preview-label {
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-.preview-body {
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  color: var(--text-title);
-}
-
-.divider {
-  height: 1px;
-  background: var(--border);
-  margin: 10px 0;
-  flex-shrink: 0;
-}
-.controls {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  flex-shrink: 0;
-}
-.controls label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-.controls input[type='number'] {
-  width: 78px;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: 5px;
-  color: var(--text);
-  font-family: inherit;
-  font-size: 12px;
-  padding: 4px 6px;
-  outline: none;
-}
-.controls input[type='number']:focus {
-  border-color: var(--accent);
-}
-.reset-btn {
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: 6px;
-  color: var(--accent);
-  font-family: inherit;
-  font-size: 12px;
-  padding: 6px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.reset-btn:hover {
-  background: var(--accent-hover);
-}
-
-.hints {
-  font-size: 11px;
-  color: var(--text-muted);
-  line-height: 1.9;
-  flex-shrink: 0;
-}
-.hints strong {
-  color: var(--accent);
-}
-
-.canvas-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-}
-.sidebar-toggle {
-  display: none;
-}
-.canvas-wrap {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  cursor: grab;
-}
-.canvas-wrap:active {
-  cursor: grabbing;
-}
-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-.canvas-hint {
-  position: absolute;
-  bottom: 10px;
-  right: 14px;
-  font-size: 11px;
-  color: var(--text-muted);
-  opacity: 0.35;
-  pointer-events: none;
-}
-
-@media (max-width: 700px) {
-  .sidebar-backdrop {
-    display: block;
-  }
-  .sidebar-toggle {
-    display: block;
-    background: var(--surface);
-    border: none;
-    border-bottom: 1px solid var(--border);
-    color: var(--accent);
-    font-family: inherit;
-    font-size: 13px;
-    padding: 9px 16px;
-    cursor: pointer;
-    text-align: left;
-    flex-shrink: 0;
-  }
-  .sidebar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    max-height: 75dvh;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    z-index: 20;
-    transform: translateY(-110%);
-    transition: transform 0.25s ease;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-  }
-  .sidebar.sidebar-open {
-    transform: translateY(0);
-  }
-  .vkb-grid {
-    grid-template-columns: repeat(6, 1fr);
-  }
-  .author {
-    display: none;
   }
 }
 </style>
