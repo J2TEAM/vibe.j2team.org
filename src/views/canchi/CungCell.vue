@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Sao, Cung } from './lib/canchi-engine'
 import SaoTooltip from './SaoTooltip.vue'
 import VoChinhDieuTooltip from './VoChinhDieuTooltip.vue'
 import CungTooltip from './CungTooltip.vue'
 
-defineProps<{
+const props = defineProps<{
   cung: Cung
   highlight?: 'in-tam-phuong' | 'dimmed' | null
 }>()
@@ -84,6 +85,14 @@ function getDacTinhText(sao: Sao) {
 function sortByImportance(a: Sao, b: Sao) {
   return (SAO_PHU_QUAN_TRONG.has(a.ten) ? 0 : 1) - (SAO_PHU_QUAN_TRONG.has(b.ten) ? 0 : 1)
 }
+
+const saoPhuTot = computed(() =>
+  props.cung.saoPhu.filter((s) => s.isTot !== false).sort(sortByImportance),
+)
+
+const saoPhuXau = computed(() =>
+  props.cung.saoPhu.filter((s) => s.isTot === false).sort(sortByImportance),
+)
 
 const NGU_HANH_LABEL: Record<string, string> = {
   kim: 'Kim',
@@ -223,11 +232,7 @@ const TRANG_SINH_DESC: Record<string, string> = {
     <!-- Sao phụ - 2 cột -->
     <div class="flex flex-1 justify-between gap-2 px-1">
       <div class="flex flex-col items-start min-h-52">
-        <SaoTooltip
-          v-for="sao in cung.saoPhu.filter((s) => s.isTot !== false).sort(sortByImportance)"
-          :key="sao.id"
-          :sao="sao"
-        >
+        <SaoTooltip v-for="sao in saoPhuTot" :key="sao.id" :sao="sao">
           <p
             :class="[
               'text-[15px] capitalize cursor-help',
@@ -240,11 +245,7 @@ const TRANG_SINH_DESC: Record<string, string> = {
         </SaoTooltip>
       </div>
       <div class="flex flex-col items-start min-h-52">
-        <SaoTooltip
-          v-for="sao in cung.saoPhu.filter((s) => s.isTot === false).sort(sortByImportance)"
-          :key="sao.id"
-          :sao="sao"
-        >
+        <SaoTooltip v-for="sao in saoPhuXau" :key="sao.id" :sao="sao">
           <p
             :class="[
               'text-[15px] capitalize cursor-help',

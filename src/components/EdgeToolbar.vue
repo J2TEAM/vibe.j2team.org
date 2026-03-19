@@ -4,7 +4,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useClipboard, useShare, useTimeoutFn } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 import { REPO_URL } from '@/data/constants'
-import { pages } from '@/data/pages-loader'
+import { usePagesStore } from '@/stores/usePagesStore'
 import { useFavoritesStore } from '@/stores/useFavoritesStore'
 
 const GiscusModal = defineAsyncComponent(() => import('@/components/GiscusModal.vue'))
@@ -74,8 +74,10 @@ function dismiss() {
   isOpen.value = false
 }
 
+const pagesStore = usePagesStore()
+
 function goToRandom() {
-  const others = pages.filter((p) => p.path !== props.pagePath)
+  const others = pagesStore.pages.filter((p) => p.path !== props.pagePath)
   if (others.length === 0) return
   const randomPage = others[Math.floor(Math.random() * others.length)]!
   router.push(randomPage.path)

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { multiAppAuthors, toAuthorSlug } from '@/data/authors'
+import { getMultiAppAuthors, toAuthorSlug } from '@/data/authors'
+import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 import { getCategoryLabel } from '@/data/categories'
 import AuthorAvatar from '@/components/AuthorAvatar.vue'
 
@@ -41,7 +42,7 @@ const defaultStyle: RankStyle = {
   hover: 'hover:text-accent-coral',
 }
 
-const styledAuthors = multiAppAuthors.map((stat) => ({
+const styledAuthors = getMultiAppAuthors().map((stat) => ({
   stat,
   style: rankStyles[stat.rank] ?? defaultStyle,
 }))
@@ -50,12 +51,7 @@ const styledAuthors = multiAppAuthors.map((stat) => ({
 <template>
   <div class="min-h-screen bg-bg-deep text-text-primary font-body">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
-      <RouterLink
-        to="/"
-        class="inline-flex items-center gap-2 text-sm text-text-secondary transition hover:text-accent-coral"
-      >
-        &larr; Về trang chủ
-      </RouterLink>
+      <AppBreadcrumb :items="[{ label: 'Bảng xếp hạng tác giả' }]" />
 
       <!-- Header -->
       <h1
@@ -134,14 +130,6 @@ const styledAuthors = multiAppAuthors.map((stat) => ({
           </div>
         </div>
       </div>
-
-      <!-- Back to home -->
-      <RouterLink
-        to="/"
-        class="mt-16 inline-flex items-center gap-2 border border-border-default bg-bg-surface px-5 py-2.5 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
-      >
-        &larr; Về trang chủ
-      </RouterLink>
     </div>
   </div>
 </template>

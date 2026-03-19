@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useGithubAvatar } from '@/composables/useGithubAvatar'
 
 const props = withDefaults(
@@ -9,7 +10,14 @@ const props = withDefaults(
   { size: 'sm' },
 )
 
-const { avatarUrl, avatarColor, initial, onAvatarError } = useGithubAvatar(props.author)
+const { avatarUrl: initialUrl, avatarColor, initial, onAvatarError } = useGithubAvatar(props.author)
+
+const showImg = ref(initialUrl !== null)
+
+function handleError() {
+  onAvatarError()
+  showImg.value = false
+}
 
 const sizeClasses: Record<string, string> = {
   sm: 'w-6 h-6 text-[10px]',
@@ -26,15 +34,16 @@ const sizePixels: Record<string, number> = {
 
 <template>
   <img
-    v-if="avatarUrl"
-    :src="avatarUrl"
+    v-if="showImg && initialUrl"
+    :src="initialUrl"
     :alt="author"
     :width="sizePixels[size]"
     :height="sizePixels[size]"
     loading="lazy"
+    decoding="async"
     class="rounded-full object-cover shrink-0"
     :class="sizeClasses[size]"
-    @error="onAvatarError"
+    @error="handleError"
   />
   <div
     v-else

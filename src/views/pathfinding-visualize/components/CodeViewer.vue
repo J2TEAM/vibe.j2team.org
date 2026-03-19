@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watchEffect } from 'vue'
+import { ref, watch, onBeforeUnmount, shallowRef } from 'vue'
+import type { HighlighterCore } from 'shiki/core'
 import { algorithmCode } from '../data/algorithmCode'
 
 const props = defineProps<{
@@ -7,21 +8,34 @@ const props = defineProps<{
 }>()
 
 const html = ref('')
+const highlighter = shallowRef<HighlighterCore | null>(null)
 
-watchEffect(async () => {
-  const code = algorithmCode[props.algorithm as keyof typeof algorithmCode] ?? ''
-
-  const { createHighlighterCore } = await import('shiki/core')
-  const { createJavaScriptRegexEngine } = await import('shiki/engine/javascript')
-  const highlighter = await createHighlighterCore({
+async function ensureHighlighter() {
+  if (highlighter.value) return highlighter.value
+  const [{ createHighlighterCore }, { createJavaScriptRegexEngine }] = await Promise.all([
+    import('shiki/core'),
+    import('shiki/engine/javascript'),
+  ])
+  highlighter.value = await createHighlighterCore({
     themes: [import('@shikijs/themes/github-dark')],
     langs: [import('@shikijs/langs/javascript')],
     engine: createJavaScriptRegexEngine(),
   })
-  html.value = highlighter.codeToHtml(code, {
-    lang: 'javascript',
-    theme: 'github-dark',
-  })
+  return highlighter.value
+}
+
+watch(
+  () => props.algorithm,
+  async (algo) => {
+    const code = algorithmCode[algo as keyof typeof algorithmCode] ?? ''
+    const hl = await ensureHighlighter()
+    html.value = hl.codeToHtml(code, { lang: 'javascript', theme: 'github-dark' })
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  highlighter.value?.dispose()
 })
 </script>
 

@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { useIntersectionObserver } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
-import { pages } from '@/data/pages-loader'
+import { usePagesStore } from '@/stores/usePagesStore'
 import { categories, type CategoryId } from '@/data/categories'
 import { useFavoritesStore } from '@/stores/useFavoritesStore'
 import { useRecentlyViewedStore } from '@/stores/useRecentlyViewedStore'
@@ -36,7 +36,9 @@ const searchQuery = ref('')
 const selectedCategory = ref<CategoryId | ''>('')
 
 // Get all pages (no hidden)
-const allPages = computed(() => pages.filter((p) => !p.hidden))
+const pagesStore = usePagesStore()
+
+const allPages = computed(() => pagesStore.pages.filter((p) => !p.hidden))
 
 // Filtered pages
 const filteredPages = computed(() => {

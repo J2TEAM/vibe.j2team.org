@@ -1,7 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
-import { pages, pageComponents } from '@/data/pages-loader'
+import { pageComponents } from '@/data/pages-loader'
+import { usePagesStore } from '@/stores/usePagesStore'
 import { useRecentlyViewedStore } from '@/stores/useRecentlyViewedStore'
+import type { PageInfo } from '@/types/page'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -15,30 +17,35 @@ declare module 'vue-router' {
 
 const HomePage = () => import('@/views/HomePage.vue')
 const ContentPolicy = () => import('@/views/ContentPolicy.vue')
+const TermsOfService = () => import('@/views/TermsOfService.vue')
+const PrivacyPolicy = () => import('@/views/PrivacyPolicy.vue')
 const LeaderboardPage = () => import('@/views/LeaderboardPage.vue')
 const BookmarksPage = () => import('@/views/BookmarksPage.vue')
 const AuthorPage = () => import('@/views/AuthorPage.vue')
+const MembersPage = () => import('@/views/MembersPage.vue')
 const NotFound = () => import('@/views/NotFound.vue')
 
-const pageRoutes: RouteRecordRaw[] = pages.map((page) => {
-  const componentPath = `/src/views${page.path}/index.vue`
-  const loader = pageComponents[componentPath]
-  if (!loader) {
-    console.warn(`[router] No component found for page "${page.name}" at ${componentPath}`)
-  }
-  return {
-    path: page.path,
-    name: page.path.slice(1),
-    component: loader ? () => loader() : NotFound,
-    meta: {
-      title: `${page.name} - vibe.j2team.org`,
-      description: page.description,
-      author: page.author,
-      showToolbar: page.showToolbar !== false,
-      pagePath: page.path,
-    },
-  }
-})
+function buildPageRoutes(pages: PageInfo[]): RouteRecordRaw[] {
+  return pages.map((page) => {
+    const componentPath = `/src/views${page.path}/index.vue`
+    const loader = pageComponents[componentPath]
+    if (!loader) {
+      console.warn(`[router] No component found for page "${page.name}" at ${componentPath}`)
+    }
+    return {
+      path: page.path,
+      name: page.path.slice(1),
+      component: loader ? () => loader() : NotFound,
+      meta: {
+        title: `${page.name} - vibe.j2team.org`,
+        description: page.description,
+        author: page.author,
+        showToolbar: page.showToolbar !== false,
+        pagePath: page.path,
+      },
+    }
+  })
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -62,7 +69,6 @@ const router = createRouter({
           'Cả nhóm J2TEAM Community vibe code cùng nhau! Mỗi thành viên tạo một trang con, vibe code thoải mái.',
       },
     },
-    ...pageRoutes,
     {
       path: '/leaderboard',
       name: 'leaderboard',
@@ -79,6 +85,15 @@ const router = createRouter({
       meta: {
         title: 'Yêu thích - vibe.j2team.org',
         description: 'Danh sách các ứng dụng yêu thích của bạn.',
+      },
+    },
+    {
+      path: '/members',
+      name: 'members',
+      component: MembersPage,
+      meta: {
+        title: 'Thành viên - vibe.j2team.org',
+        description: 'Danh sách tất cả thành viên đóng góp trên vibe.j2team.org.',
       },
     },
     {
@@ -100,6 +115,41 @@ const router = createRouter({
       },
     },
     {
+      path: '/terms',
+      name: 'terms',
+      component: TermsOfService,
+      meta: {
+        title: 'Điều khoản sử dụng - vibe.j2team.org',
+        description: 'Điều khoản sử dụng trang web vibe.j2team.org.',
+      },
+    },
+    {
+      path: '/privacy',
+      name: 'privacy',
+      component: PrivacyPolicy,
+      meta: {
+        title: 'Chính sách bảo mật - vibe.j2team.org',
+        description: 'Chính sách bảo mật và quyền riêng tư trên vibe.j2team.org.',
+      },
+    },
+    // 404 catch-all is added AFTER dynamic page routes in the beforeEach guard
+  ],
+})
+
+// One-time guard: fetch pages, add dynamic routes, then let navigation proceed
+let pagesInitialized = false
+
+router.beforeEach(async (to) => {
+  if (!pagesInitialized) {
+    const store = usePagesStore()
+    await store.init()
+
+    for (const route of buildPageRoutes(store.pages)) {
+      router.addRoute(route)
+    }
+
+    // Add 404 catch-all LAST so it doesn't swallow page routes
+    router.addRoute({
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: NotFound,
@@ -107,8 +157,15 @@ const router = createRouter({
         title: '404 - Không tìm thấy trang | vibe.j2team.org',
         description: 'Trang bạn tìm không tồn tại.',
       },
-    },
-  ],
+    })
+
+    pagesInitialized = true
+
+    // Only redirect if this URL didn't match any static route (needs re-evaluation)
+    if (to.matched.length === 0) {
+      return to.fullPath
+    }
+  }
 })
 
 export function handleChunkError(error: Error, to: { fullPath: string }) {

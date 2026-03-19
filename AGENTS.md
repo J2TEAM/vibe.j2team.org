@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-vibe.j2team.org — A collaborative vibe coding project by J2TEAM Community with 190+ sub-apps. The homepage acts as a launcher linking to sub-apps, where each community member creates their own page.
+vibe.j2team.org — A collaborative vibe coding project by J2TEAM Community with 210+ sub-apps. The homepage acts as a launcher linking to sub-apps, where each community member creates their own page. Deployed to Cloudflare Workers (static assets via `wrangler.json`).
 
 ## Tech Stack
 
@@ -47,16 +47,24 @@ src/
     homepage.ts              # Homepage content data (tech stack, rules, products)
     constants.ts             # Shared constants
   components/
-    home/                    # Homepage section components (HeroSection, PagesGrid, etc.)
+    home/                    # Homepage section components (HeroSection, PagesGrid, RecentlyViewed, etc.)
+    AppBreadcrumb.vue        # Standardized breadcrumb navigation for core pages
+    AuthorAvatar.vue         # Author avatar (GitHub avatar via useGithubAvatar)
     BackToTop.vue
+    CategoryFilter.vue       # Category filter UI for homepage
     EdgeToolbar.vue          # Slide-out toolbar on sub-pages (source link, bookmark, home, comments)
     ErrorBoundary.vue        # Error boundary wrapper
     FavoriteButton.vue       # Bookmark/favorite toggle button
     GiscusModal.vue          # Giscus comments modal (per-page discussions)
+    PageCard.vue             # Page card component used in grids
   composables/
-    useFavorites.ts          # Bookmark/favorite state (localStorage via VueUse)
     useDraggable.ts          # Drag behavior composable
-  stores/                    # Pinia stores (currently unused — pages manage state locally)
+    useGithubAvatar.ts       # Resolves GitHub avatar URL from author name
+    useSearchShortcut.ts     # Keyboard shortcut for search (Ctrl+K / Cmd+K)
+  stores/
+    useFavoritesStore.ts     # Bookmark/favorite state (localStorage via VueUse)
+    usePagesStore.ts         # Pages registry (fetches pages.json, provides page list)
+    useRecentlyViewedStore.ts # Tracks recently visited pages
   views/
     HomePage.vue             # Landing page / launcher
     ContentPolicy.vue        # Content policy page
@@ -341,7 +349,8 @@ Default is `true` — the toolbar is shown unless explicitly disabled.
 7. **Follow `meta.ts` structure** — Copy the pattern from `src/views/hello-world/meta.ts` exactly. Import `PageMeta` type, export default with required fields
 8. **No exposed API endpoints/secrets** — Since this is open source, never hard-code API keys, endpoints, or secrets in the source code
 9. **No large data files in `src/`** — If your app needs a large data file (> 50 kB), place it in `public/<app-name>/` as JSON and fetch it lazily. Do NOT export it as a TypeScript/JS module. See "Bundle Size — Avoid bloating JS chunks" section above
-10. **Clean up side effects on unmount** — Every `addEventListener`, `setInterval`, `setTimeout`, `requestAnimationFrame`, or any other global side effect registered in `onMounted` MUST be cleaned up in `onUnmounted`. Prefer VueUse composables (`useEventListener`, `useIntervalFn`, `useTimeoutFn`, `useRafFn`) which handle cleanup automatically. Forgetting cleanup causes memory leaks and ghost listeners that persist across route navigations in an SPA
+10. **Dynamic import for user-triggered libraries** — Libraries that are only used when the user performs a specific action (e.g., export image, syntax highlight, share) must be dynamically imported inside the function that needs them, not at the top level. A static top-level `import` bundles the entire library into the page's JS chunk even when the user never triggers the action. Example: `const { toPng } = await import('html-to-image')` inside the export handler, not `import { toPng } from 'html-to-image'` at the top of the file. This applies to `html-to-image`, `shiki`, and any similar on-demand library
+11. **Clean up side effects on unmount** — Every `addEventListener`, `setInterval`, `setTimeout`, `requestAnimationFrame`, or any other global side effect registered in `onMounted` MUST be cleaned up in `onUnmounted`. Prefer VueUse composables (`useEventListener`, `useIntervalFn`, `useTimeoutFn`, `useRafFn`) which handle cleanup automatically. Forgetting cleanup causes memory leaks and ghost listeners that persist across route navigations in an SPA
 
 ## Linting & Formatting
 

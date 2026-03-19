@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Icon } from '@iconify/vue'
-import { allAuthors } from '@/data/authors'
+import { getAllAuthors } from '@/data/authors'
 import { categories, type CategoryId } from '@/data/categories'
 
 // ── Types ──
@@ -316,7 +316,7 @@ function calcAP(apps: { category: CategoryId }[]): number {
 // ── Card pool ──
 const pool = computed<CardData[]>(() => {
   const out: CardData[] = []
-  for (const [, a] of allAuthors) {
+  for (const [, a] of getAllAuthors()) {
     const rarity = toRarity(a.apps.length, a.slug)
     out.push({
       author: a.author,

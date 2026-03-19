@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick, shallowRef } from 'vue' // Add shallowRef
+import { ref, onMounted, onBeforeUnmount, watch, nextTick, shallowRef } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useClipboard } from '@vueuse/core'
-import { createHighlighterCore, type HighlighterCore } from 'shiki/core'
-import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
+import type { HighlighterCore } from 'shiki/core'
 
 // 1. STATE
 const code = ref('// Start coding...')
@@ -18,6 +17,10 @@ const preContainerRef = ref<HTMLDivElement | null>(null)
 const gutterRef = ref<HTMLDivElement | null>(null)
 
 onMounted(async () => {
+  const [{ createHighlighterCore }, { createJavaScriptRegexEngine }] = await Promise.all([
+    import('shiki/core'),
+    import('shiki/engine/javascript'),
+  ])
   // Switching to 'vitesse-dark' for much better colors
   highlighter.value = await createHighlighterCore({
     themes: [import('@shikijs/themes/vitesse-dark')],
@@ -79,6 +82,10 @@ const handleTab = (e: KeyboardEvent) => {
     })
   }
 }
+
+onBeforeUnmount(() => {
+  highlighter.value?.dispose()
+})
 
 watch(code, () => {
   updateHighlight()

@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import { Icon } from '@iconify/vue'
+import { useHead } from '@unhead/vue'
 import { REPO_URL } from '@/data/constants'
+
+const BADGE_URL =
+  'https://img.shields.io/github/stars/J2TEAM/vibe.j2team.org?style=for-the-badge&logo=github&label=Stars'
+
+useHead({
+  link: [{ rel: 'preload', href: BADGE_URL, as: 'image', fetchpriority: 'high' }],
+})
 </script>
 
 <template>
@@ -65,7 +73,7 @@ import { REPO_URL } from '@/data/constants'
         <span class="star-shimmer" aria-hidden="true"></span>
         <img
           alt="GitHub Repo stars"
-          src="https://img.shields.io/github/stars/J2TEAM/vibe.j2team.org?style=for-the-badge&logo=github&label=Stars"
+          :src="BADGE_URL"
           fetchpriority="high"
           class="relative h-[46px]"
         />

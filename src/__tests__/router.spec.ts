@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest'
 import type { RouteLocationNormalized } from 'vue-router'
 import type { PageInfo } from '@/types/page'
+import { createPinia, setActivePinia } from 'pinia'
 
 type HandleChunkError = (typeof import('@/router/index'))['handleChunkError']
 type Router = (typeof import('@/router/index'))['default']
@@ -24,21 +25,38 @@ const testPages: PageInfo[] = vi.hoisted(() => [
 ])
 
 vi.mock('@/data/pages-loader', () => ({
-  pages: testPages,
-  featuredPages: [],
   pageComponents: {
     '/src/views/test-app/index.vue': () => Promise.resolve({ default: {} }),
     // /another-app intentionally missing to test fallback
   },
 }))
 
+vi.mock('@/stores/usePagesStore', () => {
+  return {
+    usePagesStore: () => ({
+      pages: testPages,
+      featuredPages: testPages.filter((p: PageInfo) => p.featured),
+      pageByPath: new Map(testPages.map((p: PageInfo) => [p.path, p])),
+      isReady: { value: true },
+      init: () => Promise.resolve(),
+    }),
+    getPagesCacheSync: () => testPages,
+    fetchRawPages: () => Promise.resolve(testPages),
+  }
+})
+
 let router: Router
 let handleChunkError: HandleChunkError
 
 beforeAll(async () => {
+  setActivePinia(createPinia())
   const mod = await import('@/router/index')
   router = mod.default
   handleChunkError = mod.handleChunkError
+
+  // Trigger the beforeEach guard to load dynamic routes
+  router.push('/test-app')
+  await router.isReady()
 })
 
 describe('pageRoutes generation', () => {
