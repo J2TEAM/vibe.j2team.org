@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { useIntersectionObserver } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 import { pages } from '@/data/pages-loader'
 import { categories, type CategoryId } from '@/data/categories'
-import { useFavorites } from '@/composables/useFavorites'
+import { useFavoritesStore } from '@/stores/useFavoritesStore'
+import { useRecentlyViewedStore } from '@/stores/useRecentlyViewedStore'
 import PostCard from './components/PostCard.vue'
 import PostSkeleton from './components/PostSkeleton.vue'
 import GiscusComments from './components/GiscusComments.vue'
@@ -14,55 +16,20 @@ const router = useRouter()
 const PAGE_SIZE = 10
 
 // ============ Favorites ============
-const { favoritePaths, toggleFavorite, isFavorite } = useFavorites()
+const favoritesStore = useFavoritesStore()
+const { favoritePaths } = storeToRefs(favoritesStore)
+const { toggleFavorite, isFavorite } = favoritesStore
 
 // ============ Recently Viewed ============
-const RECENTLY_VIEWED_KEY = 'vibebook-recently-viewed'
-const MAX_RECENT = 20
-
-interface RecentlyViewedItem {
-  path: string
-  name: string
-  viewedAt: number
-}
-
-function getRecentlyViewed(): RecentlyViewedItem[] {
-  try {
-    const data = localStorage.getItem(RECENTLY_VIEWED_KEY)
-    return data ? JSON.parse(data) : []
-  } catch {
-    return []
-  }
-}
-
-function addToRecentlyViewed(path: string) {
-  const allPages = pages
-  const page = allPages.find((p) => p.path === path)
-  if (!page) return
-
-  const recentlyViewed = getRecentlyViewed()
-
-  // Remove if already exists (to move to top)
-  const filtered = recentlyViewed.filter((item) => item.path !== path)
-
-  // Add to top
-  filtered.unshift({
-    path: page.path,
-    name: page.name,
-    viewedAt: Date.now(),
-  })
-
-  // Keep only last MAX_RECENT
-  const trimmed = filtered.slice(0, MAX_RECENT)
-
-  localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(trimmed))
-}
+const recentlyViewedStore = useRecentlyViewedStore()
+const { recentEntries } = storeToRefs(recentlyViewedStore)
+const { addVisit } = recentlyViewedStore
 
 // ============ Tabs ============
 type TabId = 'all' | 'recent' | 'favorites'
 const activeTab = ref<TabId>('all')
 
-const recentPaths = ref(new Set(getRecentlyViewed().map((item) => item.path)))
+const recentPaths = computed(() => new Set(recentEntries.value.map((e) => e.path)))
 
 // Filter state
 const searchQuery = ref('')
@@ -160,15 +127,11 @@ function handleToggleFavorite(path: string) {
 }
 
 function handleViewPost(path: string) {
-  addToRecentlyViewed(path)
+  addVisit(path)
 }
 
 function handleRemoveFromHistory(path: string) {
-  const recentlyViewed = getRecentlyViewed()
-  const filtered = recentlyViewed.filter((item) => item.path !== path)
-  localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(filtered))
-  // Force reactivity update
-  recentPaths.value = new Set(filtered.map((item) => item.path))
+  recentEntries.value = recentEntries.value.filter((e) => e.path !== path)
 }
 </script>
 
