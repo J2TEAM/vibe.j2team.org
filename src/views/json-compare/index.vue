@@ -8,6 +8,11 @@ type DiffRow =
   | { type: 'added'; b: string }
   | { type: 'changed'; a: string; b: string }
 
+type DiffOp =
+  | { type: 'same'; a: string; b: string }
+  | { type: 'ins'; b: string }
+  | { type: 'del'; a: string }
+
 type PanelLeft = { ln: number | ''; html: string; type: 'same' | 'removed' | 'changed' | 'empty' }
 type PanelRight = { ln: number | ''; html: string; type: 'same' | 'added' | 'changed' | 'empty' }
 
@@ -35,11 +40,13 @@ const rightPanels = ref<PanelRight[]>([])
 
 const leftLines = computed(() => leftPanels.value)
 const rightLines = computed(() => rightPanels.value)
-const visibleRowIndices = computed(() =>
-  rows.value
-    .map((_row, index) => index)
-    .filter((index) => !hideSame.value || rows.value[index].type !== 'same'),
-)
+const visibleRowIndices = computed(() => {
+  const indices: number[] = []
+  rows.value.forEach((row, index) => {
+    if (!hideSame.value || row.type !== 'same') indices.push(index)
+  })
+  return indices
+})
 
 const summaryCards = computed(() => [
   {
@@ -220,32 +227,42 @@ function inlineDiff(strA: string, strB: string) {
 function computeLineDiff(linesA: string[], linesB: string[]) {
   const m = linesA.length
   const n = linesB.length
-  const dp: Int32Array[] = []
-  for (let i = 0; i <= m; i++) dp[i] = new Int32Array(n + 1)
+  const width = n + 1
+  const dp = new Int32Array((m + 1) * width)
+
+  const at = (i: number, j: number) => dp[i * width + j] ?? 0
+  const set = (i: number, j: number, value: number) => {
+    dp[i * width + j] = value
+  }
 
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
-      dp[i][j] =
-        linesA[i - 1] === linesB[j - 1]
-          ? dp[i - 1][j - 1] + 1
-          : Math.max(dp[i - 1][j], dp[i][j - 1])
+      const left = linesA[i - 1]
+      const right = linesB[j - 1]
+      set(
+        i,
+        j,
+        left !== undefined && right !== undefined && left === right
+          ? at(i - 1, j - 1) + 1
+          : Math.max(at(i - 1, j), at(i, j - 1)),
+      )
     }
   }
 
-  const ops: Array<{ type: 'same' | 'ins' | 'del'; a?: string; b?: string }> = []
+  const ops: DiffOp[] = []
   let i = m
   let j = n
 
   while (i > 0 || j > 0) {
     if (i > 0 && j > 0 && linesA[i - 1] === linesB[j - 1]) {
-      ops.unshift({ type: 'same', a: linesA[i - 1], b: linesB[j - 1] })
+      ops.unshift({ type: 'same', a: linesA[i - 1]!, b: linesB[j - 1]! })
       i--
       j--
-    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
-      ops.unshift({ type: 'ins', b: linesB[j - 1] })
+    } else if (j > 0 && (i === 0 || at(i, j - 1) >= at(i - 1, j))) {
+      ops.unshift({ type: 'ins', b: linesB[j - 1]! })
       j--
     } else {
-      ops.unshift({ type: 'del', a: linesA[i - 1] })
+      ops.unshift({ type: 'del', a: linesA[i - 1]! })
       i--
     }
   }
@@ -253,29 +270,33 @@ function computeLineDiff(linesA: string[], linesB: string[]) {
   return ops
 }
 
-function buildRows(ops: Array<{ type: 'same' | 'ins' | 'del'; a?: string; b?: string }>) {
+function buildRows(ops: DiffOp[]) {
   const rows: DiffRow[] = []
   let i = 0
 
   while (i < ops.length) {
-    if (ops[i].type === 'same') {
-      rows.push({ type: 'same', a: ops[i].a ?? '', b: ops[i].b ?? '' })
+    const op = ops[i]!
+    if (op.type === 'same') {
+      rows.push({ type: 'same', a: op.a, b: op.b })
       i++
     } else {
       const dels: string[] = []
       const ins: string[] = []
-      while (i < ops.length && ops[i].type !== 'same') {
-        if (ops[i].type === 'del' && ops[i].a !== undefined) dels.push(ops[i].a)
-        if (ops[i].type === 'ins' && ops[i].b !== undefined) ins.push(ops[i].b)
+      while (i < ops.length) {
+        const current = ops[i]!
+        if (current.type === 'same') break
+        if (current.type === 'del') dels.push(current.a)
+        if (current.type === 'ins') ins.push(current.b)
         i++
       }
       const len = Math.max(dels.length, ins.length)
       for (let k = 0; k < len; k++) {
-        const hasA = k < dels.length
-        const hasB = k < ins.length
-        if (hasA && hasB) rows.push({ type: 'changed', a: dels[k], b: ins[k] })
-        else if (hasA) rows.push({ type: 'removed', a: dels[k] })
-        else rows.push({ type: 'added', b: ins[k] })
+        const delLine = dels[k]
+        const insLine = ins[k]
+        if (delLine !== undefined && insLine !== undefined)
+          rows.push({ type: 'changed', a: delLine, b: insLine })
+        else if (delLine !== undefined) rows.push({ type: 'removed', a: delLine })
+        else if (insLine !== undefined) rows.push({ type: 'added', b: insLine })
       }
     }
   }
@@ -420,6 +441,8 @@ async function copyDiff() {
   const lines: string[] = []
   visibleRowIndices.value.forEach((index) => {
     const row = rows.value[index]
+    if (!row) return
+
     const leftRow = leftLines.value[index]
     const rightRow = rightLines.value[index]
 
