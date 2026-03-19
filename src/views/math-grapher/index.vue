@@ -10,11 +10,9 @@
     </header>
 
     <div class="workspace">
-      <!-- Mobile backdrop -->
       <div v-if="sidebarOpen" class="sidebar-backdrop" @click="sidebarOpen = false" />
 
       <aside class="sidebar" :class="{ 'sidebar-open': sidebarOpen }">
-        <!-- Function list -->
         <div class="fn-list">
           <div
             v-for="(fn, i) in functions"
@@ -41,28 +39,21 @@
           </div>
         </div>
 
-        <!-- Hidden real input for paste support -->
         <input
           ref="hiddenInput"
           class="hidden-input"
-          v-model="activeExpr"
+          :value="activeExpr"
           @input="onHiddenInput"
           @paste="onPaste"
           @keydown="onKeyDown"
-          @focus="hiddenFocused = true"
-          @blur="hiddenFocused = false"
           spellcheck="false"
           autocomplete="off"
         />
 
         <button class="add-btn" @click="addFn">+ Thêm hàm số</button>
 
-        <!-- Virtual Keyboard -->
         <div class="vkb">
-          <div class="vkb-header">
-            <span class="vkb-title">Bàn phím toán học</span>
-          </div>
-
+          <div class="vkb-header"><span class="vkb-title">Bàn phím toán học</span></div>
           <div class="vkb-tabs">
             <button
               v-for="tab in kbTabs"
@@ -74,7 +65,6 @@
               {{ tab.label }}
             </button>
           </div>
-
           <div class="vkb-grid">
             <button
               v-for="key in currentTabKeys"
@@ -86,21 +76,18 @@
               {{ key.label }}
             </button>
           </div>
-
           <div class="vkb-actions">
             <button class="vkb-btn vkb-del" @click="deleteChar">⌫</button>
             <button class="vkb-clear vkb-btn" @click="clearExpr">CLR</button>
             <button class="vkb-btn vkb-nav" @click="moveCursor(-1)">◀</button>
             <button class="vkb-btn vkb-nav" @click="moveCursor(1)">▶</button>
           </div>
-
-          <!-- Preview -->
-          <div class="vkb-preview" v-if="functions[activeIdx]">
+          <div class="vkb-preview" v-if="activeFn">
             <span class="preview-label">f =</span>
             <span class="preview-body">
-              <span class="expr-text">{{ functions[activeIdx].expr.slice(0, cursorPos) }}</span>
+              <span class="expr-text">{{ activeFn.expr.slice(0, cursorPos) }}</span>
               <span class="fn-caret" />
-              <span class="expr-text">{{ functions[activeIdx].expr.slice(cursorPos) }}</span>
+              <span class="expr-text">{{ activeFn.expr.slice(cursorPos) }}</span>
             </span>
           </div>
         </div>
@@ -162,8 +149,9 @@ interface VKey {
   cls?: string
   moveBefore?: number
 }
+type CompiledFn = (x: number, y?: number) => number
 
-const COLORS = [
+const COLORS: string[] = [
   '#e05252',
   '#4f9ef8',
   '#3ecf8e',
@@ -242,15 +230,20 @@ const sidebarOpen = ref(false)
 const activeTab = ref('basic')
 const activeIdx = ref(0)
 const cursorPos = ref(0)
-const hiddenFocused = ref(false)
 
 const canvas = ref<HTMLCanvasElement | null>(null)
 const canvasWrap = ref<HTMLDivElement | null>(null)
 const hiddenInput = ref<HTMLInputElement | null>(null)
 
 const functions = reactive<FnItem[]>([
-  { id: idCounter++, expr: 'sin(x)', color: COLORS[0], enabled: true, error: '' },
-  { id: idCounter++, expr: '(x^2+y^2-1)^3-x^2*y^3=0', color: COLORS[4], enabled: true, error: '' },
+  { id: idCounter++, expr: 'sin(x)', color: COLORS[0] as string, enabled: true, error: '' },
+  {
+    id: idCounter++,
+    expr: '(x^2+y^2-1)^3-x^2*y^3=0',
+    color: COLORS[4] as string,
+    enabled: true,
+    error: '',
+  },
 ])
 
 const view = reactive({ xMin: -3, xMax: 3, yMin: -2, yMax: 2 })
@@ -264,13 +257,8 @@ let renderTimer: ReturnType<typeof setTimeout> | null = null
 let resizeObserver: ResizeObserver | null = null
 
 const currentTabKeys = computed(() => KB[activeTab.value] ?? [])
-
-const activeExpr = computed({
-  get: () => functions[activeIdx.value]?.expr ?? '',
-  set: (val: string) => {
-    if (functions[activeIdx.value]) functions[activeIdx.value].expr = val
-  },
-})
+const activeFn = computed(() => functions[activeIdx.value] ?? null)
+const activeExpr = computed(() => activeFn.value?.expr ?? '')
 
 const colors = computed(() =>
   theme.value === 'dark'
@@ -278,7 +266,7 @@ const colors = computed(() =>
     : { bg: '#f0f4ff', grid: '#dde2f0', axis: '#a0b0d0', label: '#8090b0' },
 )
 
-type CompiledFn = (x: number, y?: number) => number
+// ─── Expression compiler ───────────────────────────────────────────────────
 function compileExpr(raw: string): { mode: 'explicit' | 'implicit'; fn: CompiledFn } {
   const expr = raw
     .trim()
@@ -311,25 +299,25 @@ function compileExpr(raw: string): { mode: 'explicit' | 'implicit'; fn: Compiled
     const lhs = expr.slice(0, eqIdx).trim()
     const rhs = expr.slice(eqIdx + 1).trim()
     if (lhs === 'y') {
-       
       return {
         mode: 'explicit',
         fn: new Function('x', `"use strict"; return (${rhs})`) as CompiledFn,
       }
     }
-     
+
     return {
       mode: 'implicit',
-      fn: new Function('x', 'y', `"use strict"; return ((${lhs}) - (${rhs}))`) as CompiledFn,
+      fn: new Function('x', 'y', `"use strict"; return ((${lhs})-(${rhs}))`) as CompiledFn,
     }
   }
-   
+
   return {
     mode: 'explicit',
     fn: new Function('x', `"use strict"; return (${expr})`) as CompiledFn,
   }
 }
 
+// ─── Coordinate helpers ────────────────────────────────────────────────────
 function toCanvasX(x: number, w: number) {
   return ((x - view.xMin) / (view.xMax - view.xMin)) * w
 }
@@ -343,6 +331,7 @@ function toWorldY(cy: number, h: number) {
   return view.yMin + ((h - cy) / h) * (view.yMax - view.yMin)
 }
 
+// ─── Render ────────────────────────────────────────────────────────────────
 function render() {
   const cvs = canvas.value
   if (!cvs) return
@@ -360,7 +349,7 @@ function render() {
     try {
       const compiled = compileExpr(fn.expr)
       if (compiled.mode === 'explicit') drawExplicit(ctx, w, h, compiled.fn, fn.color)
-      else drawImplicit(ctx, w, h, compiled.fn as (x: number, y: number) => number, fn.color)
+      else drawImplicit(ctx, w, h, compiled.fn, fn.color)
     } catch (e: unknown) {
       fn.error = e instanceof Error ? e.message : String(e)
     }
@@ -379,10 +368,8 @@ function drawGrid(
   h: number,
   c: { bg: string; grid: string; axis: string; label: string },
 ) {
-  // Derive ONE step from X axis so units are identical on both axes → square cells
   const pxPerUnit = w / (view.xMax - view.xMin)
-  const step = niceStep(60 / pxPerUnit) // aim for ~60-150px between grid lines
-
+  const step = niceStep(60 / pxPerUnit)
   ctx.strokeStyle = c.grid
   ctx.lineWidth = 1
   for (let x = Math.ceil(view.xMin / step) * step; x <= view.xMax + step * 0.01; x += step) {
@@ -435,7 +422,7 @@ function drawExplicit(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
-  fn: (x: number) => number,
+  fn: CompiledFn,
   color: string,
 ) {
   const steps = w * 2
@@ -476,20 +463,20 @@ function drawImplicit(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
-  fn: (x: number, y: number) => number,
+  fn: CompiledFn,
   color: string,
 ) {
   const CELL = 4
   const cols = Math.ceil(w / CELL),
     rows = Math.ceil(h / CELL)
-  const vals: number[][] = []
+  // Use flat typed arrays to avoid undefined indexing
+  const vals = new Float64Array((rows + 1) * (cols + 1))
   for (let row = 0; row <= rows; row++) {
-    vals[row] = []
     for (let col = 0; col <= cols; col++) {
       try {
-        vals[row][col] = fn(toWorldX(col * CELL, w), toWorldY(row * CELL, h))
+        vals[row * (cols + 1) + col] = fn(toWorldX(col * CELL, w), toWorldY(row * CELL, h))
       } catch {
-        vals[row][col] = NaN
+        vals[row * (cols + 1) + col] = NaN
       }
     }
   }
@@ -498,43 +485,51 @@ function drawImplicit(
   ctx.lineWidth = 2
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
-      const v00 = vals[row][col],
-        v10 = vals[row][col + 1],
-        v01 = vals[row + 1][col],
-        v11 = vals[row + 1][col + 1]
-      if ([v00, v10, v01, v11].some((v) => isNaN(v) || !isFinite(v))) continue
-      const interp = (a: number, b: number, pa: number[], pb: number[]) => {
+      const v00 = vals[row * (cols + 1) + col]!
+      const v10 = vals[row * (cols + 1) + col + 1]!
+      const v01 = vals[(row + 1) * (cols + 1) + col]!
+      const v11 = vals[(row + 1) * (cols + 1) + col + 1]!
+      if (!isFinite(v00) || !isFinite(v10) || !isFinite(v01) || !isFinite(v11)) continue
+      const interp = (
+        a: number,
+        b: number,
+        pa: [number, number],
+        pb: [number, number],
+      ): [number, number] => {
         const t = a / (a - b)
         return [pa[0] + t * (pb[0] - pa[0]), pa[1] + t * (pb[1] - pa[1])]
       }
-      const corners = [
+      const corners: { v: number; p: [number, number] }[] = [
         { v: v00, p: [col * CELL, row * CELL] },
         { v: v10, p: [(col + 1) * CELL, row * CELL] },
         { v: v11, p: [(col + 1) * CELL, (row + 1) * CELL] },
         { v: v01, p: [col * CELL, (row + 1) * CELL] },
       ]
-      const crossings: number[][] = []
+      const crossings: [number, number][] = []
       for (let k = 0; k < 4; k++) {
-        const a = corners[k],
-          b = corners[(k + 1) % 4]
+        const a = corners[k]!,
+          b = corners[(k + 1) % 4]!
         if (a.v >= 0 !== b.v >= 0) crossings.push(interp(a.v, b.v, a.p, b.p))
       }
       if (crossings.length >= 2) {
-        ctx.moveTo(crossings[0][0], crossings[0][1])
-        ctx.lineTo(crossings[1][0], crossings[1][1])
+        const c0 = crossings[0]!,
+          c1 = crossings[1]!
+        ctx.moveTo(c0[0], c0[1])
+        ctx.lineTo(c1[0], c1[1])
       }
     }
   }
   ctx.stroke()
 }
 
+// ─── Virtual keyboard ──────────────────────────────────────────────────────
 function clampCursor() {
-  const fn = functions[activeIdx.value]
+  const fn = activeFn.value
   if (fn) cursorPos.value = Math.max(0, Math.min(fn.expr.length, cursorPos.value))
 }
 
 function insertKey(key: VKey) {
-  const fn = functions[activeIdx.value]
+  const fn = activeFn.value
   if (!fn) return
   clampCursor()
   const p = cursorPos.value
@@ -544,7 +539,7 @@ function insertKey(key: VKey) {
 }
 
 function deleteChar() {
-  const fn = functions[activeIdx.value]
+  const fn = activeFn.value
   if (!fn || cursorPos.value === 0) return
   clampCursor()
   fn.expr = fn.expr.slice(0, cursorPos.value - 1) + fn.expr.slice(cursorPos.value)
@@ -553,7 +548,7 @@ function deleteChar() {
 }
 
 function clearExpr() {
-  const fn = functions[activeIdx.value]
+  const fn = activeFn.value
   if (!fn) return
   fn.expr = ''
   cursorPos.value = 0
@@ -561,22 +556,22 @@ function clearExpr() {
 }
 
 function moveCursor(d: number) {
-  const fn = functions[activeIdx.value]
+  const fn = activeFn.value
   if (!fn) return
   cursorPos.value = Math.max(0, Math.min(fn.expr.length, cursorPos.value + d))
 }
 
+// ─── Hidden input ──────────────────────────────────────────────────────────
 function selectFn(i: number) {
   activeIdx.value = i
   cursorPos.value = functions[i]?.expr.length ?? 0
   nextTick(() => hiddenInput.value?.focus())
 }
 
-function onHiddenInput() {
-  const fn = functions[activeIdx.value]
+function onHiddenInput(e: Event) {
+  const fn = activeFn.value
   if (!fn) return
-  const input = hiddenInput.value
-  if (!input) return
+  const input = e.target as HTMLInputElement
   fn.expr = input.value
   cursorPos.value = input.selectionStart ?? fn.expr.length
   scheduleRender()
@@ -586,7 +581,7 @@ function onPaste(e: ClipboardEvent) {
   e.preventDefault()
   const text = e.clipboardData?.getData('text') ?? ''
   if (!text) return
-  const fn = functions[activeIdx.value]
+  const fn = activeFn.value
   if (!fn) return
   clampCursor()
   const p = cursorPos.value
@@ -599,7 +594,7 @@ function onPaste(e: ClipboardEvent) {
 }
 
 function onKeyDown(e: KeyboardEvent) {
-  const fn = functions[activeIdx.value]
+  const fn = activeFn.value
   if (!fn) return
   if (e.key === 'ArrowLeft') {
     e.preventDefault()
@@ -620,15 +615,16 @@ function onKeyDown(e: KeyboardEvent) {
 
 watch(activeIdx, () => {
   nextTick(() => {
-    if (hiddenInput.value) hiddenInput.value.value = functions[activeIdx.value]?.expr ?? ''
+    if (hiddenInput.value) hiddenInput.value.value = activeFn.value?.expr ?? ''
   })
 })
 
+// ─── Functions management ──────────────────────────────────────────────────
 function addFn() {
   functions.push({
     id: idCounter++,
     expr: '',
-    color: COLORS[functions.length % COLORS.length],
+    color: COLORS[functions.length % COLORS.length] as string,
     enabled: true,
     error: '',
   })
@@ -644,9 +640,12 @@ function removeFn(i: number) {
 }
 
 function toggleEnabled(i: number) {
-  functions[i].enabled = !functions[i].enabled
+  const fn = functions[i]
+  if (!fn) return
+  fn.enabled = !fn.enabled
   scheduleRender()
 }
+
 function resetView() {
   Object.assign(view, DEFAULT_VIEW)
   fitCanvas()
@@ -656,6 +655,7 @@ function toggleTheme() {
   nextTick(render)
 }
 
+// ─── Canvas interactions ───────────────────────────────────────────────────
 function onWheel(e: WheelEvent) {
   const cvs = canvas.value!
   const rect = cvs.getBoundingClientRect()
@@ -690,17 +690,21 @@ function onMouseUp() {
 }
 
 function onTouchStart(e: TouchEvent) {
-  if (e.touches.length === 1) {
+  const t0 = e.touches[0]
+  if (e.touches.length === 1 && t0) {
     dragging = true
-    dragStart = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+    dragStart = { x: t0.clientX, y: t0.clientY }
     dragView = { ...view }
-  } else if (e.touches.length === 2) lastTouchDist = getTouchDist(e)
+  } else if (e.touches.length === 2) {
+    lastTouchDist = getTouchDist(e)
+  }
 }
 function onTouchMove(e: TouchEvent) {
   const cvs = canvas.value!
-  if (e.touches.length === 1 && dragging) {
-    const dx = ((e.touches[0].clientX - dragStart.x) / cvs.width) * (dragView.xMax - dragView.xMin)
-    const dy = ((e.touches[0].clientY - dragStart.y) / cvs.height) * (dragView.yMax - dragView.yMin)
+  const t0 = e.touches[0]
+  if (e.touches.length === 1 && dragging && t0) {
+    const dx = ((t0.clientX - dragStart.x) / cvs.width) * (dragView.xMax - dragView.xMin)
+    const dy = ((t0.clientY - dragStart.y) / cvs.height) * (dragView.yMax - dragView.yMin)
     view.xMin = dragView.xMin - dx
     view.xMax = dragView.xMax - dx
     view.yMin = dragView.yMin + dy
@@ -709,8 +713,10 @@ function onTouchMove(e: TouchEvent) {
   } else if (e.touches.length === 2) {
     const dist = getTouchDist(e)
     const f = lastTouchDist / dist
-    const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2
-    const my = (e.touches[0].clientY + e.touches[1].clientY) / 2
+    const t1 = e.touches[1]
+    if (!t0 || !t1) return
+    const mx = (t0.clientX + t1.clientX) / 2
+    const my = (t0.clientY + t1.clientY) / 2
     const wx = toWorldX(mx, cvs.width),
       wy = toWorldY(my, cvs.height)
     view.xMin = wx + (view.xMin - wx) * f
@@ -725,9 +731,10 @@ function onTouchEnd() {
   dragging = false
 }
 function getTouchDist(e: TouchEvent) {
-  const dx = e.touches[0].clientX - e.touches[1].clientX
-  const dy = e.touches[0].clientY - e.touches[1].clientY
-  return Math.sqrt(dx * dx + dy * dy)
+  const t0 = e.touches[0],
+    t1 = e.touches[1]
+  if (!t0 || !t1) return 0
+  return Math.sqrt((t0.clientX - t1.clientX) ** 2 + (t0.clientY - t1.clientY) ** 2)
 }
 
 function scheduleRender() {
@@ -741,7 +748,6 @@ function fitCanvas() {
   if (!cvs || !wrap) return
   cvs.width = wrap.clientWidth
   cvs.height = wrap.clientHeight
-  // Enforce square grid: Y range derived from X range and pixel dimensions
   const unitPx = cvs.width / (view.xMax - view.xMin)
   const yRange = cvs.height / unitPx
   const yMid = (view.yMin + view.yMax) / 2
@@ -887,7 +893,6 @@ onUnmounted(() => {
   position: relative;
 }
 
-/* Backdrop for mobile */
 .sidebar-backdrop {
   display: none;
   position: absolute;
@@ -1055,7 +1060,6 @@ onUnmounted(() => {
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-
 .vkb-tabs {
   display: flex;
   gap: 4px;
@@ -1267,7 +1271,6 @@ canvas {
   .sidebar-backdrop {
     display: block;
   }
-
   .sidebar-toggle {
     display: block;
     background: var(--surface);
