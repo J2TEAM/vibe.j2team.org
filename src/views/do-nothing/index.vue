@@ -8,7 +8,7 @@ const isCounting = ref(false)
 const isDone = ref(false)
 const videoRef = ref<HTMLVideoElement | null>(null)
 const audioRef = ref<HTMLAudioElement | null>(null)
-const birdSoundUrl = '/sounds/birds.mp3'
+const birdSoundUrl = '/do-nothing/birds.mp3'
 let intervalId: ReturnType<typeof setInterval> | null = null
 let audioContext: AudioContext | null = null
 let birdTimeoutId: ReturnType<typeof setTimeout> | null = null
@@ -213,7 +213,7 @@ onUnmounted(() => {
       </RouterLink>
     </div>
 
-    <!-- Tiếng chim thật: file trong public/sounds/ (dùng :src để Vite không resolve thành import) -->
+    <!-- Tiếng chim thật: file trong public/do-nothing/ (dùng :src để Vite không resolve thành import) -->
     <audio ref="audioRef" loop preload="metadata">
       <source :src="birdSoundUrl" type="audio/mpeg" />
     </audio>

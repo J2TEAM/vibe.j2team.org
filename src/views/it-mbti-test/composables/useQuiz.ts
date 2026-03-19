@@ -27,11 +27,11 @@ export function useQuiz() {
 
   // Load Vietnamese data immediately (default locale)
   const loadVi = Promise.all([
-    fetchJson<QuizQuestion[]>('/data/it-mbti-questions-vi.json').then((d) => {
+    fetchJson<QuizQuestion[]>('/it-mbti-test/it-mbti-questions-vi.json').then((d) => {
       questionsVi.value = d
     }),
     fetchJson<{ results: Record<string, MbtiResult>; devilResult: DevilResult }>(
-      '/data/it-mbti-results-vi.json',
+      '/it-mbti-test/it-mbti-results-vi.json',
     ).then((d) => {
       resultsVi.value = d.results
       devilResultVi.value = d.devilResult
@@ -50,11 +50,11 @@ export function useQuiz() {
       if (val === 'en' && !enLoaded) {
         enLoaded = true
         Promise.all([
-          fetchJson<QuizQuestion[]>('/data/it-mbti-questions-en.json').then((d) => {
+          fetchJson<QuizQuestion[]>('/it-mbti-test/it-mbti-questions-en.json').then((d) => {
             questionsEn.value = d
           }),
           fetchJson<{ results: Record<string, MbtiResult>; devilResult: DevilResult }>(
-            '/data/it-mbti-results-en.json',
+            '/it-mbti-test/it-mbti-results-en.json',
           ).then((d) => {
             resultsEn.value = d.results
             devilResultEn.value = d.devilResult

@@ -1,5 +1,5 @@
 /**
- * Generates public/data/blind-map-paths.json from source TypeScript.
+ * Generates public/blind-map-challenge/blind-map-paths.json from source TypeScript.
  *
  * Workflow khi cập nhật bản đồ:
  *   1. Sửa vn.svg
@@ -8,7 +8,7 @@
  *
  * Lý do tồn tại script này:
  *   map-paths.ts (412 kB) không được Vite bundle trực tiếp nữa.
- *   Thay vào đó, dữ liệu được serve qua public/data/blind-map-paths.json
+ *   Thay vào đó, dữ liệu được serve qua public/blind-map-challenge/blind-map-paths.json
  *   và fetch lazy khi user vào trang /blind-map-challenge.
  *
  * Usage: node scripts/generate-map-data.mjs
@@ -28,11 +28,11 @@ if (!existsSync(SOURCE)) {
 
 const jiti = createJiti(import.meta.url)
 
-console.log('Generating public/data/blind-map-paths.json...')
+console.log('Generating public/blind-map-challenge/blind-map-paths.json...')
 
 const { mapPaths, vietnamOutline } = await jiti.import(resolve(SOURCE))
 
-mkdirSync('public/data', { recursive: true })
-writeFileSync('public/data/blind-map-paths.json', JSON.stringify({ mapPaths, vietnamOutline }))
+mkdirSync('public/blind-map-challenge', { recursive: true })
+writeFileSync('public/blind-map-challenge/blind-map-paths.json', JSON.stringify({ mapPaths, vietnamOutline }))
 
 console.log(`Done — ${mapPaths.length} provinces exported.`)

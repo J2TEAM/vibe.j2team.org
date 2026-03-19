@@ -1,4 +1,4 @@
-import { ref, type Ref, onUnmounted } from 'vue'
+import { shallowRef, onUnmounted, type Ref } from 'vue'
 import type { Direction, Zombie, ZombieState } from '../types'
 
 const ZOMBIE_SPEED_BASE = 0.0000012
@@ -9,9 +9,14 @@ const SPAWN_RADIUS_MAX = 0.00035
 const INITIAL_COUNT = 6
 const MAX_ZOMBIES = 22
 const SPAWN_INTERVAL_MS = 1400
-const LIFESPAN_MS = 5000
-const DEATH_DURATION_MS = 700
+const DEATH_ANIMATION_MS = 700
 const SPAWN_WALKABLE_ATTEMPTS = 30
+const TICK_MS = 33 // ~30fps game logic
+const WALK_FRAME_MS = 100 // 10fps walk animation
+const WALK_TOTAL_FRAMES = 6
+const DEATH_FRAME_MS = 100
+/** Zombie không di chuyển quá 3s → coi là kẹt tường → kill */
+const STUCK_TIMEOUT_MS = 3000
 
 function getDirectionToward(
   from: { lat: number; lng: number },
@@ -41,18 +46,19 @@ function randomSpeed() {
 }
 
 function spawnZombieAt(lat: number, lng: number, id: string): Zombie {
+  const now = Date.now()
   return {
     id,
     lat,
     lng,
     direction: 'south',
     state: 'alive',
-    spawnTime: Date.now(),
+    spawnTime: now,
+    lastMoveTime: now,
     speed: randomSpeed(),
   }
 }
 
-/** Spawn zombie ở vị trí walkable gần center (tránh spawn vào nhà). */
 function trySpawnZombieWalkable(
   center: { lat: number; lng: number },
   id: string,
@@ -82,11 +88,16 @@ export function useZombies(
   options?: UseZombiesOptions,
 ) {
   const { isWalkable } = options ?? {}
-  const zombies = ref<Zombie[]>([])
+  const zombies = shallowRef<Zombie[]>([])
+  const walkFrame = shallowRef(0)
+
   let lastSpawnTime = 0
+  let lastTickTime = 0
+  let lastWalkFrameTime = 0
 
   function spawnInitial() {
     const center = playerPosition.value
+    const list: Zombie[] = []
     for (let i = 0; i < INITIAL_COUNT; i++) {
       const z = isWalkable
         ? trySpawnZombieWalkable(center, nextId(), isWalkable)
@@ -95,61 +106,108 @@ export function useZombies(
             center.lng + (Math.random() - 0.5) * 0.0002,
             nextId(),
           )
-      if (z) zombies.value = [...zombies.value, z]
+      if (z) list.push(z)
     }
+    zombies.value = list
     lastSpawnTime = Date.now()
   }
   spawnInitial()
 
   const hitZombie = (id: string) => {
-    zombies.value = zombies.value.map((z) =>
-      z.id === id && z.state === 'alive'
-        ? { ...z, state: 'dying' as ZombieState, deathStartTime: Date.now() }
-        : z,
-    )
+    const list = zombies.value
+    for (const z of list) {
+      if (z.id === id && z.state === 'alive') {
+        z.state = 'dying' as ZombieState
+        z.deathStartTime = Date.now()
+        z.deathFrame = 0
+        zombies.value = list.slice()
+        break
+      }
+    }
   }
 
   let rafId: number
   const tick = () => {
     const now = Date.now()
-    const pos = playerPosition.value
 
-    if (
-      isWalkable &&
-      zombies.value.length < MAX_ZOMBIES &&
-      now - lastSpawnTime >= SPAWN_INTERVAL_MS
-    ) {
-      lastSpawnTime = now
-      const z = trySpawnZombieWalkable(pos, nextId(), isWalkable)
-      if (z) zombies.value = [...zombies.value, z]
+    // Cập nhật walk frame animation (10fps, độc lập với game logic)
+    if (now - lastWalkFrameTime >= WALK_FRAME_MS) {
+      walkFrame.value = (walkFrame.value + 1) % WALK_TOTAL_FRAMES
+      lastWalkFrameTime = now
     }
 
-    zombies.value = zombies.value
-      .map((z) => {
-        if (z.state === 'dead') return null
+    // Throttle game logic ~30fps
+    if (now - lastTickTime < TICK_MS) {
+      rafId = requestAnimationFrame(tick)
+      return
+    }
+    lastTickTime = now
 
-        if (z.state === 'alive' && now - z.spawnTime > LIFESPAN_MS) {
-          return { ...z, state: 'dying' as ZombieState, deathStartTime: now }
+    const pos = playerPosition.value
+    const list = zombies.value
+    let changed = false
+
+    // Spawn zombie mới
+    if (isWalkable && list.length < MAX_ZOMBIES && now - lastSpawnTime >= SPAWN_INTERVAL_MS) {
+      lastSpawnTime = now
+      const z = trySpawnZombieWalkable(pos, nextId(), isWalkable)
+      if (z) {
+        list.push(z)
+        changed = true
+      }
+    }
+
+    // Cập nhật từng zombie in-place (không tạo object mới)
+    for (let i = list.length - 1; i >= 0; i--) {
+      const z = list[i]
+      if (!z) continue
+
+      if (z.state === 'dying') {
+        if (z.deathStartTime) {
+          const elapsed = now - z.deathStartTime
+          if (elapsed > DEATH_ANIMATION_MS) {
+            list.splice(i, 1)
+            changed = true
+            continue
+          }
+          const frame = Math.min(Math.floor(elapsed / DEATH_FRAME_MS), 6)
+          if (frame !== z.deathFrame) {
+            z.deathFrame = frame
+            changed = true
+          }
         }
+        continue
+      }
 
-        if (z.state === 'dying' && z.deathStartTime && now - z.deathStartTime > DEATH_DURATION_MS) {
-          return null
+      // Di chuyển về phía người chơi
+      const dLat = pos.lat - z.lat
+      const dLng = pos.lng - z.lng
+      const dist = Math.sqrt(dLat * dLat + dLng * dLng) || 1e-10
+      const speed = ZOMBIE_SPEED_BASE * (z.speed ?? 1)
+      const step = Math.min(speed, dist * 0.1)
+      const newLat = z.lat + (dLat / dist) * step
+      const newLng = z.lng + (dLng / dist) * step
+
+      if (isWalkable && !isWalkable(newLat, newLng)) {
+        // Kẹt tường — kiểm tra stuck timeout
+        if (now - z.lastMoveTime >= STUCK_TIMEOUT_MS) {
+          z.state = 'dying' as ZombieState
+          z.deathStartTime = now
+          z.deathFrame = 0
+          changed = true
         }
-        if (z.state === 'dying') return z
+        continue
+      }
 
-        const pos = playerPosition.value
-        const dLat = pos.lat - z.lat
-        const dLng = pos.lng - z.lng
-        const dist = Math.sqrt(dLat * dLat + dLng * dLng) || 1e-10
-        const speed = ZOMBIE_SPEED_BASE * (z.speed ?? 1)
-        const step = Math.min(speed, dist * 0.1)
-        const newLat = z.lat + (dLat / dist) * step
-        const newLng = z.lng + (dLng / dist) * step
-        if (isWalkable && !isWalkable(newLat, newLng)) return z
-        const direction = getDirectionToward({ lat: z.lat, lng: z.lng }, pos)
-        return { ...z, lat: newLat, lng: newLng, direction }
-      })
-      .filter((z): z is Zombie => z !== null)
+      const direction = getDirectionToward({ lat: z.lat, lng: z.lng }, pos)
+      z.lat = newLat
+      z.lng = newLng
+      z.direction = direction
+      z.lastMoveTime = now
+      changed = true
+    }
+
+    if (changed) zombies.value = list.slice()
     rafId = requestAnimationFrame(tick)
   }
   rafId = requestAnimationFrame(tick)
@@ -161,5 +219,5 @@ export function useZombies(
     spawnInitial()
   }
 
-  return { zombies, hitZombie, reset }
+  return { zombies, hitZombie, reset, walkFrame }
 }

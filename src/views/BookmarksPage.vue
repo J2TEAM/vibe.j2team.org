@@ -1,13 +1,24 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { refDebounced } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
-import { pages } from '@/data/pages-loader'
-import { useFavorites } from '@/composables/useFavorites'
+import { pageByPath } from '@/data/pages-loader'
+import type { CategoryId } from '@/data/categories'
+import { normalize } from '@/utils/text'
+import { useSearchShortcut } from '@/composables/useSearchShortcut'
+import { useFavoritesStore } from '@/stores/useFavoritesStore'
+import { useRecentlyViewedStore } from '@/stores/useRecentlyViewedStore'
 import { useDraggable } from '@/composables/useDraggable'
-import FavoriteButton from '@/components/FavoriteButton.vue'
+import PageCard from '@/components/PageCard.vue'
+import CategoryFilter from '@/components/CategoryFilter.vue'
 
-const { favoritePaths } = useFavorites()
+const favoritesStore = useFavoritesStore()
+const { favoritePaths } = storeToRefs(favoritesStore)
+const recentlyViewedStore = useRecentlyViewedStore()
+const { recentPages } = storeToRefs(recentlyViewedStore)
+const { clearHistory } = recentlyViewedStore
 const { dragIndex, overIndex, onDragStart, onDragOver, onDrop, onDragEnd } =
   useDraggable(favoritePaths)
 
@@ -17,14 +28,54 @@ function toggleReorder() {
   isReordering.value = !isReordering.value
 }
 
-const pageByPath = new Map(pages.map((p) => [p.path, p]))
-
 const bookmarkedPages = computed(() => {
   return favoritePaths.value.flatMap((path) => {
     const p = pageByPath.get(path)
     return p ? [p] : []
   })
 })
+
+// --- Search & Category Filter ---
+
+const searchQuery = ref('')
+const debouncedQuery = refDebounced(searchQuery, 300)
+const activeCategory = ref<CategoryId | null>(null)
+const categoryFilterRef = ref<InstanceType<typeof CategoryFilter> | null>(null)
+
+const isFiltering = computed(() => {
+  return searchQuery.value.trim() !== '' || activeCategory.value !== null
+})
+
+const bookmarkCategoryCounts = computed(() => {
+  const counts: Partial<Record<CategoryId, number>> = {}
+  for (const page of bookmarkedPages.value) {
+    if (page.category) {
+      counts[page.category] = (counts[page.category] || 0) + 1
+    }
+  }
+  return counts
+})
+
+const filteredBookmarks = computed(() => {
+  const query = normalize(debouncedQuery.value.trim())
+  const category = activeCategory.value
+
+  return bookmarkedPages.value.filter((page) => {
+    if (category && page.category !== category) return false
+    if (query) {
+      return (
+        normalize(page.name).includes(query) ||
+        normalize(page.description).includes(query) ||
+        normalize(page.author).includes(query)
+      )
+    }
+    return true
+  })
+})
+
+const searchInputRef = computed(() => categoryFilterRef.value?.searchInputRef ?? null)
+
+useSearchShortcut(searchInputRef)
 </script>
 
 <template>
@@ -49,8 +100,20 @@ const bookmarkedPages = computed(() => {
 
       <!-- Bookmarked apps grid -->
       <div v-if="bookmarkedPages.length > 0">
+        <!-- Search & Filter (hidden during reorder) -->
+        <CategoryFilter
+          v-if="!isReordering"
+          ref="categoryFilterRef"
+          v-model:search="searchQuery"
+          v-model:category="activeCategory"
+          :total-count="bookmarkedPages.length"
+          :category-counts="bookmarkCategoryCounts"
+          :result-count="filteredBookmarks.length"
+          class="mt-12"
+        />
+
         <!-- Toolbar -->
-        <div class="mt-12 mb-5 flex items-center justify-between gap-4 min-h-[1.75rem]">
+        <div class="mt-5 mb-5 flex items-center justify-between gap-4 min-h-[1.75rem]">
           <p
             v-if="isReordering"
             class="text-xs text-text-dim font-display tracking-wide animate-fade-up"
@@ -60,8 +123,9 @@ const bookmarkedPages = computed(() => {
           </p>
           <span v-else />
 
-          <!-- Toggle -->
+          <!-- Toggle (hidden when filtering) -->
           <button
+            v-if="!isFiltering"
             @click="toggleReorder"
             role="switch"
             :aria-checked="isReordering"
@@ -89,7 +153,7 @@ const bookmarkedPages = computed(() => {
 
         <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           <div
-            v-for="(page, index) in bookmarkedPages"
+            v-for="(page, index) in isReordering ? bookmarkedPages : filteredBookmarks"
             :key="page.path"
             :draggable="isReordering"
             @dragstart="isReordering && onDragStart($event, index)"
@@ -110,47 +174,12 @@ const bookmarkedPages = computed(() => {
               class="absolute top-3 left-3 z-10 w-4 h-4 text-text-dim opacity-50 pointer-events-none"
             />
 
-            <component
-              :is="isReordering ? 'div' : RouterLink"
-              v-bind="isReordering ? {} : { to: page.path }"
-              class="relative flex flex-col border border-border-default bg-bg-surface p-6 h-full transition-all duration-300"
-              :class="
-                isReordering
-                  ? 'select-none'
-                  : 'hover:-translate-y-1 hover:border-l-4 hover:border-l-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5'
-              "
-            >
-              <FavoriteButton
-                v-if="!isReordering"
-                :path="page.path"
-                class="top-3 right-4"
-                always-visible
-              />
-
-              <h3
-                class="font-display text-lg font-semibold text-text-primary transition-colors"
-                :class="{ 'group-hover:text-accent-coral': !isReordering }"
-              >
-                {{ page.name }}
-              </h3>
-              <p class="mt-2 text-sm text-text-secondary line-clamp-2" :title="page.description">
-                {{ page.description }}
-              </p>
-              <p class="mt-auto pt-4 text-xs text-text-dim font-display tracking-wide">
-                bởi
-                <a
-                  v-if="page.facebook && !isReordering"
-                  :href="page.facebook"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-accent-coral hover:underline"
-                  @click.stop
-                >
-                  {{ page.author }}
-                </a>
-                <span v-else>{{ page.author }}</span>
-              </p>
-            </component>
+            <PageCard
+              :page="page"
+              :disabled="isReordering"
+              always-visible-favorite
+              class="h-full"
+            />
           </div>
         </div>
       </div>
@@ -170,6 +199,39 @@ const bookmarkedPages = computed(() => {
         >
           Khám phá ứng dụng
         </RouterLink>
+      </div>
+
+      <!-- Recently viewed -->
+      <div v-if="recentPages.length > 0" class="mt-16">
+        <div class="flex items-center justify-between mb-5">
+          <h2
+            class="font-display text-xl sm:text-2xl font-semibold text-text-primary flex items-center gap-3"
+          >
+            <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
+            Xem gần đây
+            <span
+              class="ml-1 inline-flex items-center justify-center rounded-full bg-accent-coral/10 px-3 py-0.5 text-sm font-medium text-accent-coral"
+            >
+              {{ recentPages.length }}
+            </span>
+          </h2>
+          <button
+            class="flex items-center gap-1.5 text-xs font-display tracking-wide text-text-dim hover:text-accent-coral transition-colors duration-200"
+            @click="clearHistory"
+          >
+            <Icon icon="lucide:trash-2" class="w-3.5 h-3.5" />
+            Xóa lịch sử
+          </button>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <PageCard
+            v-for="page in recentPages"
+            :key="page.path"
+            :page="page"
+            always-visible-favorite
+          />
+        </div>
       </div>
 
       <!-- Back to home -->

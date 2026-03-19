@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink } from 'vue-router'
 import {
   loadGameData,
   type GameDataJson,
@@ -12,7 +12,6 @@ import {
 } from './data'
 import { GameEngine } from './engine'
 
-const router = useRouter()
 const engine = new GameEngine()
 const currentScreen = ref('intro')
 const gameData = ref<GameDataJson | null>(null)
@@ -550,7 +549,7 @@ onUnmounted(() => {
     <!-- GLOBAL NAVIGATION -->
     <!-- Global nav: ẩn khi đang chơi game vì header game đã có đủ nút -->
     <div v-if="currentScreen === 'intro' || currentScreen === 'create'" class="global-nav">
-      <button class="btn-home" @click="router.push('/')" title="Về trang chủ">
+      <RouterLink to="/" class="btn-home" title="Về trang chủ">
         <svg
           width="24"
           height="24"
@@ -562,7 +561,7 @@ onUnmounted(() => {
           <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
           <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
-      </button>
+      </RouterLink>
       <!-- Nút Quay lại chỉ hiện ở màn hình tạo nhân vật -->
       <button
         v-if="currentScreen === 'create'"
@@ -717,7 +716,7 @@ onUnmounted(() => {
         <header class="game-header">
           <div class="header-left">
             <!-- Nút Home — hiện cả trên mobile lẫn desktop, được đưa ra bên trái cho dễ thấy -->
-            <button class="btn-icon btn-icon-home" @click="router.push('/')" title="Về trang chủ">
+            <RouterLink to="/" class="btn-icon btn-icon-home" title="Về trang chủ">
               <svg
                 width="16"
                 height="16"
@@ -729,7 +728,7 @@ onUnmounted(() => {
                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
-            </button>
+            </RouterLink>
             <div class="player-info">
               <span class="player-name">{{ gameState.name }}</span>
               <span class="player-career"
@@ -870,9 +869,9 @@ onUnmounted(() => {
           <button class="btn-base btn-primary btn-glow" @click="restartGame">
             <span>🔄 Chơi Lại</span>
           </button>
-          <button class="btn-base btn-secondary" @click="router.push('/')">
+          <RouterLink to="/" class="btn-base btn-secondary">
             <span>🏠 Về Trang Chủ</span>
-          </button>
+          </RouterLink>
         </div>
       </div>
     </div>
@@ -1045,7 +1044,7 @@ onUnmounted(() => {
         <h3>⚙️ Menu</h3>
         <button class="modal-btn" @click="saveGame">💾 Lưu Game</button>
         <button class="modal-btn" @click="restartGame">🔄 Chơi Lại</button>
-        <button class="modal-btn" @click="router.push('/')">🏠 Về Trang Chủ</button>
+        <RouterLink to="/" class="modal-btn">🏠 Về Trang Chủ</RouterLink>
         <button class="modal-btn modal-close" @click="isMenuOpen = false">✕ Đóng</button>
       </div>
     </div>

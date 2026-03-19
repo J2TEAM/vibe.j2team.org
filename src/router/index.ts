@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { pages, pageComponents } from '@/data/pages-loader'
+import { useRecentlyViewedStore } from '@/stores/useRecentlyViewedStore'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -110,7 +111,7 @@ const router = createRouter({
   ],
 })
 
-router.onError((error, to) => {
+export function handleChunkError(error: Error, to: { fullPath: string }) {
   const isChunkError =
     error.message.includes('Failed to fetch dynamically imported module') ||
     error.message.includes('Importing a module script failed') ||
@@ -125,6 +126,17 @@ router.onError((error, to) => {
 
   // Full page reload to get fresh assets after new deployment
   window.location.href = to.fullPath
+}
+
+router.afterEach((to) => {
+  const pagePath = to.meta.pagePath
+  if (typeof pagePath !== 'string') return
+  useRecentlyViewedStore().addVisit(pagePath)
+})
+
+router.onError((error, to) => {
+  if (!to) return
+  handleChunkError(error, to)
 })
 
 export default router

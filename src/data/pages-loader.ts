@@ -7,3 +7,5 @@ export const pages: PageInfo[] = await fetch('/data/pages.json').then(
 )
 
 export const featuredPages: PageInfo[] = pages.filter((p) => p.featured)
+
+export const pageByPath = new Map(pages.map((p) => [p.path, p]))

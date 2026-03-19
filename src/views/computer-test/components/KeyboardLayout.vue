@@ -334,48 +334,46 @@ const mostPressedDisplay = computed(() => {
     </div>
 
     <!-- Stats -->
-    <div
-      class="bg-bg-surface border border-border-default rounded-xl p-5 shadow-sm flex flex-col w-full"
-    >
+    <div class="bg-bg-surface border border-border-default p-5 shadow-sm flex flex-col w-full">
       <!-- <h3 class="text-sm font-semibold text-text-primary mb-4 font-display">Thống kê</h3> -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="bg-text-primary/5 rounded-lg p-3 flex flex-col justify-center">
+        <div class="bg-text-primary/5 p-3 flex flex-col justify-center">
           <span class="text-[10px] text-text-secondary font-display">Số phím đang nhấn</span>
           <span class="text-lg font-bold text-accent-sky font-display">{{
             activeKeys.length
           }}</span>
         </div>
-        <div class="bg-text-primary/5 rounded-lg p-3 flex flex-col justify-center">
+        <div class="bg-text-primary/5 p-3 flex flex-col justify-center">
           <span class="text-[10px] text-text-secondary font-display">Tổng số phím đã nhấn</span>
           <span class="text-lg font-bold text-text-primary font-display">{{ pressCount }}</span>
         </div>
-        <div class="bg-text-primary/5 rounded-lg p-3 flex flex-col justify-center">
+        <div class="bg-text-primary/5 p-3 flex flex-col justify-center">
           <span class="text-[10px] text-text-secondary font-display">Phím nhấn nhiều nhất</span>
           <span class="text-lg font-bold text-text-primary font-display truncate">{{
             mostPressedDisplay
           }}</span>
         </div>
-        <div class="bg-text-primary/5 rounded-lg p-3 flex flex-col justify-center">
+        <div class="bg-text-primary/5 p-3 flex flex-col justify-center">
           <span class="text-[10px] text-text-secondary font-display">Mã phím cuối</span>
           <span class="text-lg font-bold text-text-primary font-display truncate">{{
             lastKeyCode || '-'
           }}</span>
         </div>
-        <div class="bg-text-primary/5 rounded-lg p-3 flex flex-col justify-center">
+        <div class="bg-text-primary/5 p-3 flex flex-col justify-center">
           <span class="text-[10px] text-text-secondary font-display">Tốc độ quét (Hz)</span>
           <span class="text-lg font-bold text-text-primary font-display">{{ estScanRate }} Hz</span>
         </div>
-        <div class="bg-text-primary/5 rounded-lg p-3 flex flex-col justify-center">
+        <div class="bg-text-primary/5 p-3 flex flex-col justify-center">
           <span class="text-[10px] text-text-secondary font-display">Khoảng cách phím (ms)</span>
           <span class="text-lg font-bold text-text-primary font-display"
             >{{ lastInterval }} ms</span
           >
         </div>
-        <div class="bg-text-primary/5 rounded-lg p-3 flex flex-col justify-center">
+        <div class="bg-text-primary/5 p-3 flex flex-col justify-center">
           <span class="text-[10px] text-text-secondary font-display">Nhấn / giây</span>
           <span class="text-lg font-bold text-accent-sky font-display">{{ currentCps }}</span>
         </div>
-        <div class="bg-text-primary/5 rounded-lg p-3 flex flex-col justify-center">
+        <div class="bg-text-primary/5 p-3 flex flex-col justify-center">
           <span class="text-[10px] text-text-secondary font-display">Nhấn / phút</span>
           <span class="text-lg font-bold text-accent-sky font-display">{{ currentApm }}</span>
         </div>

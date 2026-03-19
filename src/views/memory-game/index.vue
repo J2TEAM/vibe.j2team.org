@@ -14,18 +14,18 @@ interface Card {
 type Difficulty = 'easy' | 'medium' | 'hard'
 
 const ACTRESSES = [
-  { id: 'aragaki', name: 'Yui Aragaki', imageUrl: '/images/memory-game/aragaki.jpg' },
-  { id: 'ayase', name: 'Haruka Ayase', imageUrl: '/images/memory-game/ayase.jpg' },
-  { id: 'ishihara', name: 'Satomi Ishihara', imageUrl: '/images/memory-game/ishihara.jpg' },
-  { id: 'toda', name: 'Erika Toda', imageUrl: '/images/memory-game/toda.jpg' },
-  { id: 'hirose', name: 'Suzu Hirose', imageUrl: '/images/memory-game/hirose.jpg' },
-  { id: 'arimura', name: 'Kasumi Arimura', imageUrl: '/images/memory-game/arimura.jpg' },
-  { id: 'komatsu', name: 'Nana Komatsu', imageUrl: '/images/memory-game/komatsu.jpg' },
-  { id: 'tsuchiya', name: 'Tao Tsuchiya', imageUrl: '/images/memory-game/tsuchiya.jpg' },
-  { id: 'yoshitaka', name: 'Yuriko Yoshitaka', imageUrl: '/images/memory-game/yoshitaka.jpg' },
-  { id: 'nagasawa', name: 'Masami Nagasawa', imageUrl: '/images/memory-game/nagasawa.jpg' },
-  { id: 'kitagawa', name: 'Keiko Kitagawa', imageUrl: '/images/memory-game/kitagawa.jpg' },
-  { id: 'hashimoto', name: 'Kanna Hashimoto', imageUrl: '/images/memory-game/hashimoto.jpg' },
+  { id: 'aragaki', name: 'Yui Aragaki', imageUrl: '/memory-game/aragaki.jpg' },
+  { id: 'ayase', name: 'Haruka Ayase', imageUrl: '/memory-game/ayase.jpg' },
+  { id: 'ishihara', name: 'Satomi Ishihara', imageUrl: '/memory-game/ishihara.jpg' },
+  { id: 'toda', name: 'Erika Toda', imageUrl: '/memory-game/toda.jpg' },
+  { id: 'hirose', name: 'Suzu Hirose', imageUrl: '/memory-game/hirose.jpg' },
+  { id: 'arimura', name: 'Kasumi Arimura', imageUrl: '/memory-game/arimura.jpg' },
+  { id: 'komatsu', name: 'Nana Komatsu', imageUrl: '/memory-game/komatsu.jpg' },
+  { id: 'tsuchiya', name: 'Tao Tsuchiya', imageUrl: '/memory-game/tsuchiya.jpg' },
+  { id: 'yoshitaka', name: 'Yuriko Yoshitaka', imageUrl: '/memory-game/yoshitaka.jpg' },
+  { id: 'nagasawa', name: 'Masami Nagasawa', imageUrl: '/memory-game/nagasawa.jpg' },
+  { id: 'kitagawa', name: 'Keiko Kitagawa', imageUrl: '/memory-game/kitagawa.jpg' },
+  { id: 'hashimoto', name: 'Kanna Hashimoto', imageUrl: '/memory-game/hashimoto.jpg' },
 ]
 
 const GRID_CONFIG: Record<Difficulty, { pairs: number; cols: string }> = {

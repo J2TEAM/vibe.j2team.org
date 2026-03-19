@@ -120,6 +120,7 @@ watch(
                 :key="`${item.name}-${statePreviewVersion(item)}`"
                 :src="statePreviewSrc(item)"
                 :alt="`${item.name} preview`"
+                loading="lazy"
                 class="h-28 w-28 object-contain"
                 draggable="false"
               />

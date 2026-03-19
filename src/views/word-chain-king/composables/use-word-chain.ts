@@ -6,7 +6,7 @@ let _data: WordData | null = null
 
 async function loadData(): Promise<WordData> {
   if (_data) return _data
-  const response = await fetch('/data/word-chain-king.json')
+  const response = await fetch('/word-chain-king/word-chain-king.json')
   _data = (await response.json()) as WordData
   return _data
 }

@@ -598,6 +598,7 @@ onBeforeUnmount(() => {
       <img
         src="https://github.com/TranQui004.png?size=64"
         alt="TranQui004 GitHub Avatar"
+        loading="lazy"
         class="h-5 w-5 rounded-full border border-border-default"
       />
       <span class="hidden sm:inline"

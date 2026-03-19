@@ -15,6 +15,8 @@ const globalError = ref('')
 const stream = ref<MediaStream | null>(null)
 const videoRef = ref<HTMLVideoElement | null>(null)
 const camError = ref('')
+const isComponentMounted = ref(true)
+let currentRequestId = 0
 
 // Quét danh sách camera
 async function detectCameras() {
@@ -56,6 +58,9 @@ async function detectCameras() {
 
 // Mở camera được chọn
 async function openCamera(deviceId: string) {
+  if (!isComponentMounted.value) return
+
+  const requestId = ++currentRequestId
   stopCurrentStream()
   camError.value = ''
 
@@ -63,6 +68,13 @@ async function openCamera(deviceId: string) {
     const s = await navigator.mediaDevices.getUserMedia({
       video: { deviceId: { exact: deviceId } },
     })
+
+    // Nếu có yêu cầu mới hơn hoặc đã unmount thì tắt ngay stream vừa mở này
+    if (requestId !== currentRequestId || !isComponentMounted.value) {
+      s.getTracks().forEach((t) => t.stop())
+      return
+    }
+
     stream.value = s
 
     // Gán stream vào video element
@@ -70,8 +82,10 @@ async function openCamera(deviceId: string) {
       videoRef.value.srcObject = s
     }
   } catch {
-    stream.value = null
-    camError.value = 'Không thể mở camera này'
+    if (requestId === currentRequestId) {
+      stream.value = null
+      camError.value = 'Không thể mở camera này'
+    }
   }
 }
 
@@ -113,6 +127,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  isComponentMounted.value = false
   stopCurrentStream()
 })
 </script>

@@ -1,0 +1,41 @@
+# Vite hashed assets — immutable, cache forever
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Static images in public/ — long cache with revalidation
+/*.ico
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/*.png
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
+/*.jpg
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
+/*.jpeg
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
+/*.webp
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
+/*.svg
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
+/*.mp3
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
+
+# pages.json — changes on every deploy, keep cache short
+/data/pages.json
+  Cache-Control: public, max-age=300, stale-while-revalidate=60
+
+# JSON data files in app folders — moderate cache
+/*.json
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# Sitemaps — refresh hourly
+/sitemap.xml
+  Cache-Control: public, max-age=3600, stale-while-revalidate=600
+/sitemaps/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=600
+
+# HTML (SPA entry) — always revalidate
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Security header on all responses
+/*
+  X-Content-Type-Options: nosniff

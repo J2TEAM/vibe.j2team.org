@@ -8,13 +8,13 @@
         class="flex flex-col md:flex-row justify-between items-center bg-bg-surface border border-border-default p-6 mb-10 relative z-40"
       >
         <div class="flex-1 w-full flex items-center gap-6">
-          <a
-            href="/"
+          <RouterLink
+            to="/"
             class="p-3 border border-border-default hover:border-accent-coral hover:text-accent-coral transition-colors text-text-secondary"
             title="Launcher"
           >
             <Icon icon="fluent:home-24-filled" class="text-2xl" />
-          </a>
+          </RouterLink>
 
           <div>
             <h1
@@ -337,6 +337,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { RouterLink } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { useFarm, GACHA_OPTIONS, AVAILABLE_SEEDS } from './composables/useFarm'
 import FarmPlot from './components/FarmPlot.vue'

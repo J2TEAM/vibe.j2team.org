@@ -6,7 +6,7 @@ import { provinces } from '../data/provinces'
 import { useMapZoom } from '../composables/useMapZoom'
 
 // [Optimization] MapPathData type được inline thay vì import từ map-paths.ts.
-// File map-paths.ts (412 kB) đã được convert sang public/data/blind-map-paths.json
+// File map-paths.ts (412 kB) đã được convert sang public/blind-map-challenge/blind-map-paths.json
 // và load async qua fetch() để tránh bundle 442 kB vào GameScreen chunk.
 type MapPathData = { id: string; d: string; cx: number; cy: number }
 
@@ -31,7 +31,7 @@ const zoom = useMapZoom(mapContainer)
 const isMobile = ref(false)
 
 // [Optimization] Thay vì import { mapPaths, vietnamOutline } from '../data/map-paths' (412 kB),
-// dữ liệu được fetch lazy từ public/data/blind-map-paths.json khi component mount.
+// dữ liệu được fetch lazy từ public/blind-map-challenge/blind-map-paths.json khi component mount.
 // Điều này giúp GameScreen chunk giảm từ ~442 kB xuống ~25 kB.
 // JSON được tạo bằng: node scripts/generate-map-data.mjs (cần chạy lại sau khi cập nhật map-paths.ts).
 const mapPaths = ref<MapPathData[]>([])
@@ -42,7 +42,7 @@ onMounted(async () => {
   isMobile.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent,
   )
-  const response = await fetch('/data/blind-map-paths.json')
+  const response = await fetch('/blind-map-challenge/blind-map-paths.json')
   const mapData = (await response.json()) as { mapPaths: MapPathData[]; vietnamOutline: string }
   mapPaths.value = mapData.mapPaths
   vietnamOutline.value = mapData.vietnamOutline

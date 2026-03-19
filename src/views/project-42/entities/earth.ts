@@ -6,8 +6,8 @@
  */
 export function createEarth(THREE: any) {
   const textureLoader = new THREE.TextureLoader()
-  const earthTexture = textureLoader.load(new URL('../assets/earth.png', import.meta.url).href)
-  const cloudTexture = textureLoader.load(new URL('../assets/clouds.png', import.meta.url).href)
+  const earthTexture = textureLoader.load('/project-42/earth.webp')
+  const cloudTexture = textureLoader.load('/project-42/clouds.webp')
 
   // --- Layer 1: Planetary Surface (Base Mesh) ---
   const earthGeo = new THREE.SphereGeometry(6.5, 128, 128)
