@@ -6,6 +6,7 @@ import VideoBackground from './components/VideoBackground.vue'
 import MusicPlayer from './components/MusicPlayer.vue'
 import PomodoroTimer from './components/PomodoroTimer.vue'
 import TodoList from './components/TodoList.vue'
+import NotesPanel from './components/NotesPanel.vue'
 import SettingsPanel from './components/SettingsPanel.vue'
 import { useSpaceSettings } from './composables/useSpaceSettings'
 
@@ -120,6 +121,18 @@ const currentDate = computed(() => {
       leave-to-class="opacity-0 translate-y-2"
     >
       <TodoList v-show="settings.showTodo && !settings.zenMode" />
+    </Transition>
+
+    <!-- Notes Panel -->
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="opacity-0 translate-y-2"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="opacity-100 translate-y-0"
+      leave-to-class="opacity-0 translate-y-2"
+    >
+      <NotesPanel v-show="settings.showNotes && !settings.zenMode" />
     </Transition>
 
     <!-- Bottom Bar -->

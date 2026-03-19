@@ -9,6 +9,7 @@ export interface SpaceSettings {
   showPomodoro: boolean
   showTodo: boolean
   showMusic: boolean
+  showNotes: boolean
   // Zen mode — hides all UI
   zenMode: boolean
   // Video overlay darkness (0–80)
@@ -23,6 +24,7 @@ const defaults: SpaceSettings = {
   showPomodoro: true,
   showTodo: true,
   showMusic: true,
+  showNotes: true,
   zenMode: false,
   overlayOpacity: 40,
 }

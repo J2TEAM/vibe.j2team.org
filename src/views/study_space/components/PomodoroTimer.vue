@@ -1,9 +1,26 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useIntervalFn, useLocalStorage } from '@vueuse/core'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useIntervalFn, useLocalStorage, useDraggable } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 
 type TimerMode = 'focus' | 'short-break' | 'long-break'
+
+// --- Drag functionality ---
+const el = ref<HTMLElement | null>(null)
+const dragHandle = ref<HTMLElement | null>(null)
+
+const { style, x, y } = useDraggable(el, {
+  handle: dragHandle,
+  initialValue: { x: typeof window !== 'undefined' ? window.innerWidth - 300 : 800, y: 16 },
+})
+
+// Ensures timer starts at the right position after mount to prevent SSR mismatch or wrong innerWidth
+onMounted(() => {
+  if (typeof window !== 'undefined' && x.value === window.innerWidth - 300 && y.value === 16) {
+    x.value = window.innerWidth - 300
+    y.value = 16
+  }
+})
 
 // --- Pomodoro custom settings ---
 const pomodoroSettings = useLocalStorage('study-space-pomodoro-settings', {
@@ -156,22 +173,26 @@ function clampMinutes(
 </script>
 
 <template>
-  <div class="fixed right-4 top-4 z-50">
+  <div ref="el" class="fixed z-50" :style="style">
     <!-- Mini display -->
-    <button
+    <div
       v-if="!isExpanded"
-      class="flex items-center gap-2 border border-white/20 bg-black/50 px-4 py-2.5 text-white/80 backdrop-blur-md transition-all hover:border-white/40 hover:bg-black/60 hover:text-white"
-      @click="isExpanded = true"
+      ref="dragHandle"
+      class="flex cursor-move items-center gap-2 border border-white/20 bg-black/50 px-4 py-2.5 text-white/80 backdrop-blur-md transition-all hover:border-white/40 hover:bg-black/60 hover:text-white"
+      @dblclick="isExpanded = true"
     >
-      <Icon
-        icon="lucide:timer"
-        class="size-5"
-        :class="{ 'animate-pulse text-accent-coral': isRunning }"
-      />
-      <span class="font-display text-sm font-semibold tabular-nums tracking-wide">{{
-        displayTime
-      }}</span>
-    </button>
+      <button class="flex items-center gap-2" @click="isExpanded = true">
+        <Icon
+          icon="lucide:timer"
+          class="size-5"
+          :class="{ 'animate-pulse text-accent-coral': isRunning }"
+        />
+        <span class="font-display text-sm font-semibold tabular-nums tracking-wide">{{
+          displayTime
+        }}</span>
+      </button>
+      <Icon icon="lucide:grip-vertical" class="size-4 ml-1 opacity-50" />
+    </div>
 
     <!-- Expanded Panel -->
     <Transition
@@ -184,8 +205,12 @@ function clampMinutes(
     >
       <div v-if="isExpanded" class="w-72 border border-white/20 bg-black/70 backdrop-blur-xl">
         <!-- Header -->
-        <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
-          <h3 class="font-display text-sm font-semibold tracking-wide text-white">
+        <div
+          ref="dragHandle"
+          class="flex cursor-move items-center justify-between border-b border-white/10 px-4 py-3"
+        >
+          <h3 class="font-display flex items-center text-sm font-semibold tracking-wide text-white">
+            <Icon icon="lucide:grip-vertical" class="mr-1.5 size-4 opacity-50" />
             <Icon icon="lucide:timer" class="mr-1.5 inline size-4" />
             Pomodoro
           </h3>

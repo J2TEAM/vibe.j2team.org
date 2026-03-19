@@ -195,6 +195,26 @@ function resetSettings() {
                   </button>
                 </label>
 
+                <!-- Notes -->
+                <label class="flex cursor-pointer items-center justify-between gap-3">
+                  <div class="flex items-center gap-2.5 text-sm text-white/70">
+                    <Icon icon="lucide:sticky-note" class="size-4 shrink-0 text-white/40" />
+                    Ghi chú
+                  </div>
+                  <button
+                    role="switch"
+                    :aria-checked="settings.showNotes"
+                    class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-200"
+                    :class="settings.showNotes ? 'bg-accent-coral' : 'bg-white/20'"
+                    @click="settings.showNotes = !settings.showNotes"
+                  >
+                    <span
+                      class="absolute inset-y-0.5 left-0.5 size-4 rounded-full bg-white shadow transition-transform duration-200"
+                      :class="settings.showNotes ? 'translate-x-4' : 'translate-x-0'"
+                    />
+                  </button>
+                </label>
+
                 <!-- Music -->
                 <label class="flex cursor-pointer items-center justify-between gap-3">
                   <div class="flex items-center gap-2.5 text-sm text-white/70">
