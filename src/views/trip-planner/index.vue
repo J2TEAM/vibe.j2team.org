@@ -78,7 +78,7 @@ function handleAddBudget(data: Omit<BudgetItem, 'id'>) {
         to="/"
         class="mb-8 inline-flex items-center gap-2 border border-border-default bg-bg-surface px-5 py-2.5 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
       >
-        ← Back to home
+        ← Về trang chủ
       </RouterLink>
 
       <!-- ── Hero ──────────────────────────────────────── -->
