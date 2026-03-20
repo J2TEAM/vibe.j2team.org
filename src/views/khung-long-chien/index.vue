@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
-import { useRafFn } from '@vueuse/core'
+import { useMediaQuery, useRafFn, useWindowSize } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 
 type PlayerSide = 'left' | 'right'
@@ -26,6 +26,10 @@ type Lane = {
   id: number
   units: Unit[]
   isColliding: boolean
+}
+
+type LockableScreenOrientation = {
+  lock: (orientation: 'landscape') => Promise<void>
 }
 
 const maxHp = 100
@@ -90,7 +94,8 @@ function previewSpriteStyle(dino: DinoType | null) {
     return {}
   }
 
-  const size = `${Math.max(3.6, Math.min(5.4, dino.sizeRem))}rem`
+  const mobileScale = isMobileViewport.value ? 0.68 : 1
+  const size = `${Math.max(2.4, Math.min(5.4, dino.sizeRem * mobileScale))}rem`
   return {
     width: size,
     height: size,
@@ -132,12 +137,19 @@ const showStartMenu = ref(true)
 const matchCountdown = ref(0)
 const isMatchLive = ref(false)
 const status = ref('Chế độ đấu máy. Bạn ở bên trái, máy ở bên phải.')
+const { width: viewportWidth } = useWindowSize()
+const isTouchDevice = useMediaQuery('(pointer: coarse)')
+const isPortraitViewport = useMediaQuery('(orientation: portrait)')
+const isCompactHeight = useMediaQuery('(max-height: 520px)')
 
 const leftHpWidth = computed(() => `${(leftHp.value / maxHp) * 100}%`)
 const rightHpWidth = computed(() => `${(rightHp.value / maxHp) * 100}%`)
 const leftSpawnCountdownText = computed(() => `${(leftSpawnCountdown.value / 1000).toFixed(1)}s`)
 const rightSpawnCountdownText = computed(() => `${(rightSpawnCountdown.value / 1000).toFixed(1)}s`)
 const matchCountdownText = computed(() => `${Math.max(1, Math.ceil(matchCountdown.value / 1000))}`)
+const isMobileViewport = computed(() => isTouchDevice.value && viewportWidth.value < 1024)
+const shouldForceLandscape = computed(() => isMobileViewport.value && isPortraitViewport.value)
+const shouldHideFooter = computed(() => isCompactHeight.value || isMobileViewport.value)
 
 function clampCombatX(x: number) {
   const clamped = Math.max(-overshootMargin, Math.min(laneLength + overshootMargin, x))
@@ -371,7 +383,27 @@ function chooseRightAiLane() {
   return rankedLanes[0]?.laneId ?? null
 }
 
+async function requestLandscapeMode() {
+  try {
+    if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+      await document.documentElement.requestFullscreen()
+    }
+  } catch {
+    // Ignore fullscreen failures on browsers that restrict this behavior.
+  }
+
+  try {
+    const orientation = screen.orientation as Partial<LockableScreenOrientation> | undefined
+    if (orientation?.lock) {
+      await orientation.lock('landscape')
+    }
+  } catch {
+    // iOS Safari and some mobile browsers do not support orientation lock.
+  }
+}
+
 function beginMatch() {
+  void requestLandscapeMode()
   resetGame()
   showStartMenu.value = false
   isMatchLive.value = false
@@ -551,11 +583,20 @@ function resetGame() {
 }
 
 function unitStyle(unit: Unit) {
+  const mobileScale = isMobileViewport.value ? 0.62 : 1
+  const sizeRem = unit.type.sizeRem * mobileScale
+
   return {
-    left: `calc(${unit.x}% - ${unit.type.sizeRem / 2}rem)`,
-    bottom: isFlyingDino(unit.type) ? '2.2rem' : '0.4rem',
-    width: `${unit.type.sizeRem}rem`,
-    height: `${unit.type.sizeRem}rem`,
+    left: `calc(${unit.x}% - ${sizeRem / 2}rem)`,
+    bottom: isFlyingDino(unit.type)
+      ? isMobileViewport.value
+        ? '1.45rem'
+        : '2.2rem'
+      : isMobileViewport.value
+        ? '0.15rem'
+        : '0.4rem',
+    width: `${sizeRem}rem`,
+    height: `${sizeRem}rem`,
   }
 }
 
@@ -573,26 +614,152 @@ function cooldownFrameStyle(side: PlayerSide) {
 </script>
 
 <template>
-  <div class="relative h-screen overflow-hidden bg-bg-deep px-3 py-3 text-text-primary">
-    <div class="mx-auto flex h-full max-w-7xl flex-col gap-2 md:gap-1.5">
-      <header class="grid shrink-0 gap-2 md:grid-cols-[0.92fr_1.08fr_0.92fr] xl:gap-3">
-        <section class="border border-border-default bg-bg-surface p-2.5 md:p-2 xl:p-3">
-          <div class="flex items-center justify-between gap-3">
-            <div>
-              <p class="font-display text-[11px] tracking-[0.24em] text-accent-coral">P1</p>
-              <p class="font-display text-3xl font-bold">{{ leftHp }}</p>
-            </div>
-            <div class="w-28 border border-border-default bg-bg-deep p-1">
-              <div class="h-2 bg-bg-surface">
-                <div class="h-full bg-accent-coral" :style="{ width: leftHpWidth }" />
-              </div>
+  <div
+    class="relative h-dvh min-h-dvh overflow-hidden bg-bg-deep px-2 py-2 text-text-primary md:px-3 md:py-3"
+  >
+    <div class="mx-auto flex h-full max-w-7xl flex-col gap-1.5 md:gap-1.5">
+      <header
+        v-if="isMobileViewport"
+        class="grid shrink-0 grid-cols-[60px_52px_minmax(0,1fr)_52px_60px] gap-1"
+      >
+        <section class="border border-border-default bg-bg-surface p-1">
+          <div class="mx-auto h-12 w-12 p-[2px]" :style="cooldownFrameStyle('left')">
+            <div
+              class="grid h-full w-full place-items-center border border-border-default bg-bg-surface"
+            >
+              <img
+                :src="leftCurrent.image"
+                :alt="leftCurrent.name"
+                class="mx-auto block object-contain object-center"
+                :class="dinoFacingClass(leftCurrent, 'left')"
+                :style="previewSpriteStyle(leftCurrent)"
+              />
             </div>
           </div>
+          <p class="mt-1 truncate text-center font-display text-[9px] text-text-primary">
+            {{ leftCurrent.name }}
+          </p>
+          <p
+            class="mt-0.5 text-center text-[8px] leading-none text-text-secondary"
+            :class="{ 'text-accent-amber': isSideReady('left') }"
+          >
+            {{ isSideReady('left') ? 'Sẵn' : leftSpawnCountdownText }}
+          </p>
+        </section>
 
-          <div class="mt-2 border border-border-default bg-bg-deep p-2.5 md:p-2 xl:mt-3 xl:p-3">
-            <div class="flex items-center gap-2.5">
+        <section class="border border-border-default bg-bg-surface p-1">
+          <p class="text-center font-display text-[10px] tracking-[0.18em] text-accent-coral">P1</p>
+          <p class="mt-1 text-center font-display text-2xl leading-none">{{ leftHp }}</p>
+          <div class="mt-1.5 border border-border-default bg-bg-deep p-1">
+            <div class="h-1.5 bg-bg-surface">
+              <div class="h-full bg-accent-coral" :style="{ width: leftHpWidth }" />
+            </div>
+          </div>
+        </section>
+
+        <section class="border border-border-default bg-bg-surface p-1.5">
+          <p
+            class="truncate text-center font-display text-[10px] tracking-[0.24em] text-accent-coral"
+          >
+            // DINOSAUR BATTLE
+          </p>
+          <div class="mt-1 flex justify-center">
+            <div class="inline-flex border border-border-default bg-bg-deep">
+              <button
+                type="button"
+                class="px-2 py-0.5 text-[9px] transition"
+                :class="
+                  gameMode === 'pvp'
+                    ? 'bg-accent-coral text-bg-deep'
+                    : 'text-text-secondary hover:bg-bg-elevated hover:text-text-primary'
+                "
+                @click="setGameMode('pvp')"
+              >
+                2P
+              </button>
+              <button
+                type="button"
+                class="border-l border-border-default px-2 py-0.5 text-[9px] transition"
+                :class="
+                  gameMode === 'ai'
+                    ? 'bg-accent-sky text-bg-deep'
+                    : 'text-text-secondary hover:bg-bg-elevated hover:text-text-primary'
+                "
+                @click="setGameMode('ai')"
+              >
+                AI
+              </button>
+            </div>
+          </div>
+          <div class="mt-1 flex justify-center gap-1">
+            <button
+              type="button"
+              class="inline-flex items-center gap-1 border border-border-default px-1.5 py-1 text-[9px] transition hover:border-accent-amber hover:bg-bg-elevated"
+              @click="beginMatch"
+            >
+              <Icon icon="lucide:rotate-ccw" class="size-3" />
+              Lại
+            </button>
+            <RouterLink
+              to="/"
+              class="inline-flex items-center gap-1 border border-border-default px-1.5 py-1 text-[9px] text-text-secondary transition hover:border-accent-coral hover:bg-bg-elevated hover:text-text-primary"
+            >
+              <Icon icon="lucide:house" class="size-3" />
+              Nhà
+            </RouterLink>
+          </div>
+          <p
+            v-if="winner"
+            class="mt-1 truncate text-center font-display text-[10px] text-accent-amber"
+          >
+            {{ winner === 'left' ? 'P1 thắng' : gameMode === 'ai' ? 'Máy thắng' : 'P2 thắng' }}
+          </p>
+        </section>
+
+        <section class="border border-border-default bg-bg-surface p-1">
+          <p class="text-center font-display text-[10px] tracking-[0.18em] text-accent-sky">
+            {{ gameMode === 'ai' ? 'MÁY' : 'P2' }}
+          </p>
+          <p class="mt-1 text-center font-display text-2xl leading-none">{{ rightHp }}</p>
+          <div class="mt-1.5 border border-border-default bg-bg-deep p-1">
+            <div class="h-1.5 bg-bg-surface">
+              <div class="h-full bg-accent-sky" :style="{ width: rightHpWidth }" />
+            </div>
+          </div>
+        </section>
+
+        <section class="border border-border-default bg-bg-surface p-1">
+          <div class="mx-auto h-12 w-12 p-[2px]" :style="cooldownFrameStyle('right')">
+            <div
+              class="grid h-full w-full place-items-center border border-border-default bg-bg-surface"
+            >
+              <img
+                :src="rightCurrent.image"
+                :alt="rightCurrent.name"
+                class="mx-auto block object-contain object-center"
+                :class="dinoFacingClass(rightCurrent, 'right')"
+                :style="previewSpriteStyle(rightCurrent)"
+              />
+            </div>
+          </div>
+          <p class="mt-1 truncate text-center font-display text-[9px] text-text-primary">
+            {{ rightCurrent.name }}
+          </p>
+          <p
+            class="mt-0.5 text-center text-[8px] leading-none text-text-secondary"
+            :class="{ 'text-accent-amber': isSideReady('right') }"
+          >
+            {{ isSideReady('right') ? 'Sẵn' : rightSpawnCountdownText }}
+          </p>
+        </section>
+      </header>
+
+      <header v-else class="grid shrink-0 gap-1 md:grid-cols-[0.92fr_1.08fr_0.92fr] xl:gap-3">
+        <section class="border border-border-default bg-bg-surface p-2 md:p-2 xl:p-3">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
               <div
-                class="h-24 w-24 shrink-0 p-[2px] md:h-20 md:w-20 xl:h-28 xl:w-28"
+                class="h-20 w-20 shrink-0 p-[2px] md:h-16 md:w-16 xl:h-28 xl:w-28"
                 :style="cooldownFrameStyle('left')"
               >
                 <div
@@ -601,43 +768,54 @@ function cooldownFrameStyle(side: PlayerSide) {
                   <img
                     :src="leftCurrent.image"
                     :alt="leftCurrent.name"
-                    class="object-contain"
+                    class="mx-auto block object-contain object-center"
                     :class="dinoFacingClass(leftCurrent, 'left')"
                     :style="previewSpriteStyle(leftCurrent)"
                   />
                 </div>
               </div>
               <div
-                class="min-h-14 text-[11px] text-text-secondary md:min-h-12 xl:min-h-20 xl:text-xs"
+                class="min-h-12 min-w-0 text-[10px] text-text-secondary md:min-h-10 md:text-[9px] xl:min-h-20 xl:text-xs"
               >
-                <p class="font-display text-base text-text-primary md:text-sm xl:text-lg">
+                <p class="truncate font-display text-sm text-text-primary md:text-xs xl:text-lg">
                   {{ leftCurrent.name }}
                 </p>
                 <p>Push {{ leftCurrent.push }}</p>
                 <p>Damage {{ leftCurrent.damage }}</p>
+                <p class="mt-1" :class="{ 'text-accent-amber': isSideReady('left') }">
+                  {{ isSideReady('left') ? 'Sẵn sàng' : leftSpawnCountdownText }}
+                </p>
               </div>
             </div>
-            <div
-              class="mt-2 flex items-center justify-between text-[10px] text-text-secondary md:text-[9px] xl:mt-3 xl:text-[11px]"
-            >
-              <span>{{ isSideReady('left') ? 'Sẵn sàng' : 'Tiếp theo' }}</span>
-              <span>{{ isSideReady('left') ? '0.0s' : leftSpawnCountdownText }}</span>
+
+            <div class="w-28 shrink-0 text-right">
+              <div class="flex items-end justify-end gap-2">
+                <p class="font-display text-[11px] tracking-[0.24em] text-accent-coral">P1</p>
+                <p class="font-display text-3xl font-bold">
+                  {{ leftHp }}
+                </p>
+              </div>
+              <div class="mt-1 border border-border-default bg-bg-deep p-1">
+                <div class="h-2 bg-bg-surface">
+                  <div class="h-full bg-accent-coral" :style="{ width: leftHpWidth }" />
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <section class="border border-border-default bg-bg-surface p-2.5 md:p-2 xl:p-3">
+        <section class="border border-border-default bg-bg-surface p-2 md:p-2 xl:p-3">
           <div class="flex items-start justify-between gap-3">
             <div>
               <p class="font-display text-[11px] tracking-[0.28em] text-accent-coral">
                 // DINOSAUR BATTLE
               </p>
               <h1
-                class="font-display text-3xl font-bold uppercase leading-none md:text-[2rem] xl:text-3xl"
+                class="font-display text-[2rem] font-bold uppercase leading-none md:text-[1.75rem] xl:text-3xl"
               >
                 Khủng Long Chiến
               </h1>
-              <div class="mt-2 inline-flex border border-border-default bg-bg-deep">
+              <div class="mt-1.5 inline-flex border border-border-default bg-bg-deep">
                 <button
                   type="button"
                   class="px-2.5 py-1 text-[10px] transition md:px-2 xl:px-2.5"
@@ -683,14 +861,9 @@ function cooldownFrameStyle(side: PlayerSide) {
             </div>
           </div>
 
-          <div
-            class="mt-2 border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary md:text-[11px] xl:mt-3 xl:text-sm"
-          >
-            {{ status }}
-          </div>
           <p
             v-if="winner"
-            class="mt-1.5 font-display text-lg text-accent-amber md:text-base xl:mt-2 xl:text-xl"
+            class="mt-1 font-display text-lg text-accent-amber md:text-base xl:mt-2 xl:text-xl"
           >
             {{
               winner === 'left'
@@ -702,25 +875,27 @@ function cooldownFrameStyle(side: PlayerSide) {
           </p>
         </section>
 
-        <section class="border border-border-default bg-bg-surface p-2.5 md:p-2 xl:p-3">
+        <section class="border border-border-default bg-bg-surface p-2 md:p-2 xl:p-3">
           <div class="flex items-center justify-between gap-3">
-            <div>
-              <p class="font-display text-[11px] tracking-[0.24em] text-accent-sky">
-                {{ gameMode === 'ai' ? 'MÁY' : 'P2' }}
-              </p>
-              <p class="font-display text-3xl font-bold">{{ rightHp }}</p>
-            </div>
-            <div class="w-28 border border-border-default bg-bg-deep p-1">
-              <div class="h-2 bg-bg-surface">
-                <div class="h-full bg-accent-sky" :style="{ width: rightHpWidth }" />
+            <div class="w-28 shrink-0">
+              <div class="flex items-end gap-2">
+                <p class="font-display text-[11px] tracking-[0.24em] text-accent-sky">
+                  {{ gameMode === 'ai' ? 'MÁY' : 'P2' }}
+                </p>
+                <p class="font-display text-3xl font-bold">
+                  {{ rightHp }}
+                </p>
+              </div>
+              <div class="mt-1 w-28 border border-border-default bg-bg-deep p-1">
+                <div class="h-2 bg-bg-surface">
+                  <div class="h-full bg-accent-sky" :style="{ width: rightHpWidth }" />
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="mt-2 border border-border-default bg-bg-deep p-2.5 md:p-2 xl:mt-3 xl:p-3">
-            <div class="flex items-center gap-2.5">
+            <div class="flex min-w-0 items-center gap-2">
               <div
-                class="h-24 w-24 shrink-0 p-[2px] md:h-20 md:w-20 xl:h-28 xl:w-28"
+                class="h-20 w-20 shrink-0 p-[2px] md:h-16 md:w-16 xl:h-28 xl:w-28"
                 :style="cooldownFrameStyle('right')"
               >
                 <div
@@ -729,27 +904,24 @@ function cooldownFrameStyle(side: PlayerSide) {
                   <img
                     :src="rightCurrent.image"
                     :alt="rightCurrent.name"
-                    class="object-contain"
+                    class="mx-auto block object-contain object-center"
                     :class="dinoFacingClass(rightCurrent, 'right')"
                     :style="previewSpriteStyle(rightCurrent)"
                   />
                 </div>
               </div>
               <div
-                class="min-h-14 text-[11px] text-text-secondary md:min-h-12 xl:min-h-20 xl:text-xs"
+                class="min-h-12 min-w-0 text-[10px] text-text-secondary md:min-h-10 md:text-[9px] xl:min-h-20 xl:text-xs"
               >
-                <p class="font-display text-base text-text-primary md:text-sm xl:text-lg">
+                <p class="truncate font-display text-sm text-text-primary md:text-xs xl:text-lg">
                   {{ rightCurrent.name }}
                 </p>
                 <p>Push {{ rightCurrent.push }}</p>
                 <p>Damage {{ rightCurrent.damage }}</p>
+                <p class="mt-1" :class="{ 'text-accent-amber': isSideReady('right') }">
+                  {{ isSideReady('right') ? 'Sẵn sàng' : rightSpawnCountdownText }}
+                </p>
               </div>
-            </div>
-            <div
-              class="mt-2 flex items-center justify-between text-[10px] text-text-secondary md:text-[9px] xl:mt-3 xl:text-[11px]"
-            >
-              <span>{{ isSideReady('right') ? 'Sẵn sàng' : 'Tiếp theo' }}</span>
-              <span>{{ isSideReady('right') ? '0.0s' : rightSpawnCountdownText }}</span>
             </div>
           </div>
         </section>
@@ -759,7 +931,7 @@ function cooldownFrameStyle(side: PlayerSide) {
         <article
           v-for="lane in lanes"
           :key="lane.id"
-          class="grid min-h-0 flex-1 grid-cols-[76px_minmax(0,1fr)_76px] gap-1.5 md:grid-cols-[62px_minmax(0,1fr)_62px] md:gap-1 xl:grid-cols-[88px_minmax(0,1fr)_88px] xl:gap-2"
+          class="grid min-h-0 flex-1 grid-cols-[56px_minmax(0,1fr)_56px] gap-1 md:grid-cols-[58px_minmax(0,1fr)_58px] xl:grid-cols-[88px_minmax(0,1fr)_88px] xl:gap-2"
         >
           <button
             type="button"
@@ -783,7 +955,10 @@ function cooldownFrameStyle(side: PlayerSide) {
             </div>
           </button>
 
-          <div class="relative overflow-visible border border-border-default bg-bg-surface">
+          <div
+            class="relative border border-border-default bg-bg-surface"
+            :class="isMobileViewport ? 'overflow-hidden' : 'overflow-visible'"
+          >
             <div class="absolute inset-y-0 left-4 w-px bg-accent-coral/30" />
             <div class="absolute inset-y-0 right-4 w-px bg-accent-sky/30" />
             <div class="absolute inset-y-0 left-1/2 w-px bg-border-default/70" />
@@ -850,6 +1025,7 @@ function cooldownFrameStyle(side: PlayerSide) {
       </section>
 
       <footer
+        v-if="!shouldHideFooter"
         class="grid shrink-0 gap-1.5 text-[11px] text-text-secondary sm:grid-cols-4 md:gap-1 xl:gap-2 xl:text-xs"
       >
         <div
@@ -878,22 +1054,42 @@ function cooldownFrameStyle(side: PlayerSide) {
 
     <div
       v-if="showStartMenu"
-      class="absolute inset-0 z-40 grid place-items-center bg-bg-deep/88 px-4"
+      class="absolute inset-0 z-40 grid place-items-center bg-bg-deep/88"
+      :class="isMobileViewport ? 'px-2 py-2' : 'px-4'"
     >
-      <div class="w-full max-w-2xl border border-border-default bg-bg-surface p-5 text-center">
+      <div
+        class="w-full overflow-auto border border-border-default bg-bg-surface text-center"
+        :class="
+          isMobileViewport
+            ? 'max-h-[calc(100dvh-0.75rem)] max-w-4xl p-3'
+            : 'max-h-[calc(100dvh-1rem)] max-w-2xl p-4 md:p-5'
+        "
+      >
         <p class="font-display text-[11px] tracking-[0.28em] text-accent-coral">
           // DINOSAUR BATTLE
         </p>
-        <h2 class="mt-2 font-display text-4xl uppercase leading-none">Khủng Long Chiến</h2>
-        <div class="mt-5">
-          <p class="font-display text-[11px] tracking-[0.24em] text-text-dim">
+        <h2
+          class="font-display uppercase leading-none"
+          :class="isMobileViewport ? 'mt-1 text-2xl' : 'mt-2 text-4xl'"
+        >
+          Khủng Long Chiến
+        </h2>
+        <div :class="isMobileViewport ? 'mt-3' : 'mt-4'">
+          <p
+            class="font-display tracking-[0.24em] text-text-dim"
+            :class="isMobileViewport ? 'text-[10px]' : 'text-[11px]'"
+          >
             THẢ KHỦNG LONG VÀO LANE ĐỂ ĐẨY ĐỐI THỦ
           </p>
-          <div class="mt-3 grid grid-cols-4 gap-2 md:gap-3">
+          <div
+            class="grid grid-cols-4"
+            :class="isMobileViewport ? 'mt-2 gap-1' : 'mt-3 gap-1.5 md:gap-3'"
+          >
             <div
               v-for="dino in dinosaursByPush"
               :key="`menu-${dino.id}`"
-              class="border border-border-default bg-bg-deep px-2 py-2"
+              class="border border-border-default bg-bg-deep"
+              :class="isMobileViewport ? 'px-1 py-1' : 'px-2 py-1.5'"
             >
               <div class="grid place-items-center">
                 <img
@@ -901,42 +1097,71 @@ function cooldownFrameStyle(side: PlayerSide) {
                   :alt="dino.name"
                   class="object-contain"
                   :style="{
-                    width: `${Math.max(2.8, dino.sizeRem * 0.78)}rem`,
-                    height: `${Math.max(2.8, dino.sizeRem * 0.78)}rem`,
+                    width: isMobileViewport
+                      ? `${Math.max(1.8, dino.sizeRem * 0.48)}rem`
+                      : `${Math.max(2.8, dino.sizeRem * 0.78)}rem`,
+                    height: isMobileViewport
+                      ? `${Math.max(1.8, dino.sizeRem * 0.48)}rem`
+                      : `${Math.max(2.8, dino.sizeRem * 0.78)}rem`,
                   }"
                 />
               </div>
-              <p class="mt-2 font-display text-xs text-text-primary md:text-sm">{{ dino.name }}</p>
-              <p class="mt-1 text-[10px] text-text-secondary md:text-[11px]">
-                Đẩy {{ dino.push }} · Đánh {{ dino.damage }}
+              <p
+                class="font-display text-text-primary"
+                :class="
+                  isMobileViewport ? 'mt-1 text-[10px] leading-tight' : 'mt-2 text-xs md:text-sm'
+                "
+              >
+                {{ dino.name }}
+              </p>
+              <p
+                class="text-text-secondary"
+                :class="
+                  isMobileViewport
+                    ? 'mt-0.5 text-[9px] leading-tight'
+                    : 'mt-1 text-[10px] md:text-[11px]'
+                "
+              >
+                <template v-if="isMobileViewport">{{ dino.push }} · {{ dino.damage }}</template>
+                <template v-else>Đẩy {{ dino.push }} · Đánh {{ dino.damage }}</template>
               </p>
             </div>
           </div>
         </div>
 
-        <div class="mt-5">
-          <p class="font-display text-[11px] tracking-[0.24em] text-text-dim">CHẾ ĐỘ</p>
-          <div class="mt-3 inline-flex border border-border-default bg-bg-deep">
+        <div :class="isMobileViewport ? 'mt-3' : 'mt-4'">
+          <p
+            class="font-display tracking-[0.24em] text-text-dim"
+            :class="isMobileViewport ? 'text-[10px]' : 'text-[11px]'"
+          >
+            CHẾ ĐỘ
+          </p>
+          <div
+            class="inline-flex border border-border-default bg-bg-deep"
+            :class="isMobileViewport ? 'mt-2' : 'mt-3'"
+          >
             <button
               type="button"
-              class="px-4 py-2 text-sm transition"
-              :class="
+              class="transition"
+              :class="[
+                isMobileViewport ? 'px-3 py-1.5 text-[10px]' : 'px-4 py-2 text-sm',
                 gameMode === 'ai'
                   ? 'bg-accent-sky text-bg-deep'
-                  : 'text-text-secondary hover:bg-bg-elevated hover:text-text-primary'
-              "
+                  : 'text-text-secondary hover:bg-bg-elevated hover:text-text-primary',
+              ]"
               @click="setGameMode('ai')"
             >
               Đấu máy
             </button>
             <button
               type="button"
-              class="border-l border-border-default px-4 py-2 text-sm transition"
-              :class="
+              class="border-l border-border-default transition"
+              :class="[
+                isMobileViewport ? 'px-3 py-1.5 text-[10px]' : 'px-4 py-2 text-sm',
                 gameMode === 'pvp'
                   ? 'bg-accent-coral text-bg-deep'
-                  : 'text-text-secondary hover:bg-bg-elevated hover:text-text-primary'
-              "
+                  : 'text-text-secondary hover:bg-bg-elevated hover:text-text-primary',
+              ]"
               @click="setGameMode('pvp')"
             >
               2 người
@@ -944,13 +1169,14 @@ function cooldownFrameStyle(side: PlayerSide) {
           </div>
         </div>
 
-        <div class="mt-6 flex justify-center">
+        <div class="flex justify-center" :class="isMobileViewport ? 'mt-3' : 'mt-5'">
           <button
             type="button"
-            class="inline-flex items-center gap-2 border border-border-default bg-accent-amber px-5 py-3 font-display text-sm text-bg-deep transition hover:brightness-110"
+            class="inline-flex items-center gap-2 border border-border-default bg-accent-amber font-display text-bg-deep transition hover:brightness-110"
+            :class="isMobileViewport ? 'px-4 py-2 text-[11px]' : 'px-5 py-3 text-sm'"
             @click="beginMatch"
           >
-            <Icon icon="lucide:play" class="size-4" />
+            <Icon icon="lucide:play" :class="isMobileViewport ? 'size-3.5' : 'size-4'" />
             Bắt đầu
           </button>
         </div>
@@ -965,6 +1191,31 @@ function cooldownFrameStyle(side: PlayerSide) {
         class="grid h-32 w-32 place-items-center border border-border-default bg-bg-surface/88 font-display text-6xl text-accent-amber backdrop-blur-sm"
       >
         {{ matchCountdownText }}
+      </div>
+    </div>
+
+    <div
+      v-if="shouldForceLandscape"
+      class="absolute inset-0 z-50 grid place-items-center bg-bg-deep px-5 text-center"
+    >
+      <div class="max-w-sm border border-border-default bg-bg-surface p-5">
+        <div
+          class="mx-auto grid h-16 w-16 place-items-center border border-border-default bg-bg-deep text-accent-amber"
+        >
+          <Icon icon="lucide:smartphone" class="size-8 rotate-90" />
+        </div>
+        <p class="mt-4 font-display text-2xl uppercase">Xoay ngang</p>
+        <p class="mt-2 text-sm text-text-secondary">
+          Trò chơi này cần điện thoại nằm ngang để hiển thị đầy đủ.
+        </p>
+        <button
+          type="button"
+          class="mt-4 inline-flex items-center gap-2 border border-border-default bg-accent-amber px-4 py-2 font-display text-sm text-bg-deep transition hover:brightness-110"
+          @click="requestLandscapeMode"
+        >
+          <Icon icon="lucide:rotate-cw" class="size-4" />
+          Thử xoay ngang
+        </button>
       </div>
     </div>
   </div>
