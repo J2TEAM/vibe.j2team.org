@@ -153,6 +153,7 @@ async function boardChar(type: CharType) {
         (type === 'human' ? leftHumans.value : leftDemons.value) :
         (type === 'human' ? rightHumans.value : rightDemons.value)
     const ch = pool[pool.length - 1]
+    if (!ch) return
     ch.animBoarding = true
     await sleep(380)
     ch.onBoat = true
@@ -163,6 +164,7 @@ async function deboardChar(type: CharType) {
     if (!canDeboard(type)) return
     const pool = type === 'human' ? boatHumans.value : boatDemons.value
     const ch = pool[pool.length - 1]
+    if (!ch) return
     ch.animAlighting = true
     await sleep(320)
     ch.onBoat = false
