@@ -24,17 +24,20 @@ type Unit = {
 type Lane = {
   id: number
   units: Unit[]
+  isColliding: boolean
 }
 
 const maxHp = 100
 const laneLength = 100
-const spawnPadding = 8
+const spawnPadding = 4.5
 const unitSpacing = 5.5
 const spawnBlockDistance = unitSpacing + 0.35
 const collideDistance = 4.8
+const collisionReleaseDistance = collideDistance + 0.45
 const movementSpeed = 7
 const spawnInterval = 3000
 const overshootMargin = 14
+const positionStep = 0.1
 const spriteUrls = [
   new URL('./svg/dino_01_bao-chua.svg', import.meta.url).href,
   new URL('./svg/dino_02_gai-nho.svg', import.meta.url).href,
@@ -47,14 +50,14 @@ const spriteUrls = [
 ] as const
 
 const dinosaurs: DinoType[] = [
-  { id: 1, name: 'Bạo Chúa', push: 3, damage: 7, sizeRem: 3.9, image: spriteUrls[0] },
-  { id: 2, name: 'Gai nhỏ', push: 6, damage: 4, sizeRem: 4.9, image: spriteUrls[1] },
+  { id: 1, name: 'Bạo Chúa', push: 5, damage: 5, sizeRem: 4.5, image: spriteUrls[0] },
+  { id: 2, name: 'Gai nhỏ', push: 6, damage: 4, sizeRem: 5.3, image: spriteUrls[1] },
   { id: 3, name: 'Cánh bay', push: 2, damage: 8, sizeRem: 3.5, image: spriteUrls[2] },
   { id: 4, name: 'Cổ dài', push: 9, damage: 1, sizeRem: 6.4, image: spriteUrls[3] },
   { id: 5, name: 'Mỏ dài', push: 4, damage: 6, sizeRem: 4.2, image: spriteUrls[4] },
   { id: 6, name: 'Ba sừng', push: 8, damage: 2, sizeRem: 5.8, image: spriteUrls[5] },
-  { id: 7, name: 'Lưng gai', push: 7, damage: 3, sizeRem: 5.4, image: spriteUrls[6] },
-  { id: 8, name: 'Mỏ vịt', push: 5, damage: 5, sizeRem: 4.5, image: spriteUrls[7] },
+  { id: 7, name: 'Lưng gai', push: 7, damage: 3, sizeRem: 5.8, image: spriteUrls[6] },
+  { id: 8, name: 'Mỏ vịt', push: 3, damage: 7, sizeRem: 3.9, image: spriteUrls[7] },
 ]
 
 const dinosaursByPush = computed(() =>
@@ -98,14 +101,15 @@ function createLane(id: number): Lane {
   return {
     id,
     units: [],
+    isColliding: false,
   }
 }
 
 const lanes = reactive<Lane[]>(Array.from({ length: 5 }, (_, index) => createLane(index)))
 const leftHp = ref(maxHp)
 const rightHp = ref(maxHp)
-const leftCurrent = ref<DinoType | null>(randomDino())
-const rightCurrent = ref<DinoType | null>(randomDino())
+const leftCurrent = ref<DinoType>(randomDino())
+const rightCurrent = ref<DinoType>(randomDino())
 const leftSpawnCountdown = ref(0)
 const rightSpawnCountdown = ref(0)
 const nextUnitId = ref(1)
@@ -114,17 +118,12 @@ const status = ref('Mỗi người có timer riêng. Thả khủng long vào lan
 
 const leftHpWidth = computed(() => `${(leftHp.value / maxHp) * 100}%`)
 const rightHpWidth = computed(() => `${(rightHp.value / maxHp) * 100}%`)
-const leftSpawnProgressWidth = computed(
-  () => `${((spawnInterval - leftSpawnCountdown.value) / spawnInterval) * 100}%`,
-)
-const rightSpawnProgressWidth = computed(
-  () => `${((spawnInterval - rightSpawnCountdown.value) / spawnInterval) * 100}%`,
-)
 const leftSpawnCountdownText = computed(() => `${(leftSpawnCountdown.value / 1000).toFixed(1)}s`)
 const rightSpawnCountdownText = computed(() => `${(rightSpawnCountdown.value / 1000).toFixed(1)}s`)
 
 function clampCombatX(x: number) {
-  return Math.max(-overshootMargin, Math.min(laneLength + overshootMargin, x))
+  const clamped = Math.max(-overshootMargin, Math.min(laneLength + overshootMargin, x))
+  return Math.round(clamped / positionStep) * positionStep
 }
 
 function getUnits(lane: Lane, side: PlayerSide) {
@@ -178,14 +177,16 @@ function getEngagedUnits(units: Unit[], side: PlayerSide) {
 
 function refillCurrentDino(side: PlayerSide) {
   if (side === 'left') {
-    leftCurrent.value = randomDino()
     leftSpawnCountdown.value = 0
     status.value = 'Người chơi 1 có khủng long mới.'
   } else {
-    rightCurrent.value = randomDino()
     rightSpawnCountdown.value = 0
     status.value = 'Người chơi 2 có khủng long mới.'
   }
+}
+
+function isSideReady(side: PlayerSide) {
+  return side === 'left' ? leftSpawnCountdown.value === 0 : rightSpawnCountdown.value === 0
 }
 
 function deployCurrentDino(laneIndex: number, side: PlayerSide) {
@@ -198,10 +199,11 @@ function deployCurrentDino(laneIndex: number, side: PlayerSide) {
     return
   }
 
-  const current = side === 'left' ? leftCurrent.value : rightCurrent.value
-  if (!current) {
+  if (!isSideReady(side)) {
     return
   }
+
+  const current = side === 'left' ? leftCurrent.value : rightCurrent.value
 
   if (!canDeployToLane(lane, side)) {
     status.value = `${side === 'left' ? 'Người chơi 1' : 'Người chơi 2'} không thể thả thêm ở lane ${laneIndex + 1}.`
@@ -216,11 +218,11 @@ function deployCurrentDino(laneIndex: number, side: PlayerSide) {
   })
 
   if (side === 'left') {
-    leftCurrent.value = null
+    leftCurrent.value = randomDino()
     leftSpawnCountdown.value = spawnInterval
     status.value = `Người chơi 1 thả ${current.name} vào lane ${laneIndex + 1}.`
   } else {
-    rightCurrent.value = null
+    rightCurrent.value = randomDino()
     rightSpawnCountdown.value = spawnInterval
     status.value = `Người chơi 2 thả ${current.name} vào lane ${laneIndex + 1}.`
   }
@@ -303,10 +305,16 @@ function updateLane(lane: Lane, dt: number) {
   const rightFront = rightUnits[rightUnits.length - 1] ?? null
 
   if (resolveEscapedUnits(lane)) {
+    lane.isColliding = false
     return
   }
 
-  if (leftFront && rightFront && rightFront.x - leftFront.x <= collideDistance) {
+  const collisionDistance = lane.isColliding ? collisionReleaseDistance : collideDistance
+  const isFrontCollision =
+    leftFront && rightFront && rightFront.x - leftFront.x <= collisionDistance
+
+  if (isFrontCollision && leftFront && rightFront) {
+    lane.isColliding = true
     const leftEngagedUnits = getEngagedUnits(leftUnits, 'left')
     const rightEngagedUnits = getEngagedUnits(rightUnits, 'right')
     const diff = getTotalPush(leftEngagedUnits) - getTotalPush(rightEngagedUnits)
@@ -322,6 +330,7 @@ function updateLane(lane: Lane, dt: number) {
     }
 
     if (resolveEscapedUnits(lane)) {
+      lane.isColliding = false
       return
     }
 
@@ -329,6 +338,7 @@ function updateLane(lane: Lane, dt: number) {
     leftFront.x = clampCombatX(center - collideDistance / 2)
     rightFront.x = clampCombatX(center + collideDistance / 2)
   } else {
+    lane.isColliding = false
     if (leftFront) {
       leftFront.x = clampCombatX(leftFront.x + (movementSpeed * dt) / 1000)
     }
@@ -370,14 +380,14 @@ useRafFn(({ delta }) => {
 
   const dt = Math.min(delta, 32)
 
-  if (leftCurrent.value === null && leftSpawnCountdown.value > 0) {
+  if (leftSpawnCountdown.value > 0) {
     leftSpawnCountdown.value = Math.max(0, leftSpawnCountdown.value - dt)
     if (leftSpawnCountdown.value === 0) {
       refillCurrentDino('left')
     }
   }
 
-  if (rightCurrent.value === null && rightSpawnCountdown.value > 0) {
+  if (rightSpawnCountdown.value > 0) {
     rightSpawnCountdown.value = Math.max(0, rightSpawnCountdown.value - dt)
     if (rightSpawnCountdown.value === 0) {
       refillCurrentDino('right')
@@ -410,13 +420,25 @@ function unitStyle(unit: Unit) {
     height: `${unit.type.sizeRem}rem`,
   }
 }
+
+function cooldownFrameStyle(side: PlayerSide) {
+  const countdown = side === 'left' ? leftSpawnCountdown.value : rightSpawnCountdown.value
+  const progress = countdown === 0 ? 1 : (spawnInterval - countdown) / spawnInterval
+  const color = countdown === 0 ? 'rgba(255, 255, 255, 0.92)' : 'rgba(255, 255, 255, 0.52)'
+  const track = countdown === 0 ? 'rgba(255, 255, 255, 0.18)' : 'rgba(255, 255, 255, 0.06)'
+
+  return {
+    background: `conic-gradient(${color} ${Math.max(0, Math.min(1, progress)) * 360}deg, ${track} 0deg)`,
+    opacity: countdown === 0 ? '1' : '0.9',
+  }
+}
 </script>
 
 <template>
   <div class="h-screen overflow-hidden bg-bg-deep px-3 py-3 text-text-primary">
-    <div class="mx-auto flex h-full max-w-7xl flex-col gap-3">
-      <header class="grid shrink-0 gap-3 lg:grid-cols-[1fr_1.1fr_1fr]">
-        <section class="border border-border-default bg-bg-surface p-3">
+    <div class="mx-auto flex h-full max-w-7xl flex-col gap-2 md:gap-1.5">
+      <header class="grid shrink-0 gap-2 md:grid-cols-[0.92fr_1.08fr_0.92fr] xl:gap-3">
+        <section class="border border-border-default bg-bg-surface p-2.5 md:p-2 xl:p-3">
           <div class="flex items-center justify-between gap-3">
             <div>
               <p class="font-display text-[11px] tracking-[0.24em] text-accent-coral">P1</p>
@@ -429,64 +451,59 @@ function unitStyle(unit: Unit) {
             </div>
           </div>
 
-          <div class="mt-3 border border-border-default bg-bg-deep p-3">
-            <p class="font-display text-[11px] tracking-[0.2em] text-text-dim">
-              KHỦNG LONG HIỆN TẠI
-            </p>
-            <div class="mt-2 flex items-center gap-3">
+          <div class="mt-2 border border-border-default bg-bg-deep p-2.5 md:p-2 xl:mt-3 xl:p-3">
+            <div class="flex items-center gap-2.5">
               <div
-                class="grid h-28 w-28 shrink-0 place-items-center border border-border-default bg-bg-surface"
+                class="h-24 w-24 shrink-0 p-[2px] md:h-20 md:w-20 xl:h-28 xl:w-28"
+                :style="cooldownFrameStyle('left')"
               >
-                <img
-                  v-if="leftCurrent"
-                  :src="leftCurrent.image"
-                  :alt="leftCurrent.name"
-                  class="object-contain"
-                  :class="dinoFacingClass(leftCurrent, 'left')"
-                  :style="previewSpriteStyle(leftCurrent)"
-                />
-                <div v-else class="grid h-full w-full place-items-center text-text-dim">
-                  <Icon icon="lucide:timer-reset" class="size-6" />
+                <div
+                  class="grid h-full w-full place-items-center border border-border-default bg-bg-surface"
+                >
+                  <img
+                    :src="leftCurrent.image"
+                    :alt="leftCurrent.name"
+                    class="object-contain"
+                    :class="dinoFacingClass(leftCurrent, 'left')"
+                    :style="previewSpriteStyle(leftCurrent)"
+                  />
                 </div>
               </div>
-              <div class="min-h-20 text-xs text-text-secondary">
-                <template v-if="leftCurrent">
-                  <p class="font-display text-lg text-text-primary">{{ leftCurrent.name }}</p>
-                  <p>Push {{ leftCurrent.push }}</p>
-                  <p>Damage {{ leftCurrent.damage }}</p>
-                </template>
-                <p v-else>Đã dùng lượt hiện tại</p>
+              <div
+                class="min-h-14 text-[11px] text-text-secondary md:min-h-12 xl:min-h-20 xl:text-xs"
+              >
+                <p class="font-display text-base text-text-primary md:text-sm xl:text-lg">
+                  {{ leftCurrent.name }}
+                </p>
+                <p>Push {{ leftCurrent.push }}</p>
+                <p>Damage {{ leftCurrent.damage }}</p>
               </div>
             </div>
-            <div class="mt-3">
-              <div class="flex items-center justify-between text-[11px] text-text-secondary">
-                <span>{{ leftCurrent ? 'Sẵn sàng' : 'Khủng long mới sau' }}</span>
-                <span>{{ leftCurrent ? '0.0s' : leftSpawnCountdownText }}</span>
-              </div>
-              <div class="mt-2 h-2 bg-bg-surface">
-                <div
-                  class="h-full bg-accent-coral transition-[width] duration-100"
-                  :style="{ width: leftSpawnProgressWidth }"
-                />
-              </div>
+            <div
+              class="mt-2 flex items-center justify-between text-[10px] text-text-secondary md:text-[9px] xl:mt-3 xl:text-[11px]"
+            >
+              <span>{{ isSideReady('left') ? 'Sẵn sàng' : 'Tiếp theo' }}</span>
+              <span>{{ isSideReady('left') ? '0.0s' : leftSpawnCountdownText }}</span>
             </div>
           </div>
         </section>
 
-        <section class="border border-border-default bg-bg-surface p-3">
+        <section class="border border-border-default bg-bg-surface p-2.5 md:p-2 xl:p-3">
           <div class="flex items-start justify-between gap-3">
             <div>
               <p class="font-display text-[11px] tracking-[0.28em] text-accent-coral">
                 // DINOSAUR BATTLE
               </p>
-              <h1 class="font-display text-3xl font-bold uppercase leading-none">
+              <h1
+                class="font-display text-3xl font-bold uppercase leading-none md:text-[2rem] xl:text-3xl"
+              >
                 Khủng Long Chiến
               </h1>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 xl:gap-2">
               <button
                 type="button"
-                class="inline-flex items-center gap-2 border border-border-default px-3 py-2 text-xs transition hover:border-accent-amber hover:bg-bg-elevated"
+                class="inline-flex items-center gap-1.5 border border-border-default px-2.5 py-1.5 text-[11px] transition hover:border-accent-amber hover:bg-bg-elevated md:px-2 md:text-[10px] xl:gap-2 xl:px-3 xl:py-2 xl:text-xs"
                 @click="resetGame"
               >
                 <Icon icon="lucide:rotate-ccw" class="size-4" />
@@ -494,7 +511,7 @@ function unitStyle(unit: Unit) {
               </button>
               <RouterLink
                 to="/"
-                class="inline-flex items-center gap-2 border border-border-default px-3 py-2 text-xs text-text-secondary transition hover:border-accent-coral hover:bg-bg-elevated hover:text-text-primary"
+                class="inline-flex items-center gap-1.5 border border-border-default px-2.5 py-1.5 text-[11px] text-text-secondary transition hover:border-accent-coral hover:bg-bg-elevated hover:text-text-primary md:px-2 md:text-[10px] xl:gap-2 xl:px-3 xl:py-2 xl:text-xs"
               >
                 <Icon icon="lucide:house" class="size-4" />
                 Trang chủ
@@ -502,35 +519,20 @@ function unitStyle(unit: Unit) {
             </div>
           </div>
 
-          <div class="mt-3 grid gap-2 sm:grid-cols-3">
-            <div
-              class="border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary"
-            >
-              Cứ 3 giây mỗi bên nhận 1 khủng long mới.
-            </div>
-            <div
-              class="border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary"
-            >
-              Chỉ cộng lực khi các con thật sự chạm nhau.
-            </div>
-            <div
-              class="border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary"
-            >
-              Đẩy qua vạch đích để trừ HP đối thủ.
-            </div>
-          </div>
-
           <div
-            class="mt-3 border border-border-default bg-bg-deep px-3 py-2 text-sm text-text-secondary"
+            class="mt-2 border border-border-default bg-bg-deep px-3 py-2 text-xs text-text-secondary md:text-[11px] xl:mt-3 xl:text-sm"
           >
             {{ status }}
           </div>
-          <p v-if="winner" class="mt-2 font-display text-xl text-accent-amber">
+          <p
+            v-if="winner"
+            class="mt-1.5 font-display text-lg text-accent-amber md:text-base xl:mt-2 xl:text-xl"
+          >
             {{ winner === 'left' ? 'Người chơi 1 thắng' : 'Người chơi 2 thắng' }}
           </p>
         </section>
 
-        <section class="border border-border-default bg-bg-surface p-3">
+        <section class="border border-border-default bg-bg-surface p-2.5 md:p-2 xl:p-3">
           <div class="flex items-center justify-between gap-3">
             <div>
               <p class="font-display text-[11px] tracking-[0.24em] text-accent-sky">P2</p>
@@ -543,66 +545,64 @@ function unitStyle(unit: Unit) {
             </div>
           </div>
 
-          <div class="mt-3 border border-border-default bg-bg-deep p-3">
-            <p class="font-display text-[11px] tracking-[0.2em] text-text-dim">
-              KHỦNG LONG HIỆN TẠI
-            </p>
-            <div class="mt-2 flex items-center gap-3">
+          <div class="mt-2 border border-border-default bg-bg-deep p-2.5 md:p-2 xl:mt-3 xl:p-3">
+            <div class="flex items-center gap-2.5">
               <div
-                class="grid h-28 w-28 shrink-0 place-items-center border border-border-default bg-bg-surface"
+                class="h-24 w-24 shrink-0 p-[2px] md:h-20 md:w-20 xl:h-28 xl:w-28"
+                :style="cooldownFrameStyle('right')"
               >
-                <img
-                  v-if="rightCurrent"
-                  :src="rightCurrent.image"
-                  :alt="rightCurrent.name"
-                  class="object-contain"
-                  :class="dinoFacingClass(rightCurrent, 'right')"
-                  :style="previewSpriteStyle(rightCurrent)"
-                />
-                <div v-else class="grid h-full w-full place-items-center text-text-dim">
-                  <Icon icon="lucide:timer-reset" class="size-6" />
+                <div
+                  class="grid h-full w-full place-items-center border border-border-default bg-bg-surface"
+                >
+                  <img
+                    :src="rightCurrent.image"
+                    :alt="rightCurrent.name"
+                    class="object-contain"
+                    :class="dinoFacingClass(rightCurrent, 'right')"
+                    :style="previewSpriteStyle(rightCurrent)"
+                  />
                 </div>
               </div>
-              <div class="min-h-20 text-xs text-text-secondary">
-                <template v-if="rightCurrent">
-                  <p class="font-display text-lg text-text-primary">{{ rightCurrent.name }}</p>
-                  <p>Push {{ rightCurrent.push }}</p>
-                  <p>Damage {{ rightCurrent.damage }}</p>
-                </template>
-                <p v-else>Đã dùng lượt hiện tại</p>
+              <div
+                class="min-h-14 text-[11px] text-text-secondary md:min-h-12 xl:min-h-20 xl:text-xs"
+              >
+                <p class="font-display text-base text-text-primary md:text-sm xl:text-lg">
+                  {{ rightCurrent.name }}
+                </p>
+                <p>Push {{ rightCurrent.push }}</p>
+                <p>Damage {{ rightCurrent.damage }}</p>
               </div>
             </div>
-            <div class="mt-3">
-              <div class="flex items-center justify-between text-[11px] text-text-secondary">
-                <span>{{ rightCurrent ? 'Sẵn sàng' : 'Khủng long mới sau' }}</span>
-                <span>{{ rightCurrent ? '0.0s' : rightSpawnCountdownText }}</span>
-              </div>
-              <div class="mt-2 h-2 bg-bg-surface">
-                <div
-                  class="h-full bg-accent-sky transition-[width] duration-100"
-                  :style="{ width: rightSpawnProgressWidth }"
-                />
-              </div>
+            <div
+              class="mt-2 flex items-center justify-between text-[10px] text-text-secondary md:text-[9px] xl:mt-3 xl:text-[11px]"
+            >
+              <span>{{ isSideReady('right') ? 'Sẵn sàng' : 'Tiếp theo' }}</span>
+              <span>{{ isSideReady('right') ? '0.0s' : rightSpawnCountdownText }}</span>
             </div>
           </div>
         </section>
       </header>
 
-      <section class="flex min-h-0 flex-1 flex-col gap-2">
+      <section class="flex min-h-0 flex-1 flex-col gap-1.5 md:gap-1 xl:gap-2">
         <article
           v-for="lane in lanes"
           :key="lane.id"
-          class="grid min-h-0 flex-1 grid-cols-[88px_minmax(0,1fr)_88px] gap-2"
+          class="grid min-h-0 flex-1 grid-cols-[76px_minmax(0,1fr)_76px] gap-1.5 md:grid-cols-[62px_minmax(0,1fr)_62px] md:gap-1 xl:grid-cols-[88px_minmax(0,1fr)_88px] xl:gap-2"
         >
           <button
             type="button"
-            class="grid place-items-center border border-border-default bg-bg-surface p-2 transition hover:border-accent-coral hover:bg-bg-elevated disabled:opacity-45"
-            :disabled="winner !== null || leftCurrent === null || !canDeployToLane(lane, 'left')"
+            class="grid place-items-center border border-border-default bg-bg-surface p-2 transition hover:border-accent-coral hover:bg-bg-elevated disabled:opacity-45 md:p-1.5 xl:p-2"
+            :disabled="winner !== null || !isSideReady('left') || !canDeployToLane(lane, 'left')"
             @click="deployCurrentDino(lane.id, 'left')"
           >
             <div class="text-center">
               <p class="font-display text-xs tracking-[0.2em] text-accent-coral">P1</p>
-              <p class="mt-1 text-[11px] text-text-secondary">Lane {{ lane.id + 1 }}</p>
+              <p class="mt-1 text-[10px] text-text-secondary md:hidden xl:block">
+                Lane {{ lane.id + 1 }}
+              </p>
+              <p class="mt-1 hidden text-[10px] text-text-secondary md:block xl:hidden">
+                {{ lane.id + 1 }}
+              </p>
             </div>
           </button>
 
@@ -647,23 +647,30 @@ function unitStyle(unit: Unit) {
 
           <button
             type="button"
-            class="grid place-items-center border border-border-default bg-bg-surface p-2 transition hover:border-accent-sky hover:bg-bg-elevated disabled:opacity-45"
-            :disabled="winner !== null || rightCurrent === null || !canDeployToLane(lane, 'right')"
+            class="grid place-items-center border border-border-default bg-bg-surface p-2 transition hover:border-accent-sky hover:bg-bg-elevated disabled:opacity-45 md:p-1.5 xl:p-2"
+            :disabled="winner !== null || !isSideReady('right') || !canDeployToLane(lane, 'right')"
             @click="deployCurrentDino(lane.id, 'right')"
           >
             <div class="text-center">
               <p class="font-display text-xs tracking-[0.2em] text-accent-sky">P2</p>
-              <p class="mt-1 text-[11px] text-text-secondary">Lane {{ lane.id + 1 }}</p>
+              <p class="mt-1 text-[10px] text-text-secondary md:hidden xl:block">
+                Lane {{ lane.id + 1 }}
+              </p>
+              <p class="mt-1 hidden text-[10px] text-text-secondary md:block xl:hidden">
+                {{ lane.id + 1 }}
+              </p>
             </div>
           </button>
         </article>
       </section>
 
-      <footer class="grid shrink-0 gap-2 text-xs text-text-secondary sm:grid-cols-4">
+      <footer
+        class="grid shrink-0 gap-1.5 text-[11px] text-text-secondary sm:grid-cols-4 md:gap-1 xl:gap-2 xl:text-xs"
+      >
         <div
           v-for="dino in dinosaursByPush"
           :key="dino.id"
-          class="flex items-center gap-2 border border-border-default bg-bg-surface px-3 py-2"
+          class="flex items-center gap-2 border border-border-default bg-bg-surface px-2.5 py-1.5 md:px-2 md:py-1.5 xl:px-3 xl:py-2"
         >
           <img
             :src="dino.image"
@@ -675,7 +682,9 @@ function unitStyle(unit: Unit) {
             }"
           />
           <div>
-            <p class="font-display text-sm text-text-primary">{{ dino.name }}</p>
+            <p class="font-display text-sm text-text-primary md:text-[13px] xl:text-sm">
+              {{ dino.name }}
+            </p>
             <p>Push {{ dino.push }} · Damage {{ dino.damage }}</p>
           </div>
         </div>
