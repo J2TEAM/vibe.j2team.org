@@ -1,10 +1,12 @@
 import { toPng } from 'html-to-image'
+import { useClipboard } from '@vueuse/core'
 import { ref } from 'vue'
 import type { Tournament } from '../types'
 
 export function useShare() {
   const exporting = ref(false)
   const sharing = ref(false)
+  const { copy } = useClipboard()
 
   async function exportImage(el: HTMLElement, tournamentName: string): Promise<void> {
     if (exporting.value) return
@@ -44,11 +46,11 @@ export function useShare() {
       const url = `${window.location.origin}${window.location.pathname}#share=${encoded}`
 
       if (url.length > 8000) {
-        await navigator.clipboard.writeText(encoded)
+        await copy(encoded)
         return false
       }
 
-      await navigator.clipboard.writeText(url)
+      await copy(url)
       return true
     } finally {
       sharing.value = false
