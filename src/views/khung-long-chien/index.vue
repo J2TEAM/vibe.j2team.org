@@ -663,11 +663,11 @@ function cooldownFrameStyle(side: PlayerSide) {
           >
             // DINOSAUR BATTLE
           </p>
-          <div class="mt-1 flex justify-center">
+          <div class="mt-1.5 grid justify-items-center gap-1">
             <div class="inline-flex border border-border-default bg-bg-deep">
               <button
                 type="button"
-                class="px-2 py-0.5 text-[9px] transition"
+                class="px-2 py-1 text-[9px] transition"
                 :class="
                   gameMode === 'pvp'
                     ? 'bg-accent-coral text-bg-deep'
@@ -679,7 +679,7 @@ function cooldownFrameStyle(side: PlayerSide) {
               </button>
               <button
                 type="button"
-                class="border-l border-border-default px-2 py-0.5 text-[9px] transition"
+                class="border-l border-border-default px-2 py-1 text-[9px] transition"
                 :class="
                   gameMode === 'ai'
                     ? 'bg-accent-sky text-bg-deep'
@@ -690,23 +690,23 @@ function cooldownFrameStyle(side: PlayerSide) {
                 AI
               </button>
             </div>
-          </div>
-          <div class="mt-1 flex justify-center gap-1">
-            <button
-              type="button"
-              class="inline-flex items-center gap-1 border border-border-default px-1.5 py-1 text-[9px] transition hover:border-accent-amber hover:bg-bg-elevated"
-              @click="beginMatch"
-            >
-              <Icon icon="lucide:rotate-ccw" class="size-3" />
-              Lại
-            </button>
-            <RouterLink
-              to="/"
-              class="inline-flex items-center gap-1 border border-border-default px-1.5 py-1 text-[9px] text-text-secondary transition hover:border-accent-coral hover:bg-bg-elevated hover:text-text-primary"
-            >
-              <Icon icon="lucide:house" class="size-3" />
-              Nhà
-            </RouterLink>
+            <div class="flex flex-wrap justify-center gap-1">
+              <button
+                type="button"
+                class="inline-flex items-center justify-center gap-1 border border-border-default bg-bg-deep px-1.5 py-1 text-[9px] transition hover:border-accent-amber hover:bg-bg-elevated"
+                @click="beginMatch"
+              >
+                <Icon icon="lucide:rotate-ccw" class="size-3" />
+                Chơi lại
+              </button>
+              <RouterLink
+                to="/"
+                class="inline-flex items-center justify-center gap-1 border border-border-default bg-bg-deep px-1.5 py-1 text-[9px] text-text-secondary transition hover:border-accent-coral hover:bg-bg-elevated hover:text-text-primary"
+              >
+                <Icon icon="lucide:house" class="size-3" />
+                Trang chủ
+              </RouterLink>
+            </div>
           </div>
           <p
             v-if="winner"
@@ -815,7 +815,9 @@ function cooldownFrameStyle(side: PlayerSide) {
               >
                 Khủng Long Chiến
               </h1>
-              <div class="mt-1.5 inline-flex border border-border-default bg-bg-deep">
+            </div>
+            <div class="grid gap-2">
+              <div class="inline-flex border border-border-default bg-bg-deep">
                 <button
                   type="button"
                   class="px-2.5 py-1 text-[10px] transition md:px-2 xl:px-2.5"
@@ -841,23 +843,23 @@ function cooldownFrameStyle(side: PlayerSide) {
                   Đấu máy
                 </button>
               </div>
-            </div>
-            <div class="flex items-center gap-1.5 xl:gap-2">
-              <button
-                type="button"
-                class="inline-flex items-center gap-1.5 border border-border-default px-2.5 py-1.5 text-[11px] transition hover:border-accent-amber hover:bg-bg-elevated md:px-2 md:text-[10px] xl:gap-2 xl:px-3 xl:py-2 xl:text-xs"
-                @click="beginMatch"
-              >
-                <Icon icon="lucide:rotate-ccw" class="size-4" />
-                Chơi lại
-              </button>
-              <RouterLink
-                to="/"
-                class="inline-flex items-center gap-1.5 border border-border-default px-2.5 py-1.5 text-[11px] text-text-secondary transition hover:border-accent-coral hover:bg-bg-elevated hover:text-text-primary md:px-2 md:text-[10px] xl:gap-2 xl:px-3 xl:py-2 xl:text-xs"
-              >
-                <Icon icon="lucide:house" class="size-4" />
-                Trang chủ
-              </RouterLink>
+              <div class="flex items-center gap-1.5 xl:gap-2">
+                <button
+                  type="button"
+                  class="inline-flex min-w-24 items-center justify-center gap-1.5 border border-border-default bg-bg-deep px-2.5 py-1.5 text-[11px] transition hover:border-accent-amber hover:bg-bg-elevated md:min-w-20 md:px-2 md:text-[10px] xl:min-w-28 xl:gap-2 xl:px-3 xl:py-2 xl:text-xs"
+                  @click="beginMatch"
+                >
+                  <Icon icon="lucide:rotate-ccw" class="size-4" />
+                  Chơi lại
+                </button>
+                <RouterLink
+                  to="/"
+                  class="inline-flex min-w-24 items-center justify-center gap-1.5 border border-border-default bg-bg-deep px-2.5 py-1.5 text-[11px] text-text-secondary transition hover:border-accent-coral hover:bg-bg-elevated hover:text-text-primary md:min-w-20 md:px-2 md:text-[10px] xl:min-w-28 xl:gap-2 xl:px-3 xl:py-2 xl:text-xs"
+                >
+                  <Icon icon="lucide:house" class="size-4" />
+                  Trang chủ
+                </RouterLink>
+              </div>
             </div>
           </div>
 
