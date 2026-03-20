@@ -4,6 +4,7 @@ import { useRafFn } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 
 type PlayerSide = 'left' | 'right'
+type GameMode = 'pvp' | 'ai'
 
 type DinoType = {
   id: number
@@ -38,6 +39,9 @@ const movementSpeed = 7
 const spawnInterval = 3000
 const overshootMargin = 14
 const positionStep = 0.1
+const aiReactionMin = 260
+const aiReactionMax = 720
+const preMatchCountdown = 3000
 const spriteUrls = [
   new URL('./svg/dino_01_bao-chua.svg', import.meta.url).href,
   new URL('./svg/dino_02_gai-nho.svg', import.meta.url).href,
@@ -97,6 +101,14 @@ function isFlyingDino(dino: DinoType) {
   return dino.id === 3
 }
 
+function sideLabel(side: PlayerSide, mode: GameMode) {
+  if (side === 'left') {
+    return 'Người chơi 1'
+  }
+
+  return mode === 'ai' ? 'Máy' : 'Người chơi 2'
+}
+
 function createLane(id: number): Lane {
   return {
     id,
@@ -112,14 +124,20 @@ const leftCurrent = ref<DinoType>(randomDino())
 const rightCurrent = ref<DinoType>(randomDino())
 const leftSpawnCountdown = ref(0)
 const rightSpawnCountdown = ref(0)
+const rightAiThinkCountdown = ref(0)
 const nextUnitId = ref(1)
 const winner = ref<PlayerSide | null>(null)
-const status = ref('Mỗi người có timer riêng. Thả khủng long vào lane để bắt đầu ép sân.')
+const gameMode = ref<GameMode>('ai')
+const showStartMenu = ref(true)
+const matchCountdown = ref(0)
+const isMatchLive = ref(false)
+const status = ref('Chế độ đấu máy. Bạn ở bên trái, máy ở bên phải.')
 
 const leftHpWidth = computed(() => `${(leftHp.value / maxHp) * 100}%`)
 const rightHpWidth = computed(() => `${(rightHp.value / maxHp) * 100}%`)
 const leftSpawnCountdownText = computed(() => `${(leftSpawnCountdown.value / 1000).toFixed(1)}s`)
 const rightSpawnCountdownText = computed(() => `${(rightSpawnCountdown.value / 1000).toFixed(1)}s`)
+const matchCountdownText = computed(() => `${Math.max(1, Math.ceil(matchCountdown.value / 1000))}`)
 
 function clampCombatX(x: number) {
   const clamped = Math.max(-overshootMargin, Math.min(laneLength + overshootMargin, x))
@@ -178,10 +196,10 @@ function getEngagedUnits(units: Unit[], side: PlayerSide) {
 function refillCurrentDino(side: PlayerSide) {
   if (side === 'left') {
     leftSpawnCountdown.value = 0
-    status.value = 'Người chơi 1 có khủng long mới.'
+    status.value = `${sideLabel('left', gameMode.value)} có khủng long mới.`
   } else {
     rightSpawnCountdown.value = 0
-    status.value = 'Người chơi 2 có khủng long mới.'
+    status.value = `${sideLabel('right', gameMode.value)} có khủng long mới.`
   }
 }
 
@@ -206,7 +224,7 @@ function deployCurrentDino(laneIndex: number, side: PlayerSide) {
   const current = side === 'left' ? leftCurrent.value : rightCurrent.value
 
   if (!canDeployToLane(lane, side)) {
-    status.value = `${side === 'left' ? 'Người chơi 1' : 'Người chơi 2'} không thể thả thêm ở lane ${laneIndex + 1}.`
+    status.value = `${sideLabel(side, gameMode.value)} không thể thả thêm ở lane ${laneIndex + 1}.`
     return
   }
 
@@ -220,29 +238,29 @@ function deployCurrentDino(laneIndex: number, side: PlayerSide) {
   if (side === 'left') {
     leftCurrent.value = randomDino()
     leftSpawnCountdown.value = spawnInterval
-    status.value = `Người chơi 1 thả ${current.name} vào lane ${laneIndex + 1}.`
+    status.value = `${sideLabel('left', gameMode.value)} thả ${current.name} vào lane ${laneIndex + 1}.`
   } else {
     rightCurrent.value = randomDino()
     rightSpawnCountdown.value = spawnInterval
-    status.value = `Người chơi 2 thả ${current.name} vào lane ${laneIndex + 1}.`
+    status.value = `${sideLabel('right', gameMode.value)} thả ${current.name} vào lane ${laneIndex + 1}.`
   }
 }
 
 function dealBaseDamage(lane: Lane, side: PlayerSide, unit: Unit) {
   if (side === 'left') {
     rightHp.value = Math.max(0, rightHp.value - unit.type.damage)
-    status.value = `Người chơi 1 đẩy khủng long qua lane ${lane.id + 1}, gây ${unit.type.damage} sát thương.`
+    status.value = `${sideLabel('left', gameMode.value)} đẩy khủng long qua lane ${lane.id + 1}, gây ${unit.type.damage} sát thương.`
   } else {
     leftHp.value = Math.max(0, leftHp.value - unit.type.damage)
-    status.value = `Người chơi 2 đẩy khủng long qua lane ${lane.id + 1}, gây ${unit.type.damage} sát thương.`
+    status.value = `${sideLabel('right', gameMode.value)} đẩy khủng long qua lane ${lane.id + 1}, gây ${unit.type.damage} sát thương.`
   }
 
   if (leftHp.value <= 0) {
     winner.value = 'right'
-    status.value = 'Người chơi 2 chiến thắng.'
+    status.value = `${sideLabel('right', gameMode.value)} chiến thắng.`
   } else if (rightHp.value <= 0) {
     winner.value = 'left'
-    status.value = 'Người chơi 1 chiến thắng.'
+    status.value = `${sideLabel('left', gameMode.value)} chiến thắng.`
   }
 }
 
@@ -291,11 +309,84 @@ function resolveEscapedUnits(lane: Lane) {
   }
 
   if (leftEliminatedUnits.length > 0 || rightEliminatedUnits.length > 0) {
-    const eliminatedSide = leftEliminatedUnits.length > 0 ? 'Người chơi 1' : 'Người chơi 2'
+    const eliminatedSide =
+      leftEliminatedUnits.length > 0
+        ? sideLabel('left', gameMode.value)
+        : sideLabel('right', gameMode.value)
     status.value = `${eliminatedSide} bị đẩy lùi và mất khủng long ở lane ${lane.id + 1}.`
   }
 
   return true
+}
+
+function getFrontUnit(lane: Lane, side: PlayerSide) {
+  const units = getUnits(lane, side)
+  return units[units.length - 1] ?? null
+}
+
+function getRightAiLaneScore(lane: Lane) {
+  if (!canDeployToLane(lane, 'right')) {
+    return Number.NEGATIVE_INFINITY
+  }
+
+  const current = rightCurrent.value
+  const leftFront = getFrontUnit(lane, 'left')
+  const rightFront = getFrontUnit(lane, 'right')
+  const leftPush = getLanePush(lane, 'left')
+  const rightPush = getLanePush(lane, 'right')
+  let score = Math.random() * 0.3
+
+  if (leftFront) {
+    score += (leftFront.x / laneLength) * 7.5
+  } else {
+    score += current.damage * 0.7
+  }
+
+  if (leftPush > rightPush) {
+    score += (leftPush - rightPush) * 1.35 + current.push * 1.1
+  } else {
+    score += current.damage * 0.55
+  }
+
+  if (rightFront) {
+    score += (1 - rightFront.x / laneLength) * 4
+  }
+
+  if (!leftFront && !rightFront) {
+    score += 1.2
+  }
+
+  return score
+}
+
+function chooseRightAiLane() {
+  const rankedLanes = lanes
+    .map((lane) => ({
+      laneId: lane.id,
+      score: getRightAiLaneScore(lane),
+    }))
+    .filter((entry) => Number.isFinite(entry.score))
+    .sort((left, right) => right.score - left.score)
+
+  return rankedLanes[0]?.laneId ?? null
+}
+
+function beginMatch() {
+  resetGame()
+  showStartMenu.value = false
+  isMatchLive.value = false
+  matchCountdown.value = preMatchCountdown
+  status.value =
+    gameMode.value === 'ai' ? 'Chuẩn bị đối đầu với máy.' : 'Chuẩn bị cho trận đấu 2 người.'
+}
+
+function setGameMode(mode: GameMode) {
+  if (gameMode.value === mode) {
+    return
+  }
+
+  gameMode.value = mode
+  resetGame()
 }
 
 function updateLane(lane: Lane, dt: number) {
@@ -374,11 +465,29 @@ function updateLane(lane: Lane, dt: number) {
 }
 
 useRafFn(({ delta }) => {
+  if (showStartMenu.value) {
+    return
+  }
+
   if (winner.value) {
     return
   }
 
   const dt = Math.min(delta, 32)
+
+  if (!isMatchLive.value) {
+    if (matchCountdown.value > 0) {
+      matchCountdown.value = Math.max(0, matchCountdown.value - dt)
+      if (matchCountdown.value === 0) {
+        isMatchLive.value = true
+        status.value =
+          gameMode.value === 'ai'
+            ? 'Trận đấu bắt đầu. Máy đang canh lane bên phải.'
+            : 'Trận đấu bắt đầu.'
+      }
+    }
+    return
+  }
 
   if (leftSpawnCountdown.value > 0) {
     leftSpawnCountdown.value = Math.max(0, leftSpawnCountdown.value - dt)
@@ -394,6 +503,29 @@ useRafFn(({ delta }) => {
     }
   }
 
+  if (gameMode.value === 'ai') {
+    if (isSideReady('right')) {
+      if (rightAiThinkCountdown.value <= 0) {
+        rightAiThinkCountdown.value =
+          aiReactionMin + Math.random() * (aiReactionMax - aiReactionMin)
+      } else {
+        rightAiThinkCountdown.value = Math.max(0, rightAiThinkCountdown.value - dt)
+        if (rightAiThinkCountdown.value === 0) {
+          const laneId = chooseRightAiLane()
+          if (laneId !== null) {
+            deployCurrentDino(laneId, 'right')
+          } else {
+            rightAiThinkCountdown.value = 180
+          }
+        }
+      }
+    } else {
+      rightAiThinkCountdown.value = 0
+    }
+  } else {
+    rightAiThinkCountdown.value = 0
+  }
+
   for (const lane of lanes) {
     updateLane(lane, dt)
   }
@@ -406,9 +538,15 @@ function resetGame() {
   rightCurrent.value = randomDino()
   leftSpawnCountdown.value = 0
   rightSpawnCountdown.value = 0
+  rightAiThinkCountdown.value = 0
   nextUnitId.value = 1
   winner.value = null
-  status.value = 'Mỗi người có timer riêng. Thả khủng long vào lane để bắt đầu ép sân.'
+  isMatchLive.value = false
+  matchCountdown.value = 0
+  status.value =
+    gameMode.value === 'ai'
+      ? 'Chế độ đấu máy. Bạn ở bên trái, máy ở bên phải.'
+      : 'Mỗi người có timer riêng. Thả khủng long vào lane để bắt đầu ép sân.'
   lanes.splice(0, lanes.length, ...Array.from({ length: 5 }, (_, index) => createLane(index)))
 }
 
@@ -435,7 +573,7 @@ function cooldownFrameStyle(side: PlayerSide) {
 </script>
 
 <template>
-  <div class="h-screen overflow-hidden bg-bg-deep px-3 py-3 text-text-primary">
+  <div class="relative h-screen overflow-hidden bg-bg-deep px-3 py-3 text-text-primary">
     <div class="mx-auto flex h-full max-w-7xl flex-col gap-2 md:gap-1.5">
       <header class="grid shrink-0 gap-2 md:grid-cols-[0.92fr_1.08fr_0.92fr] xl:gap-3">
         <section class="border border-border-default bg-bg-surface p-2.5 md:p-2 xl:p-3">
@@ -499,12 +637,38 @@ function cooldownFrameStyle(side: PlayerSide) {
               >
                 Khủng Long Chiến
               </h1>
+              <div class="mt-2 inline-flex border border-border-default bg-bg-deep">
+                <button
+                  type="button"
+                  class="px-2.5 py-1 text-[10px] transition md:px-2 xl:px-2.5"
+                  :class="
+                    gameMode === 'pvp'
+                      ? 'bg-accent-coral text-bg-deep'
+                      : 'text-text-secondary hover:bg-bg-elevated hover:text-text-primary'
+                  "
+                  @click="setGameMode('pvp')"
+                >
+                  2 người
+                </button>
+                <button
+                  type="button"
+                  class="border-l border-border-default px-2.5 py-1 text-[10px] transition md:px-2 xl:px-2.5"
+                  :class="
+                    gameMode === 'ai'
+                      ? 'bg-accent-sky text-bg-deep'
+                      : 'text-text-secondary hover:bg-bg-elevated hover:text-text-primary'
+                  "
+                  @click="setGameMode('ai')"
+                >
+                  Đấu máy
+                </button>
+              </div>
             </div>
             <div class="flex items-center gap-1.5 xl:gap-2">
               <button
                 type="button"
                 class="inline-flex items-center gap-1.5 border border-border-default px-2.5 py-1.5 text-[11px] transition hover:border-accent-amber hover:bg-bg-elevated md:px-2 md:text-[10px] xl:gap-2 xl:px-3 xl:py-2 xl:text-xs"
-                @click="resetGame"
+                @click="beginMatch"
               >
                 <Icon icon="lucide:rotate-ccw" class="size-4" />
                 Chơi lại
@@ -528,14 +692,22 @@ function cooldownFrameStyle(side: PlayerSide) {
             v-if="winner"
             class="mt-1.5 font-display text-lg text-accent-amber md:text-base xl:mt-2 xl:text-xl"
           >
-            {{ winner === 'left' ? 'Người chơi 1 thắng' : 'Người chơi 2 thắng' }}
+            {{
+              winner === 'left'
+                ? 'Người chơi 1 thắng'
+                : gameMode === 'ai'
+                  ? 'Máy thắng'
+                  : 'Người chơi 2 thắng'
+            }}
           </p>
         </section>
 
         <section class="border border-border-default bg-bg-surface p-2.5 md:p-2 xl:p-3">
           <div class="flex items-center justify-between gap-3">
             <div>
-              <p class="font-display text-[11px] tracking-[0.24em] text-accent-sky">P2</p>
+              <p class="font-display text-[11px] tracking-[0.24em] text-accent-sky">
+                {{ gameMode === 'ai' ? 'MÁY' : 'P2' }}
+              </p>
               <p class="font-display text-3xl font-bold">{{ rightHp }}</p>
             </div>
             <div class="w-28 border border-border-default bg-bg-deep p-1">
@@ -592,7 +764,12 @@ function cooldownFrameStyle(side: PlayerSide) {
           <button
             type="button"
             class="grid place-items-center border border-border-default bg-bg-surface p-2 transition hover:border-accent-coral hover:bg-bg-elevated disabled:opacity-45 md:p-1.5 xl:p-2"
-            :disabled="winner !== null || !isSideReady('left') || !canDeployToLane(lane, 'left')"
+            :disabled="
+              !isMatchLive ||
+              winner !== null ||
+              !isSideReady('left') ||
+              !canDeployToLane(lane, 'left')
+            "
             @click="deployCurrentDino(lane.id, 'left')"
           >
             <div class="text-center">
@@ -648,11 +825,19 @@ function cooldownFrameStyle(side: PlayerSide) {
           <button
             type="button"
             class="grid place-items-center border border-border-default bg-bg-surface p-2 transition hover:border-accent-sky hover:bg-bg-elevated disabled:opacity-45 md:p-1.5 xl:p-2"
-            :disabled="winner !== null || !isSideReady('right') || !canDeployToLane(lane, 'right')"
+            :disabled="
+              !isMatchLive ||
+              gameMode === 'ai' ||
+              winner !== null ||
+              !isSideReady('right') ||
+              !canDeployToLane(lane, 'right')
+            "
             @click="deployCurrentDino(lane.id, 'right')"
           >
             <div class="text-center">
-              <p class="font-display text-xs tracking-[0.2em] text-accent-sky">P2</p>
+              <p class="font-display text-xs tracking-[0.2em] text-accent-sky">
+                {{ gameMode === 'ai' ? 'AI' : 'P2' }}
+              </p>
               <p class="mt-1 text-[10px] text-text-secondary md:hidden xl:block">
                 Lane {{ lane.id + 1 }}
               </p>
@@ -689,6 +874,98 @@ function cooldownFrameStyle(side: PlayerSide) {
           </div>
         </div>
       </footer>
+    </div>
+
+    <div
+      v-if="showStartMenu"
+      class="absolute inset-0 z-40 grid place-items-center bg-bg-deep/88 px-4"
+    >
+      <div class="w-full max-w-2xl border border-border-default bg-bg-surface p-5 text-center">
+        <p class="font-display text-[11px] tracking-[0.28em] text-accent-coral">
+          // DINOSAUR BATTLE
+        </p>
+        <h2 class="mt-2 font-display text-4xl uppercase leading-none">Khủng Long Chiến</h2>
+        <div class="mt-5">
+          <p class="font-display text-[11px] tracking-[0.24em] text-text-dim">
+            THẢ KHỦNG LONG VÀO LANE ĐỂ ĐẨY ĐỐI THỦ
+          </p>
+          <div class="mt-3 grid grid-cols-4 gap-2 md:gap-3">
+            <div
+              v-for="dino in dinosaursByPush"
+              :key="`menu-${dino.id}`"
+              class="border border-border-default bg-bg-deep px-2 py-2"
+            >
+              <div class="grid place-items-center">
+                <img
+                  :src="dino.image"
+                  :alt="dino.name"
+                  class="object-contain"
+                  :style="{
+                    width: `${Math.max(2.8, dino.sizeRem * 0.78)}rem`,
+                    height: `${Math.max(2.8, dino.sizeRem * 0.78)}rem`,
+                  }"
+                />
+              </div>
+              <p class="mt-2 font-display text-xs text-text-primary md:text-sm">{{ dino.name }}</p>
+              <p class="mt-1 text-[10px] text-text-secondary md:text-[11px]">
+                Đẩy {{ dino.push }} · Đánh {{ dino.damage }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-5">
+          <p class="font-display text-[11px] tracking-[0.24em] text-text-dim">CHẾ ĐỘ</p>
+          <div class="mt-3 inline-flex border border-border-default bg-bg-deep">
+            <button
+              type="button"
+              class="px-4 py-2 text-sm transition"
+              :class="
+                gameMode === 'ai'
+                  ? 'bg-accent-sky text-bg-deep'
+                  : 'text-text-secondary hover:bg-bg-elevated hover:text-text-primary'
+              "
+              @click="setGameMode('ai')"
+            >
+              Đấu máy
+            </button>
+            <button
+              type="button"
+              class="border-l border-border-default px-4 py-2 text-sm transition"
+              :class="
+                gameMode === 'pvp'
+                  ? 'bg-accent-coral text-bg-deep'
+                  : 'text-text-secondary hover:bg-bg-elevated hover:text-text-primary'
+              "
+              @click="setGameMode('pvp')"
+            >
+              2 người
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-center">
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 border border-border-default bg-accent-amber px-5 py-3 font-display text-sm text-bg-deep transition hover:brightness-110"
+            @click="beginMatch"
+          >
+            <Icon icon="lucide:play" class="size-4" />
+            Bắt đầu
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-else-if="!isMatchLive && matchCountdown > 0"
+      class="absolute inset-0 z-30 grid place-items-center bg-bg-deep/42"
+    >
+      <div
+        class="grid h-32 w-32 place-items-center border border-border-default bg-bg-surface/88 font-display text-6xl text-accent-amber backdrop-blur-sm"
+      >
+        {{ matchCountdownText }}
+      </div>
     </div>
   </div>
 </template>
