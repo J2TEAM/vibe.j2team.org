@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, watch, onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useBehaviorStore } from './useBehaviorStore'
 import { useBehaviorTracker } from './BehaviorTracker'
@@ -103,6 +103,14 @@ function shuffleButton(event: Event) {
 function handleEscape() {
   store.updateClick()
 }
+
+onMounted(() => {
+  document.documentElement.classList.add('hide-scrollbar-global')
+})
+
+onUnmounted(() => {
+  document.documentElement.classList.remove('hide-scrollbar-global')
+})
 </script>
 
 <template>
@@ -584,5 +592,15 @@ function handleEscape() {
     filter: contrast(0.6);
     opacity: 0.28;
   }
+}
+</style>
+
+<style>
+.hide-scrollbar-global::-webkit-scrollbar {
+  display: none !important;
+}
+.hide-scrollbar-global {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 </style>
