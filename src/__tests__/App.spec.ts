@@ -1,9 +1,19 @@
 import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('@/data/pages-loader', () => ({
-  pages: [],
-  featuredPages: [],
   pageComponents: {},
+}))
+
+vi.mock('@/stores/usePagesStore', () => ({
+  usePagesStore: () => ({
+    pages: [],
+    featuredPages: [],
+    pageByPath: new Map(),
+    isReady: { value: true },
+    init: () => Promise.resolve(),
+  }),
+  getPagesCacheSync: () => [],
+  fetchRawPages: () => Promise.resolve([]),
 }))
 
 import { mount } from '@vue/test-utils'

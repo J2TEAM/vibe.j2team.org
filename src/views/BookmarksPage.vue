@@ -4,7 +4,8 @@ import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { refDebounced } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
-import { pageByPath } from '@/data/pages-loader'
+import { usePagesStore } from '@/stores/usePagesStore'
+import type { PageInfo } from '@/types/page'
 import type { CategoryId } from '@/data/categories'
 import { normalize } from '@/utils/text'
 import { useSearchShortcut } from '@/composables/useSearchShortcut'
@@ -13,6 +14,7 @@ import { useRecentlyViewedStore } from '@/stores/useRecentlyViewedStore'
 import { useDraggable } from '@/composables/useDraggable'
 import PageCard from '@/components/PageCard.vue'
 import CategoryFilter from '@/components/CategoryFilter.vue'
+import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 
 const favoritesStore = useFavoritesStore()
 const { favoritePaths } = storeToRefs(favoritesStore)
@@ -28,9 +30,11 @@ function toggleReorder() {
   isReordering.value = !isReordering.value
 }
 
+const pagesStore = usePagesStore()
+
 const bookmarkedPages = computed(() => {
   return favoritePaths.value.flatMap((path) => {
-    const p = pageByPath.get(path)
+    const p = pagesStore.pageByPath.get(path)
     return p ? [p] : []
   })
 })
@@ -56,17 +60,27 @@ const bookmarkCategoryCounts = computed(() => {
   return counts
 })
 
+// Pre-normalize once so normalize() doesn't re-run on every search/filter change
+type NormalizedPage = PageInfo & { _name: string; _desc: string; _author: string }
+
+const normalizedBookmarks = computed<NormalizedPage[]>(() =>
+  bookmarkedPages.value.map((p) => ({
+    ...p,
+    _name: normalize(p.name),
+    _desc: normalize(p.description),
+    _author: normalize(p.author),
+  })),
+)
+
 const filteredBookmarks = computed(() => {
   const query = normalize(debouncedQuery.value.trim())
   const category = activeCategory.value
 
-  return bookmarkedPages.value.filter((page) => {
+  return normalizedBookmarks.value.filter((page) => {
     if (category && page.category !== category) return false
     if (query) {
       return (
-        normalize(page.name).includes(query) ||
-        normalize(page.description).includes(query) ||
-        normalize(page.author).includes(query)
+        page._name.includes(query) || page._desc.includes(query) || page._author.includes(query)
       )
     }
     return true
@@ -81,9 +95,11 @@ useSearchShortcut(searchInputRef)
 <template>
   <div class="min-h-screen bg-bg-deep text-text-primary font-body">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+      <AppBreadcrumb :items="[{ label: 'Yêu thích' }]" />
+
       <!-- Header -->
       <h1
-        class="font-display text-3xl sm:text-4xl font-bold text-text-primary flex items-center gap-3"
+        class="mt-8 font-display text-3xl sm:text-4xl font-bold text-text-primary flex items-center gap-3"
       >
         <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
         Yêu thích
@@ -233,14 +249,6 @@ useSearchShortcut(searchInputRef)
           />
         </div>
       </div>
-
-      <!-- Back to home -->
-      <RouterLink
-        to="/"
-        class="mt-16 inline-flex items-center gap-2 border border-border-default bg-bg-surface px-5 py-2.5 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
-      >
-        &larr; Về trang chủ
-      </RouterLink>
     </div>
   </div>
 </template>

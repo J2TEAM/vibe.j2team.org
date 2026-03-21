@@ -3,7 +3,6 @@ import { ref, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useLocalStorage } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
-import { toPng } from 'html-to-image'
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -187,6 +186,7 @@ async function exportImage() {
   if (!exportRef.value) return
   exporting.value = true
   try {
+    const { toPng } = await import('html-to-image')
     const dataUrl = await toPng(exportRef.value, { cacheBust: true, pixelRatio: 2 })
     const link = document.createElement('a')
     const dateStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')

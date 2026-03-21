@@ -1,7 +1,7 @@
 import { computed } from 'vue'
 import { defineStore } from 'pinia'
 import { useLocalStorage } from '@vueuse/core'
-import { pageByPath } from '@/data/pages-loader'
+import { usePagesStore } from '@/stores/usePagesStore'
 import type { PageInfo } from '@/types/page'
 
 interface RecentEntry {
@@ -22,9 +22,11 @@ export const useRecentlyViewedStore = defineStore('recently-viewed', () => {
     recentEntries.value = filtered.slice(0, MAX_RECENT)
   }
 
+  const pagesStore = usePagesStore()
+
   const recentPages = computed<PageInfo[]>(() => {
     return recentEntries.value.flatMap((entry) => {
-      const page = pageByPath.get(entry.path)
+      const page = pagesStore.pageByPath.get(entry.path)
       return page ? [page] : []
     })
   })

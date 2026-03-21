@@ -9,6 +9,7 @@ import { getAuthorBadges, getCategoryBreakdown } from '@/data/badges'
 import { isLikelyGitHubUsername, isGitHubUrl } from '@/composables/useGithubAvatar'
 import AuthorAvatar from '@/components/AuthorAvatar.vue'
 import PageCard from '@/components/PageCard.vue'
+import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 
 const route = useRoute()
 const slug = computed(() => route.params.slug as string)
@@ -87,8 +88,12 @@ const categoryBreakdown = computed(() => (author.value ? getCategoryBreakdown(au
 
       <!-- Author profile -->
       <template v-else>
+        <AppBreadcrumb
+          :items="[{ label: 'Thành viên', to: '/members' }, { label: author.author }]"
+        />
+
         <!-- Header -->
-        <div class="flex flex-wrap items-start gap-4">
+        <div class="mt-8 flex flex-wrap items-start gap-4">
           <AuthorAvatar :author="author.author" size="lg" />
 
           <div class="flex-1 min-w-0">
@@ -212,22 +217,6 @@ const categoryBreakdown = computed(() => (author.value ? getCategoryBreakdown(au
               </p>
             </template>
           </PageCard>
-        </div>
-
-        <!-- Footer links -->
-        <div class="mt-16 flex flex-wrap gap-3">
-          <RouterLink
-            to="/"
-            class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-5 py-2.5 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
-          >
-            &larr; Về trang chủ
-          </RouterLink>
-          <RouterLink
-            to="/leaderboard"
-            class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-5 py-2.5 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
-          >
-            Bảng xếp hạng
-          </RouterLink>
         </div>
       </template>
     </div>

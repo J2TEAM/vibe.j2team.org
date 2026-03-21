@@ -3,7 +3,7 @@ import { ref, computed, onBeforeUnmount, type Directive } from 'vue'
 import { refDebounced } from '@vueuse/core'
 import { RouterLink, useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
-import { pages, featuredPages } from '@/data/pages-loader'
+import { usePagesStore } from '@/stores/usePagesStore'
 import type { PageInfo } from '@/types/page'
 import { padIndex } from '@/data/homepage'
 import { categories, type CategoryId } from '@/data/categories'
@@ -13,6 +13,7 @@ import PageCard from '@/components/PageCard.vue'
 import CategoryFilter from '@/components/CategoryFilter.vue'
 import { useFavoritesStore } from '@/stores/useFavoritesStore'
 
+const pagesStore = usePagesStore()
 const { isFavorite } = useFavoritesStore()
 
 // Single shared IntersectionObserver for all v-animate elements (instead of one per card)
@@ -53,7 +54,7 @@ const isFiltering = computed(() => {
   return searchQuery.value.trim() !== '' || activeCategory.value !== null
 })
 
-const hiddenCount = computed(() => pages.length - featuredPages.length)
+const hiddenCount = computed(() => pagesStore.pages.length - pagesStore.featuredPages.length)
 
 // Pre-normalize once at module load — avoids re-running NFD + regex on every search/filter change
 type NormalizedPage = PageInfo & { _name: string; _desc: string; _author: string }
@@ -67,12 +68,11 @@ function toNormalized(p: PageInfo): NormalizedPage {
   }
 }
 
-const normalizedPages: NormalizedPage[] = pages.map(toNormalized)
-const normalizedFeaturedPages: NormalizedPage[] = featuredPages.map(toNormalized)
+const normalizedPages = computed(() => pagesStore.pages.map(toNormalized))
+const normalizedFeaturedPages = computed(() => pagesStore.featuredPages.map(toNormalized))
 
-// Computed only does a cheap pool swap — no normalization work
 const searchablePages = computed<NormalizedPage[]>(() =>
-  isFiltering.value || showAll.value ? normalizedPages : normalizedFeaturedPages,
+  isFiltering.value || showAll.value ? normalizedPages.value : normalizedFeaturedPages.value,
 )
 
 const filteredPages = computed(() => {
@@ -94,20 +94,22 @@ const filteredPages = computed(() => {
   })
 })
 
-// pages is a static array — no reactivity needed, compute once
-const categoryCounts: Partial<Record<CategoryId, number>> = {}
-for (const page of pages) {
-  if (page.category) {
-    categoryCounts[page.category] = (categoryCounts[page.category] || 0) + 1
+const categoryCounts = computed(() => {
+  const counts: Partial<Record<CategoryId, number>> = {}
+  for (const page of pagesStore.pages) {
+    if (page.category) {
+      counts[page.category] = (counts[page.category] || 0) + 1
+    }
   }
-}
+  return counts
+})
 
 const activeCategoryObj = computed(
   () => categories.find((c) => c.id === activeCategory.value) ?? null,
 )
 
 const isEmptyCategory = computed(
-  () => activeCategory.value !== null && !categoryCounts[activeCategory.value],
+  () => activeCategory.value !== null && !categoryCounts.value[activeCategory.value],
 )
 
 const router = useRouter()
@@ -137,7 +139,7 @@ useSearchShortcut(searchInputRef)
       <span
         class="ml-2 inline-flex items-center justify-center rounded-full bg-accent-coral/10 px-3 py-0.5 text-sm font-medium text-accent-coral"
       >
-        {{ pages.length }}
+        {{ pagesStore.pages.length }}
       </span>
     </h2>
 
@@ -147,7 +149,7 @@ useSearchShortcut(searchInputRef)
       ref="categoryFilterRef"
       v-model:search="searchQuery"
       v-model:category="activeCategory"
-      :total-count="pages.length"
+      :total-count="pagesStore.pages.length"
       :category-counts="categoryCounts"
       :result-count="filteredPages.length"
       :hide-result-when="isEmptyCategory"

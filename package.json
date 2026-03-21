@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
+    "build:deploy": "vite build && node scripts/generate-og-pages.mjs && node scripts/generate-sitemap.mjs",
     "preview": "vite preview",
     "test:unit": "vitest",
     "build-only": "vite build && node scripts/generate-og-pages.mjs && node scripts/generate-sitemap.mjs",
