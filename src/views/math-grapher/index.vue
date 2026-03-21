@@ -612,7 +612,7 @@ onUnmounted(() => {
       <h1 class="flex-1 font-display font-semibold text-lg truncate text-accent-coral">
         Đồ Thị Toán Học
       </h1>
-      <span class="hidden sm:block font-display text-text-dim text-xs">by deku</span>
+      <span class="hidden sm:block font-display text-text-dim text-xs">by Eintes-steinla</span>
     </header>
 
     <!-- Workspace -->
@@ -845,17 +845,6 @@ onUnmounted(() => {
             >
               ↺ Reset view
             </button>
-          </div>
-
-          <!-- Hints -->
-          <div class="space-y-1 bg-bg-deep p-3 border border-border-default text-text-dim text-xs">
-            <p>
-              <span class="text-accent-coral">sin(x)</span> ·
-              <span class="text-accent-coral">x^2</span> ·
-              <span class="text-accent-coral">sqrt(x)</span>
-            </p>
-            <p><span class="text-accent-amber">x^2+y^2=1</span> — vòng tròn</p>
-            <p><span class="text-accent-sky">(x^2+y^2-1)^3-x^2*y^3=0</span></p>
           </div>
         </div>
       </aside>
