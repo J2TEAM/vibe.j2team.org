@@ -25,8 +25,14 @@ export const useBehaviorStore = defineStore('judgeBehavior', () => {
   const hasFollowedInstruction = ref(false)
 
   // Personalities
-  const personalities = ['calm', 'aggressive', 'sarcastic']
-  const personality = ref(personalities[Math.floor(Math.random() * personalities.length)])
+  const personality = ref<string>('unknown')
+
+  function determinePersonality() {
+    if (personality.value !== 'unknown') return
+    if (isRapidClicking.value) personality.value = 'aggressive'
+    else if (idleTime.value > 8000) personality.value = 'sarcastic'
+    else personality.value = 'calm'
+  }
 
   function updateClick() {
     clicks.value++
@@ -69,6 +75,7 @@ export const useBehaviorStore = defineStore('judgeBehavior', () => {
     predictionTarget,
     reverseControlActive,
     hasFollowedInstruction,
+    determinePersonality,
     updateClick,
     updateMove,
     updateIdle,
