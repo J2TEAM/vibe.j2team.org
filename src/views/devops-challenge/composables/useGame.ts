@@ -81,6 +81,15 @@ export function useGame() {
     gameView.value = 'playing'
   }
 
+  function startCustom() {
+    playMode.value = 'custom'
+    currentChallenge.value = null
+    selectedTechs.value = new Map()
+    lastResult.value = null
+    showCustomerDialog.value = false
+    gameView.value = 'playing'
+  }
+
   function selectTech(category: TechCategory, techId: string) {
     const newMap = new Map(selectedTechs.value)
     newMap.set(category, techId)
@@ -178,6 +187,7 @@ export function useGame() {
     // Actions
     startLevel,
     startRandom,
+    startCustom,
     selectTech,
     deselectTech,
     submitSolution,

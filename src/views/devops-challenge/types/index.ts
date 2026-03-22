@@ -161,7 +161,7 @@ export interface GameProgress {
 }
 
 export type GameView = 'menu' | 'playing' | 'result'
-export type PlayMode = 'level' | 'random'
+export type PlayMode = 'level' | 'random' | 'custom'
 
 export interface GlossaryEntry {
   term: string
