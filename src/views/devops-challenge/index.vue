@@ -33,6 +33,10 @@ function handleModeSelect(mode: PlayMode) {
     game.startRandom()
   } else if (mode === 'custom') {
     game.startCustom()
+  } else if (mode === 'level') {
+    // Auto-start the highest unlocked level
+    const currentLevel = Math.min(game.progress.value.unlockedLevel, challenges.length)
+    game.startLevel(currentLevel)
   }
 }
 
