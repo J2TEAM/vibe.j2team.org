@@ -80,6 +80,7 @@ export interface LeaderboardEntry {
   wave: number
   difficulty: string
   date: number
+  mode: 'endless' | 'campaign'
 }
 
 export interface SaveSlot {

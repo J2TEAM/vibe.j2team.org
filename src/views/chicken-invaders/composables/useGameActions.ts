@@ -135,10 +135,12 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
         score: score.value,
         wave: currentWave.value,
         difficulty: difficulty.value,
+        mode: gameMode.value,
         date: Date.now(),
       })
       leaderboard.value.sort((a, b) => b.score - a.score)
-      leaderboard.value = leaderboard.value.slice(0, 10)
+      leaderboard.value = leaderboard.value.slice(0, 100)
+
       localStorage.setItem('chicken_invaders_leaderboard', JSON.stringify(leaderboard.value))
 
       if (currentSaveId.value) {
@@ -574,10 +576,12 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
       score: score.value,
       wave: currentWave.value,
       difficulty: difficulty.value,
+      mode: gameMode.value,
       date: Date.now(),
     })
     leaderboard.value.sort((a, b) => b.score - a.score)
-    leaderboard.value = leaderboard.value.slice(0, 10)
+    leaderboard.value = leaderboard.value.slice(0, 100)
+
     localStorage.setItem('chicken_invaders_leaderboard', JSON.stringify(leaderboard.value))
 
     if (currentSaveId.value) {
