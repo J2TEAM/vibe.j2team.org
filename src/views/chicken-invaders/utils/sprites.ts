@@ -28,12 +28,47 @@ export const SPRITES = {
   // Boss 2: UFO
   ufo: `<svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-[0_0_20px_rgba(56,189,248,0.8)]"><path d="M 16 32 C 16 12 48 12 48 32" fill="#0ea5e9" opacity="0.7" stroke="#38bdf8" stroke-width="2"/><ellipse cx="32" cy="36" rx="28" ry="12" fill="#1e293b" stroke="#38bdf8" stroke-width="3"/><circle cx="16" cy="36" r="3" fill="#38bdf8"/><circle cx="32" cy="40" r="3" fill="#38bdf8"/><circle cx="48" cy="36" r="3" fill="#38bdf8"/></svg>`,
 
-  // Boss 3: Mecha Ship
-  bossMecha: `<svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-[0_0_20px_rgba(225,29,72,0.8)]"><path d="M 32 16 L 60 8 L 48 36 L 32 60 L 16 36 L 4 8 Z" fill="#334155" stroke="#94a3b8" stroke-width="2" stroke-linejoin="round"/><circle cx="32" cy="32" r="12" fill="#be123c" stroke="#f43f5e" stroke-width="2"/><circle cx="32" cy="32" r="6" fill="#fecdd3"/><path d="M 32 60 L 28 48 L 36 48 Z" fill="#94a3b8"/></svg>`,
-
+  // Boss 3: Gà mecha
+  bossMecha: `
+  <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-[0_0_20px_rgba(168,85,247,0.8)]">
+    <defs>
+      <linearGradient id="gunGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#475569" />
+        <stop offset="100%" stop-color="#1e293b" />
+      </linearGradient>
+      <filter id="laserGlow3" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    
+    <path d="M 5 25 L 15 20 Q 15 35 12 50 L 5 45 Z" fill="#581c87" stroke="#a855f7" stroke-width="1.5"/>
+    <path d="M 59 25 L 49 20 Q 49 35 52 50 L 59 45 Z" fill="#581c87" stroke="#a855f7" stroke-width="1.5"/>
+    
+    <rect x="7" y="30" width="6" height="25" fill="url(#gunGrad3)" stroke="#22d3ee" stroke-width="1" rx="1"/>
+    <rect x="51" y="30" width="6" height="25" fill="url(#gunGrad3)" stroke="#22d3ee" stroke-width="1" rx="1"/>
+    
+    <path d="M 32 10 C 15 10 10 25 10 40 C 10 55 22 60 32 60 C 42 60 54 55 54 40 C 54 25 49 10 32 10" fill="#581c87" stroke="#a855f7" stroke-width="3"/>
+    <path d="M 32 5 L 32 15 M 25 7 L 29 15 M 39 7 L 35 15" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+    
+    <circle cx="22" cy="31" r="5" fill="#fee2e2" stroke="#000" stroke-width="1"/>
+    <circle cx="22" cy="31" r="2" fill="black"/>
+    <circle cx="42" cy="31" r="5" fill="#fee2e2" stroke="#000" stroke-width="1"/>
+    <circle cx="42" cy="31" r="2" fill="black"/>
+    <path d="M 14 25 L 28 29" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M 50 25 L 36 29" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
+    
+    <path d="M 28 39 Q 32 47 36 39 Q 32 37 28 39 Z" fill="#f59e0b" stroke="#d97706" stroke-width="2" stroke-linejoin="round"/>
+    
+    <circle cx="10" cy="53" r="3" fill="#22d3ee" filter="url(#laserGlow3)"/>
+    <circle cx="54" cy="53" r="3" fill="#22d3ee" filter="url(#laserGlow3)"/>
+  </svg>
+  `,
   // Boss 5: Mega chicken
-  megaBoss: `
-  <svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-[0_0_20px_rgba(250,204,21,0.8)]">
+  megaBoss: `<svg viewBox="0 0 64 64" class="w-full h-full drop-shadow-[0_0_20px_rgba(250,204,21,0.8)]">
     <defs>
       <linearGradient id="boss5Grad" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" stop-color="#FEF08A" />
@@ -60,6 +95,34 @@ export const SPRITES = {
     
     <path d="M 32 34 L 40 42 L 32 50 L 24 42 Z" fill="#EA580C" stroke="#7C2D12" stroke-width="2" stroke-linejoin="round"/>
     <path d="M 26 42 Q 32 46 38 42" fill="none" stroke="#431407" stroke-width="2"/>
+  </svg>`,
+
+  // Boss 6: Final Boss
+  finalBoss: `<svg viewBox="0 0 600 100" class="w-full h-full drop-shadow-[0_0_30px_rgba(34,197,94,0.8)]">
+    <defs>
+      <linearGradient id="finalBossGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#1f2937" />
+        <stop offset="100%" stop-color="#030712" />
+      </linearGradient>
+      <linearGradient id="coreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#4ade80" />
+        <stop offset="100%" stop-color="#14532d" />
+      </linearGradient>
+    </defs>
+    
+    <path d="M 0 10 L 600 10 L 580 30 L 20 30 Z" fill="#111827" stroke="#166534" stroke-width="2"/>
+    
+    <path d="M 20 30 L 580 30 L 550 70 L 380 60 L 300 90 L 220 60 L 50 70 Z" fill="url(#finalBossGrad)" stroke="#22c55e" stroke-width="2" stroke-linejoin="round"/>
+    
+    <ellipse cx="300" cy="50" rx="50" ry="25" fill="#111827" stroke="#4ade80" stroke-width="2"/>
+    <circle cx="300" cy="50" r="12" fill="url(#coreGrad)" filter="drop-shadow(0 0 15px #4ade80)"/>
+    
+    <circle cx="80" cy="50" r="6" fill="#22c55e"/>
+    <circle cx="180" cy="50" r="6" fill="#22c55e"/>
+    <circle cx="420" cy="50" r="6" fill="#22c55e"/>
+    <circle cx="520" cy="50" r="6" fill="#22c55e"/>
+    
+    <path d="M 80 56 L 80 75 M 180 56 L 180 75 M 420 56 L 420 75 M 520 56 L 520 75" stroke="#4ade80" stroke-width="4" stroke-linecap="round"/>
   </svg>`,
 
   // Thiên thạch

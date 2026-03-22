@@ -20,6 +20,7 @@ export function useGameLoop(
 ) {
   const {
     gameState,
+    gameMode, // <-- Lấy gameMode từ state
     gamePhase,
     currentWave,
     weaponType,
@@ -57,7 +58,7 @@ export function useGameLoop(
   const { fireBullets, handleEnemyDeath, takeDamage, addScore, startWave } = actions
 
   let animationFrameId: number
-  const EGG_SPEED = 2.0
+  const EGG_SPEED = 2.0 // Giữ nguyên tốc độ mặc định trong file gốc
 
   const gameLoop = () => {
     if (gameState.value !== 'playing' && gameState.value !== 'starting') {
@@ -666,85 +667,64 @@ export function useGameLoop(
               })
             }
           } else if (b.bossType === 3) {
-            if (b.stateTimer !== undefined) b.stateTimer -= 1
-            if (b.stateTimer !== undefined && b.stateTimer <= 0) {
-              const r = Math.random()
-              if (r < 0.3) {
-                b.state = 'dash'
-                b.stateTimer = 80
-                b.direction *= -1
-              } else if (r < 0.6) {
-                b.state = 'burst'
-                b.stateTimer = 120
-                b.burstCount = 4
-              } else {
+            if (b.stateTimer !== undefined && b.stateTimer > 0) {
+              b.stateTimer--
+            } else {
+              if (b.state === 'idle' || b.state === 'dash') {
+                const r = Math.random()
+                if (r < 0.3) {
+                  b.state = 'dash'
+                  b.stateTimer = 80
+                  b.direction *= -1
+                } else if (r < 0.6) {
+                  b.state = 'laser_warning'
+                  b.stateTimer = 60
+                  // FIX LỖI 1 GÓC MÀN BẰNG CÁCH CHỐT TOẠ ĐỘ TUYỆT ĐỐI NGAY LÚC GỒNG
+                  b.laserXs = [
+                    b.x + b.width * 0.15 - 40,
+                    b.x + b.width * 0.5 - 40,
+                    b.x + b.width * 0.85 - 40,
+                  ]
+                  b.laserX = undefined
+                } else {
+                  b.state = 'laser_warning'
+                  b.stateTimer = 60
+                  b.laserX = b.x + b.width * 0.5 - 40 // Chốt toạ độ tia giữa
+                  b.laserXs = undefined
+                }
+              } else if (b.state === 'laser_warning') {
+                b.state = 'laser_firing'
+                b.stateTimer = 40 // Thời gian tia laser xả ra
+              } else if (b.state === 'laser_firing') {
                 b.state = 'idle'
-                b.stateTimer = 100
+                b.stateTimer = 60 // Nghỉ xả hơi
+                b.laserX = undefined
+                b.laserXs = undefined
               }
             }
+
+            // GÀ VẪN DI CHUYỂN BÌNH THƯỜNG LIÊN TỤC
             let bSpeed = engine.waveEnemySpeed * 0.8
             if (b.state === 'dash') bSpeed = engine.waveEnemySpeed + 3
-            if (b.state === 'burst') bSpeed = engine.waveEnemySpeed * 0.2
+
             b.x += bSpeed * b.direction
             if (b.x <= 0 || b.x + b.width >= activeWidth.value) {
               b.direction *= -1
               b.x = Math.max(0, Math.min(b.x, activeWidth.value - b.width))
             }
 
-            if (
-              b.state === 'burst' &&
-              b.burstCount !== undefined &&
-              b.burstCount > 0 &&
-              b.stateTimer !== undefined &&
-              b.stateTimer % 40 === 0
-            ) {
-              ;[-4, 0, 4].forEach((eggDx) => {
-                enemyBullets.value.push({
-                  id: `boss-egg-${engine.objCounter++}`,
-                  x: b.x + b.width / 2 - 12,
-                  y: b.y + b.height - 20,
-                  width: 30,
-                  height: 35,
-                  isBossEgg: true,
-                  dx: eggDx,
-                  dy: 6,
-                })
+            // Xử lý sát thương Laser dựa trên toạ độ đã chốt (Laser đứng im, gà đi mất)
+            if (b.state === 'laser_firing') {
+              const lxs = b.laserXs || (b.laserX !== undefined ? [b.laserX] : [])
+              lxs.forEach((absoluteX) => {
+                const laserHitbox = {
+                  x: absoluteX, // Đã trừ 40px lúc chốt để căn giữa tia 80px
+                  y: b.y + b.height,
+                  width: 80,
+                  height: activeHeight.value,
+                }
+                if (checkCollision(player.value, laserHitbox)) takeDamage()
               })
-              b.burstCount--
-            }
-            if (Math.random() < engine.waveEggFireRate * 1.0 && b.state !== 'burst') {
-              enemyBullets.value.push({
-                id: `boss-egg-${engine.objCounter++}`,
-                x: b.x + b.width / 2 - 12,
-                y: b.y + b.height - 20,
-                width: 30,
-                height: 35,
-                isBossEgg: true,
-              })
-            }
-            if (b.laserTimer !== undefined && b.laserTimer > 0) {
-              b.laserTimer--
-            } else {
-              if (b.state === 'idle' || b.state === 'dash') {
-                b.state = 'laser_warning'
-                b.laserTimer = 60
-                b.laserX = b.x + b.width / 2 - 40
-              } else if (b.state === 'laser_warning') {
-                b.state = 'laser_firing'
-                b.laserTimer = 15
-              } else {
-                b.state = 'idle'
-                b.laserTimer = 300
-              }
-            }
-            if (b.state === 'laser_firing' && b.laserX !== undefined) {
-              const laserHitbox = {
-                x: b.laserX,
-                y: b.y + b.height,
-                width: 80,
-                height: activeHeight.value,
-              }
-              if (checkCollision(player.value, laserHitbox)) takeDamage()
             }
           } else if (b.bossType === 4) {
             b.x += (engine.waveEnemySpeed + 1) * b.direction
@@ -840,11 +820,211 @@ export function useGameLoop(
               }
               if (checkCollision(player.value, laserHitbox)) takeDamage()
             }
-          } else {
+          } else if (b.bossType === 6) {
             b.x += (engine.waveEnemySpeed + 1) * b.direction
             if (b.x <= 0 || b.x + b.width >= activeWidth.value) b.direction *= -1
 
-            if (Math.random() < engine.waveEggFireRate * 1.0 && b.state !== 'circle_burst') {
+            if (b.stateTimer !== undefined && b.stateTimer > 0) {
+              b.stateTimer--
+            } else {
+              if (b.state === 'idle') {
+                const r = Math.random()
+                if (r < 0.33) {
+                  b.state = 'burst'
+                  b.stateTimer = 60 // Bắn 3 tia
+                } else if (r < 0.66) {
+                  b.state = 'circle_burst'
+                  b.stateTimer = 40 // Bắn vòng tròn
+                } else {
+                  b.state = 'idle'
+                  b.stateTimer = 100
+                }
+              } else if (b.state === 'circle_burst') {
+                const cx = b.x + b.width / 2 - 15
+                const cy = b.y + b.height - 20
+                for (let i = 0; i < 12; i++) {
+                  const angle = (Math.PI * 2 * i) / 12
+                  enemyBullets.value.push({
+                    id: `boss-egg-${engine.objCounter++}`,
+                    x: cx,
+                    y: cy,
+                    width: 30,
+                    height: 35,
+                    isBossEgg: true,
+                    dx: Math.cos(angle) * 5,
+                    dy: Math.sin(angle) * 5,
+                  })
+                }
+                b.state = 'idle'
+                b.stateTimer = 120
+              } else {
+                b.state = 'idle'
+                b.stateTimer = 100
+              }
+            }
+
+            // Kỹ năng bắn 3 tia
+            if (b.state === 'burst' && b.stateTimer % 20 === 0) {
+              ;[-4, 0, 4].forEach((dx) => {
+                enemyBullets.value.push({
+                  id: `boss-egg-${engine.objCounter++}`,
+                  x: b.x + b.width / 2 - 12,
+                  y: b.y + b.height - 20,
+                  width: 30,
+                  height: 35,
+                  isBossEgg: true,
+                  dx,
+                  dy: EGG_SPEED + 1,
+                })
+              })
+            }
+
+            // Bắn trứng bth khi đang bay
+            if (b.state === 'idle' && Math.random() < engine.waveEggFireRate * 2.0) {
+              enemyBullets.value.push({
+                id: `boss-egg-${engine.objCounter++}`,
+                x: b.x + b.width / 2 - 12,
+                y: b.y + b.height - 20,
+                width: 30,
+                height: 35,
+                isBossEgg: true,
+                dy: EGG_SPEED + 1,
+              })
+            }
+          } else if (b.bossType === 99) {
+            b.x += engine.waveEnemySpeed * 0.8 * b.direction
+            if (b.x <= 0 || b.x + b.width >= activeWidth.value) b.direction *= -1
+
+            if (b.targetY !== undefined) {
+              b.y = b.targetY + Math.sin(Date.now() / 400) * 10
+            }
+
+            if (b.stateTimer !== undefined && b.stateTimer > 0) {
+              b.stateTimer--
+            } else {
+              if (b.state === 'idle') {
+                const r = Math.random()
+                if (r < 0.2) {
+                  b.state = 'laser_warning'
+                  b.stateTimer = 60
+                  b.laserXs = [b.width * 0.2, b.width * 0.5, b.width * 0.8]
+                } else if (r < 0.4) {
+                  b.state = 'circle_burst'
+                  b.stateTimer = 50
+                } else if (r < 0.6) {
+                  b.state = 'meteor_shower'
+                  b.stateTimer = 120
+                } else if (r < 0.8) {
+                  b.state = 'chicken_rain'
+                  b.stateTimer = 120
+                } else {
+                  b.state = 'burst'
+                  b.stateTimer = 60
+                }
+              } else if (b.state === 'laser_warning') {
+                b.state = 'laser_firing'
+                b.stateTimer = 40
+              } else if (b.state === 'circle_burst') {
+                const cy = b.y + b.height - 20
+                ;[0.2, 0.5, 0.8].forEach((pos) => {
+                  const cx = b.x + b.width * pos
+                  for (let j = 0; j < 16; j++) {
+                    const angle = (Math.PI * 2 * j) / 16
+                    enemyBullets.value.push({
+                      id: `b99-${engine.objCounter++}`,
+                      x: cx,
+                      y: cy,
+                      width: 30,
+                      height: 35,
+                      isBossEgg: true,
+                      dx: Math.cos(angle) * 7,
+                      dy: Math.sin(angle) * 7,
+                    })
+                  }
+                })
+                b.state = 'idle'
+                b.stateTimer = 80
+              } else if (['meteor_shower', 'chicken_rain', 'burst'].includes(b.state as string)) {
+                b.state = 'idle'
+                b.stateTimer = 80
+              } else {
+                b.state = 'idle'
+                b.stateTimer = 80
+              }
+            }
+            if (b.state === 'meteor_shower' && b.stateTimer % 10 === 0) {
+              enemyBullets.value.push({
+                id: `boss-meteor-${engine.objCounter++}`,
+                x: b.x + Math.random() * b.width,
+                y: b.y + b.height - 20,
+                width: 60,
+                height: 60,
+                isBossEgg: true,
+                isMeteor: true,
+                dy: EGG_SPEED + 4,
+                dx: (Math.random() - 0.5) * 5,
+              })
+            }
+            if (b.state === 'chicken_rain' && b.stateTimer % 15 === 0) {
+              engine.pendingSpawns.push({
+                id: `boss-chicken-${engine.objCounter++}`,
+                x: b.x + Math.random() * b.width,
+                y: b.y + b.height,
+                width: 45,
+                height: 45,
+                hp: 150,
+                maxHp: 150,
+                isFallingChicken: true,
+                shirtColor: '#ef4444',
+                dx: (Math.random() - 0.5) * 3,
+                dy: EGG_SPEED + 2,
+              })
+            }
+            if (b.state === 'burst' && b.stateTimer % 20 === 0) {
+              ;[0.2, 0.5, 0.8].forEach((pos) => {
+                const cx = b.x + b.width * pos - 15
+                ;[-4, 0, 4].forEach((dx) => {
+                  enemyBullets.value.push({
+                    id: `boss-egg-${engine.objCounter++}`,
+                    x: cx,
+                    y: b.y + b.height - 20,
+                    width: 30,
+                    height: 35,
+                    isBossEgg: true,
+                    dx,
+                    dy: EGG_SPEED + 2,
+                  })
+                })
+              })
+            }
+            if (b.state === 'laser_firing' && b.laserXs !== undefined) {
+              b.laserXs.forEach((lxPos) => {
+                const lx = b.x + lxPos
+                const laserHitbox = {
+                  x: lx - 50,
+                  y: b.y + b.height,
+                  width: 100,
+                  height: activeHeight.value,
+                }
+                if (checkCollision(player.value, laserHitbox)) takeDamage()
+              })
+            }
+            if (b.state === 'idle' && Math.random() < engine.waveEggFireRate * 4.0) {
+              enemyBullets.value.push({
+                id: `boss-egg-${engine.objCounter++}`,
+                x: b.x + Math.random() * b.width,
+                y: b.y + b.height - 20,
+                width: 30,
+                height: 35,
+                isBossEgg: true,
+                dy: EGG_SPEED + 1,
+              })
+            }
+          } else {
+            // Fallback cho bất kỳ boss nào chưa được định nghĩa
+            b.x += (engine.waveEnemySpeed + 1) * b.direction
+            if (b.x <= 0 || b.x + b.width >= activeWidth.value) b.direction *= -1
+            if (Math.random() < engine.waveEggFireRate * 1.0) {
               enemyBullets.value.push({
                 id: `boss-egg-${engine.objCounter++}`,
                 x: b.x + b.width / 2 - 12,
@@ -853,31 +1033,6 @@ export function useGameLoop(
                 height: 35,
                 isBossEgg: true,
               })
-            }
-
-            if (b.laserTimer !== undefined && b.laserTimer > 0) {
-              b.laserTimer--
-            } else {
-              if (b.state === 'idle') {
-                b.state = 'laser_warning'
-                b.laserTimer = 60
-                b.laserX = b.x + b.width / 2 - 40
-              } else if (b.state === 'laser_warning') {
-                b.state = 'laser_firing'
-                b.laserTimer = 15
-              } else {
-                b.state = 'idle'
-                b.laserTimer = 200
-              }
-            }
-            if (b.state === 'laser_firing' && b.laserX !== undefined) {
-              const laserHitbox = {
-                x: b.laserX,
-                y: b.y + b.height,
-                width: 80,
-                height: activeHeight.value,
-              }
-              if (checkCollision(player.value, laserHitbox)) takeDamage()
             }
           }
         }
@@ -930,6 +1085,25 @@ export function useGameLoop(
         sfx.explode()
         engine.isTransitioningWave = true
         addScore(1000 * ptMult)
+
+        // KIỂM TRA ĐIỀU KIỆN VICTORY MÀN 120
+        if (gameMode && gameMode.value === 'campaign' && currentWave.value === 120) {
+          waveAnnouncement.value = 'NHIỆM VỤ HOÀN THÀNH!'
+
+          if (state.currentSaveId.value) {
+            state.saves.value = state.saves.value.filter((s) => s.id !== state.currentSaveId.value)
+            localStorage.setItem('chicken_invaders_saves', JSON.stringify(state.saves.value))
+            state.currentSaveId.value = null
+          }
+
+          setTimeout(() => {
+            gameState.value = 'victory'
+            engine.isTransitioningWave = false
+            waveAnnouncement.value = ''
+          }, 1500)
+          return
+        }
+
         const nextW = currentWave.value + 1
         const nextRot = getRotationForWave(nextW)
         const willRotate = boardRotation.value !== nextRot
@@ -979,7 +1153,6 @@ export function useGameLoop(
     gameLoop()
   })
   onUnmounted(() => {
-    if (state.resumeInterval.value) clearInterval(state.resumeInterval.value)
     cancelAnimationFrame(animationFrameId)
   })
 }

@@ -261,7 +261,9 @@ const {
                               ? SPRITES.bossMecha
                               : b.bossType === 4
                                 ? SPRITES.bossRooster
-                                : SPRITES.chicken
+                                : b.bossType === 99
+                                  ? SPRITES.finalBoss
+                                  : SPRITES.chicken
                 "
               ></div>
             </div>

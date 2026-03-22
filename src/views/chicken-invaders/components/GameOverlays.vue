@@ -10,14 +10,16 @@ const {
   resumingCountdown,
   waveAnnouncement,
   difficulty,
+  gameMode,
   resumeGame,
   saves,
   saveCurrentGame,
   loadGame,
   deleteSave,
   exportSaves,
-  importSaves, // <-- Lấy hàm importSaves từ context
+  importSaves,
   notification,
+  surrenderGame,
 } = inject('game') as GameContext
 
 const diffOptions = [
@@ -93,7 +95,12 @@ const confirmDeleteSave = () => {
   }
 }
 
-// Logic kích hoạt nạp file
+const showSurrenderConfirm = ref(false)
+const confirmSurrender = () => {
+  showSurrenderConfirm.value = false
+  surrenderGame()
+}
+
 const fileInput = ref<HTMLInputElement | null>(null)
 const triggerImport = () => {
   fileInput.value?.click()
@@ -116,6 +123,31 @@ const triggerImport = () => {
     <div
       class="border border-border-default bg-bg-surface p-6 max-w-md w-full text-center shadow-xl mb-6 shrink-0 mt-auto"
     >
+      <div class="flex gap-2 mb-6 border-b border-border-default pb-6">
+        <button
+          class="flex-1 py-3 font-display font-bold text-sm tracking-widest uppercase transition-all rounded-sm"
+          :class="
+            gameMode === 'endless'
+              ? 'bg-accent-sky text-bg-deep'
+              : 'bg-bg-elevated text-text-secondary hover:text-text-primary border border-border-default'
+          "
+          @click="gameMode = 'endless'"
+        >
+          VÔ TẬN
+        </button>
+        <button
+          class="flex-1 py-3 font-display font-bold text-sm tracking-widest uppercase transition-all rounded-sm"
+          :class="
+            gameMode === 'campaign'
+              ? 'bg-accent-coral text-bg-deep'
+              : 'bg-bg-elevated text-text-secondary hover:text-text-primary border border-border-default'
+          "
+          @click="gameMode = 'campaign'"
+        >
+          CHIẾN DỊCH
+        </button>
+      </div>
+
       <h3
         class="text-xl font-display font-bold text-accent-sky tracking-widest mb-6 uppercase border-b border-border-default pb-2"
       >
@@ -164,10 +196,15 @@ const triggerImport = () => {
       </button>
 
       <div
-        class="bg-bg-elevated p-4 border border-border-default min-h-28 flex items-center justify-center text-left"
+        class="bg-bg-elevated p-4 border border-border-default min-h-28 flex items-center justify-center text-left flex-col gap-2"
       >
+        <span
+          class="text-xs font-bold text-accent-amber bg-accent-amber/10 px-2 py-1 border border-accent-amber/30 w-full text-center tracking-widest"
+        >
+          CHẾ ĐỘ: {{ gameMode === 'campaign' ? 'CHIẾN DỊCH (120 MÀN)' : 'VÔ TẬN (ĐIỂM CAO)' }}
+        </span>
         <p
-          class="text-text-secondary whitespace-pre-line leading-relaxed font-semibold text-sm w-full"
+          class="text-text-secondary whitespace-pre-line leading-relaxed font-semibold text-sm w-full mt-2"
         >
           {{ currentDiff.desc }}
         </p>
@@ -229,6 +266,33 @@ const triggerImport = () => {
   </div>
 
   <div
+    v-if="gameState === 'victory'"
+    class="absolute inset-0 bg-bg-deep/90 flex flex-col items-center justify-center z-500 backdrop-blur-md pointer-events-auto"
+  >
+    <h2
+      class="text-6xl md:text-8xl font-display font-bold mb-4 text-accent-sky tracking-widest uppercase drop-shadow-[0_0_30px_#38BDF8] animate-fade-up"
+    >
+      VICTORY!
+    </h2>
+    <p
+      class="text-xl md:text-2xl text-text-primary font-body mb-2 animate-fade-up animate-delay-1 text-center px-4"
+    >
+      Chúc mừng bạn đã tiêu diệt Phi Thuyền Mẹ và giải cứu Trái Đất!
+    </p>
+    <p
+      class="text-4xl text-accent-amber font-display font-bold mb-10 animate-fade-up animate-delay-2"
+    >
+      ĐIỂM TỔNG: {{ score.toLocaleString() }}
+    </p>
+    <button
+      @click="gameState = 'menu'"
+      class="px-10 py-4 bg-accent-sky text-bg-deep font-display font-bold text-xl transition-all hover:bg-white active:scale-95 shadow-lg animate-fade-up animate-delay-3"
+    >
+      TRỞ VỀ MENU 🏆
+    </button>
+  </div>
+
+  <div
     v-if="gameState === 'paused'"
     class="absolute inset-0 bg-bg-deep/80 backdrop-blur-md flex flex-col items-center justify-center z-400 pointer-events-auto"
   >
@@ -249,6 +313,13 @@ const triggerImport = () => {
         class="px-8 py-4 bg-accent-amber text-bg-deep font-display font-bold text-xl transition-all hover:bg-white active:scale-95 shadow-lg cursor-pointer"
       >
         LƯU GAME / TẢI GAME
+      </button>
+
+      <button
+        @click="showSurrenderConfirm = true"
+        class="px-8 py-4 bg-red-900 border border-red-500 text-white font-display font-bold text-xl transition-all hover:bg-red-600 active:scale-95 cursor-pointer"
+      >
+        {{ gameMode === 'campaign' ? 'BỎ CUỘC 🏳️' : 'RÚT LUI 🛑' }}
       </button>
 
       <button
@@ -275,7 +346,7 @@ const triggerImport = () => {
         >
           Xác nhận thoát?
         </h3>
-        <p class="text-text-secondary mb-8 leading-relaxed">
+        <p class="font-display text-text-secondary mb-8 leading-relaxed">
           Tiến trình chơi hiện tại của bạn sẽ bị mất hoàn toàn nếu chưa Lưu Game!
         </p>
 
@@ -291,6 +362,63 @@ const triggerImport = () => {
             class="font-display py-3 bg-accent-coral text-bg-deep font-bold hover:brightness-110 transition-all cursor-pointer"
           >
             THOÁT
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="showSurrenderConfirm"
+      class="fixed inset-0 z-700 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4 pointer-events-auto"
+    >
+      <div
+        class="bg-bg-surface border-2 p-8 max-w-sm w-full text-center scale-in-center"
+        :class="
+          gameMode === 'campaign'
+            ? 'border-red-600 shadow-[0_0_40px_rgba(220,38,38,0.4)]'
+            : 'border-accent-sky shadow-[0_0_40px_rgba(56,189,248,0.3)]'
+        "
+      >
+        <h3
+          class="text-2xl font-display font-bold mb-4 uppercase tracking-tighter"
+          :class="gameMode === 'campaign' ? 'text-red-500' : 'text-accent-sky'"
+        >
+          {{ gameMode === 'campaign' ? 'ĐẦU HÀNG?' : 'KẾT THÚC SỚM?' }}
+        </h3>
+
+        <p
+          v-if="gameMode === 'campaign'"
+          class="font-display text-text-secondary mb-8 leading-relaxed"
+        >
+          Nếu bỏ cuộc, bạn sẽ
+          <span class="text-red-400 font-bold font-display">bị tính là THUA</span>, mất hết tiến
+          trình và <span class="text-red-400 font-bold">xoá luôn File Save hiện tại</span>. Điểm số
+          sẽ được ghi vào Bảng Thành Tích.
+        </p>
+
+        <p v-else class="font-display text-text-secondary mb-8 leading-relaxed">
+          Bạn có muốn dừng phần chơi
+          <span class="text-accent-sky font-bold font-display">Vô Tận</span> tại đây?<br /><br />
+          Lượt chơi này sẽ khép lại và Điểm số của bạn sẽ được vinh danh trên Bảng Thành Tích.
+        </p>
+
+        <div class="grid grid-cols-2 gap-4">
+          <button
+            @click="showSurrenderConfirm = false"
+            class="font-display py-3 bg-bg-elevated border border-border-default text-text-primary font-bold hover:bg-bg-surface transition-colors cursor-pointer"
+          >
+            TIẾP TỤC CHƠI
+          </button>
+          <button
+            @click="confirmSurrender"
+            class="font-display py-3 font-bold transition-all cursor-pointer"
+            :class="
+              gameMode === 'campaign'
+                ? 'bg-red-600 text-white hover:bg-red-500'
+                : 'bg-accent-sky text-bg-deep hover:bg-white'
+            "
+          >
+            {{ gameMode === 'campaign' ? 'CHẤP NHẬN THUA' : 'KẾT THÚC GAME' }}
           </button>
         </div>
       </div>

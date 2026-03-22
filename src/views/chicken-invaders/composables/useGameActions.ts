@@ -2,6 +2,7 @@ import { watch } from 'vue'
 import { sfx } from '../utils/audio'
 import { GAME_WIDTH, GAME_HEIGHT, WEAPON_TYPES, FIRE_RATE } from '../utils/config'
 import { getWeaponStats, arrangeFormation, getRotationForWave } from '../utils/utils'
+import { getCampaignBosses } from '../utils/campaign'
 import type { GameState } from './useGameState'
 import type { useControls } from './useControls'
 import type { Enemy, SaveSlot } from '../utils/types'
@@ -11,6 +12,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
   const {
     gameState,
     gamePhase,
+    gameMode,
     currentWave,
     weaponType,
     weaponLevel,
@@ -19,6 +21,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     isRotating,
     activeWidth,
     activeHeight,
+    globalScale,
     isMuted,
     hiddenEventWavesLeft,
     resumingCountdown,
@@ -96,9 +99,8 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
   )
 
   const addScore = (pts: number) => {
-    let mult = 1
-    let milestone = 10000
-
+    let mult = 1,
+      milestone = 10000
     if (difficulty.value === 'normal') {
       mult = 1.5
       milestone = 25000
@@ -129,7 +131,6 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     player.value.invulnerable = 120
     if (lives.value <= 0) {
       gameState.value = 'gameover'
-
       leaderboard.value.push({
         score: score.value,
         wave: currentWave.value,
@@ -149,14 +150,26 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
   }
 
   const startWave = (wave: number) => {
+    // Luôn giữ background scale là 1 (không dùng CSS transform nữa)
+    globalScale.value = 1.0
+
+    // CHỈ THU NHỎ KÍCH THƯỚC PHI THUYỀN (PLAYER) XUỐNG CÒN 30x30 Ở MÀN 120
+    if (gameMode.value === 'campaign' && wave === 120) {
+      player.value.width = 30
+      player.value.height = 30
+    } else {
+      player.value.width = 60
+      player.value.height = 60
+    }
+
     bullets.value = []
     enemyBullets.value = []
     activeDots.value = []
     bgHue.value = (Math.floor((wave - 1) / 10) * 45) % 360
     engine.hasSpawnedBoss = false
 
-    let hpMult = 1
-    let eggRateMult = 1
+    let hpMult = 1,
+      eggRateMult = 1
     if (difficulty.value === 'normal') {
       hpMult = 1.5
       eggRateMult = 1.5
@@ -169,19 +182,6 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
       Math.min(1.2 + wave * 0.02, 4.0) * (difficulty.value !== 'easy' ? 1.2 : 1)
     engine.waveEggFireRate = Math.min(0.005 + wave * 0.0002, 0.02) * eggRateMult
 
-    const SHIRT_COLORS = [
-      '#ef4444',
-      '#3b82f6',
-      '#22c55e',
-      '#a855f7',
-      '#facc15',
-      '#ec4899',
-      '#06b6d4',
-    ]
-    const unlockedCount = Math.min(1 + Math.floor((wave - 1) / 10), SHIRT_COLORS.length)
-    const availableColors = SHIRT_COLORS.slice(0, unlockedCount)
-    const getRandomColor = () => availableColors[Math.floor(Math.random() * availableColors.length)]
-
     if (hiddenEventWavesLeft.value > 0) hiddenEventWavesLeft.value--
     if (hiddenEventWavesLeft.value === 0 && wave > 30 && wave % 10 === 6 && Math.random() < 0.1)
       hiddenEventWavesLeft.value = 4
@@ -193,65 +193,71 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     engine.pendingSpawns = []
     enemies.value = []
 
+    // XỬ LÝ BOSS
     if (wave % 10 === 0) {
       gamePhase.value = 'boss'
       engine.hasSpawnedBoss = true
-      bosses.value = []
-      let bType = 0
-      if (wave % 100 === 80) bType = 4
-      else if (wave >= 100) bType = Math.floor(Math.random() * 4)
-      else if (wave >= 40) bType = Math.floor(Math.random() * 3)
-      else if (wave >= 20) bType = Math.random() > 0.5 ? 1 : 0
-      else bType = 0
 
-      const baseHp = (1000 + wave * 400) * hpMult
-
-      if (bType === 1) {
-        bosses.value.push({
-          id: `boss-${engine.objCounter++}`,
-          bossType: 1,
-          x: activeWidth.value / 4 - 60,
-          y: -200,
-          targetY: 60,
-          width: 120,
-          height: 120,
-          hp: baseHp * 0.6,
-          maxHp: baseHp * 0.6,
-          direction: 1,
-          state: 'idle',
-          stateTimer: 0,
-        })
-        bosses.value.push({
-          id: `boss-${engine.objCounter++}`,
-          bossType: 1,
-          x: (activeWidth.value / 4) * 3 - 60,
-          y: -200,
-          targetY: 60,
-          width: 120,
-          height: 120,
-          hp: baseHp * 0.6,
-          maxHp: baseHp * 0.6,
-          direction: -1,
-          state: 'idle',
-          stateTimer: 0,
-        })
+      if (gameMode.value === 'campaign') {
+        bosses.value = getCampaignBosses(wave, activeWidth.value, hpMult, engine)
       } else {
-        bosses.value.push({
-          id: `boss-${engine.objCounter++}`,
-          bossType: bType,
-          x: activeWidth.value / 2 - 80,
-          y: -200,
-          targetY: 40,
-          width: 160,
-          height: 160,
-          hp: baseHp,
-          maxHp: baseHp,
-          direction: 1,
-          state: 'idle',
-          stateTimer: 60,
-          laserTimer: 200,
-          burstCount: 0,
-        })
+        bosses.value = []
+        let bType = 0
+        if (wave % 100 === 80) bType = 4
+        else if (wave >= 100) bType = Math.floor(Math.random() * 4)
+        else if (wave >= 40) bType = Math.floor(Math.random() * 3)
+        else if (wave >= 20) bType = Math.random() > 0.5 ? 1 : 0
+        else bType = 0
+
+        const baseHp = (1000 + wave * 400) * hpMult
+
+        if (bType === 1) {
+          bosses.value.push({
+            id: `boss-${engine.objCounter++}`,
+            bossType: 1,
+            x: activeWidth.value / 4 - 60,
+            y: -200,
+            targetY: 60,
+            width: 120,
+            height: 120,
+            hp: baseHp * 0.6,
+            maxHp: baseHp * 0.6,
+            direction: 1,
+            state: 'idle',
+            stateTimer: 0,
+          })
+          bosses.value.push({
+            id: `boss-${engine.objCounter++}`,
+            bossType: 1,
+            x: (activeWidth.value / 4) * 3 - 60,
+            y: -200,
+            targetY: 60,
+            width: 120,
+            height: 120,
+            hp: baseHp * 0.6,
+            maxHp: baseHp * 0.6,
+            direction: -1,
+            state: 'idle',
+            stateTimer: 0,
+          })
+        } else {
+          bosses.value.push({
+            id: `boss-${engine.objCounter++}`,
+            bossType: bType,
+            x: activeWidth.value / 2 - 80,
+            y: -200,
+            targetY: 40,
+            width: 160,
+            height: 160,
+            hp: baseHp,
+            maxHp: baseHp,
+            direction: 1,
+            state: 'idle',
+            stateTimer: 60,
+            laserTimer: 200,
+            burstCount: 0,
+          })
+        }
       }
       return
     }
@@ -259,10 +265,11 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     if (isMeteorZone || isFallingChickenZone || isNormalMeteorZone) {
       gamePhase.value = 'meteors'
       engine.hazardSpawnCooldown = 0
-      let count = 0
-      if (isMeteorZone) count = Math.floor(Math.random() * 31) + 50
-      else if (isFallingChickenZone) count = 20 + Math.floor(wave / 2)
-      else count = Math.floor(Math.random() * 31) + 50
+      const count = isMeteorZone
+        ? Math.floor(Math.random() * 31) + 50
+        : isFallingChickenZone
+          ? 20 + Math.floor(wave / 2)
+          : Math.floor(Math.random() * 31) + 50
 
       for (let i = 0; i < count; i++) {
         const size = isFallingChickenZone ? 45 : 40 + Math.random() * 40
@@ -280,6 +287,20 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
         const startX = isMeteorZone
           ? Math.random() * (activeWidth.value * 2) - activeWidth.value / 2
           : Math.random() * (activeWidth.value - size)
+        const SHIRT_COLORS = [
+          '#ef4444',
+          '#3b82f6',
+          '#22c55e',
+          '#a855f7',
+          '#facc15',
+          '#ec4899',
+          '#06b6d4',
+        ]
+        const availableColors = SHIRT_COLORS.slice(
+          0,
+          Math.min(1 + Math.floor((wave - 1) / 10), SHIRT_COLORS.length),
+        )
+
         engine.pendingSpawns.push({
           id: `falling-${engine.objCounter++}`,
           x: startX,
@@ -290,7 +311,9 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
           maxHp: (40 + wave * 5) * hpMult,
           isMeteor: !isFallingChickenZone,
           isFallingChicken: isFallingChickenZone,
-          shirtColor: isFallingChickenZone ? getRandomColor() : undefined,
+          shirtColor: isFallingChickenZone
+            ? availableColors[Math.floor(Math.random() * availableColors.length)]
+            : undefined,
           dx,
           dy,
         })
@@ -362,19 +385,12 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
           }
         }
       }
-
       if (generatedMinions[0]) {
-        if (wave % 10 === 4) {
-          generatedMinions[0].isStash = true
-        } else if (wave % 10 === 9) {
-          if (difficulty.value === 'easy') {
+        if (wave % 10 === 4) generatedMinions[0].isStash = true
+        else if (wave % 10 === 9) {
+          if (difficulty.value === 'easy') generatedMinions[0].isStash = true
+          else if (weaponLevel.value <= Math.floor(wave / 10) + 1)
             generatedMinions[0].isStash = true
-          } else {
-            const bossTier = Math.floor(wave / 10) + 1
-            if (weaponLevel.value <= bossTier) {
-              generatedMinions[0].isStash = true
-            }
-          }
         }
       }
     } else if (wave % 10 === 3) {
@@ -451,6 +467,23 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
       }
     }
     engine.pendingSpawns = generatedMinions
+
+    function getRandomColor() {
+      const SHIRT_COLORS = [
+        '#ef4444',
+        '#3b82f6',
+        '#22c55e',
+        '#a855f7',
+        '#facc15',
+        '#ec4899',
+        '#06b6d4',
+      ]
+      const availableColors = SHIRT_COLORS.slice(
+        0,
+        Math.min(1 + Math.floor((wave - 1) / 10), SHIRT_COLORS.length),
+      )
+      return availableColors[Math.floor(Math.random() * availableColors.length)]
+    }
   }
 
   const startGame = () => {
@@ -509,7 +542,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
   const saveCurrentGame = () => {
     const newSave: SaveSlot = {
       id: currentSaveId.value || Date.now().toString(),
-      name: `Wave ${currentWave.value} - ${difficulty.value.toUpperCase()}`,
+      name: `Wave ${currentWave.value} - ${difficulty.value.toUpperCase()} [${gameMode.value === 'campaign' ? 'CD' : 'VT'}]`,
       date: Date.now(),
       score: score.value,
       lives: lives.value,
@@ -517,6 +550,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
       weaponType: weaponType.value,
       weaponLevel: weaponLevel.value,
       difficulty: difficulty.value,
+      gameMode: gameMode.value, // LƯU MODE
     }
     const idx = saves.value.findIndex((s) => s.id === newSave.id)
     if (idx !== -1) saves.value[idx] = newSave
@@ -532,17 +566,45 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     showNotification('✅ ĐÃ LƯU GAME THÀNH CÔNG!')
   }
 
+  const surrenderGame = () => {
+    lives.value = 0
+    gameState.value = 'gameover'
+
+    leaderboard.value.push({
+      score: score.value,
+      wave: currentWave.value,
+      difficulty: difficulty.value,
+      date: Date.now(),
+    })
+    leaderboard.value.sort((a, b) => b.score - a.score)
+    leaderboard.value = leaderboard.value.slice(0, 10)
+    localStorage.setItem('chicken_invaders_leaderboard', JSON.stringify(leaderboard.value))
+
+    if (currentSaveId.value) {
+      saves.value = saves.value.filter((s) => s.id !== currentSaveId.value)
+      localStorage.setItem('chicken_invaders_saves', JSON.stringify(saves.value))
+      currentSaveId.value = null
+    }
+
+    if (gameMode.value === 'campaign') {
+      showNotification('🏳️ BẠN ĐÃ ĐẦU HÀNG!')
+    } else {
+      showNotification('🛑 ĐÃ KẾT THÚC LƯỢT CHƠI!')
+    }
+  }
+
   const loadGame = (save: SaveSlot) => {
     currentSaveId.value = save.id
     difficulty.value = save.difficulty
     currentWave.value = save.currentWave
+    gameMode.value = save.gameMode || 'endless'
+
     initGame(true)
     score.value = save.score
     lives.value = save.lives
     weaponType.value = save.weaponType
     weaponLevel.value = save.weaponLevel
 
-    // CÁC BƯỚC NGHỈ VÀ HIỂN THỊ Y HỆT START GAME
     sfx.init()
     gameState.value = 'starting'
     engine.isTransitioningWave = true
@@ -581,36 +643,67 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     const file = target.files?.[0]
     if (!file) return
 
+    if (file.size > 100 * 1024) {
+      showNotification('❌ FILE QUÁ LỚN! TỐI ĐA 100KB.')
+      target.value = ''
+      return
+    }
+
     const reader = new FileReader()
     reader.onload = (e) => {
       try {
         const content = e.target?.result as string
-        const importedSaves = JSON.parse(content) as SaveSlot[]
+        const importedSaves = JSON.parse(content)
 
         if (Array.isArray(importedSaves)) {
           let merged = [...saves.value]
 
           importedSaves.forEach((imported) => {
-            if (imported.id && imported.score !== undefined && imported.currentWave !== undefined) {
-              const idx = merged.findIndex((s) => s.id === imported.id)
-              if (idx !== -1) merged[idx] = imported
-              else merged.push(imported)
+            if (
+              imported &&
+              typeof imported.id === 'string' &&
+              typeof imported.name === 'string' &&
+              typeof imported.date === 'number' &&
+              typeof imported.score === 'number' &&
+              typeof imported.lives === 'number' &&
+              typeof imported.currentWave === 'number' &&
+              typeof imported.weaponType === 'number' &&
+              typeof imported.weaponLevel === 'number' &&
+              ['easy', 'normal', 'hard', 'hardcore'].includes(imported.difficulty)
+            ) {
+              const safeName = imported.name
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .substring(0, 40)
+              const safeSave: SaveSlot = {
+                id: imported.id,
+                name: safeName,
+                date: imported.date,
+                score: Math.max(0, imported.score),
+                lives: Math.max(1, imported.lives),
+                currentWave: Math.max(1, imported.currentWave),
+                weaponType: Math.min(Math.max(0, imported.weaponType), WEAPON_TYPES.length - 1),
+                weaponLevel: Math.max(1, imported.weaponLevel),
+                difficulty: imported.difficulty as 'easy' | 'normal' | 'hard' | 'hardcore',
+                gameMode: imported.gameMode === 'campaign' ? 'campaign' : 'endless', // Giữ mode
+              }
+              const idx = merged.findIndex((s) => s.id === safeSave.id)
+              if (idx !== -1) merged[idx] = safeSave
+              else merged.push(safeSave)
             }
           })
 
           merged.sort((a, b) => b.date - a.date)
           merged = merged.slice(0, 10)
-
           saves.value = merged
           localStorage.setItem('chicken_invaders_saves', JSON.stringify(saves.value))
           showNotification('✅ ĐÃ NẠP DỮ LIỆU LƯU TRỮ THÀNH CÔNG!')
         } else {
-          showNotification('❌ FILE KHÔNG HỢP LỆ!')
+          showNotification('❌ FILE KHÔNG ĐÚNG ĐỊNH DẠNG!')
         }
       } catch {
-        showNotification('❌ LỖI ĐỌC FILE!')
+        showNotification('❌ LỖI ĐỌC FILE DỮ LIỆU!')
       }
-
       target.value = ''
     }
     reader.readAsText(file)
@@ -635,8 +728,8 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     if (wType === 9) currentFireRate = isTap ? 250 : 500
 
     if (Date.now() - engine.lastFireTime < currentFireRate) return
-
     sfx.shoot()
+
     const cx = player.value.x + player.value.width / 2
     const cy = player.value.y
     const wConfig = WEAPON_TYPES[wType]
@@ -742,7 +835,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     if (difficulty.value === 'normal') dropRate *= 0.4
     else if (difficulty.value === 'hard' || difficulty.value === 'hardcore') dropRate *= 0.2
 
-    if (enemy.isStash) {
+    if (enemy.isStash)
       powerUps.value.push({
         id: engine.objCounter++,
         x: enemy.x + enemy.width / 2 - 18,
@@ -751,7 +844,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
         height: 36,
         wType: -1,
       })
-    } else if (!enemy.isHazard) {
+    else if (!enemy.isHazard) {
       if (Math.random() < dropRate)
         powerUps.value.push({
           id: engine.objCounter++,
@@ -785,6 +878,7 @@ export function useGameActions(state: GameState, controls: ReturnType<typeof use
     deleteSave,
     exportSaves,
     importSaves,
+    surrenderGame,
   }
 }
 

@@ -9,6 +9,7 @@ import type {
   ActiveDot,
   LeaderboardEntry,
   SaveSlot,
+  GameEngine,
 } from '../utils/types'
 
 export type GameStatus =
@@ -20,11 +21,13 @@ export type GameStatus =
   | 'resuming'
   | 'leaderboard'
   | 'saves'
+  | 'victory'
 
 export function useGameState() {
   const gameState = ref<GameStatus>('menu')
   const previousGameState = ref<GameStatus>('menu')
 
+  const gameMode = ref<'endless' | 'campaign'>('endless') // <-- CHẾ ĐỘ CHƠI
   const gamePhase = ref<'minions' | 'meteors' | 'boss'>('minions')
   const difficulty = ref<'easy' | 'normal' | 'hard' | 'hardcore'>('easy')
   const currentWave = ref(1)
@@ -36,6 +39,8 @@ export function useGameState() {
   const isRotating = ref(false)
   const activeWidth = ref(GAME_WIDTH)
   const activeHeight = ref(GAME_HEIGHT)
+
+  const globalScale = ref(1)
 
   const isMuted = ref(false)
   const hiddenEventWavesLeft = ref(0)
@@ -82,8 +87,8 @@ export function useGameState() {
     if (storedSaves) saves.value = JSON.parse(storedSaves)
   } catch {}
 
-  const engine = reactive({
-    pendingSpawns: [] as Enemy[],
+  const engine = reactive<GameEngine>({
+    pendingSpawns: [],
     hazardSpawnCooldown: 0,
     formationCenter: { x: GAME_WIDTH / 2, y: 150, dx: 1 },
     formationTimer: 0,
@@ -101,6 +106,7 @@ export function useGameState() {
   return {
     gameState,
     previousGameState,
+    gameMode,
     gamePhase,
     difficulty,
     currentWave,
@@ -111,6 +117,7 @@ export function useGameState() {
     isRotating,
     activeWidth,
     activeHeight,
+    globalScale,
     isMuted,
     hiddenEventWavesLeft,
     resumingCountdown,
