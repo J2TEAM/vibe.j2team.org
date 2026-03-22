@@ -9,20 +9,28 @@ defineProps<{
 const sizeClasses = {
   sm: 'size-4',
   md: 'size-6',
-  lg: 'size-8',
+  lg: 'size-10',
 }
 </script>
 
 <template>
-  <div class="inline-flex gap-0.5">
-    <Icon
+  <div class="inline-flex gap-1">
+    <span
       v-for="i in 3"
       :key="i"
-      icon="lucide:star"
-      :class="[
-        sizeClasses[size ?? 'md'],
-        i <= stars ? 'fill-accent-amber text-accent-amber' : 'text-text-dim/30',
-      ]"
-    />
+      class="relative inline-block transition-transform duration-300"
+      :class="i <= stars ? 'scale-110' : 'scale-100'"
+      :style="i <= stars ? { transitionDelay: `${(i - 1) * 100}ms` } : {}"
+    >
+      <Icon
+        icon="lucide:star"
+        :class="[
+          sizeClasses[size ?? 'md'],
+          i <= stars
+            ? 'fill-accent-amber text-accent-amber drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]'
+            : 'text-text-dim/20',
+        ]"
+      />
+    </span>
   </div>
 </template>

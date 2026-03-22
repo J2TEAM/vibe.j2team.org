@@ -19,6 +19,22 @@ interface DifficultyGroup {
   challenges: Challenge[]
 }
 
+const DIFFICULTY_BG: Record<Difficulty, string> = {
+  beginner: 'border-accent-sky/20',
+  easy: 'border-green-500/20',
+  medium: 'border-accent-amber/20',
+  hard: 'border-accent-coral/20',
+  expert: 'border-red-500/20',
+}
+
+const DIFFICULTY_HOVER: Record<Difficulty, string> = {
+  beginner: 'hover:border-accent-sky/50 hover:shadow-accent-sky/5',
+  easy: 'hover:border-green-500/50 hover:shadow-green-500/5',
+  medium: 'hover:border-accent-amber/50 hover:shadow-accent-amber/5',
+  hard: 'hover:border-accent-coral/50 hover:shadow-accent-coral/5',
+  expert: 'hover:border-red-500/50 hover:shadow-red-500/5',
+}
+
 const groupedChallenges = computed<DifficultyGroup[]>(() => {
   const order: Difficulty[] = ['beginner', 'easy', 'medium', 'hard', 'expert']
   const map = new Map<Difficulty, Challenge[]>()
@@ -43,50 +59,74 @@ function handleSelect(challenge: Challenge, unlocked: boolean) {
     emit('selectLevel', challenge.id)
   }
 }
+
+function completedCount(group: DifficultyGroup): number {
+  return group.challenges.filter(
+    (c) => c.id <= props.progress.unlockedLevel && (props.progress.stars[c.id] ?? 0) > 0,
+  ).length
+}
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-8">
     <div v-for="group in groupedChallenges" :key="group.difficulty">
       <!-- Section header -->
-      <div class="mb-3 flex items-center gap-2">
-        <span
-          class="font-display text-xs font-semibold tracking-wider"
-          :class="DIFFICULTY_COLORS[group.difficulty]"
+      <div class="mb-4 flex items-center gap-3">
+        <div
+          class="flex items-center gap-2 border px-3 py-1 font-display text-xs font-bold tracking-wider"
+          :class="[DIFFICULTY_COLORS[group.difficulty], DIFFICULTY_BG[group.difficulty]]"
         >
           {{ DIFFICULTY_LABELS[group.difficulty] }}
-        </span>
+        </div>
         <div class="h-px flex-1 bg-border-default" />
-        <span class="text-xs text-text-dim"> {{ group.challenges.length }} level </span>
+        <span class="font-display text-xs tabular-nums text-text-dim">
+          {{ completedCount(group) }}/{{ group.challenges.length }}
+        </span>
       </div>
 
       <!-- Level cards -->
-      <div class="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div class="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         <button
           v-for="challenge in group.challenges"
           :key="challenge.id"
           class="group relative border bg-bg-surface p-3 sm:p-4 text-left transition-all duration-300"
           :class="
             challenge.id <= progress.unlockedLevel
-              ? 'border-border-default hover:-translate-y-1 hover:border-accent-coral hover:bg-bg-elevated cursor-pointer'
-              : 'border-border-default/50 opacity-50 cursor-not-allowed'
+              ? [
+                  'cursor-pointer hover:-translate-y-1 hover:shadow-lg active:scale-[0.98]',
+                  DIFFICULTY_BG[challenge.difficulty],
+                  DIFFICULTY_HOVER[challenge.difficulty],
+                ]
+              : 'border-border-default/30 opacity-40 cursor-not-allowed grayscale'
           "
           @click="handleSelect(challenge, challenge.id <= progress.unlockedLevel)"
         >
-          <!-- Level number -->
+          <!-- Level number watermark -->
           <div
-            class="absolute right-2 top-2 font-display text-2xl sm:text-3xl font-bold text-bg-elevated"
+            class="absolute right-2 top-1 font-display text-3xl font-black leading-none"
+            :class="
+              challenge.id <= progress.unlockedLevel ? 'text-text-primary/5' : 'text-text-primary/3'
+            "
           >
-            {{ challenge.id }}
+            {{ String(challenge.id).padStart(2, '0') }}
           </div>
 
-          <!-- Lock / avatar icon -->
-          <Icon
-            v-if="challenge.id > progress.unlockedLevel"
-            icon="lucide:lock"
-            class="size-4 sm:size-5 text-text-dim"
-          />
-          <Icon v-else :icon="challenge.customerAvatar" class="size-4 sm:size-5 text-accent-sky" />
+          <!-- Top row: icon + stars -->
+          <div class="flex items-start justify-between">
+            <div
+              v-if="challenge.id > progress.unlockedLevel"
+              class="flex size-8 items-center justify-center border border-border-default bg-bg-deep"
+            >
+              <Icon icon="lucide:lock" class="size-3.5 text-text-dim" />
+            </div>
+            <div
+              v-else
+              class="flex size-8 items-center justify-center border bg-bg-deep"
+              :class="DIFFICULTY_BG[challenge.difficulty]"
+            >
+              <Icon :icon="challenge.customerAvatar" class="size-4 text-accent-sky" />
+            </div>
+          </div>
 
           <!-- Customer name -->
           <h4 class="mt-2 text-xs sm:text-sm font-semibold text-text-primary line-clamp-1">
@@ -94,17 +134,18 @@ function handleSelect(challenge: Challenge, unlocked: boolean) {
           </h4>
 
           <!-- Short requirement -->
-          <p class="mt-1 text-[11px] sm:text-xs text-text-secondary line-clamp-2 leading-relaxed">
+          <p class="mt-1 text-[10px] sm:text-[11px] text-text-dim line-clamp-2 leading-relaxed">
             {{ challenge.requirement }}
           </p>
 
-          <!-- Stars -->
-          <div class="mt-2 sm:mt-3">
+          <!-- Stars row -->
+          <div class="mt-2 flex items-center justify-between">
             <StarRating
               v-if="challenge.id <= progress.unlockedLevel"
               :stars="getStars(challenge.id)"
               size="sm"
             />
+            <span v-else class="text-[10px] text-text-dim/50 font-display">---</span>
           </div>
         </button>
       </div>
