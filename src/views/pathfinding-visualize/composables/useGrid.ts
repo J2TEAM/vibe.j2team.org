@@ -41,6 +41,10 @@ export function useGrid(rows = 40, cols = 40) {
     else if (cell.type === 'wall') cell.type = 'empty'
   }
 
+  function setWall(cell: Cell) {
+    if (cell.type === 'empty') cell.type = 'wall'
+  }
+
   function resetVisited() {
     for (const row of grid.value) {
       for (const cell of row) {
@@ -76,6 +80,7 @@ export function useGrid(rows = 40, cols = 40) {
     end,
     clearGrid,
     toggleWall,
+    setWall,
     resetVisited,
     randomWalls,
   }
