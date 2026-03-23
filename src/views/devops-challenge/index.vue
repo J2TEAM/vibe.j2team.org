@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { useEventListener } from '@vueuse/core'
 import { useGame } from './composables/useGame'
-import { challenges } from './data/challenges'
+import { challenges, loadChallenges } from './data/challenges'
+import { loadTechnologies } from './data/technologies'
 import type { PlayMode, TechCategory } from './types'
 import { CATEGORY_LABELS, DIFFICULTY_COLORS, DIFFICULTY_LABELS } from './types'
 import ModeSelector from './components/ModeSelector.vue'
@@ -15,6 +16,13 @@ import AnalysisPanel from './components/AnalysisPanel.vue'
 import ResultScreen from './components/ResultScreen.vue'
 import StarRating from './components/StarRating.vue'
 import CustomAnalysis from './components/CustomAnalysis.vue'
+
+const dataLoaded = ref(false)
+
+onMounted(async () => {
+  await Promise.all([loadChallenges(), loadTechnologies()])
+  dataLoaded.value = true
+})
 
 const game = useGame()
 
@@ -64,7 +72,15 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
 <template>
   <div class="min-h-screen bg-bg-deep text-text-primary">
-    <div class="mx-auto max-w-5xl px-4 py-4 sm:px-6 md:py-8">
+    <!-- Loading state -->
+    <div v-if="!dataLoaded" class="flex min-h-screen items-center justify-center">
+      <div class="text-center">
+        <Icon icon="lucide:loader-2" class="mx-auto size-8 animate-spin text-accent-coral" />
+        <p class="mt-3 font-display text-sm text-text-dim">Loading...</p>
+      </div>
+    </div>
+
+    <div v-else class="mx-auto max-w-5xl px-4 py-4 sm:px-6 md:py-8">
       <!-- ========== MENU VIEW ========== -->
       <template v-if="game.gameView.value === 'menu'">
         <!-- Back -->

@@ -1,0 +1,1282 @@
+[
+  {
+    "id": "react",
+    "name": "React",
+    "nameVi": "React",
+    "description": "Thư viện UI phổ biến nhất của Facebook. Dùng component và Virtual DOM để render nhanh. Hệ sinh thái lớn, dễ tuyển dev.",
+    "category": "frontend",
+    "icon": "simple-icons:react",
+    "complexity": 3,
+    "metrics": {
+      "throughput": 0,
+      "latency": 5,
+      "security": 50,
+      "cost": 0,
+      "reliability": 90,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "nextjs",
+      "nodejs"
+    ],
+    "conflicts": [
+      "vue",
+      "angular",
+      "svelte"
+    ],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "vue",
+    "name": "Vue.js",
+    "nameVi": "Vue.js",
+    "description": "Framework frontend nhẹ, dễ học. Cú pháp template trực quan, Composition API mạnh mẽ. Phù hợp team nhỏ và startup.",
+    "category": "frontend",
+    "icon": "simple-icons:vuedotjs",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 0,
+      "latency": 4,
+      "security": 50,
+      "cost": 0,
+      "reliability": 90,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "nuxtjs",
+      "nodejs"
+    ],
+    "conflicts": [
+      "react",
+      "angular",
+      "svelte"
+    ],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "angular",
+    "name": "Angular",
+    "nameVi": "Angular",
+    "description": "Framework full-featured của Google. Có sẵn mọi thứ: routing, form, HTTP, DI. Phù hợp dự án enterprise lớn nhưng learning curve cao.",
+    "category": "frontend",
+    "icon": "simple-icons:angular",
+    "complexity": 4,
+    "metrics": {
+      "throughput": 0,
+      "latency": 8,
+      "security": 60,
+      "cost": 0,
+      "reliability": 92,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "java-spring"
+    ],
+    "conflicts": [
+      "react",
+      "vue",
+      "svelte"
+    ],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "svelte",
+    "name": "Svelte",
+    "nameVi": "Svelte",
+    "description": "Compiler framework — biên dịch thành vanilla JS, không cần Virtual DOM. Bundle nhỏ, hiệu suất cao. Cộng đồng nhỏ hơn.",
+    "category": "frontend",
+    "icon": "simple-icons:svelte",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 0,
+      "latency": 2,
+      "security": 50,
+      "cost": 0,
+      "reliability": 88,
+      "scalingFactor": 1
+    },
+    "synergies": [],
+    "conflicts": [
+      "react",
+      "vue",
+      "angular"
+    ],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "nextjs",
+    "name": "Next.js",
+    "nameVi": "Next.js",
+    "description": "Meta-framework cho React. Hỗ trợ SSR, SSG, ISR, API routes. SEO tốt, performance cao. Phù hợp hầu hết dự án web.",
+    "category": "frontend",
+    "icon": "simple-icons:nextdotjs",
+    "complexity": 3,
+    "metrics": {
+      "throughput": 0,
+      "latency": 3,
+      "security": 55,
+      "cost": 20,
+      "reliability": 93,
+      "scalingFactor": 1.2
+    },
+    "synergies": [
+      "react",
+      "nodejs",
+      "vercel-cdn"
+    ],
+    "conflicts": [
+      "vue",
+      "angular",
+      "svelte",
+      "nuxtjs"
+    ],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "nodejs",
+    "name": "Node.js / Express",
+    "nameVi": "Node.js / Express",
+    "description": "Runtime JavaScript phía server. Xử lý I/O bất đồng bộ tốt, phù hợp API và realtime. Single-threaded nên CPU-intensive sẽ chậm.",
+    "category": "backend",
+    "icon": "simple-icons:nodedotjs",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 15000,
+      "latency": 8,
+      "security": 50,
+      "cost": 40,
+      "reliability": 88,
+      "scalingFactor": 1.5
+    },
+    "synergies": [
+      "react",
+      "vue",
+      "redis",
+      "mongodb"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "golang",
+    "name": "Go / Gin",
+    "nameVi": "Go / Gin",
+    "description": "Ngôn ngữ compiled của Google. Cực nhanh, goroutine xử lý đồng thời tuyệt vời. Ít thư viện hơn Node.js nhưng hiệu suất vượt trội.",
+    "category": "backend",
+    "icon": "simple-icons:go",
+    "complexity": 3,
+    "metrics": {
+      "throughput": 50000,
+      "latency": 3,
+      "security": 65,
+      "cost": 35,
+      "reliability": 95,
+      "scalingFactor": 2
+    },
+    "synergies": [
+      "kubernetes",
+      "redis",
+      "kafka",
+      "grpc"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "python-django",
+    "name": "Python / Django",
+    "nameVi": "Python / Django",
+    "description": "Framework \"batteries-included\" của Python. ORM mạnh, admin panel có sẵn. Chậm hơn Go/Node nhưng phát triển nhanh.",
+    "category": "backend",
+    "icon": "simple-icons:django",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 3000,
+      "latency": 15,
+      "security": 70,
+      "cost": 40,
+      "reliability": 90,
+      "scalingFactor": 1.3
+    },
+    "synergies": [
+      "postgresql",
+      "redis",
+      "celery-rabbitmq"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "python-fastapi",
+    "name": "Python / FastAPI",
+    "nameVi": "Python / FastAPI",
+    "description": "Framework Python hiện đại, async. Nhanh gấp 3 lần Django, auto-gen API docs. Phù hợp microservices và ML serving.",
+    "category": "backend",
+    "icon": "simple-icons:fastapi",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 8000,
+      "latency": 10,
+      "security": 60,
+      "cost": 35,
+      "reliability": 88,
+      "scalingFactor": 1.5
+    },
+    "synergies": [
+      "postgresql",
+      "redis",
+      "docker"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "java-spring",
+    "name": "Java / Spring Boot",
+    "nameVi": "Java / Spring Boot",
+    "description": "Framework enterprise phổ biến nhất. JVM cực ổn định, hệ sinh thái khổng lồ. Tốn RAM nhưng phù hợp hệ thống lớn, ngân hàng.",
+    "category": "backend",
+    "icon": "simple-icons:spring",
+    "complexity": 4,
+    "metrics": {
+      "throughput": 25000,
+      "latency": 10,
+      "security": 75,
+      "cost": 60,
+      "reliability": 96,
+      "scalingFactor": 1.8
+    },
+    "synergies": [
+      "postgresql",
+      "kafka",
+      "kubernetes",
+      "angular"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "rust-actix",
+    "name": "Rust / Actix",
+    "nameVi": "Rust / Actix",
+    "description": "Ngôn ngữ an toàn bộ nhớ, hiệu suất ngang C++. Khó học nhất nhưng nhanh nhất. Phù hợp xử lý high-performance, hệ thống quan trọng.",
+    "category": "backend",
+    "icon": "simple-icons:rust",
+    "complexity": 5,
+    "metrics": {
+      "throughput": 80000,
+      "latency": 2,
+      "security": 80,
+      "cost": 30,
+      "reliability": 97,
+      "scalingFactor": 2.2
+    },
+    "synergies": [
+      "postgresql",
+      "redis",
+      "kubernetes"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "advanced"
+    ]
+  },
+  {
+    "id": "php-laravel",
+    "name": "PHP / Laravel",
+    "nameVi": "PHP / Laravel",
+    "description": "Framework PHP hiện đại, cú pháp đẹp. Eloquent ORM, Blade template. Hosting rẻ, cộng đồng lớn. Phù hợp web truyền thống.",
+    "category": "backend",
+    "icon": "simple-icons:laravel",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 5000,
+      "latency": 12,
+      "security": 55,
+      "cost": 25,
+      "reliability": 85,
+      "scalingFactor": 1.2
+    },
+    "synergies": [
+      "mysql",
+      "redis"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "postgresql",
+    "name": "PostgreSQL",
+    "nameVi": "PostgreSQL",
+    "description": "Cơ sở dữ liệu quan hệ mạnh nhất. ACID compliant, JSON support, full-text search. Phù hợp hầu hết mọi dự án.",
+    "category": "database",
+    "icon": "simple-icons:postgresql",
+    "complexity": 3,
+    "metrics": {
+      "throughput": 20000,
+      "latency": 5,
+      "security": 80,
+      "cost": 50,
+      "reliability": 97,
+      "scalingFactor": 1.5
+    },
+    "synergies": [
+      "python-django",
+      "java-spring",
+      "golang",
+      "rust-actix"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "mysql",
+    "name": "MySQL",
+    "nameVi": "MySQL",
+    "description": "Cơ sở dữ liệu phổ biến nhất thế giới. Đơn giản, nhanh cho read. Phù hợp web truyền thống, WordPress, e-commerce.",
+    "category": "database",
+    "icon": "simple-icons:mysql",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 18000,
+      "latency": 5,
+      "security": 70,
+      "cost": 40,
+      "reliability": 95,
+      "scalingFactor": 1.3
+    },
+    "synergies": [
+      "php-laravel",
+      "nodejs"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "mongodb",
+    "name": "MongoDB",
+    "nameVi": "MongoDB",
+    "description": "NoSQL document database. Lưu JSON linh hoạt, schema-free. Nhanh cho read/write đơn giản, khó khi cần join phức tạp.",
+    "category": "database",
+    "icon": "simple-icons:mongodb",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 25000,
+      "latency": 4,
+      "security": 55,
+      "cost": 45,
+      "reliability": 90,
+      "scalingFactor": 1.8
+    },
+    "synergies": [
+      "nodejs",
+      "react"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "cassandra",
+    "name": "Cassandra",
+    "nameVi": "Cassandra",
+    "description": "NoSQL phân tán, viết cực nhanh. Thiết kế cho Big Data, chạy trên nhiều node. Dùng bởi Netflix, Discord cho hàng triệu write/s.",
+    "category": "database",
+    "icon": "simple-icons:apachecassandra",
+    "complexity": 5,
+    "metrics": {
+      "throughput": 60000,
+      "latency": 8,
+      "security": 60,
+      "cost": 80,
+      "reliability": 99,
+      "scalingFactor": 2.5
+    },
+    "synergies": [
+      "kafka",
+      "kubernetes",
+      "golang"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "advanced"
+    ]
+  },
+  {
+    "id": "dynamodb",
+    "name": "DynamoDB",
+    "nameVi": "DynamoDB",
+    "description": "NoSQL serverless của AWS. Tự động scale, không cần quản lý server. Tính phí theo request, rẻ khi traffic thấp, đắt khi cao.",
+    "category": "database",
+    "icon": "simple-icons:amazondynamodb",
+    "complexity": 3,
+    "metrics": {
+      "throughput": 40000,
+      "latency": 5,
+      "security": 75,
+      "cost": 60,
+      "reliability": 99,
+      "scalingFactor": 2.8
+    },
+    "synergies": [
+      "aws-ecs",
+      "aws-s3"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "redis-db",
+    "name": "Redis (as Database)",
+    "nameVi": "Redis (dùng như Database)",
+    "description": "In-memory database, đọc/ghi cực nhanh (microseconds). Phù hợp session, leaderboard, realtime data. Dữ liệu mất nếu server restart (trừ khi bật persistence).",
+    "category": "database",
+    "icon": "simple-icons:redis",
+    "complexity": 3,
+    "metrics": {
+      "throughput": 100000,
+      "latency": 1,
+      "security": 45,
+      "cost": 55,
+      "reliability": 85,
+      "scalingFactor": 1.8
+    },
+    "synergies": [
+      "redis",
+      "golang",
+      "nodejs"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "redis",
+    "name": "Redis Cache",
+    "nameVi": "Redis (bộ nhớ đệm)",
+    "description": "Bộ nhớ đệm in-memory phổ biến nhất. Giảm tải database bằng cách lưu kết quả truy vấn. Hỗ trợ pub/sub cho realtime.",
+    "category": "cache",
+    "icon": "simple-icons:redis",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 100000,
+      "latency": 1,
+      "security": 50,
+      "cost": 30,
+      "reliability": 92,
+      "scalingFactor": 1.5
+    },
+    "synergies": [
+      "postgresql",
+      "mysql",
+      "nodejs",
+      "golang"
+    ],
+    "conflicts": [
+      "memcached"
+    ],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "memcached",
+    "name": "Memcached",
+    "nameVi": "Memcached",
+    "description": "Cache đơn giản, nhanh. Chỉ key-value, không có cấu trúc dữ liệu phức tạp như Redis. Phù hợp cache đơn giản, session.",
+    "category": "cache",
+    "icon": "lucide:database",
+    "complexity": 1,
+    "metrics": {
+      "throughput": 80000,
+      "latency": 1,
+      "security": 40,
+      "cost": 20,
+      "reliability": 88,
+      "scalingFactor": 1.3
+    },
+    "synergies": [
+      "php-laravel",
+      "mysql"
+    ],
+    "conflicts": [
+      "redis"
+    ],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "varnish",
+    "name": "Varnish",
+    "nameVi": "Varnish",
+    "description": "HTTP accelerator — cache toàn bộ HTTP response. Cực nhanh cho static content và API response. Dùng trước web server.",
+    "category": "cache",
+    "icon": "lucide:zap",
+    "complexity": 3,
+    "metrics": {
+      "throughput": 200000,
+      "latency": 0,
+      "security": 45,
+      "cost": 25,
+      "reliability": 90,
+      "scalingFactor": 1.4
+    },
+    "synergies": [
+      "nginx"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "kafka",
+    "name": "Apache Kafka",
+    "nameVi": "Apache Kafka",
+    "description": "Hệ thống streaming phân tán. Xử lý hàng triệu message/giây. Phù hợp event-driven, log aggregation, data pipeline.",
+    "category": "message-queue",
+    "icon": "simple-icons:apachekafka",
+    "complexity": 5,
+    "metrics": {
+      "throughput": 500000,
+      "latency": 5,
+      "security": 60,
+      "cost": 70,
+      "reliability": 99,
+      "scalingFactor": 2.5
+    },
+    "synergies": [
+      "java-spring",
+      "golang",
+      "cassandra",
+      "kubernetes"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "advanced"
+    ]
+  },
+  {
+    "id": "rabbitmq",
+    "name": "RabbitMQ",
+    "nameVi": "RabbitMQ",
+    "description": "Message broker truyền thống. Hỗ trợ nhiều protocol (AMQP, MQTT). Dễ dùng hơn Kafka, phù hợp task queue và microservices.",
+    "category": "message-queue",
+    "icon": "simple-icons:rabbitmq",
+    "complexity": 3,
+    "metrics": {
+      "throughput": 50000,
+      "latency": 3,
+      "security": 65,
+      "cost": 40,
+      "reliability": 95,
+      "scalingFactor": 1.5
+    },
+    "synergies": [
+      "python-django",
+      "nodejs",
+      "docker"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "aws-sqs",
+    "name": "AWS SQS",
+    "nameVi": "AWS SQS",
+    "description": "Hàng đợi message serverless của AWS. Không cần quản lý server, auto-scale. Phù hợp khi đã dùng AWS ecosystem.",
+    "category": "message-queue",
+    "icon": "simple-icons:amazonaws",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 100000,
+      "latency": 10,
+      "security": 75,
+      "cost": 15,
+      "reliability": 99,
+      "scalingFactor": 2
+    },
+    "synergies": [
+      "aws-ecs",
+      "dynamodb",
+      "aws-s3"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "cloudflare-cdn",
+    "name": "Cloudflare",
+    "nameVi": "Cloudflare",
+    "description": "CDN + DDoS protection miễn phí. Cache static files tại 300+ data centers. Giảm latency toàn cầu và bảo vệ server.",
+    "category": "cdn",
+    "icon": "simple-icons:cloudflare",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 1000000,
+      "latency": 0,
+      "security": 80,
+      "cost": 0,
+      "reliability": 99,
+      "scalingFactor": 3
+    },
+    "synergies": [
+      "nginx",
+      "cloudflare-waf"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "aws-cloudfront",
+    "name": "AWS CloudFront",
+    "nameVi": "AWS CloudFront",
+    "description": "CDN của Amazon. Tích hợp tốt với S3, EC2. Có Lambda@Edge để xử lý logic tại edge. Tính phí theo bandwidth.",
+    "category": "cdn",
+    "icon": "simple-icons:amazonaws",
+    "complexity": 3,
+    "metrics": {
+      "throughput": 800000,
+      "latency": 0,
+      "security": 75,
+      "cost": 30,
+      "reliability": 99,
+      "scalingFactor": 2.8
+    },
+    "synergies": [
+      "aws-s3",
+      "aws-ecs",
+      "dynamodb"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "nginx-lb",
+    "name": "Nginx Load Balancer",
+    "nameVi": "Nginx (cân bằng tải)",
+    "description": "Dùng Nginx như reverse proxy + load balancer. Phân phối request đều giữa các server backend. Cấu hình linh hoạt.",
+    "category": "load-balancer",
+    "icon": "simple-icons:nginx",
+    "complexity": 3,
+    "metrics": {
+      "throughput": 100000,
+      "latency": 1,
+      "security": 60,
+      "cost": 20,
+      "reliability": 95,
+      "scalingFactor": 2
+    },
+    "synergies": [
+      "nodejs",
+      "golang",
+      "docker"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "haproxy",
+    "name": "HAProxy",
+    "nameVi": "HAProxy",
+    "description": "Load balancer chuyên nghiệp, hiệu suất cao. Hỗ trợ L4/L7, health check, circuit breaker. Dùng bởi GitHub, Stack Overflow.",
+    "category": "load-balancer",
+    "icon": "lucide:scale",
+    "complexity": 4,
+    "metrics": {
+      "throughput": 200000,
+      "latency": 0,
+      "security": 65,
+      "cost": 25,
+      "reliability": 99,
+      "scalingFactor": 2.2
+    },
+    "synergies": [
+      "kubernetes",
+      "golang"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "advanced"
+    ]
+  },
+  {
+    "id": "aws-alb",
+    "name": "AWS ALB",
+    "nameVi": "AWS Application Load Balancer",
+    "description": "Load balancer managed của AWS. Tự động scale, không cần quản lý. Hỗ trợ path-based routing, WebSocket.",
+    "category": "load-balancer",
+    "icon": "simple-icons:amazonaws",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 150000,
+      "latency": 2,
+      "security": 70,
+      "cost": 40,
+      "reliability": 99,
+      "scalingFactor": 2.5
+    },
+    "synergies": [
+      "aws-ecs",
+      "dynamodb",
+      "aws-s3"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "docker",
+    "name": "Docker",
+    "nameVi": "Docker",
+    "description": "Đóng gói ứng dụng vào container — chạy giống nhau ở mọi nơi. Isolate môi trường, dễ deploy. Nền tảng của DevOps hiện đại.",
+    "category": "container",
+    "icon": "simple-icons:docker",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 0,
+      "latency": 2,
+      "security": 60,
+      "cost": 10,
+      "reliability": 90,
+      "scalingFactor": 1.5
+    },
+    "synergies": [
+      "kubernetes",
+      "github-actions",
+      "gitlab-ci",
+      "jenkins"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "kubernetes",
+    "name": "Kubernetes",
+    "nameVi": "Kubernetes (K8s)",
+    "description": "Hệ thống điều phối container. Tự động scale, self-healing, rolling update. Phức tạp nhưng mạnh nhất cho production.",
+    "category": "container",
+    "icon": "simple-icons:kubernetes",
+    "complexity": 5,
+    "metrics": {
+      "throughput": 0,
+      "latency": 3,
+      "security": 75,
+      "cost": 80,
+      "reliability": 99,
+      "scalingFactor": 2.5
+    },
+    "synergies": [
+      "docker",
+      "golang",
+      "kafka",
+      "prometheus-grafana",
+      "haproxy",
+      "argocd",
+      "istio"
+    ],
+    "conflicts": [
+      "docker-compose"
+    ],
+    "requires": [
+      "container"
+    ],
+    "tags": [
+      "advanced"
+    ]
+  },
+  {
+    "id": "docker-compose",
+    "name": "Docker Compose",
+    "nameVi": "Docker Compose",
+    "description": "Định nghĩa nhiều container trong 1 file YAML. Đơn giản, phù hợp dev/staging. Không phù hợp production quy mô lớn.",
+    "category": "container",
+    "icon": "simple-icons:docker",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 0,
+      "latency": 2,
+      "security": 55,
+      "cost": 5,
+      "reliability": 80,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "docker",
+      "nodejs",
+      "postgresql"
+    ],
+    "conflicts": [
+      "kubernetes"
+    ],
+    "requires": [
+      "container"
+    ],
+    "tags": [
+      "beginner-friendly"
+    ]
+  },
+  {
+    "id": "aws-ecs",
+    "name": "AWS ECS / Fargate",
+    "nameVi": "AWS ECS / Fargate",
+    "description": "Container service managed của AWS. Fargate = serverless container, không cần quản lý EC2. Dễ hơn K8s nhưng bị lock-in AWS.",
+    "category": "container",
+    "icon": "simple-icons:amazonaws",
+    "complexity": 3,
+    "metrics": {
+      "throughput": 0,
+      "latency": 3,
+      "security": 75,
+      "cost": 60,
+      "reliability": 99,
+      "scalingFactor": 2.2
+    },
+    "synergies": [
+      "dynamodb",
+      "aws-sqs",
+      "aws-alb",
+      "aws-cloudfront",
+      "aws-s3"
+    ],
+    "conflicts": [
+      "kubernetes"
+    ],
+    "requires": [
+      "container"
+    ],
+    "tags": []
+  },
+  {
+    "id": "prometheus-grafana",
+    "name": "Prometheus + Grafana",
+    "nameVi": "Prometheus + Grafana",
+    "description": "Bộ đôi monitoring phổ biến. Prometheus thu thập metrics, Grafana hiển thị dashboard. Open-source, mạnh mẽ, miễn phí.",
+    "category": "monitoring",
+    "icon": "simple-icons:prometheus",
+    "complexity": 3,
+    "metrics": {
+      "throughput": 0,
+      "latency": 0,
+      "security": 55,
+      "cost": 20,
+      "reliability": 5,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "kubernetes",
+      "docker",
+      "golang"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "elk-stack",
+    "name": "ELK Stack",
+    "nameVi": "ELK (Elasticsearch + Logstash + Kibana)",
+    "description": "Bộ thu thập và phân tích log. Elasticsearch tìm kiếm log, Kibana hiển thị. Tốn RAM nhưng rất mạnh cho debugging.",
+    "category": "monitoring",
+    "icon": "simple-icons:elastic",
+    "complexity": 4,
+    "metrics": {
+      "throughput": 0,
+      "latency": 0,
+      "security": 60,
+      "cost": 50,
+      "reliability": 5,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "kafka",
+      "kubernetes"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "datadog",
+    "name": "Datadog",
+    "nameVi": "Datadog",
+    "description": "Monitoring SaaS all-in-one: metrics, logs, APM, tracing. Cài đặt nhanh, UI đẹp. Đắt khi scale lớn.",
+    "category": "monitoring",
+    "icon": "simple-icons:datadog",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 0,
+      "latency": 0,
+      "security": 65,
+      "cost": 80,
+      "reliability": 5,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "aws-ecs",
+      "kubernetes"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "sentry",
+    "name": "Sentry",
+    "nameVi": "Sentry",
+    "description": "Tracking lỗi real-time. Tự động bắt exception, stack trace, user context. Phù hợp mọi dự án để phát hiện bug nhanh.",
+    "category": "monitoring",
+    "icon": "simple-icons:sentry",
+    "complexity": 1,
+    "metrics": {
+      "throughput": 0,
+      "latency": 0,
+      "security": 50,
+      "cost": 25,
+      "reliability": 3,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "nodejs",
+      "react",
+      "vue",
+      "python-django"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "beginner-friendly"
+    ]
+  },
+  {
+    "id": "github-actions",
+    "name": "GitHub Actions",
+    "nameVi": "GitHub Actions",
+    "description": "CI/CD tích hợp sẵn trong GitHub. Cấu hình bằng YAML, miễn phí cho open-source. Phù hợp hầu hết dự án.",
+    "category": "ci-cd",
+    "icon": "simple-icons:githubactions",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 0,
+      "latency": 0,
+      "security": 60,
+      "cost": 10,
+      "reliability": 5,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "docker",
+      "nodejs",
+      "golang"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "hot",
+      "beginner-friendly"
+    ]
+  },
+  {
+    "id": "gitlab-ci",
+    "name": "GitLab CI",
+    "nameVi": "GitLab CI",
+    "description": "CI/CD tích hợp trong GitLab. Pipeline mạnh, hỗ trợ Docker registry. Self-hosted được, kiểm soát hoàn toàn.",
+    "category": "ci-cd",
+    "icon": "simple-icons:gitlab",
+    "complexity": 3,
+    "metrics": {
+      "throughput": 0,
+      "latency": 0,
+      "security": 65,
+      "cost": 20,
+      "reliability": 5,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "docker",
+      "kubernetes"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "jenkins",
+    "name": "Jenkins",
+    "nameVi": "Jenkins",
+    "description": "CI/CD server open-source lâu đời nhất. Rất linh hoạt với plugin, nhưng UI cũ và cần tự quản lý server.",
+    "category": "ci-cd",
+    "icon": "simple-icons:jenkins",
+    "complexity": 4,
+    "metrics": {
+      "throughput": 0,
+      "latency": 0,
+      "security": 55,
+      "cost": 30,
+      "reliability": 4,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "java-spring",
+      "docker"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "argocd",
+    "name": "ArgoCD",
+    "nameVi": "ArgoCD",
+    "description": "GitOps cho Kubernetes. Tự động sync K8s cluster với Git repo. Rollback dễ dàng, audit trail rõ ràng.",
+    "category": "ci-cd",
+    "icon": "simple-icons:argo",
+    "complexity": 4,
+    "metrics": {
+      "throughput": 0,
+      "latency": 0,
+      "security": 70,
+      "cost": 15,
+      "reliability": 5,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "kubernetes",
+      "docker"
+    ],
+    "conflicts": [],
+    "requires": [
+      "container"
+    ],
+    "tags": [
+      "advanced"
+    ]
+  },
+  {
+    "id": "cloudflare-waf",
+    "name": "Cloudflare WAF",
+    "nameVi": "Cloudflare WAF (Tường lửa ứng dụng)",
+    "description": "Web Application Firewall — chặn SQL injection, XSS, DDoS tại edge. Bật 1 click, không cần cấu hình phức tạp.",
+    "category": "security",
+    "icon": "simple-icons:cloudflare",
+    "complexity": 1,
+    "metrics": {
+      "throughput": 0,
+      "latency": 0,
+      "security": 85,
+      "cost": 20,
+      "reliability": 5,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "cloudflare-cdn"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "auth0",
+    "name": "Auth0 / Keycloak",
+    "nameVi": "Auth0 / Keycloak (Xác thực)",
+    "description": "Dịch vụ xác thực có sẵn: login, OAuth2, JWT, MFA. Không cần tự code auth. Auth0 = SaaS, Keycloak = self-hosted.",
+    "category": "security",
+    "icon": "simple-icons:auth0",
+    "complexity": 3,
+    "metrics": {
+      "throughput": 0,
+      "latency": 5,
+      "security": 90,
+      "cost": 30,
+      "reliability": 5,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "nodejs",
+      "java-spring",
+      "react"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "vault",
+    "name": "HashiCorp Vault",
+    "nameVi": "HashiCorp Vault (Quản lý bí mật)",
+    "description": "Quản lý secrets (API keys, passwords, certificates). Mã hóa, access control, audit log. Quan trọng cho production.",
+    "category": "security",
+    "icon": "simple-icons:vault",
+    "complexity": 4,
+    "metrics": {
+      "throughput": 0,
+      "latency": 2,
+      "security": 95,
+      "cost": 40,
+      "reliability": 5,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "kubernetes",
+      "java-spring"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "advanced"
+    ]
+  },
+  {
+    "id": "letsencrypt",
+    "name": "Let's Encrypt SSL",
+    "nameVi": "Let's Encrypt (SSL miễn phí)",
+    "description": "Chứng chỉ SSL/TLS miễn phí, tự động gia hạn. Mã hóa kết nối HTTPS. Bắt buộc cho mọi website hiện đại.",
+    "category": "security",
+    "icon": "simple-icons:letsencrypt",
+    "complexity": 1,
+    "metrics": {
+      "throughput": 0,
+      "latency": 1,
+      "security": 70,
+      "cost": 0,
+      "reliability": 5,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "nginx-lb",
+      "cloudflare-cdn"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "beginner-friendly"
+    ]
+  },
+  {
+    "id": "rate-limiter",
+    "name": "Rate Limiter",
+    "nameVi": "Rate Limiter (Giới hạn tần suất)",
+    "description": "Giới hạn số request từ 1 IP/user trong khoảng thời gian. Chống brute force, spam, abuse API. Đơn giản nhưng hiệu quả.",
+    "category": "security",
+    "icon": "lucide:shield-alert",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 0,
+      "latency": 1,
+      "security": 75,
+      "cost": 5,
+      "reliability": 3,
+      "scalingFactor": 1
+    },
+    "synergies": [
+      "redis",
+      "nginx-lb"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  },
+  {
+    "id": "aws-s3",
+    "name": "AWS S3",
+    "nameVi": "AWS S3 (Lưu trữ đám mây)",
+    "description": "Object storage của Amazon. Lưu file, ảnh, video, backup. Bền vững 99.999999999%, rẻ, scale vô hạn.",
+    "category": "storage",
+    "icon": "simple-icons:amazons3",
+    "complexity": 2,
+    "metrics": {
+      "throughput": 0,
+      "latency": 10,
+      "security": 75,
+      "cost": 15,
+      "reliability": 99,
+      "scalingFactor": 3
+    },
+    "synergies": [
+      "aws-cloudfront",
+      "aws-ecs",
+      "dynamodb"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": [
+      "hot"
+    ]
+  },
+  {
+    "id": "minio",
+    "name": "MinIO",
+    "nameVi": "MinIO (S3 tự host)",
+    "description": "Object storage tự host, tương thích API S3. Kiểm soát hoàn toàn dữ liệu, không phụ thuộc cloud. Phù hợp on-premise.",
+    "category": "storage",
+    "icon": "simple-icons:minio",
+    "complexity": 3,
+    "metrics": {
+      "throughput": 0,
+      "latency": 5,
+      "security": 70,
+      "cost": 30,
+      "reliability": 95,
+      "scalingFactor": 1.5
+    },
+    "synergies": [
+      "kubernetes",
+      "docker"
+    ],
+    "conflicts": [],
+    "requires": [],
+    "tags": []
+  }
+]
