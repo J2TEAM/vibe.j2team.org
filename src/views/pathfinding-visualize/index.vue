@@ -10,6 +10,7 @@ import { algorithmNotes } from './data/algorithmNotes'
 
 const speed = ref(20)
 const explored = ref(0)
+const pathNotFound = ref(false)
 const algorithm = ref<'astar' | 'bfs' | 'dfs' | 'dijkstra' | 'prim' | 'greedy'>('astar')
 
 const { grid, rows, cols, start, end, toggleWall, setWall, clearGrid, resetVisited, randomWalls } =
@@ -122,28 +123,30 @@ async function startSearch() {
   if (!start.value || !end.value) return
 
   explored.value = 0
-
+  pathNotFound.value = false
   resetVisited()
 
+  let found = false
   if (algorithm.value === 'astar') {
-    await runAStar(start.value, end.value, speed.value, explored)
+    found = await runAStar(start.value, end.value, speed.value, explored)
+  } else if (algorithm.value === 'bfs') {
+    found = await runBFS(start.value, end.value, speed.value, explored)
+  } else if (algorithm.value === 'dfs') {
+    found = await runDFS(start.value, end.value, speed.value, explored)
+  } else if (algorithm.value === 'dijkstra') {
+    found = await runDijkstra(start.value, end.value, speed.value, explored)
+  } else if (algorithm.value === 'prim') {
+    found = await runPrim(start.value, end.value, speed.value, explored)
+  } else if (algorithm.value === 'greedy') {
+    found = await runGreedy(start.value, end.value, speed.value, explored)
   }
 
-  if (algorithm.value === 'bfs') {
-    await runBFS(start.value, end.value, speed.value, explored)
-  }
-  if (algorithm.value === 'dfs') {
-    await runDFS(start.value, end.value, speed.value, explored)
-  }
-  if (algorithm.value === 'dijkstra') {
-    await runDijkstra(start.value, end.value, speed.value, explored)
-  }
-  if (algorithm.value === 'prim') {
-    await runPrim(start.value, end.value, speed.value, explored)
-  }
-  if (algorithm.value === 'greedy') {
-    await runGreedy(start.value, end.value, speed.value, explored)
-  }
+  if (!found) pathNotFound.value = true
+}
+
+function handleClear() {
+  pathNotFound.value = false
+  clearGrid()
 }
 </script>
 
@@ -192,7 +195,7 @@ async function startSearch() {
         </button>
 
         <button
-          @click="clearGrid"
+          @click="handleClear"
           class="shrink-0 px-4 py-2 border border-border-default bg-bg-surface text-text-secondary text-sm transition hover:border-accent-coral hover:text-text-primary"
         >
           Clear
@@ -252,6 +255,9 @@ async function startSearch() {
           </div>
           <p class="mt-3 text-xs text-text-dim font-display tracking-wide">
             Nodes explored: {{ explored }}
+          </p>
+          <p v-if="pathNotFound" class="mt-2 text-sm text-accent-coral font-body">
+            Không tìm thấy đường đi giữa Start và End.
           </p>
         </div>
 

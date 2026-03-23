@@ -45,7 +45,12 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
     }
   }
 
-  async function runAStar(start: Cell, end: Cell, speed: number, explored: { value: number }) {
+  async function runAStar(
+    start: Cell,
+    end: Cell,
+    speed: number,
+    explored: { value: number },
+  ): Promise<boolean> {
     const open = [start]
 
     start.g = 0
@@ -60,7 +65,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
 
       if (current === end) {
         await drawPath(current, start, speed)
-        return
+        return true
       }
 
       if (current.type !== 'start') current.type = 'visited'
@@ -81,6 +86,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
 
       await sleep(speed)
     }
+    return false
   }
 
   async function runBFS(
@@ -89,7 +95,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
     speed: number,
     explored: { value: number },
     _onStep?: (line: number) => void,
-  ) {
+  ): Promise<boolean> {
     const queue: Cell[] = []
 
     queue.push(start)
@@ -104,7 +110,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
 
       if (current === end) {
         await drawPath(current, start, speed)
-        return
+        return true
       }
 
       if (current.type !== 'start') {
@@ -124,6 +130,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
 
       await sleep(speed)
     }
+    return false
   }
 
   async function runDFS(
@@ -132,7 +139,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
     speed: number,
     explored: { value: number },
     onStep?: (line: number) => void,
-  ) {
+  ): Promise<boolean> {
     const stack: Cell[] = []
 
     stack.push(start)
@@ -149,7 +156,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
       if (current === end) {
         onStep?.(8)
         await drawPath(current, start, speed)
-        return
+        return true
       }
 
       if (current.type !== 'start') current.type = 'visited'
@@ -169,6 +176,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
 
       await sleep(speed)
     }
+    return false
   }
 
   async function runDijkstra(
@@ -177,7 +185,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
     speed: number,
     explored: { value: number },
     _onStep?: (line: number) => void,
-  ) {
+  ): Promise<boolean> {
     const open: Cell[] = []
 
     start.g = 0
@@ -192,7 +200,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
 
       if (current === end) {
         await drawPath(current, start, speed)
-        return
+        return true
       }
 
       if (current.type !== 'start') {
@@ -216,6 +224,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
 
       await sleep(speed)
     }
+    return false
   }
 
   async function runGreedy(
@@ -224,7 +233,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
     speed: number,
     explored: { value: number },
     onStep?: (line: number) => void,
-  ) {
+  ): Promise<boolean> {
     const open = [start]
 
     start.g = 0
@@ -243,7 +252,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
       if (current === end) {
         onStep?.(8)
         await drawPath(current, start, speed)
-        return
+        return true
       }
 
       if (current.type !== 'start') current.type = 'visited'
@@ -268,6 +277,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
 
       await sleep(speed)
     }
+    return false
   }
 
   async function runPrim(
@@ -276,7 +286,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
     speed: number,
     explored: { value: number },
     onStep?: (line: number) => void,
-  ) {
+  ): Promise<boolean> {
     const inTree = new Set<Cell>()
 
     start.g = 0
@@ -309,7 +319,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
       if (best === end) {
         onStep?.(8)
         await drawPath(best, start, speed)
-        return
+        return true
       }
 
       if (best.type !== 'start') best.type = 'visited'
@@ -330,6 +340,7 @@ export function usePathfinding(grid: Ref<Cell[][]>, rows: number, cols: number) 
 
       await sleep(speed)
     }
+    return false
   }
 
   return { runAStar, runBFS, runDFS, runDijkstra, runGreedy, runPrim }
