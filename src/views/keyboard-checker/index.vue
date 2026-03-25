@@ -474,6 +474,11 @@ const handleClickOutside = (event: MouseEvent) => {
   }
 }
 
+const setOS = (newOS: 'WIN' | 'MAC') => {
+  os.value = newOS
+  resetBoard()
+}
+
 onMounted(() => {
   window.addEventListener('keydown', handleKeyDown)
   window.addEventListener('keyup', handleKeyUp)
@@ -657,10 +662,7 @@ onUnmounted(() => {
           <!-- OS selector -->
           <div class="flex h-9 items-center bg-bg-surface border border-border-default p-0.5">
             <button
-              @click="
-                os = 'WIN'
-                resetBoard()
-              "
+              @click="setOS('WIN')"
               class="px-3 h-full flex items-center gap-1.5 text-xs font-display tracking-wide uppercase transition border"
               :class="
                 os === 'WIN'
@@ -673,10 +675,7 @@ onUnmounted(() => {
             </button>
             <div class="w-px h-4 bg-border-default mx-0.5" />
             <button
-              @click="
-                os = 'MAC'
-                resetBoard()
-              "
+              @click="setOS('MAC')"
               class="px-3 h-full flex items-center gap-1.5 text-xs font-display tracking-wide uppercase transition border"
               :class="
                 os === 'MAC'
