@@ -8,6 +8,18 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue(), vueDevTools(), tailwindcss()],
+  server: {
+    proxy: {
+      '/api/gold': {
+        target: 'https://sjc.com.vn',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/gold/, '/xml/tygiavang.xml'),
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        },
+      },
+    },
+  },
   build: {
     rollupOptions: {
       output: {
