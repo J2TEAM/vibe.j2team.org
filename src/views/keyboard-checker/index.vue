@@ -901,7 +901,6 @@ onUnmounted(() => {
               :info="k"
               :is-pressed="!!pressedKeys[k.code]"
               :is-registered="registeredKeys.has(k.code)"
-              :class="k.gridArea"
               :os="os"
               :primary-color="primaryColor"
             />

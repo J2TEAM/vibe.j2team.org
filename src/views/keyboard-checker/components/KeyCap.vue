@@ -23,6 +23,10 @@ const props = defineProps<{
   primaryColor: string
 }>()
 
+const gridAreaClasses = computed(() =>
+  props.info.gridArea ? props.info.gridArea.split(' ').filter(Boolean) : [],
+)
+
 const displayLabel = computed(() => {
   if (props.os === 'MAC') {
     switch (props.info.code) {
@@ -51,20 +55,16 @@ const iconMap: Record<string, string> = {
 
 <template>
   <!-- Knob -->
-  <div
-    v-if="info.isKnob"
-    :class="[info.gridArea]"
-    class="flex items-center justify-center w-10 h-10"
-  >
+  <div v-if="info.isKnob" :class="gridAreaClasses" class="flex justify-center w-12 h-12">
     <div
-      class="size-8 rounded-full border-2 flex items-center justify-center transition-all duration-150"
+      class="size-10 rounded-full border-2 flex items-center justify-center transition-all duration-150"
       :style="{
         borderColor: primaryColor,
         boxShadow: `0 0 8px ${primaryColor}55`,
         background: `radial-gradient(circle at 40% 35%, #2a3a4a, #0d1a26)`,
       }"
     >
-      <div class="size-1.5 rounded-full" :style="{ backgroundColor: primaryColor }" />
+      <div class="size-2 rounded-full" :style="{ backgroundColor: primaryColor }" />
     </div>
   </div>
 
@@ -72,7 +72,7 @@ const iconMap: Record<string, string> = {
   <div
     v-else
     :class="[
-      info.gridArea,
+      ...gridAreaClasses,
       // Width: nếu không có gridArea (flex item) thì dùng w-10 mặc định
       !info.gridArea && !info.width ? 'w-10' : '',
       info.width ?? '',
