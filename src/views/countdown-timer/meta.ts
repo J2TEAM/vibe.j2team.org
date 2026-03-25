@@ -1,11 +1,11 @@
 import type { PageMeta } from '@/types/page'
 
 const meta: PageMeta = {
-  name: 'Đếm Ngược',
-  description: 'Đồng hồ đếm ngược tuyệt đẹp mang phong cách Liquid Glass.',
+  name: 'Đồng Hồ Đếm Ngược',
+  description: 'Đếm ngược thời gian.',
   author: 'mtdes23',
-  category: 'utility',
-  hidden: false,
+  facebook: 'https://www.facebook.com/mtdes233/',
+  category: 'tool',
 }
 
 export default meta
