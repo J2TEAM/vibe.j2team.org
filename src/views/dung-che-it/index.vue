@@ -4,7 +4,7 @@ import { Icon } from '@iconify/vue'
 import { RouterLink } from 'vue-router'
 
 type Mode = 'idle' | 'loading' | 'roast' | 'praise'
-type Tab = 'random' | 'code'
+type Tab = 'random' | 'code' | 'captcha'
 
 // ─── State ─────────────────────────────────────────────────────────────────
 const mode = ref<Mode>('idle')
@@ -16,6 +16,14 @@ const charCount = ref(0)
 const currentDisplayMessage = ref('')
 const codeInput = ref('')
 const codeIssues = ref<string[]>([])
+
+// ─── CAPTCHA State ──────────────────────────────────────────────────────────
+const captchaCanvas = ref<HTMLCanvasElement | null>(null)
+const captchaAnswer = ref('')
+const captchaInput = ref('')
+const captchaAttempts = ref(0)
+const captchaChecked = ref(false)
+const captchaCorrect = ref(false)
 
 let typingTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -328,6 +336,166 @@ const modeLabel = computed(() => {
 const codeCharCount = computed(() => codeInput.value.length)
 const codeLineCount = computed(() => codeInput.value.split('\n').length)
 const canReview = computed(() => codeInput.value.trim().length > 10)
+
+// ─── CAPTCHA Snippets ───────────────────────────────────────────────────────
+const captchaSnippets = [
+  { code: 'const x = arr.filter(Boolean)', answer: 'const x = arr.filter(Boolean)' },
+  { code: 'if (a === b) return null', answer: 'if (a === b) return null' },
+  { code: 'await fetch("/api/data")', answer: 'await fetch("/api/data")' },
+  { code: 'let sum = nums.reduce((a,b)=>a+b,0)', answer: 'let sum = nums.reduce((a,b)=>a+b,0)' },
+  { code: 'throw new Error("oops")', answer: 'throw new Error("oops")' },
+  { code: 'export default function App()', answer: 'export default function App()' },
+  { code: 'console.log(typeof undefined)', answer: 'console.log(typeof undefined)' },
+  { code: 'const [a, ...rest] = arr', answer: 'const [a, ...rest] = arr' },
+  { code: 'setTimeout(() => {}, 0)', answer: 'setTimeout(() => {}, 0)' },
+  { code: 'Object.keys(obj).length === 0', answer: 'Object.keys(obj).length === 0' },
+  { code: 'arr.map(x => x * 2)', answer: 'arr.map(x => x * 2)' },
+  { code: 'JSON.parse(JSON.stringify(obj))', answer: 'JSON.parse(JSON.stringify(obj))' },
+  { code: 'Promise.all([p1, p2, p3])', answer: 'Promise.all([p1, p2, p3])' },
+  { code: '!!value && fn(value)', answer: '!!value && fn(value)' },
+  { code: 'type Partial<T> = {[K in keyof T]?:T[K]}', answer: 'type Partial<T> = {[K in keyof T]?:T[K]}' },
+]
+
+function generateCaptcha() {
+  const snippet = captchaSnippets[Math.floor(Math.random() * captchaSnippets.length)]!
+  captchaAnswer.value = snippet.answer
+  captchaInput.value = ''
+  captchaChecked.value = false
+  captchaCorrect.value = false
+
+  // Draw on next tick after canvas is mounted
+  setTimeout(() => drawCaptcha(snippet.code), 50)
+}
+
+function drawCaptcha(text: string) {
+  const canvas = captchaCanvas.value
+  if (!canvas) return
+
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+
+  const W = canvas.width
+  const H = canvas.height
+
+  // Background
+  ctx.fillStyle = '#0d1117'
+  ctx.fillRect(0, 0, W, H)
+
+  // Noise lines
+  for (let i = 0; i < 6; i++) {
+    ctx.beginPath()
+    ctx.strokeStyle = `rgba(${100 + Math.random() * 80}, ${100 + Math.random() * 80}, ${200 + Math.random() * 55}, ${0.15 + Math.random() * 0.15})`
+    ctx.lineWidth = 1 + Math.random()
+    ctx.moveTo(Math.random() * W, Math.random() * H)
+    ctx.lineTo(Math.random() * W, Math.random() * H)
+    ctx.stroke()
+  }
+
+  // Noise dots
+  for (let i = 0; i < 40; i++) {
+    ctx.fillStyle = `rgba(255,255,255,${0.04 + Math.random() * 0.08})`
+    ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2)
+  }
+
+  // Syntax highlight colors (very simple: keywords orange, punctuation sky, rest white)
+  const KEYWORDS = /\b(const|let|var|await|return|export|default|function|type|if|throw|new)\b/g
+  const STRINGS = /"[^"]*"/g
+  const PUNCTUATION = /[(){}\[\]=>,.:?!]/g
+
+  // Draw text with per-char slight vertical jitter
+  const fontSize = Math.min(17, Math.floor(W / (text.length * 0.62)))
+  ctx.font = `${fontSize}px 'Courier New', Courier, monospace`
+  ctx.textBaseline = 'middle'
+
+  // Colorize segments
+  interface Segment { text: string; color: string }
+  const segments: Segment[] = []
+  let remaining = text
+  let pos = 0
+  while (pos < text.length) {
+    // Check keyword
+    KEYWORDS.lastIndex = 0
+    STRINGS.lastIndex = 0
+    PUNCTUATION.lastIndex = 0
+    const kwMatch = KEYWORDS.exec(remaining)
+    const strMatch = STRINGS.exec(remaining)
+    const pMatch = PUNCTUATION.exec(remaining)
+
+    if (kwMatch && kwMatch.index === 0) {
+      segments.push({ text: kwMatch[0], color: '#ff9944' })
+      remaining = remaining.slice(kwMatch[0].length)
+      pos += kwMatch[0].length
+    } else if (strMatch && strMatch.index === 0) {
+      segments.push({ text: strMatch[0], color: '#98d98e' })
+      remaining = remaining.slice(strMatch[0].length)
+      pos += strMatch[0].length
+    } else if (pMatch && pMatch.index === 0) {
+      segments.push({ text: pMatch[0], color: '#79c0ff' })
+      remaining = remaining.slice(1)
+      pos += 1
+    } else {
+      // take one char at neutral color
+      segments.push({ text: remaining[0]!, color: '#e6edf3' })
+      remaining = remaining.slice(1)
+      pos += 1
+    }
+  }
+
+  // Measure total width
+  const totalWidth = segments.reduce((sum, seg) => sum + ctx.measureText(seg.text).width, 0)
+  let x = (W - totalWidth) / 2
+  const baseY = H / 2
+
+  for (const seg of segments) {
+    const jitter = (Math.random() - 0.5) * 4
+    const tilt = (Math.random() - 0.5) * 0.08
+    ctx.save()
+    ctx.translate(x, baseY + jitter)
+    ctx.rotate(tilt)
+    ctx.fillStyle = seg.color
+    ctx.fillText(seg.text, 0, 0)
+    ctx.restore()
+    x += ctx.measureText(seg.text).width
+  }
+
+  // Border glow
+  ctx.strokeStyle = 'rgba(100,180,255,0.15)'
+  ctx.lineWidth = 1
+  ctx.strokeRect(0, 0, W, H)
+}
+
+async function checkCaptcha() {
+  if (!captchaInput.value.trim()) return
+  captchaAttempts.value++
+  const correct = captchaInput.value.trim() === captchaAnswer.value.trim()
+  captchaChecked.value = true
+  captchaCorrect.value = correct
+
+  if (typingTimer) clearTimeout(typingTimer)
+  mode.value = 'loading'
+  cowMood.value = 'thinking'
+  await sleep(900)
+
+  if (correct) {
+    const msg = getRandomItem([
+      'Ồ con người biết đọc code! Rare achievement unlocked 🏆 Không phải AI nhé, hay là bro copy từ clipboard ra? 🤔 Dù sao bò cũng impressed đó, gật đầu cái.',
+      'Đúng rồi đó bro! Mắt bro đọc code tốt hơn tôi tưởng — giải captcha IT mà không out, kể ra cũng đáng nể 🎉 Nhưng mà đây chỉ là test nhỏ thôi, real code của bro thì bò chưa dám tin đâu 😏',
+      'WOW bro gõ đúng 100% — không typo, không confusion. Thật ra cái này không khó lắm nhưng mà có người paste sai mà tự tin submit nên... cảm ơn bro đã không làm bò thất vọng 🐄✨',
+      'Chính xác! Bro đọc code như đọc truyện — cưỡng thương 😌 Nếu maintain code của người khác mà bro giải được cái này thì chắc ổn thôi. Tiếp tục nhé!',
+    ])
+    message.value = msg
+    mode.value = 'praise'
+    cowMood.value = 'happy'
+    typeWriterEffect(msg)
+  } else {
+    const msg = `Bro gõ "${captchaInput.value.trim()}" nhưng đáp án là "${captchaAnswer.value}" 💀 Đây là bài test đọc code đơn giản nhất hành tinh mà fail — bò không biết nói gì nữa 😭 Thử lại đi, lần này đọc kỹ hơn nhé, không thì nghề IT bro cần xem xét lại 🐄`
+    message.value = msg
+    mode.value = 'roast'
+    cowMood.value = 'angry'
+    typeWriterEffect(msg)
+  }
+  charCount.value++
+}
 </script>
 
 <template>
@@ -542,7 +710,17 @@ const canReview = computed(() => codeInput.value.trim().length > 10)
           >
             <Icon icon="lucide:code-2" class="size-4" />
             REVIEW CODE
-            <span class="text-xs bg-accent-amber/20 text-accent-amber px-1.5 py-0.5 font-display tracking-wide">NEW</span>
+          </button>
+          <button
+            class="flex items-center gap-2 px-5 py-2.5 text-sm font-display tracking-wide transition-all duration-200 cursor-pointer border-b-2"
+            :class="activeTab === 'captcha'
+              ? 'border-accent-sky text-text-primary'
+              : 'border-transparent text-text-dim hover:text-text-secondary'"
+            @click="() => { activeTab = 'captcha'; generateCaptcha() }"
+          >
+            <Icon icon="lucide:shield-check" class="size-4" />
+            CAPTCHA
+            <span class="text-xs bg-accent-sky/20 text-accent-sky px-1.5 py-0.5 font-display tracking-wide">NEW</span>
           </button>
         </div>
 
@@ -661,6 +839,92 @@ const canReview = computed(() => codeInput.value.trim().length > 10)
                 <span>{{ rule.label }}</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- CAPTCHA tab -->
+        <div v-if="activeTab === 'captcha'" class="flex flex-col gap-5">
+          <!-- Intro -->
+          <div class="border border-border-default bg-bg-surface p-4">
+            <p class="text-text-dim text-xs font-display tracking-widest mb-1">
+              <span class="text-accent-sky">//</span> XÁC MINH BRO LÀ DEV THẬT
+            </p>
+            <p class="text-text-secondary text-sm">
+              Giải CAPTCHA kiểu IT: gõ lại đúng đoạn code trong ảnh bên dưới.
+              Không có chứng minh thư, không có "tôi không phải robot" — chỉ có code.
+            </p>
+          </div>
+
+          <!-- CAPTCHA canvas -->
+          <div class="flex flex-col items-center gap-3">
+            <div class="relative w-full">
+              <canvas
+                ref="captchaCanvas"
+                width="520"
+                height="80"
+                class="w-full border border-border-default"
+                style="image-rendering: pixelated; font-smooth: never"
+              />
+              <button
+                class="absolute top-2 right-2 p-1.5 border border-border-default bg-bg-deep text-text-dim hover:text-text-primary hover:border-accent-sky transition-all duration-200 cursor-pointer"
+                title="Đổi câu khác"
+                @click="generateCaptcha"
+              >
+                <Icon icon="lucide:refresh-cw" class="size-3.5" />
+              </button>
+            </div>
+
+            <!-- Attempts badge -->
+            <div v-if="captchaAttempts > 0" class="flex items-center gap-2">
+              <span
+                class="text-xs font-display tracking-wide px-2 py-0.5 border"
+                :class="captchaCorrect
+                  ? 'border-accent-amber/50 text-accent-amber bg-accent-amber/10'
+                  : 'border-accent-coral/50 text-accent-coral bg-accent-coral/10'"
+              >
+                {{ captchaCorrect ? '✓ ĐÚNG RỒI' : `✗ SAI (lần ${captchaAttempts})` }}
+              </span>
+            </div>
+
+            <!-- Input -->
+            <div class="w-full flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <span class="text-accent-sky font-display text-xs tracking-widest">//</span>
+                <span class="text-text-dim text-xs font-display tracking-wide">GÕ LẠI CODE TRONG ẢNH</span>
+              </div>
+              <input
+                v-model="captchaInput"
+                type="text"
+                placeholder="Gõ chính xác code bạn thấy..."
+                class="w-full bg-bg-surface border border-border-default text-text-primary text-sm font-mono px-4 py-3 focus:outline-none focus:border-accent-sky transition-colors duration-200 placeholder-text-dim"
+                spellcheck="false"
+                autocomplete="off"
+                @keydown.enter="checkCaptcha"
+              />
+            </div>
+
+            <!-- Submit -->
+            <button
+              :disabled="!captchaInput.trim() || mode === 'loading'"
+              class="group w-full flex items-center justify-center gap-3 border bg-bg-surface px-6 py-4 text-sm font-display tracking-wide transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer border-accent-sky hover:shadow-accent-sky/10 text-text-primary"
+              @click="checkCaptcha"
+            >
+              <Icon icon="lucide:shield-check" class="size-5 text-accent-sky group-hover:scale-110 transition-transform duration-300" />
+              <span>🐄 XÁC NHẬN — TÔI LÀ DEV THẬT</span>
+            </button>
+
+            <!-- Refresh hint -->
+            <p class="text-text-dim text-xs text-center font-body">
+              Không đọc được? Nhấn 🔄 để đổi câu khác. Đây là CAPTCHA — bò không nhận hint đâu nhé.
+            </p>
+          </div>
+
+          <!-- Silly notice -->
+          <div class="border border-dashed border-border-default bg-bg-surface p-3 text-center">
+            <p class="text-xs text-text-dim font-body">
+              🐄 CAPTCHA này chứng minh bro đọc được code — khác với CAPTCHA thường chứng minh bro không phải robot.
+              Nhưng đọc được code chưa chắc viết được code tốt, bò để ý lắm đó nghen.
+            </p>
           </div>
         </div>
       </div>
