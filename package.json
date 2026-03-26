@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@iconify/vue": "^5.0.0",
+    "@imgly/background-removal": "^1.7.0",
     "@shikijs/langs": "^4.0.2",
     "@shikijs/themes": "^4.0.2",
     "@unhead/vue": "^2.1.12",
