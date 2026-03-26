@@ -6,6 +6,7 @@ import ErrorBoundary from '@/components/ErrorBoundary.vue'
 import EdgeToolbar from '@/components/EdgeToolbar.vue'
 import AppNavbar from '@/components/AppNavbar.vue'
 import BackToTop from '@/components/BackToTop.vue'
+import ProductSpotlight from '@/components/ProductSpotlight.vue'
 
 const route = useRoute()
 const isCorePage = computed(() => !route.meta.pagePath)
@@ -50,5 +51,6 @@ useSeoMeta({
     v-if="route.meta.pagePath && route.meta.showToolbar !== false"
     :page-path="route.meta.pagePath as string"
   />
+  <ProductSpotlight v-if="isCorePage" />
   <BackToTop v-if="isCorePage" />
 </template>

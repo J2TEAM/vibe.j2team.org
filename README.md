@@ -4,6 +4,8 @@
 
 Trang chủ là một Launcher, dẫn link tới các trang con do thành viên tạo ra. Mọi người tự do vibe code thoải mái trên trang của mình!
 
+> 🚀 **[J2TEAM Launch](https://launch.j2team.dev?utm_source=github&utm_medium=readme&utm_campaign=vibe)** - Nền tảng ra mắt sản phẩm dành cho developer
+
 ## Tech Stack
 
 - [Vue 3](https://vuejs.org/) - Progressive JavaScript Framework
