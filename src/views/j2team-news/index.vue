@@ -30,16 +30,12 @@ const SOURCES = [
     url: 'https://tuoitre.vn/rss/nhip-song-so.rss',
     color: 'text-accent-sky',
   },
-  {
-    name: 'Thanh Niên',
-    url: 'https://thanhnien.vn/rss/cong-nghe-game.rss',
-    color: 'text-accent-amber',
-  },
 ]
 
 const isLoading = ref(true)
 const newsItems = ref<NewsItem[]>([])
 const errorMsg = ref('')
+const failedImages = ref<Set<string>>(new Set())
 
 interface RssItem {
   guid?: string
@@ -47,16 +43,62 @@ interface RssItem {
   title: string
   pubDate: string
   thumbnail?: string
-  enclosure?: { link: string }
+  media_thumbnail?: { url: string }[]
+  image?: { url: string }
+  media_content?: { url: string; medium: string }[]
+  'media:thumbnail'?: { url: string }[]
+  'media:content'?: { url: string; medium: string }[]
+  enclosure?: { link: string; url?: string }[]
   description?: string
+  content?: string
+  'content:encoded'?: string
+  [key: string]: unknown
 }
 
 function extractThumbnail(item: RssItem): string {
+  // Try standard thumbnail field
   if (item.thumbnail) return item.thumbnail
-  if (item.enclosure?.link) return item.enclosure.link
-  // Regex search for <img> in description
-  const imgMatch = item.description?.match(/<img[^>]+src="([^">]+)"/i)
-  if (imgMatch) return imgMatch[1] || ''
+
+  // Try media:thumbnail (Media RSS extension) - both formats
+  if (item.media_thumbnail?.length) return item.media_thumbnail[0].url
+  if (item['media:thumbnail']?.length) return item['media:thumbnail'][0].url
+
+  // Try image object
+  if (item.image?.url) return item.image.url
+
+  // Try media:content
+  if (item.media_content?.length) {
+    const imageContent = item.media_content.find((m) => m.medium === 'image')
+    if (imageContent) return imageContent.url
+  }
+  if (item['media:content']?.length) {
+    const imageContent = item['media:content'].find((m) => m.medium === 'image')
+    if (imageContent) return imageContent.url
+  }
+
+  // Try enclosure (can be array or single object)
+  if (Array.isArray(item.enclosure) && item.enclosure.length > 0) {
+    const imgEnclosure = item.enclosure.find(
+      (e) =>
+        typeof e.url === 'string' &&
+        (e.url.includes('.jpg') || e.url.includes('.png') || e.url.includes('.webp')),
+    )
+    if (imgEnclosure?.url) return imgEnclosure.url
+  } else if (item.enclosure?.link) {
+    return item.enclosure.link
+  }
+
+  // Try to extract from content:encoded or content
+  const contentHtml = item['content:encoded'] || item.content || item.description || ''
+  const imgMatch = contentHtml.match(/<img[^>]+src="([^">]+)"/i)
+  if (imgMatch?.[1]) return imgMatch[1]
+
+  // Last resort: look for any URL-like pattern that looks like an image
+  const allContent = JSON.stringify(item)
+  const urlRegex = /(https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|gif|webp))/i
+  const urlMatch = allContent.match(urlRegex)
+  if (urlMatch?.[1]) return urlMatch[1]
+
   return ''
 }
 
@@ -67,6 +109,10 @@ function cleanDescription(html?: string): string {
   // Replace HTML entities loosely
   text = text.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
   return text
+}
+
+function handleImageError(imageId: string) {
+  failedImages.value.add(imageId)
 }
 
 async function fetchNews() {
@@ -152,10 +198,10 @@ onMounted(() => {
             <h1
               class="font-display text-3xl font-bold tracking-tight text-white md:text-4xl drop-shadow-sm"
             >
-              Tin Công Nghệ
+              J2TEAM NEWS
             </h1>
             <p class="text-text-secondary mt-1 max-w-xl">
-              Cập nhật tin tức công nghệ, thiết bị số và xu hướng mới nhất từ các trang báo uy tín.
+              Tổng hợp tin tức công nghệ mới nhất từ các trang báo uy tín.
             </p>
           </div>
         </div>
@@ -215,11 +261,13 @@ onMounted(() => {
           <!-- Thumbnail -->
           <div class="h-48 shrink-0 overflow-hidden relative bg-black">
             <img
-              v-if="item.thumbnail"
+              v-if="item.thumbnail && !failedImages.has(item.id)"
               :src="item.thumbnail"
               :alt="item.title"
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
+              @error="handleImageError(item.id)"
+              crossorigin="anonymous"
             />
             <div
               v-else
