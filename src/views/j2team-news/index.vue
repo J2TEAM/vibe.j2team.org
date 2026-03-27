@@ -48,7 +48,7 @@ interface RssItem {
   media_content?: { url: string; medium: string }[]
   'media:thumbnail'?: { url: string }[]
   'media:content'?: { url: string; medium: string }[]
-  enclosure?: { link: string; url?: string }[]
+  enclosure?: { link?: string; url?: string }[] | { link?: string; url?: string }
   description?: string
   content?: string
   'content:encoded'?: string
@@ -60,8 +60,8 @@ function extractThumbnail(item: RssItem): string {
   if (item.thumbnail) return item.thumbnail
 
   // Try media:thumbnail (Media RSS extension) - both formats
-  if (item.media_thumbnail?.length) return item.media_thumbnail[0].url
-  if (item['media:thumbnail']?.length) return item['media:thumbnail'][0].url
+  if (item.media_thumbnail?.length) return item.media_thumbnail[0]?.url ?? ''
+  if (item['media:thumbnail']?.length) return item['media:thumbnail'][0]?.url ?? ''
 
   // Try image object
   if (item.image?.url) return item.image.url
@@ -69,11 +69,11 @@ function extractThumbnail(item: RssItem): string {
   // Try media:content
   if (item.media_content?.length) {
     const imageContent = item.media_content.find((m) => m.medium === 'image')
-    if (imageContent) return imageContent.url
+    if (imageContent?.url) return imageContent.url
   }
   if (item['media:content']?.length) {
     const imageContent = item['media:content'].find((m) => m.medium === 'image')
-    if (imageContent) return imageContent.url
+    if (imageContent?.url) return imageContent.url
   }
 
   // Try enclosure (can be array or single object)
@@ -84,7 +84,7 @@ function extractThumbnail(item: RssItem): string {
         (e.url.includes('.jpg') || e.url.includes('.png') || e.url.includes('.webp')),
     )
     if (imgEnclosure?.url) return imgEnclosure.url
-  } else if (item.enclosure?.link) {
+  } else if (item.enclosure && !Array.isArray(item.enclosure) && item.enclosure.link) {
     return item.enclosure.link
   }
 
