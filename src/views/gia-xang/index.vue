@@ -27,36 +27,15 @@ async function fetchPrices() {
   try {
     let html = ''
 
-    // Attempt 1: Corsproxy.io
+    // Direct Codetabs proxy (fastest and reliable in practice)
     try {
-      const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(API_SOURCE)}`)
+      const res = await fetch(
+        `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(API_SOURCE)}`,
+      )
       if (res.ok) html = await res.text()
-    } catch {
-      console.warn('Corsproxy failed')
-    }
-
-    // Attempt 2: AllOrigins
-    if (!html) {
-      try {
-        const res = await fetch(
-          `https://api.allorigins.win/get?url=${encodeURIComponent(API_SOURCE)}`,
-        )
-        if (res.ok) html = (await res.json()).contents
-      } catch {
-        console.warn('AllOrigins failed')
-      }
-    }
-
-    // Attempt 3: Codetabs
-    if (!html) {
-      try {
-        const res = await fetch(
-          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(API_SOURCE)}`,
-        )
-        if (res.ok) html = await res.text()
-      } catch {
-        console.warn('Codetabs failed')
-      }
+      else throw new Error(`Codetabs error ${res.status}`)
+    } catch (e) {
+      console.warn('Codetabs failed', e)
     }
 
     if (!html) {
