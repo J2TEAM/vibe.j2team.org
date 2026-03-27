@@ -449,6 +449,11 @@ const setPicMode = (mode: typeof picMode.value) => {
   picMode.value = mode
 }
 
+const openPicUrlInNewTab = () => {
+  const url = picUrl.value
+  if (url) globalThis.open(url, '_blank')
+}
+
 const fetchAnimePics = async () => {
   picLoading.value = true
   picError.value = null
@@ -467,7 +472,7 @@ const fetchAnimePics = async () => {
       if (!imageUrls.length) throw new Error('Không tìm thấy wallpaper phù hợp.')
 
       const pick = imageUrls[Math.floor(Math.random() * imageUrls.length)]
-      picUrl.value = pick
+      picUrl.value = pick ?? null
       return
     }
 
@@ -526,10 +531,13 @@ const fetchAnimeRec = async (query: string) => {
 
       // Cmd version picks one entry + random anime. Here we keep the same idea.
       const randomRec = data[Math.floor(Math.random() * data.length)]
+      if (!randomRec) throw new Error('Không có dữ liệu gợi ý.')
+
       const entry = (randomRec.entry ?? []) as unknown as JikanAnime[]
       if (!entry.length) throw new Error('Không có dữ liệu gợi ý.')
 
       const randomAnime = entry[Math.floor(Math.random() * entry.length)]
+      if (!randomAnime) throw new Error('Không có dữ liệu gợi ý.')
       const reasonEn = (randomRec.content ?? '').slice(0, 700) || ''
       const reasonVi = await translateBestEffort(
         stripHtml(reasonEn),
@@ -1226,7 +1234,7 @@ const onTabClick = (tab: TabId) => {
               <button
                 type="button"
                 class="inline-flex items-center gap-2 border border-border-default bg-bg-surface px-3 py-2 text-xs text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
-                @click="window.open(picUrl ?? '_self', '_blank')"
+                @click="openPicUrlInNewTab"
               >
                 Tải về
               </button>
