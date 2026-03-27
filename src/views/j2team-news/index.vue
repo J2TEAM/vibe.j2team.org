@@ -21,11 +21,6 @@ const SOURCES = [
     color: 'text-accent-coral',
   },
   {
-    name: 'Dân Trí',
-    url: 'https://dantri.com.vn/rss/suc-manh-so.rss',
-    color: 'text-emerald-400',
-  },
-  {
     name: 'Tuổi Trẻ',
     url: 'https://tuoitre.vn/rss/nhip-song-so.rss',
     color: 'text-accent-sky',
