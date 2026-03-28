@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 120" fill="none" aria-hidden="true">
+  <!-- Xe tay ga: nhìn ngang — khung hẹp, 2 bánh nhỏ, sàn để chân, không cabin -->
+  <path stroke="#253549" stroke-width="3" stroke-linecap="round" d="M24 102h232"/>
+  <g stroke="#253549" stroke-width="2" fill="#1E2F42">
+    <circle cx="58" cy="102" r="20"/>
+    <circle cx="218" cy="102" r="20"/>
+  </g>
+  <circle cx="58" cy="102" r="9" fill="#162232" stroke="#253549" stroke-width="1.5"/>
+  <circle cx="218" cy="102" r="9" fill="#162232" stroke="#253549" stroke-width="1.5"/>
+  <!-- Khung step-through + sàn thấp -->
+  <path fill="#162232" stroke="#253549" stroke-width="1.5" stroke-linejoin="round"
+        d="M78 98V72c0-14 18-26 52-28 34 2 52 14 52 28v26H78z"/>
+  <path fill="#253549" opacity=".4" d="M88 88h96v6H88z"/>
+  <!-- Mặt nạ trước + đèn -->
+  <path fill="#1E2F42" stroke="#253549" stroke-width="1.2"
+        d="M188 56h36c10 0 18 10 18 24v18h-54V56z"/>
+  <circle cx="212" cy="76" r="8" fill="#253549" stroke="#FFB830" stroke-width="1.2"/>
+  <!-- Tay lái cong -->
+  <path stroke="#253549" stroke-width="2" stroke-linecap="round" fill="none"
+        d="M178 62c-16-8-34-10-50-4"/>
+  <circle cx="124" cy="58" r="5" fill="#253549"/>
+  <!-- Yên dài -->
+  <path fill="#253549" d="M96 68h72v12H96z" opacity=".75"/>
+</svg>

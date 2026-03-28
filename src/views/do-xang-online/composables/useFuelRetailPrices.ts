@@ -54,7 +54,6 @@ export function useFuelRetailPrices() {
       const rows = table.querySelectorAll('tr')
       const parsed = new Map<FuelId, LiveFuelPrice>()
 
-      // Try to extract update time from header row
       const headerRow = rows[0]
       if (headerRow) {
         const priceHeader = headerRow.querySelectorAll('th, td')[1]?.textContent ?? ''
@@ -79,7 +78,6 @@ export function useFuelRetailPrices() {
 
       if (parsed.size === 0) throw new Error('Không parse được giá nào')
 
-      // Merge parsed prices with fallback for any missing fuels
       prices.value = FALLBACK_PRICES.map((fb) => parsed.get(fb.id) ?? { ...fb })
       isUsingFallback.value = false
       if (!lastUpdated.value) lastUpdated.value = new Date().toLocaleString('vi-VN')
@@ -87,7 +85,7 @@ export function useFuelRetailPrices() {
       errorMsg.value = err instanceof Error ? err.message : 'Lỗi không xác định'
       prices.value = FALLBACK_PRICES.map((p) => ({ ...p }))
       isUsingFallback.value = true
-      lastUpdated.value = new Date().toLocaleString('vi-VN') + ' (dữ liệu mẫu)'
+      lastUpdated.value = `${new Date().toLocaleString('vi-VN')} · mẫu`
     } finally {
       isLoading.value = false
     }
