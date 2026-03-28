@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { useClipboard, useIntervalFn, useMediaQuery, useRafFn } from '@vueuse/core'
 import meta from './meta'
+import { useFuelRetailPrices } from './composables/useFuelRetailPrices'
 
 type Vehicle = {
   id: string
@@ -13,10 +14,9 @@ type Vehicle = {
   icon: string
 }
 
-type Fuel = {
+type FuelDef = {
   id: string
   label: string
-  pricePerLiter: number
   icon: string
 }
 
@@ -65,17 +65,43 @@ const vehicles: Vehicle[] = [
   },
 ]
 
-const fuels: Fuel[] = [
-  { id: 'ron95', label: 'Xăng RON 95-III', pricePerLiter: 33840, icon: 'lucide:flame' },
-  { id: 'e5', label: 'Xăng E5 RON 92', pricePerLiter: 30110, icon: 'lucide:flame' },
-  { id: 'diesel', label: 'Dầu Diesel', pricePerLiter: 39660, icon: 'lucide:droplet' },
+const FUEL_DEFS: FuelDef[] = [
+  { id: 'ron95', label: 'Xăng RON 95-III', icon: 'lucide:flame' },
+  { id: 'e5', label: 'Xăng E5 RON 92', icon: 'lucide:flame' },
+  { id: 'diesel', label: 'Dầu Diesel', icon: 'lucide:droplet' },
 ]
 
+const {
+  prices: livePrices,
+  isLoading: pricesLoading,
+  isUsingFallback,
+  lastUpdated,
+  errorMsg: priceError,
+  fetchPrices,
+} = useFuelRetailPrices()
+
+const fuels = computed(() =>
+  FUEL_DEFS.map((def) => {
+    const live = livePrices.value.find((p) => p.id === def.id)
+    return {
+      id: def.id,
+      label: def.label,
+      icon: def.icon,
+      pricePerLiter: live?.pricePerLiter ?? 0,
+      changeText: live?.changeText ?? '',
+    }
+  }),
+)
+
 const selectedVehicleId = ref<string>(vehicles[0]!.id)
-const selectedFuelId = ref<string>(fuels[0]!.id)
+const selectedFuelId = ref<string>(FUEL_DEFS[0]!.id)
 
 const selectedVehicle = computed(() => vehicles.find((v) => v.id === selectedVehicleId.value)!)
-const selectedFuel = computed(() => fuels.find((f) => f.id === selectedFuelId.value)!)
+const selectedFuel = computed(() => fuels.value.find((f) => f.id === selectedFuelId.value)!)
+
+onMounted(() => {
+  fetchPrices()
+})
 
 const fillingState = ref<'idle' | 'filling' | 'complete'>('idle')
 const liters = ref(0)
@@ -140,6 +166,9 @@ const receiptText = computed(() => {
     `Đã đổ: ${liters.value.toFixed(2)} L`,
     `Tổng tiền: ${formatMoneyVn(totalCost.value)}`,
     `Đã tiết kiệm: ${saved.toLocaleString('vi-VN')}đ (so với “trạm xăng thật” giả lập)`,
+    isUsingFallback.value
+      ? 'Giá mẫu (không lấy được giá thực)'
+      : `Giá cập nhật: ${lastUpdated.value}`,
     'Xăng thật vẫn phải ra trạm nhé!',
   ].join('\n')
 })
@@ -397,12 +426,40 @@ async function handleCopyReceipt() {
 
       <!-- Fuel -->
       <section class="mb-10 sm:mb-16">
-        <h2
-          class="font-display text-2xl font-semibold flex items-center gap-3 mb-6 animate-fade-up animate-delay-4"
+        <div
+          class="flex flex-wrap items-center justify-between gap-3 mb-6 animate-fade-up animate-delay-4"
         >
-          <span class="text-accent-amber text-sm tracking-widest font-display">//</span>
-          Chọn loại xăng
-        </h2>
+          <h2 class="font-display text-2xl font-semibold flex items-center gap-3">
+            <span class="text-accent-amber text-sm tracking-widest font-display">//</span>
+            Chọn loại xăng
+          </h2>
+          <div class="flex items-center gap-3">
+            <span class="text-text-dim text-xs font-display">
+              <template v-if="pricesLoading">Đang tải giá...</template>
+              <template v-else-if="lastUpdated">Cập nhật: {{ lastUpdated }}</template>
+            </span>
+            <button
+              type="button"
+              class="flex items-center gap-1.5 border border-border-default bg-bg-surface text-text-secondary font-display text-xs px-3 py-1.5 transition-colors hover:border-accent-amber hover:bg-bg-elevated cursor-pointer disabled:opacity-40"
+              :disabled="pricesLoading"
+              @click="fetchPrices"
+            >
+              <Icon
+                icon="lucide:refresh-cw"
+                class="w-3.5 h-3.5"
+                :class="pricesLoading ? 'animate-spin' : ''"
+              />
+              Làm mới giá
+            </button>
+          </div>
+        </div>
+
+        <div
+          v-if="priceError && isUsingFallback"
+          class="mb-4 border border-accent-amber/30 bg-accent-amber/5 px-4 py-2 text-xs text-accent-amber font-display"
+        >
+          Không lấy được giá thực ({{ priceError }}). Đang dùng giá mẫu.
+        </div>
 
         <div class="grid gap-4 sm:grid-cols-3">
           <button
@@ -448,7 +505,12 @@ async function handleCopyReceipt() {
                 >
                   {{ formatMoneyVn(f.pricePerLiter) }}/L
                 </div>
-                <div class="text-text-dim text-xs mt-1">Giá hiển thị theo “mốc” vui vui</div>
+                <div v-if="f.changeText" class="text-text-dim text-xs mt-1 font-display">
+                  {{ f.changeText }}
+                </div>
+                <div v-else class="text-text-dim text-xs mt-1">
+                  {{ isUsingFallback ? 'Giá mẫu (chưa cập nhật)' : 'Giá bán lẻ VnExpress' }}
+                </div>
               </div>
             </div>
           </button>
@@ -677,6 +739,9 @@ async function handleCopyReceipt() {
                     <span class="text-accent-amber font-display font-bold"
                       >{{ selectedFuel.pricePerLiter.toLocaleString('vi-VN') }}đ</span
                     >/L
+                    <span v-if="isUsingFallback" class="block text-xs text-text-dim mt-0.5"
+                      >(giá mẫu)</span
+                    >
                   </div>
                 </div>
               </div>
