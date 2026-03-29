@@ -125,12 +125,12 @@ async function fetchNews() {
         const json = await res.json()
         if (json.status !== 'ok') return []
 
-        return json.items.map((item: RssItem) => {
+        return json.items.map((item: RssItem, index: number) => {
           // rss2json returns pubDate in format 'YYYY-MM-DD HH:mm:ss', standard JS parse works
           const pubDate = new Date((item.pubDate || '').replace(' ', 'T') + 'Z') // assumption: RSS pubDate is GMT. Adjust if needed.
 
           return {
-            id: item.guid || item.link,
+            id: `${source.name}-${item.guid || item.link}-${index}`,
             title: item.title,
             link: item.link,
             pubDate: pubDate,
