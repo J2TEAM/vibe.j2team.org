@@ -132,7 +132,7 @@
         />
         <div
           ref="frameRef"
-          class="h-full aspect-square flex max-[1/1]:h-auto max-[1/1]:w-full"
+          class="h-full aspect-square flex portrait:h-auto portrait:w-full"
           :style="{ borderRadius: 'var(--enlarge-radius, 32px)' }"
         />
       </div>
