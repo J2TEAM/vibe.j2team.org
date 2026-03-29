@@ -32,3 +32,13 @@ export type DropSeed = {
 }
 
 export type FillPhaseCode = 'idle' | 'prep' | 'walk' | 'couple' | 'hose' | 'tank' | 'done'
+
+export type RefuelUiState =
+  | 'idle'
+  | 'parking'
+  | 'parked'
+  | 'approaching'
+  | 'fuelFlowPriming'
+  | 'refueling'
+  | 'completed'
+  | 'error'
