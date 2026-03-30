@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" fill="none">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B1D1A" />
+      <stop offset="1" stop-color="#7A2E1F" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#g)" />
+  <rect x="24" y="24" width="592" height="312" stroke="#FF6B4A" stroke-opacity="0.45" />
+  <path d="M320 238c35-20 52-47 52-78 0-26-14-46-31-63 2 23-11 36-25 47-5-20-19-34-35-46 4 26-7 42-21 56-12 13-23 29-23 49 0 34 28 61 63 61 35 0 63-27 63-61 0-8-2-15-6-22-3 24-17 45-37 57z" fill="#FFB830" />
+  <path d="M320 246c22-12 34-29 34-49 0-12-5-23-13-33-1 11-8 18-16 24-4-9-10-16-18-22 1 13-4 23-11 30-7 8-12 16-12 27 0 22 16 39 36 39 20 0 36-17 36-39 0-4 0-7-2-10-2 13-8 24-18 33z" fill="#FFE0A4" />
+  <text x="36" y="64" fill="#F0EDE6" font-family="Be Vietnam Pro, sans-serif" font-size="30" font-weight="700">BURN RESPONSE</text>
+  <text x="36" y="98" fill="#F0EDE6" fill-opacity="0.8" font-family="Be Vietnam Pro, sans-serif" font-size="18">Cool water first. No toothpaste, no ice.</text>
+</svg>

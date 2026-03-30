@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" fill="none">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2A1520" />
+      <stop offset="1" stop-color="#5A1F33" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#g)" />
+  <rect x="24" y="24" width="592" height="312" stroke="#FF6B4A" stroke-opacity="0.45" />
+  <path d="M320 94c-26 34-42 56-42 84a42 42 0 1 0 84 0c0-28-16-50-42-84z" fill="#FF6B4A" />
+  <rect x="252" y="194" width="136" height="84" fill="#F0EDE6" fill-opacity="0.18" stroke="#F0EDE6" stroke-opacity="0.4" stroke-width="6" />
+  <path d="M320 205v62M289 236h62" stroke="#FFB830" stroke-width="10" stroke-linecap="round" />
+  <text x="36" y="64" fill="#F0EDE6" font-family="Be Vietnam Pro, sans-serif" font-size="30" font-weight="700">HEAVY BLEEDING</text>
+  <text x="36" y="98" fill="#F0EDE6" fill-opacity="0.8" font-family="Be Vietnam Pro, sans-serif" font-size="18">Direct pressure first. Keep pressure, call help early.</text>
+</svg>
