@@ -2,7 +2,8 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useIntervalFn, useEventListener, useLocalStorage, useWindowSize } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
-import dinoLogo from './logo.png'
+
+const dinoLogo = '/j2-bird/logo.png'
 
 const { width: windowWidth } = useWindowSize()
 
