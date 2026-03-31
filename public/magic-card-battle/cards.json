@@ -1,0 +1,3616 @@
+[
+  {
+    "id": "crt-001",
+    "name": "Junior React Dev",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 1,
+    "hp": 2,
+    "description": "Battlecry: Rút 1 lá",
+    "flavor": "\"Anh ơi sao state nó re-render hoài vậy?\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "crt-002",
+    "name": "CSS Wizard",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 2,
+    "hp": 2,
+    "description": "Shield",
+    "flavor": "\"Tôi center cái div bằng 17 cách khác nhau\"",
+    "keywords": [
+      "shield"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-003",
+    "name": "Div Nester",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 1,
+    "hp": 1,
+    "description": "Deathrattle: Triệu hồi 1 Div Token 1/1",
+    "flavor": "\"div > div > div > div > span\"",
+    "keywords": [
+      "deathrattle"
+    ],
+    "effects": [
+      {
+        "type": "summon",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "crt-004",
+    "name": "Tailwind Enjoyer",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 2,
+    "hp": 3,
+    "description": "",
+    "flavor": "\"class=\\\"mt-2 px-4 py-2 bg-blue-500 hover:bg-blue-700...\\\" (hết chỗ)\"",
+    "keywords": [],
+    "effects": []
+  },
+  {
+    "id": "crt-005",
+    "name": "TypeScript Purist",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 2,
+    "hp": 4,
+    "description": "Quân lính đối thủ bị -1 ATK",
+    "flavor": "\"any là tội ác. unknown là sự lười biếng.\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "debuff_atk",
+        "value": 1,
+        "target": "all_enemies"
+      }
+    ]
+  },
+  {
+    "id": "crt-006",
+    "name": "Pixel Perfect Designer",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 1,
+    "hp": 3,
+    "description": "Taunt",
+    "flavor": "\"Lệch 1 pixel là tôi reject PR\"",
+    "keywords": [
+      "taunt"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-007",
+    "name": "Vue Reactive Mage",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 3,
+    "hp": 3,
+    "description": "Battlecry: +1/+1 cho quân bên cạnh",
+    "flavor": "\"ref() hay reactive()? Đó là câu hỏi.\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 1,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "crt-008",
+    "name": "Angular Architect",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 4,
+    "atk": 3,
+    "hp": 5,
+    "description": "Taunt. Shield",
+    "flavor": "\"Dependency Injection là tôn giáo của tôi\"",
+    "keywords": [
+      "taunt",
+      "shield"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-009",
+    "name": "Responsive Shapeshifter",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 3,
+    "atk": 2,
+    "hp": 4,
+    "description": "",
+    "flavor": "\"@media (max-width: 768px) { biến hình! }\"",
+    "keywords": [],
+    "effects": []
+  },
+  {
+    "id": "crt-010",
+    "name": "Supreme Div Lord",
+    "type": "creature",
+    "rarity": "epic",
+    "cost": 6,
+    "atk": 5,
+    "hp": 6,
+    "description": "Battlecry: Triệu hồi 2 Div Token 1/1",
+    "flavor": "\"Tất cả đều là div. Div là tất cả.\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "summon",
+        "value": 2,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "crt-011",
+    "name": "API Gateway Guard",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 1,
+    "hp": 4,
+    "description": "Taunt",
+    "flavor": "\"401 Unauthorized. Đi chỗ khác.\"",
+    "keywords": [
+      "taunt"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-012",
+    "name": "SQL Query Runner",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 2,
+    "hp": 1,
+    "description": "Rush",
+    "flavor": "\"SELECT * FROM enemies WHERE alive = true\"",
+    "keywords": [
+      "rush"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-013",
+    "name": "Database Overlord",
+    "type": "creature",
+    "rarity": "epic",
+    "cost": 5,
+    "atk": 4,
+    "hp": 6,
+    "description": "Battlecry: Xóa 1 quân random đối thủ",
+    "flavor": "\"DROP TABLE enemies; -- Oops.\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "destroy",
+        "value": 1,
+        "target": "random_enemy"
+      }
+    ]
+  },
+  {
+    "id": "crt-014",
+    "name": "Redis Cache Monk",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 2,
+    "hp": 2,
+    "description": "Battlecry: Rút 1 lá",
+    "flavor": "\"Cache hit rate 99.99% — trừ lúc cần nhất\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "crt-015",
+    "name": "Middleware Phantom",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 3,
+    "atk": 2,
+    "hp": 3,
+    "description": "Stealth",
+    "flavor": "\"Request đi qua tôi mà không ai biết tôi tồn tại\"",
+    "keywords": [
+      "stealth"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-016",
+    "name": "N+1 Query Demon",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 3,
+    "hp": 2,
+    "description": "Gây 1 sát thương cho Hero mình khi tấn công",
+    "flavor": "\"Chạy 1000 query cho 1 trang danh sách 10 item\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 1,
+        "target": "friendly_hero"
+      }
+    ]
+  },
+  {
+    "id": "crt-017",
+    "name": "Microservice Swarm",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 4,
+    "atk": 1,
+    "hp": 1,
+    "description": "Battlecry: Triệu hồi 3 bản sao 1/1",
+    "flavor": "\"12 services cho 1 cái app Todo\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "summon",
+        "value": 3,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "crt-018",
+    "name": "GraphQL Sage",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 4,
+    "atk": 3,
+    "hp": 4,
+    "description": "Battlecry: Rút 2 lá",
+    "flavor": "\"Chỉ lấy đúng cái mình cần. Không hơn, không kém.\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 2,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "crt-019",
+    "name": "Monolith Titan",
+    "type": "creature",
+    "rarity": "epic",
+    "cost": 7,
+    "atk": 6,
+    "hp": 8,
+    "description": "Taunt. Không thể bị target bởi phép < 3 mana",
+    "flavor": "\"500.000 dòng code trong 1 file. Không ai dám refactor.\"",
+    "keywords": [
+      "taunt"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-020",
+    "name": "Lambda Function",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 2,
+    "hp": 1,
+    "description": "Rush. Tự hủy cuối lượt",
+    "flavor": "\"Chạy xong là biến mất, như chưa hề có cuộc chia ly\"",
+    "keywords": [
+      "rush"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-021",
+    "name": "Docker Container",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 2,
+    "hp": 2,
+    "description": "Deathrattle: Triệu hồi lại 1 bản sao",
+    "flavor": "\"Trên máy tôi chạy được mà? Containerize đi!\"",
+    "keywords": [
+      "deathrattle"
+    ],
+    "effects": [
+      {
+        "type": "summon",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "crt-022",
+    "name": "Kubernetes Orchestrator",
+    "type": "creature",
+    "rarity": "epic",
+    "cost": 5,
+    "atk": 3,
+    "hp": 5,
+    "description": "Cho tất cả quân bạn +1/+1",
+    "flavor": "\"Scale lên 100 pod — cho dù chỉ có 3 user\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 1,
+        "target": "all_friendlies"
+      }
+    ]
+  },
+  {
+    "id": "crt-023",
+    "name": "CI/CD Pipeline",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 2,
+    "hp": 3,
+    "description": "Cuối mỗi lượt: Rút 1 lá",
+    "flavor": "\"Build #4269 — Passed ✓ (lần đầu tiên trong 3 tháng)\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "crt-024",
+    "name": "Terraform Golem",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 4,
+    "atk": 4,
+    "hp": 4,
+    "description": "Battlecry: Đặt 1 môi trường ngẫu nhiên",
+    "flavor": "\"terraform apply — Có gan thì bấm Enter đi\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "set_environment",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "crt-025",
+    "name": "SRE On-Call",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 3,
+    "atk": 2,
+    "hp": 4,
+    "description": "Taunt. Lifesteal",
+    "flavor": "\"PagerDuty gọi lúc 3h sáng — lần thứ 47\"",
+    "keywords": [
+      "taunt",
+      "lifesteal"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-026",
+    "name": "Ansible Puppet",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 1,
+    "hp": 2,
+    "description": "Battlecry: +1 HP cho 1 quân bạn",
+    "flavor": "\"Playbook chạy idempotent... thường thì vậy\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "buff_hp",
+        "value": 1,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "crt-027",
+    "name": "Nginx Loadbalancer",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 3,
+    "atk": 1,
+    "hp": 5,
+    "description": "Taunt",
+    "flavor": "\"502 Bad Gateway — nhưng tôi vẫn đứng vững\"",
+    "keywords": [
+      "taunt"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-028",
+    "name": "Git Merge Conflict",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 3,
+    "hp": 2,
+    "description": "",
+    "flavor": "\"<<<<<<< HEAD\\n nhớ giải quyết trước khi commit nha \\n>>>>>>> feature\"",
+    "keywords": [],
+    "effects": []
+  },
+  {
+    "id": "crt-029",
+    "name": "Bug Hunter",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 2,
+    "hp": 2,
+    "description": "Poison",
+    "flavor": "\"Found: Critical Bug. Priority: Blocker. Dev: 🙄\"",
+    "keywords": [
+      "poison"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-030",
+    "name": "QA Tester Chiến",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 3,
+    "atk": 1,
+    "hp": 3,
+    "description": "Battlecry: Gây 2 sát thương cho 1 quân",
+    "flavor": "\"Nhấn nút 500 lần... và nó crash thật\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 2,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "crt-031",
+    "name": "Automation Bot",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 4,
+    "atk": 2,
+    "hp": 4,
+    "description": "Cuối lượt: Gây 1 sát thương random cho đối thủ",
+    "flavor": "\"Selenium chạy 2000 test case — 1999 pass, 1 flaky\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "random_damage",
+        "value": 1,
+        "target": "random_enemy"
+      }
+    ]
+  },
+  {
+    "id": "crt-032",
+    "name": "Regression Demon",
+    "type": "creature",
+    "rarity": "epic",
+    "cost": 5,
+    "atk": 4,
+    "hp": 4,
+    "description": "Battlecry: Gây 2 sát thương cho TẤT CẢ quân",
+    "flavor": "\"Fix 1 bug, sinh ra 3 bug mới. Quy luật vĩnh cửu.\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "aoe_damage",
+        "value": 2,
+        "target": "all_creatures"
+      }
+    ]
+  },
+  {
+    "id": "crt-033",
+    "name": "Flaky Test Specter",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 2,
+    "hp": 1,
+    "description": "50% cơ hội không tấn công",
+    "flavor": "\"Passed. Failed. Passed. Failed. Passed...\"",
+    "keywords": [],
+    "effects": []
+  },
+  {
+    "id": "crt-034",
+    "name": "Scrum Master",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 1,
+    "hp": 4,
+    "description": "Cho tất cả quân bạn +1 ATK",
+    "flavor": "\"Nhưng mà Daily chỉ 15 phút thôi nha!\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 1,
+        "target": "all_friendlies"
+      }
+    ]
+  },
+  {
+    "id": "crt-035",
+    "name": "Product Owner",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 4,
+    "atk": 2,
+    "hp": 5,
+    "description": "Battlecry: Rút 2 lá nhưng đối thủ cũng rút 1",
+    "flavor": "\"Thêm chút nữa thôi, rất nhỏ, 5 phút là xong...\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 2,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "crt-036",
+    "name": "CEO Thần Thánh",
+    "type": "creature",
+    "rarity": "legendary",
+    "cost": 8,
+    "atk": 6,
+    "hp": 8,
+    "description": "Battlecry: Gây 3 sát thương cho tất cả quân đối thủ",
+    "flavor": "\"Chúng ta sẽ pivot sang AI. Ngay. Bây. Giờ.\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "aoe_damage",
+        "value": 3,
+        "target": "all_enemies"
+      }
+    ]
+  },
+  {
+    "id": "crt-037",
+    "name": "HR Recruiter",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 1,
+    "hp": 3,
+    "description": "Battlecry: Triệu hồi 1 quân Intern 1/1",
+    "flavor": "\"Yêu cầu: 10 năm kinh nghiệm Swift. Swift mới ra 9 năm.\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "summon",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "crt-038",
+    "name": "The Intern",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 0,
+    "atk": 1,
+    "hp": 1,
+    "description": "",
+    "flavor": "\"Em mới vào, em không biết gì hết\"",
+    "keywords": [],
+    "effects": []
+  },
+  {
+    "id": "crt-039",
+    "name": "Tech Lead",
+    "type": "creature",
+    "rarity": "epic",
+    "cost": 5,
+    "atk": 4,
+    "hp": 5,
+    "description": "Cho tất cả quân bạn Shield",
+    "flavor": "\"LGTM — nhưng tôi sẽ soi kỹ lại lần sau\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-040",
+    "name": "Null Pointer Exception",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 4,
+    "hp": 2,
+    "description": "Deathrattle: Gây 2 sát thương cho Hero mình",
+    "flavor": "\"Cannot read properties of undefined (reading 'bug')\"",
+    "keywords": [
+      "deathrattle"
+    ],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 2,
+        "target": "friendly_hero"
+      }
+    ]
+  },
+  {
+    "id": "crt-041",
+    "name": "Memory Leak",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 1,
+    "hp": 3,
+    "description": "Cuối lượt: +1/+1",
+    "flavor": "\"RAM usage: 99%... 99.5%... 99.9%...\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "id": "crt-042",
+    "name": "Race Condition",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 3,
+    "hp": 3,
+    "description": "Rush. Tấn công target ngẫu nhiên",
+    "flavor": "\"Kết quả phụ thuộc vào ai chạy trước. Luôn luôn bất ngờ.\"",
+    "keywords": [
+      "rush"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-043",
+    "name": "Infinite Loop",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 4,
+    "atk": 2,
+    "hp": 6,
+    "description": "Taunt. Không thể bị tiêu diệt bởi sát thương < 3",
+    "flavor": "\"while(true) { suffer(); }\"",
+    "keywords": [
+      "taunt"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-044",
+    "name": "Stack Overflow Error",
+    "type": "creature",
+    "rarity": "epic",
+    "cost": 6,
+    "atk": 5,
+    "hp": 5,
+    "description": "Overflow. Battlecry: Gây 3 sát thương",
+    "flavor": "\"RangeError: Maximum call stack size exceeded\"",
+    "keywords": [
+      "overflow",
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 3,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "crt-045",
+    "name": "Segfault Wraith",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 4,
+    "atk": 5,
+    "hp": 3,
+    "description": "Deathrattle: Tiêu diệt 1 quân random",
+    "flavor": "\"Segmentation fault (core dumped)\"",
+    "keywords": [
+      "deathrattle"
+    ],
+    "effects": [
+      {
+        "type": "destroy",
+        "value": 1,
+        "target": "random_enemy"
+      }
+    ]
+  },
+  {
+    "id": "crt-046",
+    "name": "Deadlock Twins",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 4,
+    "atk": 2,
+    "hp": 4,
+    "description": "Battlecry: Đóng băng 1 quân đối thủ",
+    "flavor": "\"Thread A chờ Thread B, Thread B chờ Thread A...\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "freeze",
+        "value": 1,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "crt-047",
+    "name": "CORS Error Ghost",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 2,
+    "description": "Taunt. Shield",
+    "flavor": "\"Blocked by CORS policy. Mãi mãi là bức tường.\"",
+    "keywords": [
+      "taunt",
+      "shield"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-048",
+    "name": "404 Not Found",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 1,
+    "hp": 1,
+    "description": "Stealth",
+    "flavor": "\"Quân lính mà bạn tìm kiếm không tồn tại\"",
+    "keywords": [
+      "stealth"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-049",
+    "name": "Dependency Hell Hydra",
+    "type": "creature",
+    "rarity": "epic",
+    "cost": 6,
+    "atk": 3,
+    "hp": 3,
+    "description": "Deathrattle: Triệu hồi 2 bản sao 2/2",
+    "flavor": "\"npm install: 847 vulnerabilities found\"",
+    "keywords": [
+      "deathrattle"
+    ],
+    "effects": [
+      {
+        "type": "summon",
+        "value": 2,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "crt-050",
+    "name": "Stack Overflow Oracle",
+    "type": "creature",
+    "rarity": "legendary",
+    "cost": 7,
+    "atk": 5,
+    "hp": 7,
+    "description": "Battlecry: Rút 3 lá. Lifesteal",
+    "flavor": "\"Marked as duplicate. Closed.\"",
+    "keywords": [
+      "battlecry",
+      "lifesteal"
+    ],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 3,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "crt-051",
+    "name": "GitHub Copilot",
+    "type": "creature",
+    "rarity": "legendary",
+    "cost": 4,
+    "atk": 3,
+    "hp": 4,
+    "description": "Cuối lượt: Copy 1 quân bạn random (tạo bản sao)",
+    "flavor": "\"Tab. Tab. Tab. Code tự viết. Tự fix. Tự deploy.\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "copy",
+        "value": 1,
+        "target": "random_friendly"
+      }
+    ]
+  },
+  {
+    "id": "crt-052",
+    "name": "ChatGPT Overlord",
+    "type": "creature",
+    "rarity": "legendary",
+    "cost": 8,
+    "atk": 7,
+    "hp": 7,
+    "description": "Battlecry: Biến 1 quân đối thủ thành \"The Intern\" 1/1",
+    "flavor": "\"Tôi không thể trực tiếp viết mã độc, nhưng đây là gợi ý...\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "debuff_atk",
+        "value": 99,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "crt-053",
+    "name": "Linus Torvalds",
+    "type": "creature",
+    "rarity": "legendary",
+    "cost": 9,
+    "atk": 8,
+    "hp": 8,
+    "description": "Rush. Overflow. Cho tất cả quân bạn +2 ATK",
+    "flavor": "\"Your code is sh*t and you should feel bad.\"",
+    "keywords": [
+      "rush",
+      "overflow",
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 2,
+        "target": "all_friendlies"
+      }
+    ]
+  },
+  {
+    "id": "crt-054",
+    "name": "Senior Dev Hermit",
+    "type": "creature",
+    "rarity": "legendary",
+    "cost": 5,
+    "atk": 4,
+    "hp": 6,
+    "description": "Silence 1 quân đối thủ. Taunt",
+    "flavor": "\"20 năm exp. WFH. Tắt cam. Tắt mic. Code lúc 2h sáng.\"",
+    "keywords": [
+      "taunt",
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "silence",
+        "value": 1,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "crt-055",
+    "name": "Elon Musk AI Bot",
+    "type": "creature",
+    "rarity": "legendary",
+    "cost": 6,
+    "atk": 5,
+    "hp": 5,
+    "description": "Battlecry: Destroy 1 quân bạn random, +3/+3 cho bản thân",
+    "flavor": "\"Sa thải 80% nhân viên. Năng suất tăng... hay giảm?\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "destroy",
+        "value": 1,
+        "target": "random_friendly"
+      }
+    ]
+  },
+  {
+    "id": "spl-056",
+    "name": "Hot Fix",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Hồi 3 HP cho Hero",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "heal",
+        "value": 3,
+        "target": "friendly_hero"
+      }
+    ]
+  },
+  {
+    "id": "spl-057",
+    "name": "Code Review Slash",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Gây 3 sát thương cho 1 quân",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 3,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-058",
+    "name": "git reset --hard",
+    "type": "spell",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Tiêu diệt 1 quân bất kỳ",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "destroy",
+        "value": 1,
+        "target": "any_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-059",
+    "name": "npm install",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Rút 2 lá",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 2,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "spl-060",
+    "name": "Stack Overflow Search",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Rút 1 lá. Hồi 1 Mana",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "spl-061",
+    "name": "Coffee Boost",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "+2 ATK cho 1 quân bạn",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 2,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-062",
+    "name": "Code Refactor",
+    "type": "spell",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "+2/+2 cho 1 quân bạn",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 2,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-063",
+    "name": "DDoS Attack",
+    "type": "spell",
+    "rarity": "rare",
+    "cost": 4,
+    "atk": 0,
+    "hp": 0,
+    "description": "Gây 2 sát thương cho TẤT CẢ quân đối thủ",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "aoe_damage",
+        "value": 2,
+        "target": "all_enemies"
+      }
+    ]
+  },
+  {
+    "id": "spl-064",
+    "name": "Rubber Duck Debug",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 0,
+    "atk": 0,
+    "hp": 0,
+    "description": "Rút 1 lá",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "spl-065",
+    "name": "Force Push",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Trả 1 quân đối thủ về tay",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "return_hand",
+        "value": 1,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-066",
+    "name": "Rollback",
+    "type": "spell",
+    "rarity": "rare",
+    "cost": 4,
+    "atk": 0,
+    "hp": 0,
+    "description": "Hồi 8 HP cho Hero",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "heal",
+        "value": 8,
+        "target": "friendly_hero"
+      }
+    ]
+  },
+  {
+    "id": "spl-067",
+    "name": "Deploy to Production",
+    "type": "spell",
+    "rarity": "epic",
+    "cost": 5,
+    "atk": 0,
+    "hp": 0,
+    "description": "Gây 5 sát thương cho Hero đối thủ",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 5,
+        "target": "enemy_hero"
+      }
+    ]
+  },
+  {
+    "id": "spl-068",
+    "name": "Log4Shell Exploit",
+    "type": "spell",
+    "rarity": "epic",
+    "cost": 6,
+    "atk": 0,
+    "hp": 0,
+    "description": "Gây 4 sát thương cho TẤT CẢ (cả quân mình)",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "aoe_damage",
+        "value": 4,
+        "target": "all_creatures"
+      }
+    ]
+  },
+  {
+    "id": "spl-069",
+    "name": "Blue Screen of Death",
+    "type": "spell",
+    "rarity": "epic",
+    "cost": 7,
+    "atk": 0,
+    "hp": 0,
+    "description": "Tiêu diệt TẤT CẢ quân trên sân",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "destroy",
+        "value": 99,
+        "target": "all_creatures"
+      }
+    ]
+  },
+  {
+    "id": "spl-070",
+    "name": "sudo rm -rf /",
+    "type": "spell",
+    "rarity": "legendary",
+    "cost": 10,
+    "atk": 0,
+    "hp": 0,
+    "description": "Gây 10 sát thương cho Hero đối thủ",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 10,
+        "target": "enemy_hero"
+      }
+    ]
+  },
+  {
+    "id": "spl-071",
+    "name": "Bug Report",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Gây 2 sát thương cho 1 quân",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 2,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-072",
+    "name": "Pair Programming",
+    "type": "spell",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "+1/+1 cho TẤT CẢ quân bạn",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 1,
+        "target": "all_friendlies"
+      }
+    ]
+  },
+  {
+    "id": "spl-073",
+    "name": "Sprint Planning",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Rút 3 lá nhưng bỏ 1 lá",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 3,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "spl-074",
+    "name": "Cà phê sữa đá",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 0,
+    "atk": 0,
+    "hp": 0,
+    "description": "+1 Mana turn này",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "gain_mana",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "spl-075",
+    "name": "Technical Debt Payment",
+    "type": "spell",
+    "rarity": "rare",
+    "cost": 4,
+    "atk": 0,
+    "hp": 0,
+    "description": "Tiêu diệt 1 quân bạn. Rút 3 lá",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 3,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "spl-076",
+    "name": "Legacy Migration",
+    "type": "spell",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Biến 1 quân bạn thành phiên bản +3/+3",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 3,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-077",
+    "name": "Docker Compose Up",
+    "type": "spell",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Triệu hồi 2 Container 2/2",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "summon",
+        "value": 2,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "spl-078",
+    "name": "Firewall Rules",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Cho 1 quân bạn Shield + Taunt",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_hp",
+        "value": 2,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-079",
+    "name": "Agile Retrospective",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Hồi 2 HP cho Hero. Rút 1 lá",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "heal",
+        "value": 2,
+        "target": "friendly_hero"
+      }
+    ]
+  },
+  {
+    "id": "spl-080",
+    "name": "API Rate Limit",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "-2 ATK cho 1 quân đối thủ",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "debuff_atk",
+        "value": 2,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-081",
+    "name": "Monkey Patch",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "+3 ATK cho 1 quân bạn, nhưng -2 HP",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 3,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-082",
+    "name": "Load Testing",
+    "type": "spell",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Gây sát thương bằng số quân trên sân cho Hero đối thủ",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 0,
+        "target": "enemy_hero"
+      }
+    ]
+  },
+  {
+    "id": "spl-083",
+    "name": "Backup & Restore",
+    "type": "spell",
+    "rarity": "epic",
+    "cost": 5,
+    "atk": 0,
+    "hp": 0,
+    "description": "Hồi 5 HP cho Hero. +2 HP cho tất cả quân bạn",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "heal",
+        "value": 5,
+        "target": "friendly_hero"
+      }
+    ]
+  },
+  {
+    "id": "spl-084",
+    "name": "npm audit fix",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Hồi 2 HP cho 1 quân bạn",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "heal",
+        "value": 2,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-085",
+    "name": "Feature Flag Toggle",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Đóng băng 1 quân đối thủ 1 lượt",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "freeze",
+        "value": 1,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-086",
+    "name": "Chaos Engineering",
+    "type": "spell",
+    "rarity": "epic",
+    "cost": 4,
+    "atk": 0,
+    "hp": 0,
+    "description": "Gây 1-5 sát thương random cho tất cả quân",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "random_damage",
+        "value": 3,
+        "target": "all_creatures"
+      }
+    ]
+  },
+  {
+    "id": "spl-087",
+    "name": "Git Blame",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Gây 3 sát thương cho 1 quân",
+    "flavor": "\"Ai viết cái dòng này? Ồ... chính tôi.\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 3,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-088",
+    "name": "Scrum Poker",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Rút 1 lá. Giảm chi phí 1 lá trên tay -1",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "spl-089",
+    "name": "OT Xuyên Đêm",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Cho 1 quân bạn Rush",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 1,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-090",
+    "name": "Bàn phím cơ RGB",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "+1 ATK cho tất cả quân bạn lượt này",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 1,
+        "target": "all_friendlies"
+      }
+    ]
+  },
+  {
+    "id": "spl-091",
+    "name": "ChatGPT Prompt",
+    "type": "spell",
+    "rarity": "rare",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Copy 1 quân đối thủ vào tay bạn",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "copy",
+        "value": 1,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-092",
+    "name": "Spaghetti Untangle",
+    "type": "spell",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Silence 1 quân (xóa mọi buff/keyword)",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "silence",
+        "value": 1,
+        "target": "any_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-093",
+    "name": "Zero-Day Exploit",
+    "type": "spell",
+    "rarity": "epic",
+    "cost": 5,
+    "atk": 0,
+    "hp": 0,
+    "description": "Gây 6 sát thương cho 1 quân. Bỏ qua Shield",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 6,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-094",
+    "name": "Burnout Wave",
+    "type": "spell",
+    "rarity": "epic",
+    "cost": 6,
+    "atk": 0,
+    "hp": 0,
+    "description": "-2 ATK cho TẤT CẢ quân (cả 2 bên)",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "debuff_atk",
+        "value": 2,
+        "target": "all_creatures"
+      }
+    ]
+  },
+  {
+    "id": "spl-095",
+    "name": "Ctrl+Z",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Trả 1 quân bạn vừa chết về tay (từ graveyard)",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "return_hand",
+        "value": 1,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "trp-096",
+    "name": "Linter Trap",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ chơi phép: Hủy phép đó",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "none",
+        "value": 0,
+        "target": "none"
+      }
+    ],
+    "trapTrigger": "on_spell"
+  },
+  {
+    "id": "trp-097",
+    "name": "Firewall Block",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ tấn công: Chặn sát thương và gây 2 sát thương ngược",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 2,
+        "target": "enemy_creature"
+      }
+    ],
+    "trapTrigger": "on_attack"
+  },
+  {
+    "id": "trp-098",
+    "name": "Code Freeze",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ triệu hồi quân: Đóng băng quân đó",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "freeze",
+        "value": 1,
+        "target": "enemy_creature"
+      }
+    ],
+    "trapTrigger": "on_summon"
+  },
+  {
+    "id": "trp-099",
+    "name": "Regression Test",
+    "type": "trap",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ tấn công: Gây 3 sát thương cho quân tấn công",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 3,
+        "target": "enemy_creature"
+      }
+    ],
+    "trapTrigger": "on_attack"
+  },
+  {
+    "id": "trp-100",
+    "name": "Rate Limiter",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ chơi > 2 bài/lượt: Hủy bài thứ 3",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "none",
+        "value": 0,
+        "target": "none"
+      }
+    ],
+    "trapTrigger": "on_spell"
+  },
+  {
+    "id": "trp-101",
+    "name": "SSL Certificate Expired",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi bắt đầu lượt đối thủ: Đối thủ -1 Mana",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "gain_mana",
+        "value": -1,
+        "target": "none"
+      }
+    ],
+    "trapTrigger": "on_turn_start"
+  },
+  {
+    "id": "trp-102",
+    "name": "Honeypot Server",
+    "type": "trap",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ tấn công Hero: Triệu hồi 1 quân 3/3",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "summon",
+        "value": 1,
+        "target": "none"
+      }
+    ],
+    "trapTrigger": "on_attack"
+  },
+  {
+    "id": "trp-103",
+    "name": "403 Forbidden",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ triệu hồi quân > 3 cost: Trả về tay",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "return_hand",
+        "value": 1,
+        "target": "enemy_creature"
+      }
+    ],
+    "trapTrigger": "on_summon"
+  },
+  {
+    "id": "trp-104",
+    "name": "Memory Dump",
+    "type": "trap",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi bị tấn công: Gây 2 sát thương cho TẤT CẢ quân đối thủ",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "aoe_damage",
+        "value": 2,
+        "target": "all_enemies"
+      }
+    ],
+    "trapTrigger": "on_attack"
+  },
+  {
+    "id": "trp-105",
+    "name": "Captcha Challenge",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ chơi phép: 50% hủy phép",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "none",
+        "value": 0,
+        "target": "none"
+      }
+    ],
+    "trapTrigger": "on_spell"
+  },
+  {
+    "id": "trp-106",
+    "name": "Git Hook Pre-commit",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ triệu hồi: -1 ATK cho quân đó",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "debuff_atk",
+        "value": 1,
+        "target": "enemy_creature"
+      }
+    ],
+    "trapTrigger": "on_summon"
+  },
+  {
+    "id": "trp-107",
+    "name": "Error Boundary",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi 1 quân bạn bị tiêu diệt: Hồi 3 HP cho Hero",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "heal",
+        "value": 3,
+        "target": "friendly_hero"
+      }
+    ],
+    "trapTrigger": "on_damage"
+  },
+  {
+    "id": "trp-108",
+    "name": "Watchdog Timer",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Đầu lượt đối thủ: Gây 1 sát thương cho Hero đối thủ",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 1,
+        "target": "enemy_hero"
+      }
+    ],
+    "trapTrigger": "on_turn_start"
+  },
+  {
+    "id": "trp-109",
+    "name": "Two-Factor Auth",
+    "type": "trap",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ tấn công Hero: Chặn hoàn toàn 1 đòn",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "none",
+        "value": 0,
+        "target": "none"
+      }
+    ],
+    "trapTrigger": "on_attack"
+  },
+  {
+    "id": "trp-110",
+    "name": "Anti-Debugging",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ rút bài: Bỏ 1 lá random từ tay",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "none",
+        "value": 0,
+        "target": "none"
+      }
+    ],
+    "trapTrigger": "on_turn_start"
+  },
+  {
+    "id": "trp-111",
+    "name": "Timeout Exception",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ chơi phép > 3 cost: Hủy phép",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "none",
+        "value": 0,
+        "target": "none"
+      }
+    ],
+    "trapTrigger": "on_spell"
+  },
+  {
+    "id": "trp-112",
+    "name": "Race Condition Trap",
+    "type": "trap",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ triệu hồi: Steal quân đó sang bên mình",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "steal",
+        "value": 1,
+        "target": "enemy_creature"
+      }
+    ],
+    "trapTrigger": "on_summon"
+  },
+  {
+    "id": "trp-113",
+    "name": "Stack Trace Bomb",
+    "type": "trap",
+    "rarity": "epic",
+    "cost": 4,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi bị tấn công: Gây 4 sát thương cho quân tấn công và Hero đối thủ",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 4,
+        "target": "enemy_creature"
+      }
+    ],
+    "trapTrigger": "on_attack"
+  },
+  {
+    "id": "trp-114",
+    "name": "Backup Failover",
+    "type": "trap",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi Hero bạn nhận > 4 sát thương: Hồi lại 4 HP",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "heal",
+        "value": 4,
+        "target": "friendly_hero"
+      }
+    ],
+    "trapTrigger": "on_damage"
+  },
+  {
+    "id": "trp-115",
+    "name": "Docker Escape",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi 1 quân bạn bị tiêu diệt: Triệu hồi 1 Container 2/2",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "summon",
+        "value": 1,
+        "target": "none"
+      }
+    ],
+    "trapTrigger": "on_damage"
+  },
+  {
+    "id": "sup-116",
+    "name": "Energy Drink",
+    "type": "support",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "+2 ATK cho 1 quân",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 2,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-117",
+    "name": "Noise-Cancel Headphone",
+    "type": "support",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Cho 1 quân Stealth",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "none",
+        "value": 0,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-118",
+    "name": "Standing Desk",
+    "type": "support",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "+0/+3 cho 1 quân bạn",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_hp",
+        "value": 3,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-119",
+    "name": "Ergonomic Chair",
+    "type": "support",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "+0/+2 cho 1 quân bạn",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_hp",
+        "value": 2,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-120",
+    "name": "SSH Key",
+    "type": "support",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Cho 1 quân bạn Stealth",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "none",
+        "value": 0,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-121",
+    "name": "VPN Shield",
+    "type": "support",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Cho 1 quân bạn Shield",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "none",
+        "value": 0,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-122",
+    "name": "Monitor Ultrawide",
+    "type": "support",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "+1/+1 cho TẤT CẢ quân bạn",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 1,
+        "target": "all_friendlies"
+      }
+    ]
+  },
+  {
+    "id": "sup-123",
+    "name": "GitHub Copilot Pro",
+    "type": "support",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Cuối lượt: Rút 1 lá thêm",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "sup-124",
+    "name": "Dark Mode Toggle",
+    "type": "support",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Cho 1 quân bạn +1 ATK",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 1,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-125",
+    "name": "Clean Architecture",
+    "type": "support",
+    "rarity": "epic",
+    "cost": 4,
+    "atk": 0,
+    "hp": 0,
+    "description": "+2/+2 cho TẤT CẢ quân bạn",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 2,
+        "target": "all_friendlies"
+      }
+    ]
+  },
+  {
+    "id": "sup-126",
+    "name": "Tech Blog Post",
+    "type": "support",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Rút 1 lá. +1 HP cho Hero",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "sup-127",
+    "name": "Open Source License",
+    "type": "support",
+    "rarity": "common",
+    "cost": 0,
+    "atk": 0,
+    "hp": 0,
+    "description": "Cho 1 quân bạn +1/+1",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 1,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-128",
+    "name": "Type Safety Armor",
+    "type": "support",
+    "rarity": "rare",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Cho 1 quân Shield + +0/+2",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_hp",
+        "value": 2,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-129",
+    "name": "Mentorship Program",
+    "type": "support",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Cho 1 quân bạn +2/+2 và Rush",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 2,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-130",
+    "name": "Performance Profiler",
+    "type": "support",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Cho 1 quân bạn +3 ATK, -1 HP",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 3,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-131",
+    "name": "Unit Test Coverage",
+    "type": "support",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Cho 1 quân bạn +0/+3 và Taunt",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_hp",
+        "value": 3,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-132",
+    "name": "Documentation",
+    "type": "support",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Rút 1 lá",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "sup-133",
+    "name": "Slack Notification Off",
+    "type": "support",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Cho 1 quân bạn +1/+1",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 1,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-134",
+    "name": "Severance Package",
+    "type": "support",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Tiêu diệt 1 quân bạn. Hồi 5 HP cho Hero",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "heal",
+        "value": 5,
+        "target": "friendly_hero"
+      }
+    ]
+  },
+  {
+    "id": "sup-135",
+    "name": "Hackathon Trophy",
+    "type": "support",
+    "rarity": "epic",
+    "cost": 4,
+    "atk": 0,
+    "hp": 0,
+    "description": "+3/+3 cho 1 quân bạn. Cho Rush",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 3,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "wpn-136",
+    "name": "Mechanical Keyboard",
+    "type": "weapon",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 1,
+    "hp": 0,
+    "description": "+1 ATK",
+    "flavor": "",
+    "keywords": [],
+    "effects": []
+  },
+  {
+    "id": "wpn-137",
+    "name": "Debugging Wand",
+    "type": "weapon",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 2,
+    "hp": 0,
+    "description": "+2 ATK",
+    "flavor": "",
+    "keywords": [],
+    "effects": []
+  },
+  {
+    "id": "wpn-138",
+    "name": "SQL Injection Needle",
+    "type": "weapon",
+    "rarity": "rare",
+    "cost": 2,
+    "atk": 2,
+    "hp": 0,
+    "description": "+2 ATK. Poison",
+    "flavor": "",
+    "keywords": [
+      "poison"
+    ],
+    "effects": []
+  },
+  {
+    "id": "wpn-139",
+    "name": "Commit Hammer",
+    "type": "weapon",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 3,
+    "hp": 0,
+    "description": "+3 ATK",
+    "flavor": "",
+    "keywords": [],
+    "effects": []
+  },
+  {
+    "id": "wpn-140",
+    "name": "Master Branch Sword",
+    "type": "weapon",
+    "rarity": "epic",
+    "cost": 4,
+    "atk": 4,
+    "hp": 0,
+    "description": "+4 ATK. Overflow",
+    "flavor": "",
+    "keywords": [
+      "overflow"
+    ],
+    "effects": []
+  },
+  {
+    "id": "wpn-141",
+    "name": "Terminal Blade",
+    "type": "weapon",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 2,
+    "hp": 0,
+    "description": "+2 ATK",
+    "flavor": "",
+    "keywords": [],
+    "effects": []
+  },
+  {
+    "id": "wpn-142",
+    "name": "Regex Whip",
+    "type": "weapon",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 1,
+    "hp": 0,
+    "description": "+1 ATK. Gây thêm 1 sát thương",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 1,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "wpn-143",
+    "name": "Docker Compose Staff",
+    "type": "weapon",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 2,
+    "hp": 0,
+    "description": "+2 ATK. Khi tấn công: Triệu hồi 1 Container 1/1",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "summon",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "wpn-144",
+    "name": "npm Script Launcher",
+    "type": "weapon",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 2,
+    "hp": 0,
+    "description": "+2 ATK. Rush cho quân được trang bị",
+    "flavor": "",
+    "keywords": [
+      "rush"
+    ],
+    "effects": []
+  },
+  {
+    "id": "wpn-145",
+    "name": "Linter Scythe",
+    "type": "weapon",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 3,
+    "hp": 0,
+    "description": "+3 ATK. Khi tiêu diệt quân: Rút 1 lá",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "wpn-146",
+    "name": "Cloud Formation Axe",
+    "type": "weapon",
+    "rarity": "epic",
+    "cost": 4,
+    "atk": 4,
+    "hp": 0,
+    "description": "+4 ATK. Lifesteal",
+    "flavor": "",
+    "keywords": [
+      "lifesteal"
+    ],
+    "effects": []
+  },
+  {
+    "id": "wpn-147",
+    "name": "Vim Keybinding Dagger",
+    "type": "weapon",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 1,
+    "hp": 0,
+    "description": "+1 ATK. Rush",
+    "flavor": "",
+    "keywords": [
+      "rush"
+    ],
+    "effects": []
+  },
+  {
+    "id": "wpn-148",
+    "name": "Exception Handler Shield",
+    "type": "weapon",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "+0 ATK. Cho Shield",
+    "flavor": "",
+    "keywords": [
+      "shield"
+    ],
+    "effects": []
+  },
+  {
+    "id": "wpn-149",
+    "name": "API Key of Power",
+    "type": "weapon",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 2,
+    "hp": 0,
+    "description": "+2 ATK. Battlecry: Rút 1 lá",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "wpn-150",
+    "name": "Root Access Trident",
+    "type": "weapon",
+    "rarity": "legendary",
+    "cost": 5,
+    "atk": 5,
+    "hp": 0,
+    "description": "+5 ATK. Overflow. Lifesteal",
+    "flavor": "",
+    "keywords": [
+      "overflow",
+      "lifesteal"
+    ],
+    "effects": []
+  },
+  {
+    "id": "wpn-151",
+    "name": "Pixel Cursor",
+    "type": "weapon",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 1,
+    "hp": 0,
+    "description": "+1 ATK. +1 HP",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_hp",
+        "value": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "id": "wpn-152",
+    "name": "CI/CD Boomerang",
+    "type": "weapon",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 2,
+    "hp": 0,
+    "description": "+2 ATK. Trở về tay khi quân bị tiêu diệt",
+    "flavor": "",
+    "keywords": [],
+    "effects": []
+  },
+  {
+    "id": "wpn-153",
+    "name": "Thanos Gauntlet (rm -rf)",
+    "type": "weapon",
+    "rarity": "legendary",
+    "cost": 8,
+    "atk": 6,
+    "hp": 0,
+    "description": "+6 ATK. Khi tấn công: 50% tiêu diệt ngay",
+    "flavor": "",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "destroy",
+        "value": 1,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "env-154",
+    "name": "Production Server",
+    "type": "environment",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Mọi sát thương +1",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "production"
+  },
+  {
+    "id": "env-155",
+    "name": "Localhost",
+    "type": "environment",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Quân bạn hồi 1 HP cuối lượt",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "localhost"
+  },
+  {
+    "id": "env-156",
+    "name": "Code Review Room",
+    "type": "environment",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Quân có ATK < 2 bị tiêu diệt",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "code_review"
+  },
+  {
+    "id": "env-157",
+    "name": "Sprint Deadline",
+    "type": "environment",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Mọi chi phí -1 (min 1). Max HP -5",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "sprint_deadline"
+  },
+  {
+    "id": "env-158",
+    "name": "Meeting Room",
+    "type": "environment",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Quân mới ra bị \"Ngủ\" 1 lượt",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "meeting_room"
+  },
+  {
+    "id": "env-159",
+    "name": "Staging Environment",
+    "type": "environment",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Phép có 50% thất bại",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "staging"
+  },
+  {
+    "id": "env-160",
+    "name": "Data Center Flood",
+    "type": "environment",
+    "rarity": "epic",
+    "cost": 4,
+    "atk": 0,
+    "hp": 0,
+    "description": "Mỗi lượt 1 quân random mất 2 HP",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "data_center_flood"
+  },
+  {
+    "id": "env-161",
+    "name": "Security Audit",
+    "type": "environment",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Không ai rút thêm ngoài 1 lá/lượt",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "security_audit"
+  },
+  {
+    "id": "env-162",
+    "name": "Open Office",
+    "type": "environment",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Quân Stealth bị lộ ngay",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "open_office"
+  },
+  {
+    "id": "env-163",
+    "name": "GitHub Actions",
+    "type": "environment",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Mỗi khi chơi bài: Rút 1 lá",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "github_actions"
+  },
+  {
+    "id": "env-164",
+    "name": "Tech Conference",
+    "type": "environment",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Cả 2 bên +1 ATK cho tất cả quân",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "tech_conference"
+  },
+  {
+    "id": "env-165",
+    "name": "Stack Overflow Forum",
+    "type": "environment",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Phép hồi HP tăng thêm 2",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "stackoverflow"
+  },
+  {
+    "id": "env-166",
+    "name": "AWS us-east-1",
+    "type": "environment",
+    "rarity": "epic",
+    "cost": 4,
+    "atk": 0,
+    "hp": 0,
+    "description": "Đầu mỗi lượt: 25% cơ hội ngẫu nhiên tiêu diệt 1 quân",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "aws_outage"
+  },
+  {
+    "id": "env-167",
+    "name": "Dark Mode IDE",
+    "type": "environment",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Quân bạn +1 HP khi triệu hồi",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "dark_mode"
+  },
+  {
+    "id": "env-168",
+    "name": "Hackathon Arena",
+    "type": "environment",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Tất cả quân có Rush",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "hackathon"
+  },
+  {
+    "id": "env-169",
+    "name": "Legacy Codebase",
+    "type": "environment",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Quân có cost > 5 tốn thêm 2 mana",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "legacy"
+  },
+  {
+    "id": "env-170",
+    "name": "Microservices Cluster",
+    "type": "environment",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi quân bị tiêu diệt: Triệu hồi 1 Token 1/1",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "microservices"
+  },
+  {
+    "id": "env-171",
+    "name": "War Room",
+    "type": "environment",
+    "rarity": "epic",
+    "cost": 4,
+    "atk": 0,
+    "hp": 0,
+    "description": "Tất cả quân +2 ATK. Tất cả quân -2 HP",
+    "flavor": "",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "war_room"
+  },
+  {
+    "id": "crt-172",
+    "name": "Freelancer Nomad",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 2,
+    "hp": 3,
+    "description": "",
+    "flavor": "\"Giá em: $50/h. Giá chợ: $5/h. Guess who wins?\"",
+    "keywords": [],
+    "effects": []
+  },
+  {
+    "id": "crt-173",
+    "name": "Bootcamp Graduate",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 2,
+    "hp": 1,
+    "description": "Rush",
+    "flavor": "\"3 tháng fullstack. Portfolio: 1 Todo App, 1 Calculator\"",
+    "keywords": [
+      "rush"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-174",
+    "name": "Legacy Code Guardian",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 4,
+    "atk": 2,
+    "hp": 6,
+    "description": "Taunt. Shield",
+    "flavor": "\"Đừng. Chạm. Vào. File. Này.\"",
+    "keywords": [
+      "taunt",
+      "shield"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-175",
+    "name": "Full-Stack Unicorn",
+    "type": "creature",
+    "rarity": "epic",
+    "cost": 5,
+    "atk": 4,
+    "hp": 5,
+    "description": "Battlecry: +1/+1 cho TẤT CẢ quân bạn",
+    "flavor": "\"Frontend, Backend, DevOps, Design — 1 người gánh team\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 1,
+        "target": "all_friendlies"
+      }
+    ]
+  },
+  {
+    "id": "crt-176",
+    "name": "Coffee Machine",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 3,
+    "description": "Cuối lượt: Hồi 1 HP cho Hero",
+    "flavor": "\"Nhiên liệu chính của ngành IT\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "heal",
+        "value": 1,
+        "target": "friendly_hero"
+      }
+    ]
+  },
+  {
+    "id": "crt-177",
+    "name": "Rubber Duck",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 0,
+    "atk": 0,
+    "hp": 1,
+    "description": "Deathrattle: Rút 1 lá",
+    "flavor": "\"Giải thích cho con vịt nghe đi, bug tự fix\"",
+    "keywords": [
+      "deathrattle"
+    ],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "crt-178",
+    "name": "AWS Lambda Cold Start",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 3,
+    "atk": 4,
+    "hp": 3,
+    "description": "Không thể tấn công lượt đầu",
+    "flavor": "\"Đợi 3 giây... đợi 5 giây... OK ready\"",
+    "keywords": [],
+    "effects": []
+  },
+  {
+    "id": "crt-179",
+    "name": "PM with MBA",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 1,
+    "hp": 4,
+    "description": "Battlecry: Đối thủ bỏ 1 lá random từ tay",
+    "flavor": "\"Chúng ta cần synergy cross-functional agile pivot\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-180",
+    "name": "Vim User",
+    "type": "creature",
+    "rarity": "rare",
+    "cost": 2,
+    "atk": 3,
+    "hp": 2,
+    "description": "Rush. Stealth",
+    "flavor": "\"Tôi không thể thoát Vim. Vim cũng không thể thoát tôi.\"",
+    "keywords": [
+      "rush",
+      "stealth"
+    ],
+    "effects": []
+  },
+  {
+    "id": "crt-181",
+    "name": "Blockchain Bro",
+    "type": "creature",
+    "rarity": "common",
+    "cost": 3,
+    "atk": 2,
+    "hp": 2,
+    "description": "Battlecry: Gây 1 sát thương cho Hero mình",
+    "flavor": "\"Nghe em nói này, Web3 sẽ thay đổi thế giới...\"",
+    "keywords": [
+      "battlecry"
+    ],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 1,
+        "target": "friendly_hero"
+      }
+    ]
+  },
+  {
+    "id": "spl-182",
+    "name": "Rage Quit",
+    "type": "spell",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Tiêu diệt 1 quân bạn. Gây 5 sát thương cho Hero đối thủ",
+    "flavor": "\"Alt+F4. Xóa repo. Nghỉ việc.\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 5,
+        "target": "enemy_hero"
+      }
+    ]
+  },
+  {
+    "id": "spl-183",
+    "name": "Copy từ StackOverflow",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Copy 1 quân đối thủ random vào tay",
+    "flavor": "\"Ctrl+C, Ctrl+V. Đạo văn level God.\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "copy",
+        "value": 1,
+        "target": "random_enemy"
+      }
+    ]
+  },
+  {
+    "id": "spl-184",
+    "name": "Downtime Bomb",
+    "type": "spell",
+    "rarity": "epic",
+    "cost": 5,
+    "atk": 0,
+    "hp": 0,
+    "description": "Gây 3 sát thương cho TẤT CẢ (cả quân mình + Hero)",
+    "flavor": "\"Estimated downtime: 5 minutes. Actual: 5 hours\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "aoe_damage",
+        "value": 3,
+        "target": "all_creatures"
+      }
+    ]
+  },
+  {
+    "id": "spl-185",
+    "name": "Rubber Band Fix",
+    "type": "spell",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Hồi 2 HP cho 1 quân bạn",
+    "flavor": "\"It works. Đừng hỏi tại sao.\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "heal",
+        "value": 2,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "spl-186",
+    "name": "Technical Interview",
+    "type": "spell",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Tiêu diệt 1 quân có ATK thấp nhất",
+    "flavor": "\"Reverse a linked list on the whiteboard. NOW.\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "destroy",
+        "value": 1,
+        "target": "enemy_creature"
+      }
+    ]
+  },
+  {
+    "id": "trp-187",
+    "name": "Merge Conflict Mine",
+    "type": "trap",
+    "rarity": "rare",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ chơi bài Support: Hủy bài đó",
+    "flavor": "\"CONFLICT in src/index.ts\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "none",
+        "value": 0,
+        "target": "none"
+      }
+    ],
+    "trapTrigger": "on_spell"
+  },
+  {
+    "id": "trp-188",
+    "name": "Production Alert",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi bắt đầu lượt đối thủ: Gây 2 sát thương cho Hero",
+    "flavor": "\"🚨 CRITICAL: CPU 100% — PagerDuty đang réo\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 2,
+        "target": "enemy_hero"
+      }
+    ],
+    "trapTrigger": "on_turn_start"
+  },
+  {
+    "id": "trp-189",
+    "name": "DMCA Takedown",
+    "type": "trap",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ triệu hồi quân Legendary: Tiêu diệt ngay",
+    "flavor": "\"Your repository has been flagged for copyright\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "destroy",
+        "value": 1,
+        "target": "enemy_creature"
+      }
+    ],
+    "trapTrigger": "on_summon"
+  },
+  {
+    "id": "trp-190",
+    "name": "Audit Log",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ tấn công: Rút 1 lá",
+    "flavor": "\"Mọi hành động đã được ghi lại.\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 1,
+        "target": "none"
+      }
+    ],
+    "trapTrigger": "on_attack"
+  },
+  {
+    "id": "trp-191",
+    "name": "npm Audit Warning",
+    "type": "trap",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Khi đối thủ chơi phép: -1 ATK cho tất cả quân đối thủ",
+    "flavor": "\"847 vulnerabilities (234 critical)\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "debuff_atk",
+        "value": 1,
+        "target": "all_enemies"
+      }
+    ],
+    "trapTrigger": "on_spell"
+  },
+  {
+    "id": "sup-192",
+    "name": "Mechanical Keyboard RGB",
+    "type": "support",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 0,
+    "hp": 0,
+    "description": "+1/+1 cho 1 quân bạn",
+    "flavor": "\"Clickity clack = +50% productivity\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 1,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-193",
+    "name": "Cat on Keyboard",
+    "type": "support",
+    "rarity": "common",
+    "cost": 0,
+    "atk": 0,
+    "hp": 0,
+    "description": "Rút 1 lá",
+    "flavor": "\"asdfjkl; — Tác phẩm nghệ thuật từ mèo\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "draw",
+        "value": 1,
+        "target": "none"
+      }
+    ]
+  },
+  {
+    "id": "sup-194",
+    "name": "WFH Buff",
+    "type": "support",
+    "rarity": "common",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "+1/+2 cho 1 quân bạn",
+    "flavor": "\"Làm việc từ giường, năng suất x2 (hoặc x0)\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 1,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-195",
+    "name": "Stack Overflow Gold Badge",
+    "type": "support",
+    "rarity": "epic",
+    "cost": 4,
+    "atk": 0,
+    "hp": 0,
+    "description": "+3/+3 cho 1 quân bạn",
+    "flavor": "\"Reputation: 100,000+. Bá đạo thiên hạ.\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 3,
+        "target": "friendly_creature"
+      }
+    ]
+  },
+  {
+    "id": "sup-196",
+    "name": "Sprint Bonus",
+    "type": "support",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "+2 ATK cho TẤT CẢ quân bạn",
+    "flavor": "\"KPI đạt 120%. Thưởng thêm 1 tháng lương.\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "buff_atk",
+        "value": 2,
+        "target": "all_friendlies"
+      }
+    ]
+  },
+  {
+    "id": "wpn-197",
+    "name": "Binary Bow",
+    "type": "weapon",
+    "rarity": "common",
+    "cost": 1,
+    "atk": 1,
+    "hp": 0,
+    "description": "+1 ATK",
+    "flavor": "\"0 hoặc 1. Sống hoặc chết.\"",
+    "keywords": [],
+    "effects": []
+  },
+  {
+    "id": "wpn-198",
+    "name": "Recursive Boomerang",
+    "type": "weapon",
+    "rarity": "rare",
+    "cost": 3,
+    "atk": 3,
+    "hp": 0,
+    "description": "+3 ATK. Khi tấn công: Gây 1 sát thương cho quân bên cạnh",
+    "flavor": "\"function attack() { attack() }\"",
+    "keywords": [],
+    "effects": [
+      {
+        "type": "damage",
+        "value": 1,
+        "target": "random_enemy"
+      }
+    ]
+  },
+  {
+    "id": "env-199",
+    "name": "Friday Deploy Zone",
+    "type": "environment",
+    "rarity": "epic",
+    "cost": 3,
+    "atk": 0,
+    "hp": 0,
+    "description": "Tất cả quân +3 ATK nhưng 50% cơ hội tự gây 2 sát thương khi tấn công",
+    "flavor": "\"Never deploy on Friday. NEVER.\"",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "friday_deploy"
+  },
+  {
+    "id": "env-200",
+    "name": "Pair Programming Room",
+    "type": "environment",
+    "rarity": "rare",
+    "cost": 2,
+    "atk": 0,
+    "hp": 0,
+    "description": "Quân mới ra sân được +1/+1 ngay lập tức",
+    "flavor": "\"2 đầu tốt hơn 1. Trừ khi cả 2 đều không biết gì.\"",
+    "keywords": [],
+    "effects": [],
+    "environmentId": "pair_programming"
+  }
+]

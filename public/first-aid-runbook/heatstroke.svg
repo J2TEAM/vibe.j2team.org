@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" fill="none">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2A2315" />
+      <stop offset="1" stop-color="#5A4B22" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#g)" />
+  <rect x="24" y="24" width="592" height="312" stroke="#FFB830" stroke-opacity="0.45" />
+  <circle cx="320" cy="152" r="54" fill="#FFB830" fill-opacity="0.22" stroke="#FFB830" stroke-width="8" />
+  <circle cx="320" cy="152" r="24" fill="#FFB830" />
+  <path d="M320 62v26M320 216v26M230 152h26M384 152h26M257 89l18 18M365 197l18 18M383 107l18-18M257 215l18-18" stroke="#FF6B4A" stroke-width="8" stroke-linecap="round" />
+  <rect x="250" y="244" width="140" height="50" fill="#38BDF8" fill-opacity="0.2" stroke="#38BDF8" stroke-opacity="0.45" stroke-width="4" />
+  <text x="36" y="64" fill="#F0EDE6" font-family="Be Vietnam Pro, sans-serif" font-size="30" font-weight="700">HEAT STROKE</text>
+  <text x="36" y="98" fill="#F0EDE6" fill-opacity="0.8" font-family="Be Vietnam Pro, sans-serif" font-size="18">Move to shade and cool fast. Altered mind means emergency.</text>
+</svg>

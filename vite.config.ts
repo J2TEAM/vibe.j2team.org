@@ -4,6 +4,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
+import { visualizer } from 'rollup-plugin-visualizer'
 import { generatePagesJson } from './scripts/generate-pages-json.mjs'
 
 // https://vite.dev/config/
@@ -26,6 +27,13 @@ export default defineConfig({
         })
       },
     },
+    process.env.ANALYZE === 'true' &&
+      visualizer({
+        filename: 'dist/stats.html',
+        open: true,
+        gzipSize: true,
+        brotliSize: true,
+      }),
   ],
   build: {
     rollupOptions: {

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import correctSfx from '../assets/correct.mp3'
-import wrongSfx from '../assets/wrong.mp3'
+const correctSfx = '/word-chain-king/correct.mp3'
+const wrongSfx = '/word-chain-king/wrong.mp3'
 
 export function useSfx() {
   const sfxEnabled = ref(true)

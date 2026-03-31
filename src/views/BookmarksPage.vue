@@ -1,13 +1,24 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useFileDialog, useTimeoutFn } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
-import { pages } from '@/data/pages-loader'
-import { useFavorites } from '@/composables/useFavorites'
+import { usePagesStore } from '@/stores/usePagesStore'
+import { useSearchShortcut } from '@/composables/useSearchShortcut'
+import { useFilteredList } from '@/composables/useFilteredList'
+import { useFavoritesStore } from '@/stores/useFavoritesStore'
+import { useRecentlyViewedStore } from '@/stores/useRecentlyViewedStore'
 import { useDraggable } from '@/composables/useDraggable'
-import FavoriteButton from '@/components/FavoriteButton.vue'
+import PageCard from '@/components/PageCard.vue'
+import CategoryFilter from '@/components/CategoryFilter.vue'
+import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 
-const { favoritePaths } = useFavorites()
+const favoritesStore = useFavoritesStore()
+const { favoritePaths } = storeToRefs(favoritesStore)
+const recentlyViewedStore = useRecentlyViewedStore()
+const { recentPages } = storeToRefs(recentlyViewedStore)
+const { clearHistory } = recentlyViewedStore
 const { dragIndex, overIndex, onDragStart, onDragOver, onDrop, onDragEnd } =
   useDraggable(favoritePaths)
 
@@ -17,22 +28,75 @@ function toggleReorder() {
   isReordering.value = !isReordering.value
 }
 
-const pageByPath = new Map(pages.map((p) => [p.path, p]))
+const pagesStore = usePagesStore()
 
 const bookmarkedPages = computed(() => {
   return favoritePaths.value.flatMap((path) => {
-    const p = pageByPath.get(path)
+    const p = pagesStore.pageByPath.get(path)
     return p ? [p] : []
   })
+})
+
+// --- Search & Category Filter ---
+
+const {
+  searchQuery,
+  activeCategory,
+  isFiltering,
+  filteredList: filteredBookmarks,
+  categoryCounts: bookmarkCategoryCounts,
+} = useFilteredList({
+  items: bookmarkedPages,
+  searchFields: ['name', 'description', 'author'],
+  categoryField: 'category',
+})
+
+const categoryFilterRef = ref<InstanceType<typeof CategoryFilter> | null>(null)
+const searchInputRef = computed(() => categoryFilterRef.value?.searchInputRef ?? null)
+
+useSearchShortcut(searchInputRef)
+
+// --- Export / Import ---
+
+const importStatus = ref('')
+const { start: clearStatus } = useTimeoutFn(
+  () => {
+    importStatus.value = ''
+  },
+  3000,
+  { immediate: false },
+)
+
+const { open: openFileDialog, onChange: onFileChange } = useFileDialog({
+  accept: '.json',
+  multiple: false,
+  reset: true,
+})
+
+onFileChange(async (files) => {
+  const file = files?.[0]
+  if (!file) return
+
+  const result = await favoritesStore.importFavorites(file)
+  if ('error' in result) {
+    importStatus.value = result.error
+  } else if (result.added === 0) {
+    importStatus.value = 'Tất cả đã có trong danh sách'
+  } else {
+    importStatus.value = `Đã thêm ${result.added} mục`
+  }
+  clearStatus()
 })
 </script>
 
 <template>
   <div class="min-h-screen bg-bg-deep text-text-primary font-body">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-20 sm:pt-28 pb-16 sm:pb-24">
+      <AppBreadcrumb :items="[{ label: 'Yêu thích' }]" />
+
       <!-- Header -->
       <h1
-        class="font-display text-3xl sm:text-4xl font-bold text-text-primary flex items-center gap-3"
+        class="mt-8 font-display text-3xl sm:text-4xl font-bold text-text-primary flex items-center gap-3"
       >
         <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
         Yêu thích
@@ -49,19 +113,55 @@ const bookmarkedPages = computed(() => {
 
       <!-- Bookmarked apps grid -->
       <div v-if="bookmarkedPages.length > 0">
-        <!-- Toolbar -->
-        <div class="mt-12 mb-5 flex items-center justify-between gap-4 min-h-[1.75rem]">
-          <p
-            v-if="isReordering"
-            class="text-xs text-text-dim font-display tracking-wide animate-fade-up"
-          >
-            <Icon icon="lucide:grip-vertical" class="inline w-3.5 h-3.5 -mt-0.5 mr-1" />
-            Kéo thả để sắp xếp lại thứ tự
-          </p>
-          <span v-else />
+        <!-- Search & Filter (hidden during reorder) -->
+        <CategoryFilter
+          v-if="!isReordering"
+          ref="categoryFilterRef"
+          v-model:search="searchQuery"
+          v-model:category="activeCategory"
+          :total-count="bookmarkedPages.length"
+          :category-counts="bookmarkCategoryCounts"
+          :result-count="filteredBookmarks.length"
+          class="mt-12"
+        />
 
-          <!-- Toggle -->
+        <!-- Toolbar -->
+        <div class="mt-5 mb-5 flex items-center justify-between gap-4 min-h-[1.75rem]">
+          <div class="flex items-center gap-3">
+            <p
+              v-if="isReordering"
+              class="text-xs text-text-dim font-display tracking-wide animate-fade-up"
+            >
+              <Icon icon="lucide:grip-vertical" class="inline w-3.5 h-3.5 -mt-0.5 mr-1" />
+              Kéo thả để sắp xếp lại thứ tự
+            </p>
+            <template v-else-if="!isFiltering">
+              <button
+                class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-display tracking-wide border border-border-default text-text-secondary hover:border-accent-coral hover:text-accent-coral transition-colors duration-200"
+                @click="favoritesStore.exportFavorites()"
+              >
+                <Icon icon="lucide:download" class="w-3.5 h-3.5" />
+                Xuất
+              </button>
+              <button
+                class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-display tracking-wide border border-border-default text-text-secondary hover:border-accent-sky hover:text-accent-sky transition-colors duration-200"
+                @click="openFileDialog()"
+              >
+                <Icon icon="lucide:upload" class="w-3.5 h-3.5" />
+                Nhập
+              </button>
+              <span
+                v-if="importStatus"
+                class="text-xs text-accent-amber font-display tracking-wide animate-fade-up"
+              >
+                {{ importStatus }}
+              </span>
+            </template>
+          </div>
+
+          <!-- Toggle (hidden when filtering) -->
           <button
+            v-if="!isFiltering"
             @click="toggleReorder"
             role="switch"
             :aria-checked="isReordering"
@@ -89,7 +189,7 @@ const bookmarkedPages = computed(() => {
 
         <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           <div
-            v-for="(page, index) in bookmarkedPages"
+            v-for="(page, index) in isReordering ? bookmarkedPages : filteredBookmarks"
             :key="page.path"
             :draggable="isReordering"
             @dragstart="isReordering && onDragStart($event, index)"
@@ -110,47 +210,12 @@ const bookmarkedPages = computed(() => {
               class="absolute top-3 left-3 z-10 w-4 h-4 text-text-dim opacity-50 pointer-events-none"
             />
 
-            <component
-              :is="isReordering ? 'div' : RouterLink"
-              v-bind="isReordering ? {} : { to: page.path }"
-              class="relative flex flex-col border border-border-default bg-bg-surface p-6 h-full transition-all duration-300"
-              :class="
-                isReordering
-                  ? 'select-none'
-                  : 'hover:-translate-y-1 hover:border-l-4 hover:border-l-accent-coral hover:bg-bg-elevated hover:shadow-lg hover:shadow-accent-coral/5'
-              "
-            >
-              <FavoriteButton
-                v-if="!isReordering"
-                :path="page.path"
-                class="top-3 right-4"
-                always-visible
-              />
-
-              <h3
-                class="font-display text-lg font-semibold text-text-primary transition-colors"
-                :class="{ 'group-hover:text-accent-coral': !isReordering }"
-              >
-                {{ page.name }}
-              </h3>
-              <p class="mt-2 text-sm text-text-secondary line-clamp-2" :title="page.description">
-                {{ page.description }}
-              </p>
-              <p class="mt-auto pt-4 text-xs text-text-dim font-display tracking-wide">
-                bởi
-                <a
-                  v-if="page.facebook && !isReordering"
-                  :href="page.facebook"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-accent-coral hover:underline"
-                  @click.stop
-                >
-                  {{ page.author }}
-                </a>
-                <span v-else>{{ page.author }}</span>
-              </p>
-            </component>
+            <PageCard
+              :page="page"
+              :disabled="isReordering"
+              always-visible-favorite
+              class="h-full"
+            />
           </div>
         </div>
       </div>
@@ -164,21 +229,61 @@ const bookmarkedPages = computed(() => {
           <Icon icon="lucide:heart" class="inline w-4 h-4 text-text-dim -mt-0.5" />
           trên mỗi ứng dụng ở trang chủ để thêm vào đây.
         </p>
-        <RouterLink
-          to="/"
-          class="mt-8 inline-flex items-center gap-2 border border-accent-coral bg-accent-coral/10 px-5 py-2.5 text-sm font-display text-accent-coral tracking-wide transition-all duration-300 hover:bg-accent-coral hover:text-bg-deep"
+        <div class="mt-8 flex items-center gap-4">
+          <RouterLink
+            to="/"
+            class="inline-flex items-center gap-2 border border-accent-coral bg-accent-coral/10 px-5 py-2.5 text-sm font-display text-accent-coral tracking-wide transition-all duration-300 hover:bg-accent-coral hover:text-bg-deep"
+          >
+            Khám phá ứng dụng
+          </RouterLink>
+          <button
+            class="inline-flex items-center gap-2 border border-accent-sky bg-accent-sky/10 px-5 py-2.5 text-sm font-display text-accent-sky tracking-wide transition-all duration-300 hover:bg-accent-sky hover:text-bg-deep"
+            @click="openFileDialog()"
+          >
+            <Icon icon="lucide:upload" class="w-4 h-4" />
+            Nhập từ file
+          </button>
+        </div>
+        <p
+          v-if="importStatus"
+          class="mt-4 text-xs text-accent-amber font-display tracking-wide animate-fade-up"
         >
-          Khám phá ứng dụng
-        </RouterLink>
+          {{ importStatus }}
+        </p>
       </div>
 
-      <!-- Back to home -->
-      <RouterLink
-        to="/"
-        class="mt-16 inline-flex items-center gap-2 border border-border-default bg-bg-surface px-5 py-2.5 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
-      >
-        &larr; Về trang chủ
-      </RouterLink>
+      <!-- Recently viewed -->
+      <div v-if="recentPages.length > 0" class="mt-16">
+        <div class="flex items-center justify-between mb-5">
+          <h2
+            class="font-display text-xl sm:text-2xl font-semibold text-text-primary flex items-center gap-3"
+          >
+            <span class="text-accent-coral font-display text-sm tracking-widest">//</span>
+            Xem gần đây
+            <span
+              class="ml-1 inline-flex items-center justify-center rounded-full bg-accent-coral/10 px-3 py-0.5 text-sm font-medium text-accent-coral"
+            >
+              {{ recentPages.length }}
+            </span>
+          </h2>
+          <button
+            class="flex items-center gap-1.5 text-xs font-display tracking-wide text-text-dim hover:text-accent-coral transition-colors duration-200"
+            @click="clearHistory"
+          >
+            <Icon icon="lucide:trash-2" class="w-3.5 h-3.5" />
+            Xóa lịch sử
+          </button>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <PageCard
+            v-for="page in recentPages"
+            :key="page.path"
+            :page="page"
+            always-visible-favorite
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>

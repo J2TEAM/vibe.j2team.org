@@ -1,0 +1,128 @@
+{
+  "comparisons": [
+    { "icon": "lucide:coffee", "label": "Ly cà phê", "cost": 35000 },
+    { "icon": "lucide:chef-hat", "label": "Bánh bao", "cost": 15000 },
+    { "icon": "lucide:car", "label": "Chuyến xe buýt", "cost": 7000 },
+    { "icon": "lucide:gamepad-2", "label": "Game Steam", "cost": 99000 },
+    { "icon": "lucide:shirt", "label": "Áo thun", "cost": 150000 },
+    { "icon": "lucide:beer", "label": "Ly bia", "cost": 30000 },
+    { "icon": "lucide:pill", "label": "Viên thuốc bổ", "cost": 8000 },
+    { "icon": "lucide:utensils", "label": "Bữa ăn nhà hàng", "cost": 200000 },
+    { "icon": "lucide:bed", "label": "Đêm khách sạn 4 sao", "cost": 500000 }
+  ],
+  "dramaticPhrases": [
+    { "threshold": 100000000, "text": "💀💀💀💀 MEGASTRUCTURE. Cuộc họp này nghe đâu như đang xây đập thủy điện." },
+    { "threshold": 80000000, "text": "💀💀💀 D-Day. Ngân sách marketing cả quý đang nằm trên bàn họp." },
+    { "threshold": 50000000, "text": "💀💀💀 EXTINCTION LEVEL. Một cuộc họp có thể gây tuyệt chủng cho startup non trẻ." },
+    { "threshold": 45000000, "text": "💀💀💀 Đủ để CEO đổi từ Rượu Đế sang Rượu Vang." },
+    { "threshold": 40000000, "text": "💀💀 NEO TITANIC. Con tàu đang chìm và cả team đang bàn cách sắp xếp ghế." },
+    { "threshold": 35000000, "text": "💀💀 N-K21. Đủ mua 350 bộ bài Tien Len — thay vì họp." },
+    { "threshold": 30000000, "text": "💀💀 HYPERSONIC. Đủ mua một chiếc Honda Vison." },
+    { "threshold": 25000000, "text": "💀💀 VÌ KHÓNG CÒN GÌ ĐỂ CẮT. Nên họp về việc cắt giảm chi phí họp." },
+    { "threshold": 20000000, "text": "💀 APOCALYPSE. CEO đang debate về việc có nên có meeting hay không." },
+    { "threshold": 18000000, "text": "💀 FINAL FORM. Đủ mua 2 chiếc AirPods Max — để nghe nhạc thay vì nghe họp." },
+    { "threshold": 15000000, "text": "💀 BOSS LEVEL. Đủ để cover chi phí hoạt động cả team trong 1 ngày." },
+    { "threshold": 12000000, "text": "💀 UNHOLY. Đủ mua một cái nồi chiên không dầu — để nấu cơm thay vì học." },
+    { "threshold": 10000000, "text": "🔥🔥 NGUY HIỂM. Đủ mua PS5 + 1 game — thay vì ngồi nghe \"chúng ta hãy align\"." },
+    { "threshold": 9000000, "text": "🔥🔥 DOUBLE TROUBLE. Đủ cho 3 đêm homestay ở Đà Lạt — hoặc 1 cuộc họp." },
+    { "threshold": 8000000, "text": "🔥🔥 MỘT NỬA THÁNG LƯƠNG. Đủ trả 1/2 tháng lương dev Fresher — bằng 2 tiếng nói chuyện." },
+    { "threshold": 7500000, "text": "🔥 Năm nay không có thưởng Tết. Vì tiền đi họp hết rồi." },
+    { "threshold": 7000000, "text": "🔥 Năm nay team-building ở Vũng Tàu. Không đi được. Vì đi họp." },
+    { "threshold": 6000000, "text": "🔥 Đủ chốt thêm 1 cái AirPods Pro — để nghe nhạc thay vì nghe họp." },
+    { "threshold": 5000000, "text": "🔥 Đừng bỏ con nhé!" },
+    { "threshold": 4000000, "text": "⚡ Đủ mua một chiếc vali — để đi du lịch thay vì ngồi họp." },
+    { "threshold": 3000000, "text": "⚡ Đủ mua AirPods 4. Hoặc 86 ly cà phê. Chọn đi." },
+    { "threshold": 2500000, "text": "⚡ Đủ đặt một bữa tiệc sinh nhật cho cả team — thay vì \"briefing\"." },
+    { "threshold": 2000000, "text": "⚡ Đắt đấy, nhưng ít nhất có free coffee. Và free WiFi. Và free thở dài." },
+    { "threshold": 1500000, "text": "😬 Đội ngũ đang \"syncing up on our alignment\" — từng đó người, từng đó tiền." },
+    { "threshold": 1200000, "text": "😬 Đủ mua một chiếc nồi chiên không dầu — nấu ăn cho cả nhà thay vì họp." },
+    { "threshold": 1000000, "text": "😬 Đội executive đang debate về font chữ. Font có thể thay đổi thế giới." },
+    { "threshold": 800000, "text": "😬 Đủ đặt 4 bữa cơm tự nấu — thay vì \"let's follow up next week\"." },
+    { "threshold": 600000, "text": "🤔 Họp để bàn về việc giảm số cuộc họp. Irony level: 1000." },
+    { "threshold": 500000, "text": "🤔 Có thể bạn đang \"align on the strategy\"... mà thực ra chỉ cần 1 email." },
+    { "threshold": 400000, "text": "🤔 Đủ mua một xếp tài liệu A4 — để in slide deck cho cuộc họp tiếp theo." },
+    { "threshold": 300000, "text": "🤔 Bạn đang xài tiền để nói chuyện về việc nói chuyện." },
+    { "threshold": 200000, "text": "🟡 Chấp nhận được, nhưng mà... thật sự cần thiết không?" },
+    { "threshold": 100000, "text": "🟡 Nhẹ nhất có thể. Nhưng mà vẫn là meeting." },
+    { "threshold": 50000, "text": "🟢 Hmm, 50k. Đủ mua một ly trà sữa. Nhưng tại sao không mua trà sữa?" },
+    { "threshold": 20000, "text": "🟢 Chỉ 20k? Đủ mua 1 bánh mì thịt. Hoặc 1 phút họp của 1 dev." },
+    { "threshold": 0, "text": "🟢 Khá nhẹ. Có thể bạn đang có team nhỏ hoặc dev intern. Keep it short!" }
+  ],
+  "funFacts": [
+    {
+      "icon": "lucide:users",
+      "color": "text-accent-coral",
+      "text": "Manager bình thường dành 35% thời gian làm việc trong các cuộc họp. Đó là gần 2 ngày mỗi tuần!"
+    },
+    {
+      "icon": "lucide:flame",
+      "color": "text-accent-amber",
+      "text": "Mỗi phút trôi qua, {perMinute} đang \"cháy\". Tích tắc, tích tắc... 💸"
+    },
+    {
+      "icon": "lucide:brain",
+      "color": "text-accent-sky",
+      "text": "Sau 60 phút liên tục, sự chú ý giảm 50%. Nhiều cuộc họp kéo dài 90 phút nhưng chỉ hiệu quả trong 20 phút đầu."
+    },
+    {
+      "icon": "lucide:trending-down",
+      "color": "text-green-400",
+      "text": "Atlassian: nhân viên mất 31 giờ/tuần cho các cuộc họp không cần thiết. Đó là gần 4 ngày làm việc!"
+    },
+    {
+      "icon": "lucide:mail",
+      "color": "text-purple-400",
+      "text": "Async-first (giao tiếp bất đồng bộ) được chứng minh hiệu quả hơn họp trong đa số trường hợp — nhờ không gián đoạn flow và phù hợp với nhịp sinh học cá nhân."
+    },
+    {
+      "icon": "lucide:alert-circle",
+      "color": "text-red-400",
+      "text": "Google nghiên cứu: nhóm hiệu quả nhất có số cuộc họp ít nhất. Tính cách (psychological safety) quan trọng hơn số cuộc họp."
+    },
+    {
+      "icon": "lucide:clock",
+      "color": "text-yellow-400",
+      "text": "Nếu mỗi cuộc họp cắt giảm 15 phút, công ty 100 người tiết kiệm được 625 giờ/tháng — tương đương 1.5 nhân viên toàn thời gian."
+    },
+    {
+      "icon": "lucide:zap",
+      "color": "text-orange-400",
+      "text": "Cuộc họp đầu tiên buổi sáng thường kém hiệu quả nhất. Nhiều người (đặc biệt \"chim sớm\") cần thời gian để đạt năng suất đỉnh — tùy vào chronotype cá nhân."
+    },
+    {
+      "icon": "lucide:heart",
+      "color": "text-pink-400",
+      "text": "Cuộc họp kéo dài +15 phút so với dự kiến làm tăng 20% mức stress của cả nhóm, theo Microsoft Research."
+    },
+    {
+      "icon": "lucide:ban",
+      "color": "text-text-dim",
+      "text": "Bill Gates: \"Nếu có thể giải quyết qua email, đừng họp.\" Ông nổi tiếng với Think Week — tuần suy ngẫm một mình để sáng tạo thay vì liên tục họp."
+    },
+    {
+      "icon": "lucide:pizza",
+      "color": "text-accent-amber",
+      "text": "Jeff Bezos áp dụng \"Two-Pizza Rule\": đừng tổ chức cuộc họp nào mà 2 chiếc pizza không đủ cho cả nhóm. Mục tiêu là giữ nhóm dưới 10 người."
+    },
+    {
+      "icon": "lucide:sparkles",
+      "color": "text-accent-amber",
+      "text": "Cuộc họp \"scrum daily\" 15 phút tiết kiệm được 5 tiếng so với họp không có agenda — theo Stand-up Geeks."
+    },
+    {
+      "icon": "lucide:bar-chart",
+      "color": "text-green-400",
+      "text": "Salesforce (qua Slack): nhân viên tham dự trung bình 10-15 cuộc họp/tuần. 40% trong số đó được đánh giá là \"không cần thiết\"."
+    },
+    {
+      "icon": "lucide:brain-circuit",
+      "color": "text-purple-400",
+      "text": "Context switching (chuyển từ làm việc sang họp rồi quay lại) khiến bạn mất 23 phút để lấy lại năng suất — University of California."
+    },
+    {
+      "icon": "lucide:trophy",
+      "color": "text-yellow-400",
+      "text": "Elon Musk khuyến khích nhân viên rời khỏi cuộc họp ngay nếu không đóng góp được giá trị gì — thay vì ngồi im để \"cho có mặt\"."
+    }
+  ]
+}

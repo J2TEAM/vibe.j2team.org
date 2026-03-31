@@ -1,0 +1,1076 @@
+[
+  {
+    "id": 1,
+    "difficulty": "beginner",
+    "customerName": "Anh Minh - Blogger",
+    "customerAvatar": "lucide:pen-line",
+    "requirement": "Tôi muốn một blog cá nhân đơn giản, khoảng 100 người đọc mỗi ngày.",
+    "detailedRequirements": "Blog viết bài, có hình ảnh. Không cần tính năng phức tạp. Quan trọng là load nhanh và chi phí thấp. Tôi không rành kỹ thuật nên càng đơn giản càng tốt.",
+    "targetUsers": 100,
+    "constraints": {
+      "minThroughput": 100,
+      "maxLatency": 500,
+      "minSecurity": 30,
+      "maxCost": 200,
+      "minReliability": 80,
+      "requiredCategories": [
+        "backend",
+        "database"
+      ]
+    },
+    "hints": [
+      "Chỉ cần 1 backend framework đơn giản và 1 database là đủ",
+      "Không cần cache hay load balancer cho 100 người/ngày",
+      "Chọn tech có complexity thấp để giảm chi phí vận hành"
+    ],
+    "starThresholds": {
+      "one": 40,
+      "two": 60,
+      "three": 80
+    }
+  },
+  {
+    "id": 2,
+    "difficulty": "beginner",
+    "customerName": "Chị Lan - Chủ tiệm bánh",
+    "customerAvatar": "lucide:cake",
+    "requirement": "Tôi cần website giới thiệu tiệm bánh với menu và form đặt hàng, khoảng 500 khách/ngày.",
+    "detailedRequirements": "Hiển thị menu bánh có hình ảnh, form đặt hàng gửi email cho tôi. Cần HTTPS để khách yên tâm khi đặt hàng. Ngân sách hạn chế.",
+    "targetUsers": 500,
+    "constraints": {
+      "minThroughput": 500,
+      "maxLatency": 400,
+      "minSecurity": 50,
+      "maxCost": 250,
+      "minReliability": 85,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database"
+      ]
+    },
+    "hints": [
+      "Frontend framework giúp tạo giao diện đẹp cho menu",
+      "Cần SSL/HTTPS để bảo mật form đặt hàng — xem mục Security",
+      "Database đơn giản như MySQL là đủ cho menu và đơn hàng"
+    ],
+    "starThresholds": {
+      "one": 40,
+      "two": 60,
+      "three": 80
+    }
+  },
+  {
+    "id": 3,
+    "difficulty": "beginner",
+    "customerName": "Thầy Hùng - Giáo viên",
+    "customerAvatar": "lucide:graduation-cap",
+    "requirement": "Tôi muốn website chia sẻ tài liệu học tập cho 1,000 học sinh.",
+    "detailedRequirements": "Upload file PDF, video bài giảng. Học sinh download tài liệu. Cần lưu trữ file và phục vụ download nhanh. Ngân sách trường học hạn chế.",
+    "targetUsers": 1000,
+    "constraints": {
+      "minThroughput": 800,
+      "maxLatency": 400,
+      "minSecurity": 40,
+      "maxCost": 300,
+      "minReliability": 85,
+      "requiredCategories": [
+        "backend",
+        "database",
+        "storage"
+      ]
+    },
+    "hints": [
+      "Cần Storage để lưu file PDF và video — xem Object Storage",
+      "CDN sẽ giúp download nhanh hơn nhưng không bắt buộc ở quy mô này",
+      "Backend đơn giản là đủ, không cần microservices"
+    ],
+    "starThresholds": {
+      "one": 40,
+      "two": 60,
+      "three": 80
+    }
+  },
+  {
+    "id": 4,
+    "difficulty": "easy",
+    "customerName": "Anh Đức - Startup founder",
+    "customerAvatar": "lucide:rocket",
+    "requirement": "Shop bán hàng online, 5,000 khách/ngày. Cần thanh toán an toàn!",
+    "detailedRequirements": "E-commerce: danh sách sản phẩm, giỏ hàng, thanh toán online. Phải bảo mật cao vì liên quan tiền. Tốc độ load trang quan trọng vì khách sẽ bỏ đi nếu chờ lâu.",
+    "targetUsers": 5000,
+    "constraints": {
+      "minThroughput": 3000,
+      "maxLatency": 300,
+      "minSecurity": 65,
+      "maxCost": 500,
+      "minReliability": 90,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "security"
+      ]
+    },
+    "hints": [
+      "Thanh toán online cần security cao — thêm SSL và auth",
+      "Cache sẽ giúp trang sản phẩm load nhanh hơn",
+      "Frontend framework giúp UX mượt mà cho giỏ hàng"
+    ],
+    "starThresholds": {
+      "one": 40,
+      "two": 60,
+      "three": 80
+    }
+  },
+  {
+    "id": 5,
+    "difficulty": "easy",
+    "customerName": "Chị Mai - HR Manager",
+    "customerAvatar": "lucide:users",
+    "requirement": "Hệ thống quản lý nhân sự nội bộ cho công ty 500 người. Cần bảo mật dữ liệu nhân viên.",
+    "detailedRequirements": "Quản lý thông tin nhân viên, chấm công, lương. Dữ liệu nhạy cảm cần mã hóa. Chỉ nhân viên công ty truy cập được. CI/CD để deploy nhanh khi có update.",
+    "targetUsers": 500,
+    "constraints": {
+      "minThroughput": 500,
+      "maxLatency": 300,
+      "minSecurity": 75,
+      "maxCost": 600,
+      "minReliability": 92,
+      "requiredCategories": [
+        "backend",
+        "database",
+        "security",
+        "ci-cd"
+      ]
+    },
+    "hints": [
+      "Dữ liệu nhân viên cần database ACID (PostgreSQL/MySQL)",
+      "Auth system (OAuth2/Keycloak) để kiểm soát truy cập",
+      "CI/CD giúp deploy nhanh và an toàn — không deploy thủ công"
+    ],
+    "starThresholds": {
+      "one": 40,
+      "two": 60,
+      "three": 80
+    }
+  },
+  {
+    "id": 6,
+    "difficulty": "medium",
+    "customerName": "Anh Tùng - CTO Startup",
+    "customerAvatar": "lucide:code",
+    "requirement": "Mạng xã hội cho 50,000 users, cần feed realtime và notification.",
+    "detailedRequirements": "News feed, like, comment, notification đẩy. Ảnh đại diện và bài viết có hình. Feed cần update realtime khi có bài mới. Phải scale được khi user tăng.",
+    "targetUsers": 50000,
+    "constraints": {
+      "minThroughput": 15000,
+      "maxLatency": 200,
+      "minSecurity": 60,
+      "maxCost": 800,
+      "minReliability": 93,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "cache",
+        "storage"
+      ]
+    },
+    "hints": [
+      "Cache (Redis) quan trọng để feed load nhanh — không query DB mỗi lần",
+      "Storage cho ảnh và media — S3 hoặc tương tự",
+      "WebSocket hoặc SSE cho realtime — backend cần hỗ trợ",
+      "Load balancer sẽ cần khi vượt 30K users"
+    ],
+    "starThresholds": {
+      "one": 40,
+      "two": 58,
+      "three": 78
+    }
+  },
+  {
+    "id": 7,
+    "difficulty": "medium",
+    "customerName": "Chị Hương - Product Manager",
+    "customerAvatar": "lucide:shopping-cart",
+    "requirement": "Sàn thương mại điện tử, 100,000 users, flash sale không được sập!",
+    "detailedRequirements": "Marketplace nhiều shop, cart, thanh toán, review. Flash sale = traffic tăng đột ngột gấp 10 lần. Không được để lỗi khi thanh toán. Monitoring để phát hiện sự cố sớm.",
+    "targetUsers": 100000,
+    "constraints": {
+      "minThroughput": 30000,
+      "maxLatency": 200,
+      "minSecurity": 70,
+      "maxCost": 1200,
+      "minReliability": 95,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "cache",
+        "load-balancer",
+        "monitoring"
+      ]
+    },
+    "hints": [
+      "Flash sale cần cache mạnh + load balancer để chịu spike traffic",
+      "Queue (message queue) giúp xử lý đơn hàng không mất khi quá tải",
+      "Monitoring để biết ngay khi có vấn đề — đừng để khách báo mới biết",
+      "Thanh toán cần ACID database và security cao"
+    ],
+    "starThresholds": {
+      "one": 38,
+      "two": 56,
+      "three": 76
+    }
+  },
+  {
+    "id": 8,
+    "difficulty": "medium",
+    "customerName": "Anh Khoa - Game Developer",
+    "customerAvatar": "lucide:gamepad-2",
+    "requirement": "Backend cho game mobile multiplayer, 200,000 người chơi, cần realtime dưới 50ms.",
+    "detailedRequirements": "Matchmaking, leaderboard, in-app purchase. Realtime game state sync. Latency cực thấp cho trải nghiệm mượt. Lưu trữ game data và replay.",
+    "targetUsers": 200000,
+    "constraints": {
+      "minThroughput": 50000,
+      "maxLatency": 80,
+      "minSecurity": 60,
+      "maxCost": 1500,
+      "minReliability": 95,
+      "requiredCategories": [
+        "backend",
+        "database",
+        "cache",
+        "load-balancer"
+      ]
+    },
+    "hints": [
+      "Latency 50ms cần backend cực nhanh — Go hoặc Rust",
+      "Redis cho leaderboard và session, cực nhanh",
+      "Load balancer phân phối người chơi đều",
+      "Container + auto-scale cho peak hours"
+    ],
+    "starThresholds": {
+      "one": 38,
+      "two": 56,
+      "three": 76
+    }
+  },
+  {
+    "id": 9,
+    "difficulty": "hard",
+    "customerName": "Anh Bảo - VP Engineering",
+    "customerAvatar": "lucide:message-circle",
+    "requirement": "Hệ thống chat realtime cho 1 triệu user đồng thời, tin nhắn dưới 100ms.",
+    "detailedRequirements": "Chat 1-1 và group (lên đến 1000 người). Lưu lịch sử tin nhắn, tìm kiếm. Gửi ảnh/file. Online/offline status. Push notification. Mã hóa end-to-end.",
+    "targetUsers": 1000000,
+    "constraints": {
+      "minThroughput": 100000,
+      "maxLatency": 100,
+      "minSecurity": 75,
+      "maxCost": 3000,
+      "minReliability": 97,
+      "requiredCategories": [
+        "backend",
+        "database",
+        "cache",
+        "message-queue",
+        "load-balancer",
+        "container",
+        "security"
+      ]
+    },
+    "hints": [
+      "1M concurrent = cần WebSocket + load balancer mạnh",
+      "Message queue (Kafka) fan-out tin nhắn đến nhiều người",
+      "Database phải scale ngang — Cassandra hoặc DynamoDB",
+      "Backend nhanh (Go/Rust) + Kubernetes auto-scale",
+      "Redis cho online status và recent messages"
+    ],
+    "starThresholds": {
+      "one": 35,
+      "two": 52,
+      "three": 72
+    }
+  },
+  {
+    "id": 10,
+    "difficulty": "hard",
+    "customerName": "Chị Linh - CTO Fintech",
+    "customerAvatar": "lucide:credit-card",
+    "requirement": "Ví điện tử cho 500,000 users. Không được mất tiền, bảo mật tối đa!",
+    "detailedRequirements": "Nạp tiền, chuyển tiền, thanh toán QR. Mỗi giao dịch phải chính xác tuyệt đối (ACID). Chống gian lận, 2FA, audit log. Phải đạt chuẩn PCI DSS. Monitoring 24/7.",
+    "targetUsers": 500000,
+    "constraints": {
+      "minThroughput": 50000,
+      "maxLatency": 150,
+      "minSecurity": 90,
+      "maxCost": 4000,
+      "minReliability": 99,
+      "requiredCategories": [
+        "backend",
+        "database",
+        "cache",
+        "load-balancer",
+        "container",
+        "monitoring",
+        "security",
+        "ci-cd"
+      ]
+    },
+    "hints": [
+      "Fintech cần ACID database — PostgreSQL, KHÔNG dùng NoSQL cho giao dịch tiền",
+      "Security stack đầy đủ: WAF + Auth + Vault + SSL",
+      "Monitoring + logging bắt buộc — phải biết mọi thứ đang xảy ra",
+      "CI/CD với nhiều stage test để tránh deploy lỗi",
+      "Java Spring phổ biến trong fintech vì ổn định và hệ sinh thái"
+    ],
+    "starThresholds": {
+      "one": 35,
+      "two": 52,
+      "three": 72
+    }
+  },
+  {
+    "id": 11,
+    "difficulty": "hard",
+    "customerName": "Anh Nam - Streaming Platform",
+    "customerAvatar": "lucide:play-circle",
+    "requirement": "Nền tảng video streaming cho 300,000 viewers đồng thời.",
+    "detailedRequirements": "Live streaming và VOD. Adaptive bitrate. Chat trực tiếp kèm stream. CDN phân phối video toàn cầu. Lưu trữ hàng TB video. Recommendation engine.",
+    "targetUsers": 300000,
+    "constraints": {
+      "minThroughput": 80000,
+      "maxLatency": 150,
+      "minSecurity": 60,
+      "maxCost": 5000,
+      "minReliability": 97,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "cache",
+        "cdn",
+        "load-balancer",
+        "storage"
+      ]
+    },
+    "hints": [
+      "CDN là BẮT BUỘC cho video streaming — không stream trực tiếp từ origin",
+      "Storage lớn cho video — S3 hoặc tương tự",
+      "Cache cho metadata và recommendation",
+      "Message queue cho chat realtime song song với video"
+    ],
+    "starThresholds": {
+      "one": 35,
+      "two": 52,
+      "three": 72
+    }
+  },
+  {
+    "id": 12,
+    "difficulty": "expert",
+    "customerName": "Ông Trung - CEO Banking",
+    "customerAvatar": "lucide:landmark",
+    "requirement": "Core banking system, 10 triệu giao dịch/ngày, 0% downtime, chống mọi tấn công.",
+    "detailedRequirements": "Hệ thống ngân hàng lõi: tài khoản, chuyển tiền liên ngân hàng, sổ tiết kiệm, vay. ACID tuyệt đối. 99.99% uptime (chỉ được sập 52 phút/năm). Chống DDoS, fraud detection, audit trail đầy đủ. Tuân thủ quy định NHNN.",
+    "targetUsers": 5000000,
+    "constraints": {
+      "minThroughput": 150000,
+      "maxLatency": 100,
+      "minSecurity": 95,
+      "maxCost": 10000,
+      "minReliability": 99,
+      "requiredCategories": [
+        "backend",
+        "database",
+        "cache",
+        "message-queue",
+        "load-balancer",
+        "container",
+        "monitoring",
+        "ci-cd",
+        "security"
+      ]
+    },
+    "hints": [
+      "Banking = Java Spring Boot là tiêu chuẩn ngành",
+      "PostgreSQL + read replica cho ACID và scale",
+      "Kafka cho event sourcing mọi giao dịch",
+      "Full security: WAF + Auth + Vault + Rate Limiter + SSL",
+      "Kubernetes + Prometheus + ELK cho vận hành 24/7",
+      "CI/CD với nhiều stage: dev → staging → canary → production"
+    ],
+    "starThresholds": {
+      "one": 30,
+      "two": 48,
+      "three": 68
+    }
+  },
+  {
+    "id": 13,
+    "difficulty": "expert",
+    "customerName": "Chị Thảo - VP Platform",
+    "customerAvatar": "lucide:truck",
+    "requirement": "Super app giao hàng kiểu Grab/ShopeeFood, 2 triệu users, realtime tracking.",
+    "detailedRequirements": "Đặt hàng, matching tài xế, tracking GPS realtime, thanh toán, rating. Microservices cho từng domain (order, delivery, payment, user). Auto-scale theo giờ cao điểm (gấp 5x lúc 11h-13h).",
+    "targetUsers": 2000000,
+    "constraints": {
+      "minThroughput": 200000,
+      "maxLatency": 80,
+      "minSecurity": 80,
+      "maxCost": 8000,
+      "minReliability": 98,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "cache",
+        "message-queue",
+        "cdn",
+        "load-balancer",
+        "container",
+        "monitoring",
+        "security"
+      ]
+    },
+    "hints": [
+      "Microservices architecture là bắt buộc ở quy mô này",
+      "Go hoặc Rust cho service xử lý GPS tracking (cần latency thấp)",
+      "Kafka cho event streaming giữa các service",
+      "Redis cho realtime location + caching",
+      "Kubernetes auto-scale cho peak hours",
+      "CDN cho static assets (ảnh nhà hàng, menu)"
+    ],
+    "starThresholds": {
+      "one": 30,
+      "two": 48,
+      "three": 68
+    }
+  },
+  {
+    "id": 14,
+    "difficulty": "expert",
+    "customerName": "Anh Phong - CTO Social",
+    "customerAvatar": "lucide:globe",
+    "requirement": "Mạng xã hội quy mô lớn, 5 triệu MAU, news feed algorithm, video reels.",
+    "detailedRequirements": "Feed cá nhân hóa bằng algorithm, video ngắn (reels), stories, messaging, group, marketplace. CDN toàn cầu. Machine learning cho recommendation. Handle 50K concurrent uploads.",
+    "targetUsers": 5000000,
+    "constraints": {
+      "minThroughput": 300000,
+      "maxLatency": 80,
+      "minSecurity": 80,
+      "maxCost": 12000,
+      "minReliability": 99,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "cache",
+        "message-queue",
+        "cdn",
+        "load-balancer",
+        "container",
+        "monitoring",
+        "ci-cd",
+        "security",
+        "storage"
+      ]
+    },
+    "hints": [
+      "Đây là level khó nhất — cần TOÀN BỘ 12 categories",
+      "CDN + S3 cho video/ảnh, Kafka cho feed generation",
+      "Cassandra hoặc DynamoDB cho social graph scale",
+      "Kubernetes + full monitoring + CI/CD pipeline",
+      "Multiple caching layers: CDN → Varnish → Redis → DB"
+    ],
+    "starThresholds": {
+      "one": 28,
+      "two": 45,
+      "three": 65
+    }
+  },
+  {
+    "id": 15,
+    "difficulty": "expert",
+    "customerName": "Ông Việt - Minister of Health",
+    "customerAvatar": "lucide:heart-pulse",
+    "requirement": "Hệ thống y tế quốc gia: hồ sơ bệnh nhân cho 100 triệu dân, bảo mật dữ liệu y tế tuyệt đối.",
+    "detailedRequirements": "Electronic Health Records cho toàn quốc. Bệnh viện, phòng khám, nhà thuốc kết nối. Dữ liệu y tế cực kỳ nhạy cảm (HIPAA-level). Phải hoạt động 24/7, không được sập khi dịch bệnh. Multi-region redundancy.",
+    "targetUsers": 10000000,
+    "constraints": {
+      "minThroughput": 500000,
+      "maxLatency": 100,
+      "minSecurity": 98,
+      "maxCost": 20000,
+      "minReliability": 99,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "cache",
+        "message-queue",
+        "cdn",
+        "load-balancer",
+        "container",
+        "monitoring",
+        "ci-cd",
+        "security",
+        "storage"
+      ]
+    },
+    "hints": [
+      "Y tế quốc gia = security và reliability là ưu tiên SỐ 1",
+      "Mã hóa dữ liệu at-rest và in-transit (Vault + SSL)",
+      "Database ACID + multi-region replication",
+      "Full observability stack: metrics + logs + tracing",
+      "Cần tất cả 12 categories với lựa chọn tối ưu nhất"
+    ],
+    "starThresholds": {
+      "one": 25,
+      "two": 42,
+      "three": 62
+    }
+  },
+  {
+    "id": 16,
+    "difficulty": "beginner",
+    "customerName": "Anh Tâm - Freelancer",
+    "customerAvatar": "lucide:file-text",
+    "requirement": "Tôi cần trang portfolio cá nhân để khoe dự án, khoảng 200 người xem/ngày.",
+    "detailedRequirements": "Hiển thị danh sách dự án, ảnh, mô tả. Form liên hệ qua email. Cần HTTPS để chuyên nghiệp. Tốc độ load nhanh để gây ấn tượng khách hàng.",
+    "targetUsers": 200,
+    "constraints": {
+      "minThroughput": 200,
+      "maxLatency": 400,
+      "minSecurity": 40,
+      "maxCost": 150,
+      "minReliability": 82,
+      "requiredCategories": [
+        "frontend",
+        "backend"
+      ]
+    },
+    "hints": [
+      "Portfolio chỉ cần frontend tốt và backend nhẹ",
+      "Thêm SSL (Let's Encrypt) để có HTTPS miễn phí",
+      "Không cần database nếu dùng static content"
+    ],
+    "starThresholds": {
+      "one": 40,
+      "two": 60,
+      "three": 80
+    }
+  },
+  {
+    "id": 17,
+    "difficulty": "beginner",
+    "customerName": "Chị Ngọc - Quản lý CLB",
+    "customerAvatar": "lucide:calendar",
+    "requirement": "Website đăng ký sự kiện cho câu lạc bộ, 300 thành viên.",
+    "detailedRequirements": "Danh sách sự kiện, form đăng ký, xem ai đã đăng ký. Dữ liệu cần lưu lại, không mất khi refresh. Budget sinh viên nên tiết kiệm nhất có thể.",
+    "targetUsers": 300,
+    "constraints": {
+      "minThroughput": 300,
+      "maxLatency": 500,
+      "minSecurity": 35,
+      "maxCost": 200,
+      "minReliability": 80,
+      "requiredCategories": [
+        "backend",
+        "database"
+      ]
+    },
+    "hints": [
+      "Database đơn giản là đủ để lưu thông tin đăng ký",
+      "Backend rẻ như Node.js hoặc PHP sẽ tối ưu chi phí",
+      "Chưa cần cache hay load balancer ở quy mô này"
+    ],
+    "starThresholds": {
+      "one": 40,
+      "two": 60,
+      "three": 80
+    }
+  },
+  {
+    "id": 18,
+    "difficulty": "easy",
+    "customerName": "Anh Hải - Founder EdTech",
+    "customerAvatar": "lucide:book-open",
+    "requirement": "Nền tảng học online, 3,000 học viên, video bài giảng + quiz.",
+    "detailedRequirements": "Xem video bài giảng, làm quiz trắc nghiệm, theo dõi tiến trình. Video lưu trên cloud, không stream từ server. Cần auth để phân quyền khóa học miễn phí/trả tiền.",
+    "targetUsers": 3000,
+    "constraints": {
+      "minThroughput": 2000,
+      "maxLatency": 350,
+      "minSecurity": 55,
+      "maxCost": 400,
+      "minReliability": 88,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "storage"
+      ]
+    },
+    "hints": [
+      "Video nên lưu trên Object Storage (S3), không lưu database",
+      "Auth system để phân quyền khóa học miễn phí/trả tiền",
+      "CDN giúp video load nhanh nhưng chưa bắt buộc ở 3K users"
+    ],
+    "starThresholds": {
+      "one": 40,
+      "two": 60,
+      "three": 80
+    }
+  },
+  {
+    "id": 19,
+    "difficulty": "easy",
+    "customerName": "Chị Vy - Chủ phòng khám",
+    "customerAvatar": "lucide:stethoscope",
+    "requirement": "Hệ thống đặt lịch khám bệnh online cho phòng khám, 2,000 bệnh nhân/tháng.",
+    "detailedRequirements": "Bệnh nhân đặt lịch, chọn bác sĩ, nhận xác nhận. Dữ liệu y tế cần bảo mật. Nhắc lịch hẹn qua notification. CI/CD để cập nhật nhanh khi cần.",
+    "targetUsers": 2000,
+    "constraints": {
+      "minThroughput": 1500,
+      "maxLatency": 300,
+      "minSecurity": 70,
+      "maxCost": 500,
+      "minReliability": 92,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "security"
+      ]
+    },
+    "hints": [
+      "Dữ liệu y tế nhạy cảm — security cao là bắt buộc",
+      "Auth + SSL tối thiểu cho bảo mật",
+      "Database quan hệ (PostgreSQL) cho dữ liệu có cấu trúc"
+    ],
+    "starThresholds": {
+      "one": 40,
+      "two": 60,
+      "three": 80
+    }
+  },
+  {
+    "id": 20,
+    "difficulty": "easy",
+    "customerName": "Anh Long - Quản lý nhà hàng",
+    "customerAvatar": "lucide:utensils",
+    "requirement": "App đặt bàn và gọi món cho chuỗi 10 nhà hàng, 8,000 khách/ngày.",
+    "detailedRequirements": "Đặt bàn, xem menu, gọi món trước, thanh toán. Mỗi nhà hàng quản lý riêng. Ảnh món ăn cần load nhanh. Giờ cao điểm (11h-13h) gấp 3 lần bình thường.",
+    "targetUsers": 8000,
+    "constraints": {
+      "minThroughput": 5000,
+      "maxLatency": 250,
+      "minSecurity": 60,
+      "maxCost": 600,
+      "minReliability": 90,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "security"
+      ]
+    },
+    "hints": [
+      "Cache cho menu và ảnh — không query DB mỗi lần xem menu",
+      "CDN cho ảnh món ăn sẽ giúp load nhanh",
+      "Giờ cao điểm gấp 3 — cần throughput dư để chịu spike"
+    ],
+    "starThresholds": {
+      "one": 40,
+      "two": 60,
+      "three": 80
+    }
+  },
+  {
+    "id": 21,
+    "difficulty": "medium",
+    "customerName": "Chị Trang - CEO SaaS",
+    "customerAvatar": "lucide:layout-dashboard",
+    "requirement": "SaaS quản lý dự án kiểu Trello/Jira cho 30,000 users, cần realtime board.",
+    "detailedRequirements": "Kanban board, task management, team collaboration. Board cập nhật realtime khi teammate kéo thả. File attachment. Multi-tenant (mỗi công ty dữ liệu riêng). Free trial + subscription.",
+    "targetUsers": 30000,
+    "constraints": {
+      "minThroughput": 10000,
+      "maxLatency": 200,
+      "minSecurity": 65,
+      "maxCost": 900,
+      "minReliability": 94,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "cache",
+        "security"
+      ]
+    },
+    "hints": [
+      "Realtime collaboration cần WebSocket — backend phải hỗ trợ",
+      "Redis pub/sub cho realtime board updates",
+      "Multi-tenant cần database isolation tốt",
+      "Storage cho file attachment"
+    ],
+    "starThresholds": {
+      "one": 38,
+      "two": 56,
+      "three": 76
+    }
+  },
+  {
+    "id": 22,
+    "difficulty": "medium",
+    "customerName": "Anh Dũng - CTO Logistics",
+    "customerAvatar": "lucide:package",
+    "requirement": "Hệ thống quản lý kho và vận chuyển cho 50,000 đơn hàng/ngày.",
+    "detailedRequirements": "Quản lý tồn kho, tracking đơn hàng, route optimization. Barcode scanning. Tích hợp nhiều đơn vị vận chuyển (GHN, GHTK, J&T). Reporting dashboard. Không được sai số liệu tồn kho.",
+    "targetUsers": 5000,
+    "constraints": {
+      "minThroughput": 20000,
+      "maxLatency": 200,
+      "minSecurity": 70,
+      "maxCost": 1000,
+      "minReliability": 96,
+      "requiredCategories": [
+        "backend",
+        "database",
+        "cache",
+        "monitoring",
+        "ci-cd"
+      ]
+    },
+    "hints": [
+      "Dữ liệu tồn kho cần ACID — dùng PostgreSQL",
+      "Message queue xử lý đơn hàng async, tránh mất đơn",
+      "Monitoring quan trọng — phải biết ngay khi có sai lệch",
+      "CI/CD để deploy hotfix nhanh khi phát hiện bug"
+    ],
+    "starThresholds": {
+      "one": 38,
+      "two": 56,
+      "three": 76
+    }
+  },
+  {
+    "id": 23,
+    "difficulty": "medium",
+    "customerName": "Anh Quân - IoT Engineer",
+    "customerAvatar": "lucide:cpu",
+    "requirement": "Platform thu thập dữ liệu IoT từ 100,000 thiết bị, mỗi thiết bị gửi data mỗi 5 giây.",
+    "detailedRequirements": "Nhận data từ sensor (nhiệt độ, độ ẩm, GPS). Lưu trữ time-series data. Dashboard realtime hiển thị biểu đồ. Alert khi giá trị bất thường. API cho mobile app.",
+    "targetUsers": 100000,
+    "constraints": {
+      "minThroughput": 40000,
+      "maxLatency": 150,
+      "minSecurity": 55,
+      "maxCost": 1200,
+      "minReliability": 95,
+      "requiredCategories": [
+        "backend",
+        "database",
+        "cache",
+        "message-queue",
+        "monitoring"
+      ]
+    },
+    "hints": [
+      "IoT = rất nhiều write — cần database write-optimized (Cassandra/DynamoDB)",
+      "Message queue xử lý burst data từ 100K thiết bị",
+      "Redis cho realtime dashboard aggregation",
+      "Backend nhanh (Go) để xử lý 20K message/giây"
+    ],
+    "starThresholds": {
+      "one": 38,
+      "two": 56,
+      "three": 76
+    }
+  },
+  {
+    "id": 24,
+    "difficulty": "hard",
+    "customerName": "Chị Hà - VP Engineering",
+    "customerAvatar": "lucide:music",
+    "requirement": "Nền tảng music streaming cho 500,000 users, playlist cá nhân hóa.",
+    "detailedRequirements": "Stream nhạc, playlist, like, follow nghệ sĩ. Recommendation engine. Offline mode (download). Lưu trữ hàng triệu bài hát. CDN phân phối audio toàn cầu. Thanh toán subscription.",
+    "targetUsers": 500000,
+    "constraints": {
+      "minThroughput": 80000,
+      "maxLatency": 120,
+      "minSecurity": 65,
+      "maxCost": 3500,
+      "minReliability": 97,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "cache",
+        "cdn",
+        "load-balancer",
+        "storage",
+        "security"
+      ]
+    },
+    "hints": [
+      "CDN là BẮT BUỘC — không stream audio trực tiếp từ server",
+      "S3 cho lưu trữ audio files (hàng TB)",
+      "Redis cache cho playlist, recommendation",
+      "Auth + Payment gateway cho subscription",
+      "Load balancer cho 500K concurrent streams"
+    ],
+    "starThresholds": {
+      "one": 35,
+      "two": 52,
+      "three": 72
+    }
+  },
+  {
+    "id": 25,
+    "difficulty": "hard",
+    "customerName": "Anh Toàn - CTO PropTech",
+    "customerAvatar": "lucide:building",
+    "requirement": "Sàn bất động sản, 800,000 users, tìm kiếm + bản đồ + chat với môi giới.",
+    "detailedRequirements": "Đăng tin, tìm kiếm theo vị trí/giá/diện tích, bản đồ tích hợp, ảnh 360°, chat realtime với môi giới. SEO tốt để rank Google. Chống spam tin ảo.",
+    "targetUsers": 800000,
+    "constraints": {
+      "minThroughput": 60000,
+      "maxLatency": 150,
+      "minSecurity": 70,
+      "maxCost": 3000,
+      "minReliability": 96,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "cache",
+        "cdn",
+        "load-balancer",
+        "container",
+        "security"
+      ]
+    },
+    "hints": [
+      "Search phức tạp (vị trí, giá, diện tích) — cần Elasticsearch hoặc PostgreSQL full-text",
+      "CDN cho ảnh 360° và media nặng",
+      "Redis cho realtime chat và search cache",
+      "SSR (Next.js) cho SEO ranking tốt",
+      "Rate limiter chống spam đăng tin"
+    ],
+    "starThresholds": {
+      "one": 35,
+      "two": 52,
+      "three": 72
+    }
+  },
+  {
+    "id": 26,
+    "difficulty": "hard",
+    "customerName": "Anh Trí - Gaming Studio",
+    "customerAvatar": "lucide:swords",
+    "requirement": "MMORPG backend cho 1 triệu player, PvP realtime, guild system, marketplace.",
+    "detailedRequirements": "Game state sync realtime, inventory system, guild management, player marketplace (mua bán item), leaderboard, anti-cheat. Peak giờ tối (20h-23h) gấp 5 lần bình thường.",
+    "targetUsers": 1000000,
+    "constraints": {
+      "minThroughput": 150000,
+      "maxLatency": 50,
+      "minSecurity": 75,
+      "maxCost": 5000,
+      "minReliability": 98,
+      "requiredCategories": [
+        "backend",
+        "database",
+        "cache",
+        "message-queue",
+        "load-balancer",
+        "container",
+        "monitoring",
+        "security"
+      ]
+    },
+    "hints": [
+      "Latency 50ms = chỉ Go hoặc Rust mới đạt được",
+      "Redis cho game state, leaderboard, session",
+      "Kafka cho event log, marketplace transactions",
+      "Kubernetes auto-scale cho peak hours (gấp 5x)",
+      "Anti-cheat cần security + monitoring chặt"
+    ],
+    "starThresholds": {
+      "one": 33,
+      "two": 50,
+      "three": 70
+    }
+  },
+  {
+    "id": 27,
+    "difficulty": "expert",
+    "customerName": "Ông Hoàng - CEO Ride-hailing",
+    "customerAvatar": "lucide:car",
+    "requirement": "Ứng dụng gọi xe kiểu Grab cho 3 triệu users, matching tài xế dưới 5 giây.",
+    "detailedRequirements": "Matching tài xế-khách realtime, GPS tracking, surge pricing, split payment, rating. Xử lý 50,000 rides đồng thời giờ cao điểm. Multi-city deployment. Fraud detection.",
+    "targetUsers": 3000000,
+    "constraints": {
+      "minThroughput": 250000,
+      "maxLatency": 60,
+      "minSecurity": 85,
+      "maxCost": 10000,
+      "minReliability": 99,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "cache",
+        "message-queue",
+        "cdn",
+        "load-balancer",
+        "container",
+        "monitoring",
+        "ci-cd",
+        "security"
+      ]
+    },
+    "hints": [
+      "Matching algorithm cần latency cực thấp — Go + Redis",
+      "Kafka cho GPS tracking stream từ triệu tài xế",
+      "Database sharding theo city/region",
+      "Full observability: mất 1 phút = mất triệu đồng",
+      "Blue-green deploy cho zero downtime"
+    ],
+    "starThresholds": {
+      "one": 28,
+      "two": 45,
+      "three": 65
+    }
+  },
+  {
+    "id": 28,
+    "difficulty": "expert",
+    "customerName": "Chị Uyên - CTO Crypto Exchange",
+    "customerAvatar": "lucide:bitcoin",
+    "requirement": "Sàn giao dịch crypto, 1 triệu traders, matching engine dưới 10ms.",
+    "detailedRequirements": "Order book, limit/market order, real-time price chart, wallet management, KYC, 2FA. Matching engine phải xử lý 100K orders/giây. Không được mất tiền, audit trail 100%. Chống hack tuyệt đối.",
+    "targetUsers": 1000000,
+    "constraints": {
+      "minThroughput": 200000,
+      "maxLatency": 50,
+      "minSecurity": 95,
+      "maxCost": 15000,
+      "minReliability": 99,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "cache",
+        "message-queue",
+        "load-balancer",
+        "container",
+        "monitoring",
+        "ci-cd",
+        "security",
+        "storage"
+      ]
+    },
+    "hints": [
+      "Matching engine cần Rust — latency dưới 10ms là tuyệt đối",
+      "PostgreSQL ACID cho wallet balance — KHÔNG BAO GIỜ dùng NoSQL cho tiền",
+      "Kafka cho order stream + audit log",
+      "Full security stack: WAF + Vault + Auth + Rate Limiter + SSL",
+      "Cold storage (S3) cho audit trail và backup"
+    ],
+    "starThresholds": {
+      "one": 25,
+      "two": 42,
+      "three": 62
+    }
+  },
+  {
+    "id": 29,
+    "difficulty": "expert",
+    "customerName": "Ông Cường - CIO Government",
+    "customerAvatar": "lucide:shield-check",
+    "requirement": "Cổng dịch vụ công quốc gia, 20 triệu dân sử dụng, bảo mật cấp nhà nước.",
+    "detailedRequirements": "Đăng ký giấy tờ, nộp thuế, tra cứu thông tin. Xác thực eKYC, chữ ký số. Peak khi hết hạn nộp thuế (gấp 20x). Multi-datacenter, disaster recovery. Tuân thủ ATTT cấp 4.",
+    "targetUsers": 20000000,
+    "constraints": {
+      "minThroughput": 400000,
+      "maxLatency": 80,
+      "minSecurity": 98,
+      "maxCost": 25000,
+      "minReliability": 99,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "cache",
+        "message-queue",
+        "cdn",
+        "load-balancer",
+        "container",
+        "monitoring",
+        "ci-cd",
+        "security",
+        "storage"
+      ]
+    },
+    "hints": [
+      "Government = toàn bộ 12 categories, không thiếu thứ gì",
+      "Java Spring là tiêu chuẩn cho hệ thống chính phủ",
+      "Multiple security layers: WAF + Auth + Vault + Rate Limiter",
+      "Kafka + PostgreSQL cho audit trail mọi giao dịch",
+      "CDN + Load Balancer cho peak nộp thuế (gấp 20x)",
+      "Disaster recovery = multi-region, backup S3"
+    ],
+    "starThresholds": {
+      "one": 22,
+      "two": 40,
+      "three": 60
+    }
+  },
+  {
+    "id": 30,
+    "difficulty": "expert",
+    "customerName": "Ông Đại - CEO TikTok Clone",
+    "customerAvatar": "lucide:clapperboard",
+    "requirement": "Nền tảng video ngắn 10 triệu MAU, feed AI, live streaming, creator monetization.",
+    "detailedRequirements": "Upload video ngắn, AI recommendation feed, live streaming, virtual gifts, creator dashboard. Xử lý 500K video upload/ngày. Transcoding multi-resolution. Global CDN. Brand safety + content moderation.",
+    "targetUsers": 10000000,
+    "constraints": {
+      "minThroughput": 500000,
+      "maxLatency": 60,
+      "minSecurity": 85,
+      "maxCost": 30000,
+      "minReliability": 99,
+      "requiredCategories": [
+        "frontend",
+        "backend",
+        "database",
+        "cache",
+        "message-queue",
+        "cdn",
+        "load-balancer",
+        "container",
+        "monitoring",
+        "ci-cd",
+        "security",
+        "storage"
+      ]
+    },
+    "hints": [
+      "Đây là BOSS CUỐI — cần tối ưu tuyệt đối mọi category",
+      "CDN toàn cầu + S3 cho video (hàng PB storage)",
+      "Kafka pipeline: upload → transcode → distribute → recommend",
+      "Go backend cho API + Rust cho video processing",
+      "Cassandra cho feed data, Redis cho realtime",
+      "Full K8s + monitoring + CI/CD + security stack"
+    ],
+    "starThresholds": {
+      "one": 20,
+      "two": 38,
+      "three": 58
+    }
+  }
+]

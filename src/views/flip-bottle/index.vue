@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { useWindowSize } from '@vueuse/core'
+import { useEventListener, useWindowSize } from '@vueuse/core'
 import { useAudio } from './composables/use-audio'
 import type { MatterAPI, MatterBody } from './types'
 import { getMatter } from './types'
@@ -56,9 +56,19 @@ function setDiff(level: number) {
 
 const diffDescs = ['Thử thách thực sự cho Pro.', 'Cân bằng chuẩn.', 'Hỗ trợ tối đa. Item x3.']
 
+let matterScript: HTMLScriptElement | null = null
+
 function loadMatterJS(): Promise<void> {
   if (matterLoaded.value) return Promise.resolve()
   return new Promise((resolve, reject) => {
+    const existing = document.querySelector(
+      `script[src="${MATTER_CDN}"]`,
+    ) as HTMLScriptElement | null
+    if (existing) {
+      matterLoaded.value = true
+      matterScript = existing
+      return resolve()
+    }
     const s = document.createElement('script')
     s.src = MATTER_CDN
     s.onload = () => {
@@ -67,6 +77,7 @@ function loadMatterJS(): Promise<void> {
     }
     s.onerror = reject
     document.head.appendChild(s)
+    matterScript = s
   })
 }
 
@@ -297,14 +308,16 @@ function initGame(gameMode: number): () => void {
     canvas.height = winH.value
   }
 
-  window.addEventListener('keydown', onKeyDown)
-  window.addEventListener('keyup', onKeyUp)
-  window.addEventListener('mousedown', onMouseDown)
-  window.addEventListener('mouseup', onMouseUp)
-  canvas.addEventListener('touchstart', onTouchStart, { passive: false })
-  canvas.addEventListener('touchend', onTouchEnd, { passive: false })
-  canvas.addEventListener('touchcancel', onTouchEnd, { passive: false })
-  window.addEventListener('resize', onResize)
+  const stopListeners = [
+    useEventListener(window, 'keydown', onKeyDown),
+    useEventListener(window, 'keyup', onKeyUp),
+    useEventListener(window, 'mousedown', onMouseDown),
+    useEventListener(window, 'mouseup', onMouseUp),
+    useEventListener(canvas, 'touchstart', onTouchStart, { passive: false }),
+    useEventListener(canvas, 'touchend', onTouchEnd, { passive: false }),
+    useEventListener(canvas, 'touchcancel', onTouchEnd, { passive: false }),
+    useEventListener(window, 'resize', onResize),
+  ]
 
   // ─── Player ───
   class Player {
@@ -2271,14 +2284,7 @@ function initGame(gameMode: number): () => void {
   return () => {
     running = false
     cancelAnimationFrame(animId)
-    window.removeEventListener('keydown', onKeyDown)
-    window.removeEventListener('keyup', onKeyUp)
-    window.removeEventListener('mousedown', onMouseDown)
-    window.removeEventListener('mouseup', onMouseUp)
-    canvas.removeEventListener('touchstart', onTouchStart)
-    canvas.removeEventListener('touchend', onTouchEnd)
-    canvas.removeEventListener('touchcancel', onTouchEnd)
-    window.removeEventListener('resize', onResize)
+    stopListeners.forEach((stop) => stop())
     Composite.clear(world, false)
     Engine.clear(engine)
   }
@@ -2291,6 +2297,11 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (cleanupGame) cleanupGame()
+  if (matterScript) {
+    matterScript.remove()
+    matterScript = null
+    matterLoaded.value = false
+  }
 })
 </script>
 

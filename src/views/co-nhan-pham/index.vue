@@ -643,11 +643,17 @@ onUnmounted(() => {
 })
 
 // Phím tắt E
+const handleKeydown = (e: KeyboardEvent) => {
+  if (e.key.toLowerCase() === 'e' && gameState.value === 'planning')
+    sellMode.value = !sellMode.value
+}
+
 onMounted(() => {
-  window.addEventListener('keydown', (e) => {
-    if (e.key.toLowerCase() === 'e' && gameState.value === 'planning')
-      sellMode.value = !sellMode.value
-  })
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 

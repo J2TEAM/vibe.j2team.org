@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { toPng } from 'html-to-image'
 import { Icon } from '@iconify/vue'
 import { useFileDialog } from '@vueuse/core'
 
@@ -45,6 +44,7 @@ const exportImage = async () => {
   isExporting.value = true
 
   try {
+    const { toPng } = await import('html-to-image')
     const dataUrl = await toPng(memeContainer.value, {
       quality: 1,
       pixelRatio: 2,

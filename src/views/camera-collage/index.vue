@@ -1,153 +1,155 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from "vue";
-import { Icon } from "@iconify/vue";
-import frameFunny from "./images/khung-anh-funy.png";
+import { onBeforeUnmount, ref } from 'vue'
+import { RouterLink } from 'vue-router'
+import { Icon } from '@iconify/vue'
+import frameFunny from './images/khung-anh-funy.png'
 // --- Cấu hình Khung Mặc Định ---
 const DEFAULT_FRAME = {
-  id: "funny",
-  name: "Vui vẻ",
+  id: 'funny',
+  name: 'Vui vẻ',
   url: frameFunny,
   target: { x: 0.15, y: 0.15, w: 0.7, h: 0.65 },
-};
+}
 
 // --- State Management ---
-const videoRef = ref<HTMLVideoElement | null>(null);
-const canvasRef = ref<HTMLCanvasElement | null>(null);
-const stream = ref<MediaStream | null>(null);
+const videoRef = ref<HTMLVideoElement | null>(null)
+const canvasRef = ref<HTMLCanvasElement | null>(null)
+const stream = ref<MediaStream | null>(null)
 
-const lastCapturedPhoto = ref("");
-const mergedPreview = ref("");
-const isStarting = ref(false);
-const isProcessing = ref(false);
-const errorMessage = ref("");
+const lastCapturedPhoto = ref('')
+const mergedPreview = ref('')
+const isStarting = ref(false)
+const isProcessing = ref(false)
+const errorMessage = ref('')
 
-// --- Điều hướng ---
-function goToHome() {
-  window.location.href = "/";
+// --- Actions ---
+function resetPhotobooth() {
+  mergedPreview.value = ''
+  lastCapturedPhoto.value = ''
 }
 
 // --- Camera Logic ---
 async function startCamera() {
-  errorMessage.value = "";
-  isStarting.value = true;
+  errorMessage.value = ''
+  isStarting.value = true
   try {
     const media = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user", width: 1280, height: 720 },
+      video: { facingMode: 'user', width: 1280, height: 720 },
       audio: false,
-    });
-    stream.value = media;
+    })
+    stream.value = media
     if (videoRef.value) {
-      videoRef.value.srcObject = media;
-      await videoRef.value.play();
+      videoRef.value.srcObject = media
+      await videoRef.value.play()
     }
   } catch (error) {
-    console.error(error);
-    errorMessage.value = "Không thể truy cập camera. Vui lòng kiểm tra quyền thiết bị.";
+    console.error(error)
+    errorMessage.value = 'Không thể truy cập camera. Vui lòng kiểm tra quyền thiết bị.'
   } finally {
-    isStarting.value = false;
+    isStarting.value = false
   }
 }
 
 // --- Image Processing ---
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Lỗi tải ảnh: " + src));
-    img.src = src;
-  });
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error('Lỗi tải ảnh: ' + src))
+    img.src = src
+  })
 }
 
 async function processMerge(photoBase64: string) {
-  if (!photoBase64) return;
-  isProcessing.value = true;
+  if (!photoBase64) return
+  isProcessing.value = true
   try {
     const [userImg, frameImg] = await Promise.all([
       loadImage(photoBase64),
       loadImage(DEFAULT_FRAME.url),
-    ]);
+    ])
 
-    const canvas = document.createElement("canvas");
-    canvas.width = frameImg.width;
-    canvas.height = frameImg.height;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const canvas = document.createElement('canvas')
+    canvas.width = frameImg.width
+    canvas.height = frameImg.height
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
 
     const target = {
       x: canvas.width * DEFAULT_FRAME.target.x,
       y: canvas.height * DEFAULT_FRAME.target.y,
       w: canvas.width * DEFAULT_FRAME.target.w,
       h: canvas.height * DEFAULT_FRAME.target.h,
-    };
+    }
 
-    const scale = Math.max(target.w / userImg.width, target.h / userImg.height);
-    const dw = userImg.width * scale;
-    const dh = userImg.height * scale;
-    const dx = target.x + (target.w - dw) / 2;
-    const dy = target.y + (target.h - dh) / 2;
+    const scale = Math.max(target.w / userImg.width, target.h / userImg.height)
+    const dw = userImg.width * scale
+    const dh = userImg.height * scale
+    const dx = target.x + (target.w - dw) / 2
+    const dy = target.y + (target.h - dh) / 2
 
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(target.x, target.y, target.w, target.h);
-    ctx.clip();
-    ctx.drawImage(userImg, dx, dy, dw, dh);
-    ctx.restore();
+    ctx.save()
+    ctx.beginPath()
+    ctx.rect(target.x, target.y, target.w, target.h)
+    ctx.clip()
+    ctx.drawImage(userImg, dx, dy, dw, dh)
+    ctx.restore()
 
-    ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
-    mergedPreview.value = canvas.toDataURL("image/png", 1.0);
+    ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height)
+    mergedPreview.value = canvas.toDataURL('image/png', 1.0)
   } catch (err) {
-    console.error(err);
-    errorMessage.value = "Lỗi xử lý hình ảnh Photobooth.";
+    console.error(err)
+    errorMessage.value = 'Lỗi xử lý hình ảnh Photobooth.'
   } finally {
-    isProcessing.value = false;
+    isProcessing.value = false
   }
 }
 
 async function capture() {
-  if (!videoRef.value || !canvasRef.value) return;
-  const video = videoRef.value;
-  const canvas = canvasRef.value;
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
+  if (!videoRef.value || !canvasRef.value) return
+  const video = videoRef.value
+  const canvas = canvasRef.value
+  canvas.width = video.videoWidth
+  canvas.height = video.videoHeight
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
 
-  ctx.save();
-  ctx.translate(canvas.width, 0);
-  ctx.scale(-1, 1);
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  ctx.restore();
+  ctx.save()
+  ctx.translate(canvas.width, 0)
+  ctx.scale(-1, 1)
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+  ctx.restore()
 
-  const photo = canvas.toDataURL("image/jpeg", 0.9);
-  lastCapturedPhoto.value = photo;
-  await processMerge(photo);
+  const photo = canvas.toDataURL('image/jpeg', 0.9)
+  lastCapturedPhoto.value = photo
+  await processMerge(photo)
 }
 
 function download() {
-  if (!mergedPreview.value) return;
-  const a = document.createElement("a");
-  a.download = `photobooth-${Date.now()}.png`;
-  a.href = mergedPreview.value;
-  a.click();
+  if (!mergedPreview.value) return
+  const a = document.createElement('a')
+  a.download = `photobooth-${Date.now()}.png`
+  a.href = mergedPreview.value
+  a.click()
 }
 
 onBeforeUnmount(() => {
-  if (stream.value) stream.value.getTracks().forEach((t) => t.stop());
-});
+  if (stream.value) stream.value.getTracks().forEach((t) => t.stop())
+})
 </script>
 
 <template>
   <div class="min-h-screen bg-slate-950 p-4 font-sans text-slate-200 md:p-8">
     <div class="mx-auto max-w-6xl">
       <header class="mb-10 relative">
-        <button
-          @click="goToHome"
+        <RouterLink
+          to="/"
           class="absolute left-0 top-1/2 -translate-y-1/2 flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-orange-500 transition-all cursor-pointer border border-slate-800 group"
         >
           <Icon icon="lucide:home" class="size-4 group-hover:scale-110 transition-transform" />
           <span class="hidden sm:inline">TRANG CHỦ</span>
-        </button>
+        </RouterLink>
 
         <div class="text-center">
           <h1 class="text-4xl font-black italic tracking-tighter text-orange-500 uppercase">
@@ -193,7 +195,7 @@ onBeforeUnmount(() => {
               >
                 <Icon v-if="!isStarting" icon="lucide:camera" class="size-6" />
                 <Icon v-else icon="lucide:loader-2" class="size-6 animate-spin" />
-                {{ isStarting ? "ĐANG KHỞI TẠO..." : "MỞ MÁY CHỤP" }}
+                {{ isStarting ? 'ĐANG KHỞI TẠO...' : 'MỞ MÁY CHỤP' }}
               </button>
             </div>
 
@@ -220,10 +222,7 @@ onBeforeUnmount(() => {
             >
             <button
               v-if="mergedPreview"
-              @click="
-                mergedPreview = '';
-                lastCapturedPhoto = '';
-              "
+              @click="resetPhotobooth"
               class="text-[10px] text-slate-400 hover:text-orange-500 underline underline-offset-4 uppercase font-bold transition-colors cursor-pointer"
             >
               Chụp lại
@@ -236,6 +235,7 @@ onBeforeUnmount(() => {
             <img
               v-if="mergedPreview"
               :src="mergedPreview"
+              loading="lazy"
               :class="{ 'opacity-50': isProcessing }"
               class="h-full w-full object-contain animate-in fade-in zoom-in-95 duration-500 transition-opacity"
             />

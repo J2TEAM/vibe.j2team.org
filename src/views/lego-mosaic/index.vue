@@ -47,11 +47,11 @@
       <!-- Controls card -->
       <div class="rounded-xl border border-border-default bg-bg-surface shadow p-4 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-
           <!-- Grid Size -->
           <div>
             <label class="text-sm font-semibold text-text-primary block mb-1">
-              Số viên gạch: <span class="text-accent-coral font-bold">{{ gridSize }} × {{ gridSize }}</span>
+              Số viên gạch:
+              <span class="text-accent-coral font-bold">{{ gridSize }} × {{ gridSize }}</span>
             </label>
             <input
               type="range"
@@ -67,19 +67,24 @@
               <span>1024</span>
               <span>2048</span>
             </div>
-            <p class="text-xs text-text-secondary leading-relaxed rounded-lg bg-bg-base border border-border-default px-3 py-2">
+            <p
+              class="text-xs text-text-secondary leading-relaxed rounded-lg bg-bg-base border border-border-default px-3 py-2"
+            >
               Số viên gạch LEGO theo mỗi chiều.
               <strong class="text-text-primary">{{ gridSize }}</strong> → mosaic gồm
-              {{ (gridSize * gridSize).toLocaleString('vi-VN') }} viên.
-              Độ phân giải cao hơn → chi tiết hơn, xử lý lâu hơn.
+              {{ (gridSize * gridSize).toLocaleString('vi-VN') }} viên. Độ phân giải cao hơn → chi
+              tiết hơn, xử lý lâu hơn.
             </p>
           </div>
 
           <!-- Brick pixel size -->
           <div>
             <label class="text-sm font-semibold text-text-primary block mb-1">
-              Kích thước viên gạch: <span class="text-accent-coral font-bold">{{ effectiveBrick }}px</span>
-              <span v-if="effectiveBrick !== brickSize" class="text-xs text-text-secondary ml-1">(đã giới hạn)</span>
+              Kích thước viên gạch:
+              <span class="text-accent-coral font-bold">{{ effectiveBrick }}px</span>
+              <span v-if="effectiveBrick !== brickSize" class="text-xs text-text-secondary ml-1"
+                >(đã giới hạn)</span
+              >
             </label>
             <input
               type="range"
@@ -91,21 +96,23 @@
             <div class="flex justify-between text-xs text-text-secondary mb-2">
               <span>1px</span><span>16px</span>
             </div>
-            <p class="text-xs text-text-secondary leading-relaxed rounded-lg bg-bg-base border border-border-default px-3 py-2">
-              Kích thước pixel của mỗi viên gạch trong ảnh xuất.
-              Canvas tối đa {{ MAX_CANVAS_DIM.toLocaleString() }}px — brick tự động giới hạn nếu cần.
+            <p
+              class="text-xs text-text-secondary leading-relaxed rounded-lg bg-bg-base border border-border-default px-3 py-2"
+            >
+              Kích thước pixel của mỗi viên gạch trong ảnh xuất. Canvas tối đa
+              {{ MAX_CANVAS_DIM.toLocaleString() }}px — brick tự động giới hạn nếu cần.
             </p>
           </div>
-
         </div>
       </div>
 
       <!-- Preview: mobile = 1 col, desktop = 25% original | 75% mosaic -->
       <div class="preview-grid gap-6 mb-6">
-
         <!-- Left (25%): original image -->
         <div class="rounded-xl border border-border-default bg-bg-surface shadow p-4 flex flex-col">
-          <h2 class="text-xs font-semibold text-text-secondary uppercase tracking-widest mb-3">Ảnh gốc</h2>
+          <h2 class="text-xs font-semibold text-text-secondary uppercase tracking-widest mb-3">
+            Ảnh gốc
+          </h2>
           <div
             class="flex flex-1 items-center justify-center overflow-hidden rounded-lg bg-bg-base"
             style="min-height: 120px; max-height: 280px"
@@ -114,32 +121,33 @@
               v-if="originalImageUrl"
               :src="originalImageUrl"
               alt="Ảnh gốc"
+              loading="lazy"
               class="max-w-full object-contain"
               style="max-height: 280px"
             />
             <span v-else class="text-xs text-text-secondary text-center px-2">Chưa có ảnh</span>
           </div>
-          <p v-if="originalImageUrl" class="mt-2 text-center text-xs text-text-secondary">Ảnh tham chiếu</p>
+          <p v-if="originalImageUrl" class="mt-2 text-center text-xs text-text-secondary">
+            Ảnh tham chiếu
+          </p>
         </div>
 
         <!-- Right (75%): mosaic viewer + loading overlay -->
-        <div class="relative rounded-xl border border-border-default bg-bg-surface shadow p-4 flex flex-col">
+        <div
+          class="relative rounded-xl border border-border-default bg-bg-surface shadow p-4 flex flex-col"
+        >
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-xs font-semibold text-text-secondary uppercase tracking-widest">
               Ảnh ghép gạch LEGO
             </h2>
             <span v-if="hasMosaic && !isProcessing" class="text-xs text-text-secondary">
-              {{ gridSize }}&thinsp;×&thinsp;{{ gridSize }} viên
-              &middot; {{ effectiveBrick }}px/viên
+              {{ gridSize }}&thinsp;×&thinsp;{{ gridSize }} viên &middot;
+              {{ effectiveBrick }}px/viên
               <span v-if="showGrid"> &middot; ⊞ lưới</span>
             </span>
           </div>
 
-          <MosaicViewer
-            ref="viewerRef"
-            :show-grid="showGrid"
-            @toggle-grid="onToggleGrid"
-          />
+          <MosaicViewer ref="viewerRef" :show-grid="showGrid" @toggle-grid="onToggleGrid" />
 
           <!-- Processing overlay -->
           <div
@@ -147,12 +155,13 @@
             class="absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-bg-base/80 backdrop-blur-sm"
           >
             <div class="flex flex-col items-center gap-3">
-              <div class="h-8 w-8 animate-spin rounded-full border-2 border-border-default border-t-accent-coral"></div>
+              <div
+                class="h-8 w-8 animate-spin rounded-full border-2 border-border-default border-t-accent-coral"
+              ></div>
               <span class="text-sm text-text-secondary">Đang xử lý…</span>
             </div>
           </div>
         </div>
-
       </div>
 
       <!-- Brick statistics -->
@@ -169,7 +178,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import MosaicViewer from './MosaicViewer.vue'
-import BrickStats   from './BrickStats.vue'
+import BrickStats from './BrickStats.vue'
 import { LEGO_COLORS } from './utils/lego-colors'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -187,42 +196,42 @@ let originalImage: HTMLImageElement | null = null
 
 // ─── Controls ─────────────────────────────────────────────────────────────────
 
-const gridSize      = ref<number>(64)
-const brickSize     = ref<number>(4)
-const showGrid      = ref<boolean>(false)
-const isProcessing  = ref<boolean>(false)
+const gridSize = ref<number>(64)
+const brickSize = ref<number>(4)
+const showGrid = ref<boolean>(false)
+const isProcessing = ref<boolean>(false)
 const effectiveBrick = ref<number>(4)
 
 // ─── Cached color-index grid (Uint8Array — indices into LEGO_COLORS) ──────────
 
-let cachedColorGrid  = new Uint8Array(0)
-let cachedSize       = 0
-let cachedBrick      = 0
+let cachedColorGrid = new Uint8Array(0)
+let cachedSize = 0
+let cachedBrick = 0
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 
 interface BrickStat {
-  color:   string
-  name:    string
-  count:   number
+  color: string
+  name: string
+  count: number
   percent: number
 }
 
-const brickCount   = ref<Record<string, number>>({})
+const brickCount = ref<Record<string, number>>({})
 const colorNameMap = ref<Record<string, string>>({})
 
 // ─── Computed ─────────────────────────────────────────────────────────────────
 
-const hasMosaic   = computed(() => Object.keys(brickCount.value).length > 0)
+const hasMosaic = computed(() => Object.keys(brickCount.value).length > 0)
 const totalBricks = computed(() => Object.values(brickCount.value).reduce((s, n) => s + n, 0))
-const colorCount  = computed(() => Object.keys(brickCount.value).length)
+const colorCount = computed(() => Object.keys(brickCount.value).length)
 
 const brickStats = computed<BrickStat[]>(() => {
   const total = totalBricks.value
   return Object.entries(brickCount.value)
     .map(([hex, count]) => ({
-      color:   hex,
-      name:    colorNameMap.value[hex] ?? hex,
+      color: hex,
+      name: colorNameMap.value[hex] ?? hex,
       count,
       percent: total > 0 ? (count / total) * 100 : 0,
     }))
@@ -235,18 +244,21 @@ let worker: Worker | null = null
 
 function handleWorkerMessage(e: MessageEvent) {
   const { type, imgBuffer, size, brick } = e.data as {
-    type:      'process' | 'render'
+    type: 'process' | 'render'
     imgBuffer: ArrayBuffer
-    size:      number
-    brick:     number
+    size: number
+    brick: number
   }
 
   // Draw the received ImageData onto the viewer's canvas
   const canvas = viewerRef.value?.canvasEl
-  if (!canvas) { isProcessing.value = false; return }
+  if (!canvas) {
+    isProcessing.value = false
+    return
+  }
 
   const cw = size * brick
-  canvas.width  = cw
+  canvas.width = cw
   canvas.height = cw
   const ctx = canvas.getContext('2d')
   if (ctx) {
@@ -256,30 +268,29 @@ function handleWorkerMessage(e: MessageEvent) {
   // On a full 'process' run also update stats + cached grid
   if (type === 'process') {
     const { idxGrid: idxBuf, statsBuffer } = e.data as {
-      idxGrid:     ArrayBuffer
+      idxGrid: ArrayBuffer
       statsBuffer: ArrayBuffer
     }
 
     // Re-own the transferred buffers
     cachedColorGrid = new Uint8Array(idxBuf)
-    cachedSize      = size
-    cachedBrick     = brick
+    cachedSize = size
+    cachedBrick = brick
     effectiveBrick.value = brick
 
     // Build human-readable stats from the Uint32Array counter
     const statsArr = new Uint32Array(statsBuffer)
     const counts: Record<string, number> = {}
-    const nameMap:  Record<string, string> = {}
+    const nameMap: Record<string, string> = {}
     for (let i = 0; i < LEGO_COLORS.length; i++) {
       if (statsArr[i]! > 0) {
-        const lego      = LEGO_COLORS[i]!
+        const lego = LEGO_COLORS[i]!
         counts[lego.hex] = statsArr[i]!
         nameMap[lego.hex] = lego.name
       }
     }
-    brickCount.value   = counts
+    brickCount.value = counts
     colorNameMap.value = nameMap
-
   } else {
     // Render-only: update cached brick size
     cachedBrick = brick
@@ -299,7 +310,10 @@ function loadImageFile(file: File) {
   originalImageUrl.value = url
   const img = new Image()
   img.src = url
-  img.onload = () => { originalImage = img; processFullPipeline() }
+  img.onload = () => {
+    originalImage = img
+    processFullPipeline()
+  }
 }
 
 function handleDrop(e: DragEvent) {
@@ -315,9 +329,7 @@ function handleUpload(e: Event) {
 // ─── Core: compute effective brick size (respects MAX_CANVAS_DIM) ─────────────
 
 function computeBrick(size: number, raw: number): number {
-  return (size * raw) > MAX_CANVAS_DIM
-    ? Math.max(1, Math.floor(MAX_CANVAS_DIM / size))
-    : raw
+  return size * raw > MAX_CANVAS_DIM ? Math.max(1, Math.floor(MAX_CANVAS_DIM / size)) : raw
 }
 
 // ─── Core: full pipeline — send pixels to worker for color-match + render ─────
@@ -325,16 +337,19 @@ function computeBrick(size: number, raw: number): number {
 function processFullPipeline() {
   if (!originalImage || !worker) return
 
-  const size  = gridSize.value
+  const size = gridSize.value
   const brick = computeBrick(size, brickSize.value)
   effectiveBrick.value = brick
-  isProcessing.value   = true
+  isProcessing.value = true
 
   // Downscale source image to grid resolution
   const tmp = document.createElement('canvas')
   tmp.width = tmp.height = size
   const tmpCtx = tmp.getContext('2d')
-  if (!tmpCtx) { isProcessing.value = false; return }
+  if (!tmpCtx) {
+    isProcessing.value = false
+    return
+  }
   tmpCtx.drawImage(originalImage, 0, 0, size, size)
 
   // Transfer pixel data to worker (zero-copy)
@@ -348,15 +363,12 @@ function rerenderBricks() {
   if (!cachedColorGrid.length || !worker) return
 
   const brick = computeBrick(cachedSize, brickSize.value)
-  if (brick === cachedBrick) return  // nothing changed
+  if (brick === cachedBrick) return // nothing changed
   isProcessing.value = true
 
   // Copy (not transfer) so we keep cachedColorGrid intact
   const idxCopy = cachedColorGrid.buffer.slice(0) as ArrayBuffer
-  worker.postMessage(
-    { type: 'render', idxGrid: idxCopy, size: cachedSize, brick },
-    [idxCopy],
-  )
+  worker.postMessage({ type: 'render', idxGrid: idxCopy, size: cachedSize, brick }, [idxCopy])
 }
 
 // ─── Grid toggle: just flip the ref — MosaicViewer watches it ────────────────
@@ -384,12 +396,9 @@ watch(brickSize, () => {
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 
 onMounted(() => {
-  worker = new Worker(
-    new URL('./utils/mosaic-worker.ts', import.meta.url),
-    { type: 'module' },
-  )
+  worker = new Worker(new URL('./utils/mosaic-worker.ts', import.meta.url), { type: 'module' })
   worker.onmessage = handleWorkerMessage
-  worker.onerror   = (err) => {
+  worker.onerror = (err) => {
     console.error('[MosaicWorker]', err)
     isProcessing.value = false
   }

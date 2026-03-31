@@ -47,6 +47,8 @@ function makeInitialState(): GameState {
 export function useGameState(engine: Ref<GachBongModule | null>) {
   const state = ref<GameState>(makeInitialState())
   let selectedTile: SelectedTile | null = null
+  let selectedTileType: number = -1 // Store the pattern type of selected tile
+  let selectedPaletteIdx: number = -1 // Store the palette (color) of selected tile
   let comboTimer: ReturnType<typeof setTimeout> | null = null
 
   function startGame(difficulty: Difficulty) {
@@ -54,6 +56,8 @@ export function useGameState(engine: Ref<GachBongModule | null>) {
     const config = DIFFICULTY_CONFIGS[difficulty]
     engine.value.initGame(config.rows, config.cols, config.numPatterns)
     selectedTile = null
+    selectedTileType = -1
+    selectedPaletteIdx = -1
     state.value = {
       status: 'playing',
       difficulty,
@@ -78,20 +82,40 @@ export function useGameState(engine: Ref<GachBongModule | null>) {
     const tileType = engine.value.getTileAt(row, col)
     if (tileType < 0) return
 
+    // Get palette index (color) for this tile
+    const paletteIdx = engine.value.getPaletteIdx(row, col)
+
     const prev = selectedTile
 
     if (!prev) {
+      // First tile selection - store both position, pattern type, and palette
       selectedTile = { row, col }
+      selectedTileType = tileType
+      selectedPaletteIdx = paletteIdx
       state.value = { ...state.value, selected: { row, col }, hintTiles: null }
       return
     }
 
     if (prev.row === row && prev.col === col) {
+      // Clicked same tile - deselect
       selectedTile = null
+      selectedTileType = -1
+      selectedPaletteIdx = -1
       state.value = { ...state.value, selected: null }
       return
     }
 
+    // Check if tiles have the same pattern type AND same palette before calling engine
+    if (tileType !== selectedTileType || paletteIdx !== selectedPaletteIdx) {
+      // Different pattern type or palette - select the new tile instead
+      selectedTile = { row, col }
+      selectedTileType = tileType
+      selectedPaletteIdx = paletteIdx
+      state.value = { ...state.value, selected: { row, col }, hintTiles: null, combo: 0 }
+      return
+    }
+
+    // Same pattern type AND same palette - check if they can connect via path
     const result: MatchResult = engine.value.checkMatch(prev.row, prev.col, row, col)
 
     if (result.valid) {
@@ -99,6 +123,8 @@ export function useGameState(engine: Ref<GachBongModule | null>) {
       const remaining = engine.value.getRemainingTiles()
       const isWon = engine.value.isBoardCleared()
       selectedTile = null
+      selectedTileType = -1
+      selectedPaletteIdx = -1
 
       if (comboTimer) clearTimeout(comboTimer)
 
@@ -119,8 +145,11 @@ export function useGameState(engine: Ref<GachBongModule | null>) {
         boardVersion: state.value.boardVersion + 1,
       }
     } else {
+      // Same type and palette but no valid path - select the new tile instead
       selectedTile = { row, col }
-      state.value = { ...state.value, selected: { row, col }, combo: 0 }
+      selectedTileType = tileType
+      selectedPaletteIdx = paletteIdx
+      state.value = { ...state.value, selected: { row, col }, hintTiles: null, combo: 0 }
     }
   }
 
@@ -160,6 +189,8 @@ export function useGameState(engine: Ref<GachBongModule | null>) {
     if (!engine.value) return
     engine.value.shuffleBoard()
     selectedTile = null
+    selectedTileType = -1
+    selectedPaletteIdx = -1
     state.value = {
       ...state.value,
       shufflesUsed: state.value.shufflesUsed + 1,
@@ -182,6 +213,8 @@ export function useGameState(engine: Ref<GachBongModule | null>) {
 
   function backToMenu() {
     selectedTile = null
+    selectedTileType = -1
+    selectedPaletteIdx = -1
     state.value = {
       ...state.value,
       status: 'menu',

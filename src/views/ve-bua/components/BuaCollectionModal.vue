@@ -81,6 +81,7 @@ function previewDrawingStyle(payload: CollectionPreview['stylePayload']): Record
               <img
                 v-if="item.previewSrc"
                 class="absolute object-contain"
+                loading="lazy"
                 :style="previewDrawingStyle(item.stylePayload)"
                 :src="item.previewSrc"
                 alt="Ảnh bùa đã lưu"
