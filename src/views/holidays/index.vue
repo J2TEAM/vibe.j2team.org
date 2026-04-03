@@ -28,11 +28,15 @@ interface Holiday {
   month?: number
 }
 
-const typeLabels: Record<string, string> = {
+const typeLabels: Record<Holiday['type'], string> = {
   vietnam: '🇻🇳 Việt Nam',
   regional: '🏔️ Vùng Miền Việt Nam',
   international: '🌍 Quốc Tế',
 }
+
+const getTypeLabel = (type: Holiday['type']): string => typeLabels[type]
+
+const getMonthName = (month: number): string => monthNames[month - 1] ?? 'Tháng'
 
 const monthNames = [
   'Tháng 1',
@@ -394,10 +398,15 @@ const holidays = ref<Holiday[]>([
   },
 ])
 
+interface GroupedMonth {
+  month: number
+  holidays: Holiday[]
+}
+
 const activeType = ref<'vietnam' | 'regional' | 'international' | 'all'>('all')
 const searchQuery = ref('')
 
-const groupedHolidays = computed(() => {
+const groupedHolidays = computed((): GroupedMonth[] => {
   let filtered = holidays.value
 
   if (activeType.value !== 'all') {
@@ -412,27 +421,30 @@ const groupedHolidays = computed(() => {
   }
 
   // Group by month
-  const grouped: Record<number, Holiday[]> = {}
+  const result: GroupedMonth[] = []
   for (let i = 1; i <= 12; i++) {
-    grouped[i] = []
+    result.push({ month: i, holidays: [] })
   }
 
   filtered.forEach((h) => {
-    if (h.month) {
-      grouped[h.month].push(h)
+    if (h.month != null) {
+      const group = result.find((g) => g.month === h.month)
+      if (group) {
+        group.holidays.push(h)
+      }
     }
   })
 
   // Sort each month's holidays by date
-  Object.values(grouped).forEach((arr) => {
-    arr.sort((a, b) => {
-      const aNum = parseInt(a.date.split('/')[0]) || 0
-      const bNum = parseInt(b.date.split('/')[0]) || 0
+  result.forEach((group) => {
+    group.holidays.sort((a, b) => {
+      const aNum = Number(a.date.split('/')[0]) || 0
+      const bNum = Number(b.date.split('/')[0]) || 0
       return aNum - bNum
     })
   })
 
-  return grouped
+  return result.filter((group) => group.holidays.length > 0)
 })
 </script>
 
@@ -441,7 +453,7 @@ const groupedHolidays = computed(() => {
     <!-- Header -->
     <div class="border-b border-border-default bg-bg-surface py-8">
       <div class="mx-auto max-w-6xl px-6">
-        <AppBreadcrumb />
+        <AppBreadcrumb :items="[{ label: meta.name }]" />
         <div class="mt-6">
           <h1 class="font-display text-5xl font-bold text-text-primary">
             🎉 Các Ngày Lễ Trong Năm
@@ -522,26 +534,29 @@ const groupedHolidays = computed(() => {
 
     <!-- Holidays by Month (Timeline View) -->
     <div class="mx-auto max-w-6xl px-6 py-12">
-      <div v-if="Object.values(groupedHolidays).some((arr) => arr.length > 0)" class="space-y-12">
+      <div v-if="groupedHolidays.length > 0" class="space-y-12">
         <div
-          v-for="(month, monthIndex) in groupedHolidays"
-          :key="`month-${monthIndex}`"
+          v-for="(monthGroup, idx) in groupedHolidays"
+          :key="`month-${monthGroup.month}`"
           class="animate-fade-up"
-          :style="`animation-delay: ${monthIndex * 50}ms`"
+          :style="`animation-delay: ${idx * 50}ms`"
         >
           <!-- Month Header -->
-          <div v-if="month.length > 0" class="mb-6 flex items-center gap-4">
+          <div class="mb-6 flex items-center gap-4">
             <h2 class="font-display text-2xl font-bold text-accent-coral">
-              // {{ monthNames[monthIndex] }}
+              // {{ getMonthName(monthGroup.month) }}
             </h2>
             <div class="flex-grow border-t border-border-default" />
-            <span class="text-sm text-text-tertiary">{{ month.length }} ngày lễ</span>
+            <span class="text-sm text-text-tertiary">{{ monthGroup.holidays.length }} ngày lễ</span>
           </div>
 
           <!-- Holidays in Month -->
-          <div v-if="month.length > 0" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div
+            v-if="monthGroup.holidays.length > 0"
+            class="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+          >
             <div
-              v-for="holiday in month"
+              v-for="holiday in monthGroup.holidays"
               :key="holiday.id"
               class="border border-border-default bg-bg-surface p-5 transition hover:bg-bg-elevated"
             >
@@ -551,7 +566,7 @@ const groupedHolidays = computed(() => {
                   <Icon :icon="holiday.icon" class="size-5 text-white" />
                 </div>
                 <span class="text-xs font-semibold text-accent-sky">{{
-                  typeLabels[holiday.type]
+                  getTypeLabel(holiday.type)
                 }}</span>
               </div>
 
