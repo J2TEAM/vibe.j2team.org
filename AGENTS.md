@@ -155,6 +155,70 @@ import { Icon } from '@iconify/vue'
 - Use `pnpm` as package manager (not npm/yarn)
 - Vietnamese text must use diacritics (tiếng Việt có dấu)
 
+## Code Shape & Intent
+
+Code shape is about how code is arranged — not whether it works, but whether it is written in a clean, stable, and easy-to-handle way. A PR can pass CI and still have poor shape. The maintainer frequently reshapes working code post-merge, so getting shape right the first time saves everyone a follow-up commit.
+
+### Template as declaration, script as logic
+
+The template should say *what* the UI looks like and *what* happens on interaction — not *how* things happen. Logic belongs in the script.
+
+```vue
+<!-- BAD — template is doing the thinking -->
+<button @click="items.splice(index, 1); selected = null; emit('change', items)">
+  Remove
+</button>
+
+<!-- GOOD — template declares intent, script holds the logic -->
+<button @click="removeItem(index)">Remove</button>
+```
+
+```ts
+function removeItem(index: number) {
+  items.value.splice(index, 1)
+  selected.value = null
+  emit('change', items.value)
+}
+```
+
+Named handler functions are also easier to find, reuse (keyboard shortcut, watcher, test), and reason about when scanning the script.
+
+### Name what it actually is
+
+Variable names should describe what the variable holds, not what you plan to do with it or a vague approximation of it:
+
+```ts
+// BAD — name implies real unit, value is an ordinal 1–5 scale
+const waterLiters = ref(3)
+
+// GOOD — name matches what it actually stores
+const waterScale = ref(3)
+```
+
+```ts
+// BAD — name implies boolean, actually used to track which tab is active
+const isOpen = ref<string | null>(null)
+
+// GOOD — name matches the shape and purpose
+const activeTab = ref<string | null>(null)
+```
+
+### Every piece of state should earn its place
+
+If a `ref` is declared, written to, but never read in the template or any computed property, it is dead state. Dead state confuses readers and creates a false promise — if a form asks for a value, the user expects it to affect the result.
+
+Before finalising a component, check: is every `ref` and piece of state actually consumed somewhere meaningful?
+
+### Semantic consistency
+
+Visual cues should match their meaning. An icon, colour, or label that implies one thing but signals another breaks the user's mental model even if the logic is technically correct:
+
+- `lucide:trending-down` on a positive outcome (user is younger than their biological age) is misleading
+- A red badge on a success state is alarming
+- A "Tiếp theo" button that also submits the form on the last step is surprising
+
+When choosing icons, colours, and copy — ask whether a first-time user would interpret them the same way you do.
+
 ## Pre-Implementation Checklist
 
 Before implementing any new feature or sub-page, agents MUST:
@@ -350,7 +414,9 @@ Default is `true` — the toolbar is shown unless explicitly disabled.
 8. **No exposed API endpoints/secrets** — Since this is open source, never hard-code API keys, endpoints, or secrets in the source code
 9. **No large data files in `src/`** — If your app needs a large data file (> 50 kB), place it in `public/<app-name>/` as JSON and fetch it lazily. Do NOT export it as a TypeScript/JS module. See "Bundle Size — Avoid bloating JS chunks" section above
 10. **Dynamic import for user-triggered libraries** — Libraries that are only used when the user performs a specific action (e.g., export image, syntax highlight, share) must be dynamically imported inside the function that needs them, not at the top level. A static top-level `import` bundles the entire library into the page's JS chunk even when the user never triggers the action. Example: `const { toPng } = await import('html-to-image')` inside the export handler, not `import { toPng } from 'html-to-image'` at the top of the file. This applies to `html-to-image`, `shiki`, and any similar on-demand library
-11. **Clean up side effects on unmount** — Every `addEventListener`, `setInterval`, `setTimeout`, `requestAnimationFrame`, or any other global side effect registered in `onMounted` MUST be cleaned up in `onUnmounted`. Prefer VueUse composables (`useEventListener`, `useIntervalFn`, `useTimeoutFn`, `useRafFn`) which handle cleanup automatically. Forgetting cleanup causes memory leaks and ghost listeners that persist across route navigations in an SPA
+11. **Clean up side effects on unmount** — Every `addEventListener`, `setInterval`, `setTimeout`, `requestAnimationFrame`, or any other global side effect registered in `onMounted` MUST be cleaned up in `onUnmounted`. Prefer VueUse composables (`useEventListener`, `useIntervalFn`, `useTimeoutFn`, `useRafFn`) which handle cleanup automatically. Forgetting cleanup causes memory leaks and ghost listeners that persist across route navigations in an SPA. Also avoid `document.addEventListener('DOMContentLoaded', ...)` — use `onMounted()` instead, as DOMContentLoaded may have already fired by the time the component is registered
+12. **`noopener` for external links** — Any `window.open()` call must include `'noopener,noreferrer'` as the third argument. Any `<a>` tag pointing to an external URL must include `rel="noopener noreferrer"`. This prevents the opened page from accessing `window.opener` and leaking referrer info
+13. **`loading="lazy"` on offscreen images** — Any `<img>` tag that is not visible in the initial viewport must include `loading="lazy"`. This defers image loading until the user scrolls near it, improving initial page load time
 
 ## Linting & Formatting
 
@@ -377,5 +443,21 @@ Default is `true` — the toolbar is shown unless explicitly disabled.
 function handleClick() {
   doA()
   doB()
+}
+```
+
+Also avoid complex TypeScript expressions inline in event handlers — type casts like `($event.target as HTMLInputElement)` inside `@input` can be fragile under formatting. Extract these to named handler functions too:
+
+```vue
+<!-- FRAGILE — TypeScript cast inline -->
+<input @input="val = Number(($event.target as HTMLInputElement).value)" />
+
+<!-- BETTER — named function, easy to read and reuse -->
+<input @input="onInput" />
+```
+
+```ts
+function onInput(e: Event) {
+  val.value = Number((e.target as HTMLInputElement).value)
 }
 ```
