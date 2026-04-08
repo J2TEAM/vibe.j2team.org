@@ -21,12 +21,11 @@ export const j2teamProducts: J2TeamProduct[] = [
 ]
 
 export const techStack: TechStackItem[] = [
-  { name: 'Vue 3', description: 'Progressive JavaScript Framework', url: 'https://vuejs.org/' },
   {
-    name: 'TypeScript',
-    description: 'JavaScript với static typing',
-    url: 'https://www.typescriptlang.org/',
-  },
+  name: 'TypeScript',
+  description: 'Ngôn ngữ lập trình dựa trên JavaScript, bổ sung thêm cú pháp kiểm soát kiểu dữ liệu tĩnh.',
+  url: 'https://www.typescriptlang.org/',
+},
   { name: 'Vite', description: 'Build tool thế hệ mới, nhanh', url: 'https://vite.dev/' },
   {
     name: 'Tailwind CSS',
