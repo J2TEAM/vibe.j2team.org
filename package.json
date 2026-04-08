@@ -29,6 +29,7 @@
     "@shikijs/themes": "^4.0.2",
     "@unhead/vue": "^2.1.12",
     "@vueuse/core": "^14.2.1",
+    "geolib": "^3.3.4",
     "html-to-image": "^1.11.13",
     "pinia": "^3.0.4",
     "shiki": "^4.0.2",
