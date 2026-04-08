@@ -218,8 +218,7 @@ export const LESSON_STEPS: LessonStep[] = [
     id: 'step-4',
     title: 'So sánh cực đoan',
     objective: 'So sánh năm ngắn-và-dài và mùa cực đoan.',
-    instructions:
-      'Chuyển sang Uranus và Neptune, quan sát tốc độ quỹ đạo và mùa dài rất lâu.',
+    instructions: 'Chuyển sang Uranus và Neptune, quan sát tốc độ quỹ đạo và mùa dài rất lâu.',
     hint: 'Uranus có trục nghiêng gần nằm ngang nên mùa cực đoan hơn Trái Đất.',
     focusPlanetId: 'uranus',
     recommendedSpeed: 70,

@@ -191,10 +191,7 @@ function isCorrectChoice(question: QuizQuestion, choiceId: string): boolean {
                   : 'text-accent-coral'
               "
             >
-              {{
-                isCorrectChoice(question, selectedChoice(question.id))
-                  ? 'Đúng: '
-                  : 'Chưa đúng: '
+              {{ isCorrectChoice(question, selectedChoice(question.id)) ? 'Đúng: ' : 'Chưa đúng: '
               }}{{ question.explanation }}
             </p>
           </article>

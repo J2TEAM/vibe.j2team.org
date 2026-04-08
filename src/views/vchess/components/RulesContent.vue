@@ -1,3 +1,82 @@
+<script setup lang="ts">
+const IMG = '/vchess/images'
+
+const pieceCredits = [
+  {
+    label: 'Xe',
+    srcRed: `${IMG}/rook_red.png`,
+    srcBlack: `${IMG}/rook_black.png`,
+    href: 'https://www.flaticon.com/free-icons/rook',
+    linkTitle: 'rook icons',
+    linkText: 'Rook icons created by Freepik - Flaticon',
+  },
+  {
+    label: 'Mã',
+    srcRed: `${IMG}/knight_red.png`,
+    srcBlack: `${IMG}/knight_black.png`,
+    href: 'https://www.flaticon.com/free-icons/chess',
+    linkTitle: 'chess icons',
+    linkText: 'Chess icons created by SBTS2018 - Flaticon',
+  },
+  {
+    label: 'Tượng',
+    srcRed: `${IMG}/elephant_red.png`,
+    srcBlack: `${IMG}/elephant_black.png`,
+    href: 'https://www.flaticon.com/free-icons/africa',
+    linkTitle: 'africa icons',
+    linkText: 'Africa icons created by Freepik - Flaticon',
+  },
+  {
+    label: 'Vua',
+    srcRed: `${IMG}/crown_red.png`,
+    srcBlack: `${IMG}/crown_black.png`,
+    href: 'https://www.flaticon.com/free-icons/king',
+    linkTitle: 'king icons',
+    linkText: 'King icons created by Freepik - Flaticon',
+  },
+  {
+    label: 'Tốt',
+    srcRed: `${IMG}/pawn_red.png`,
+    srcBlack: `${IMG}/pawn_black.png`,
+    href: 'https://www.flaticon.com/free-icons/chess',
+    linkTitle: 'chess icons',
+    linkText: 'Chess icons created by Andrejs Kirma - Flaticon',
+  },
+  {
+    label: 'Sát thủ',
+    srcRed: `${IMG}/assassin_red.png`,
+    srcBlack: `${IMG}/assassin_black.png`,
+    href: 'https://www.flaticon.com/free-icons/shuriken',
+    linkTitle: 'shuriken icons',
+    linkText: 'Shuriken icons created by Mayor Icons - Flaticon',
+  },
+  {
+    label: 'Xạ thủ',
+    srcRed: `${IMG}/gunner_red.png`,
+    srcBlack: `${IMG}/gunner_black.png`,
+    href: 'https://www.flaticon.com/free-icons/archer',
+    linkTitle: 'archer icons',
+    linkText: 'Archer icons created by Slidicon - Flaticon',
+  },
+  {
+    label: 'Đại bàng (mặt đất)',
+    srcRed: `${IMG}/eagle_red.png`,
+    srcBlack: `${IMG}/eagle_black.png`,
+    href: 'https://www.flaticon.com/free-icons/eagle',
+    linkTitle: 'eagle icons',
+    linkText: 'Eagle icons created by Blue Lantern Artwork - Flaticon',
+  },
+  {
+    label: 'Đại bàng (bay)',
+    srcRed: `${IMG}/eagle_fly_red.png`,
+    srcBlack: `${IMG}/eagle_fly_black.png`,
+    href: 'https://www.flaticon.com/free-icons/eagle',
+    linkTitle: 'eagle icons',
+    linkText: 'Eagle icons created by Blue Lantern Artwork - Flaticon',
+  },
+] as const
+</script>
+
 <template>
   <ul class="space-y-3 list-none font-body text-xs leading-relaxed text-text-secondary">
     <li>
@@ -88,6 +167,71 @@
         quyền vua đi 2 ô) — bổ sung cho PGN; không thay thế danh sách nước. Chi tiết ký hiệu quân
         trên bàn cờ.
       </p>
+    </li>
+    <li class="border-t border-border-default pt-3">
+      <p class="font-display font-semibold text-text-primary">Hình quân cờ &amp; ghi nhận</p>
+      <p class="mt-1">
+        Hình quân hai phe (đỏ và đen) minh hoạ dưới đây lấy từ
+        <a
+          href="https://www.flaticon.com/"
+          class="text-accent-sky underline decoration-accent-sky/50 underline-offset-2 hover:decoration-accent-sky"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Flaticon</a
+        >
+        (miễn phí có ghi nguồn). Mỗi dòng có liên kết attribution theo hướng dẫn của tác giả.
+      </p>
+      <ul class="mt-3 list-none space-y-3">
+        <li
+          v-for="row in pieceCredits"
+          :key="row.label"
+          class="flex gap-3 rounded-none border border-border-default bg-bg-surface/80 p-2"
+        >
+          <div class="grid w-[5.75rem] shrink-0 grid-cols-2 gap-x-2 gap-y-0">
+            <div class="flex flex-col items-center gap-0.5">
+              <div class="flex size-10 items-center justify-center">
+                <img
+                  :src="row.srcRed"
+                  :alt="`Quân ${row.label}, phe đỏ`"
+                  class="block max-h-full max-w-full object-contain object-center"
+                  width="40"
+                  height="40"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <span class="w-full text-center text-[9px] leading-none text-text-secondary">Đỏ</span>
+            </div>
+            <div class="flex flex-col items-center gap-0.5">
+              <div class="flex size-10 items-center justify-center">
+                <img
+                  :src="row.srcBlack"
+                  :alt="`Quân ${row.label}, phe đen`"
+                  class="block max-h-full max-w-full object-contain object-center"
+                  width="40"
+                  height="40"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <span class="w-full text-center text-[9px] leading-none text-text-secondary"
+                >Đen</span
+              >
+            </div>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="font-display text-[11px] font-semibold text-text-primary">{{ row.label }}</p>
+            <a
+              :href="row.href"
+              :title="row.linkTitle"
+              class="mt-0.5 block break-words text-[11px] leading-snug text-accent-sky underline decoration-accent-sky/50 underline-offset-2 hover:decoration-accent-sky"
+              target="_blank"
+              rel="noopener noreferrer"
+              >{{ row.linkText }}</a
+            >
+          </div>
+        </li>
+      </ul>
     </li>
   </ul>
 </template>

@@ -8,15 +8,17 @@ import {
   useMediaQuery,
 } from '@vueuse/core'
 import { computed, ref, shallowRef, watch } from 'vue'
-import { useVchessAiWorker } from './composables/use-vchess-ai-worker'
+import { useVchessAiWorker, type VChessAiSearchOutcome } from './composables/use-vchess-ai-worker'
 import { useVchessClock } from './composables/use-vchess-clock'
 import { useVchessSounds } from './composables/use-vchess-sounds'
 import { VCHESS_CLOCK_DEFAULTS, type VChessClockSettings } from './constants'
 import {
   BOARD_COLS,
   BOARD_ROWS,
+  createStateFromBoard,
   createInitialState,
   findKing,
+  getCheckmateWinner,
   getGameStatus,
   getLegalMovesForSquare,
   isInCheck,
@@ -26,8 +28,10 @@ import {
   undoLastMove,
   type MoveRecord,
   type Piece,
+  type PieceKind,
   type Position,
   type Side,
+  type VChessState,
 } from './engine/vchess-engine'
 import { AI_MAX_PLY, AI_MAX_SEARCH_MS, AI_SEARCH_MS_MIN } from './engine/vchess-search'
 import { getPieceImageSrc } from './piece-images'
@@ -45,6 +49,9 @@ type GameMode = 'solo' | 'vs-ai'
 const screen = ref<Screen>('menu')
 const gameMode = ref<GameMode>('solo')
 
+/** Đang chạy tìm nước do nút «AI đi thay» (chế độ hai người). */
+const aiSingleMoveBusy = ref(false)
+
 /** shallowRef: engine gọi apply/unapply tạm trên state — deep reactive sẽ kích hoạt lại computed giữa chừng và có thể lặp vô hạn. */
 const gameState = shallowRef(createInitialState())
 const selectedSquare = ref<Position | null>(null)
@@ -54,6 +61,9 @@ const matchClockSettings = ref<VChessClockSettings | null>(null)
 
 /** Tạm dừng ván vs máy: dừng đồng hồ, không cho đi quân, không gọi AI. */
 const aiGamePaused = ref(false)
+
+/** Chế độ xếp quân: đồng hồ tạm dừng cho đến khi tắt editor. */
+const boardEditorEnabled = ref(false)
 
 const clockSettings = useLocalStorage<VChessClockSettings>('vchess-clock-settings', () => ({
   initialMinutes: VCHESS_CLOCK_DEFAULTS.initialMinutes,
@@ -85,12 +95,111 @@ const clockEnabled = computed(
     screen.value === 'game' &&
     gameMode.value === 'vs-ai' &&
     matchClockSettings.value !== null &&
-    !aiGamePaused.value,
+    !aiGamePaused.value &&
+    !boardEditorEnabled.value,
 )
 
 const { playForMoveType } = useVchessSounds()
 const { requestSearch, cancelPendingSearches } = useVchessAiWorker()
 const { copy: copyToClipboard } = useClipboard()
+
+/** Thông báo khi worker / tìm kiếm AI lỗi hoặc không trả nước (vs máy). */
+const aiSearchErrorMessage = ref<string | null>(null)
+const aiRetryBusy = ref(false)
+
+function formatAiSearchFailure(
+  outcome: Extract<VChessAiSearchOutcome, { kind: 'failed' }>,
+): string {
+  switch (outcome.reason) {
+    case 'worker_crash':
+      return 'Web Worker bị lỗi (thường do trình duyệt). Thử «Thử lại»; nếu vẫn lỗi, tải lại trang.'
+    case 'post_message':
+      return 'Không gửi được tác vụ tới máy. Thử «Thử lại» hoặc tải lại trang.'
+    case 'search_exception': {
+      const d = outcome.detail?.trim()
+      const short = d && d.length > 0 ? (d.length > 120 ? `${d.slice(0, 117)}…` : d) : ''
+      return short
+        ? `Lỗi khi tính nước: ${short}. Thử «Thử lại» hoặc «Hoàn nước».`
+        : 'Lỗi khi tính nước. Thử «Thử lại» hoặc «Hoàn nước».'
+    }
+  }
+}
+
+function handleAiSearchOutcome(outcome: VChessAiSearchOutcome, snapshot: VChessState): void {
+  if (outcome.kind === 'cancelled') return
+  if (outcome.kind === 'ok') {
+    aiSearchErrorMessage.value = null
+    playForMoveType(outcome.result.move.type === 'capture' ? 'capture' : 'move')
+    gameState.value = makeMove(snapshot, outcome.result.move)
+    selectedSquare.value = null
+    return
+  }
+  if (outcome.kind === 'no_result') {
+    aiSearchErrorMessage.value =
+      'Máy không tìm được nước đi trong thời gian cho phép. Bạn có thể «Thử lại» hoặc «Hoàn nước» để đi lại nước Đỏ.'
+    return
+  }
+  aiSearchErrorMessage.value = formatAiSearchFailure(outcome)
+}
+
+async function retryAiMove() {
+  if (gameMode.value !== 'vs-ai' || screen.value !== 'game') return
+  if (aiGamePaused.value) return
+  if (status.value !== 'playing' || timeoutLoser.value) return
+  if (aiRetryBusy.value) return
+
+  aiRetryBusy.value = true
+  aiSearchErrorMessage.value = null
+  const snapshot = gameState.value
+  try {
+    const outcome = await requestSearch(snapshot)
+    if (screen.value !== 'game' || gameMode.value !== 'vs-ai') return
+    if (timeoutLoser.value) return
+    if (gameState.value !== snapshot) return
+    if (gameState.value.turn !== snapshot.turn) return
+    if (getGameStatus(gameState.value) !== 'playing') return
+
+    handleAiSearchOutcome(outcome, snapshot)
+  } finally {
+    aiRetryBusy.value = false
+  }
+}
+
+/** Gọi AI đúng một nước cho phe đang tới lượt (chỉ chế độ hai người). */
+async function requestAiMoveForCurrentTurn() {
+  if (screen.value !== 'game') return
+  if (boardEditorEnabled.value) return
+  if (status.value !== 'playing' || timeoutLoser.value) return
+  if (aiGamePaused.value) return
+  if (aiSingleMoveBusy.value) return
+  if (gameMode.value !== 'solo') return
+
+  aiSingleMoveBusy.value = true
+  aiSearchErrorMessage.value = null
+  const snapshot = gameState.value
+  try {
+    const outcome = await requestSearch(snapshot)
+    if (screen.value !== 'game') return
+    if (timeoutLoser.value) return
+    if (gameState.value !== snapshot) return
+    if (gameState.value.turn !== snapshot.turn) return
+    if (getGameStatus(gameState.value) !== 'playing') return
+
+    handleAiSearchOutcome(outcome, snapshot)
+  } finally {
+    aiSingleMoveBusy.value = false
+  }
+}
+
+const showRequestAiMoveButton = computed(
+  () =>
+    screen.value === 'game' &&
+    gameMode.value === 'solo' &&
+    !boardEditorEnabled.value &&
+    status.value === 'playing' &&
+    !timeoutLoser.value &&
+    !aiGamePaused.value,
+)
 
 const pgnFeedback = ref('')
 const pgnPasteText = ref('')
@@ -134,6 +243,7 @@ function applyPgnImport(text: string) {
     return
   }
   aiGamePaused.value = false
+  aiSearchErrorMessage.value = null
   gameState.value = result
   selectedSquare.value = null
   pgnPasteText.value = ''
@@ -150,6 +260,83 @@ function applyPgnFromTextarea() {
 
 const fenPasteText = ref('')
 const fenFeedback = ref('')
+const boardEditorFeedback = ref('')
+
+type BoardEditorTool =
+  | 'erase'
+  | 'red-king'
+  | 'black-king'
+  | 'red-rook'
+  | 'black-rook'
+  | 'red-knight'
+  | 'black-knight'
+  | 'red-elephant'
+  | 'black-elephant'
+  | 'red-gunner'
+  | 'black-gunner'
+  | 'red-pawn'
+  | 'black-pawn'
+  | 'red-assassin'
+  | 'black-assassin'
+  | 'red-eagle-ground'
+  | 'black-eagle-ground'
+  | 'red-eagle-flying'
+  | 'black-eagle-flying'
+
+interface BoardEditorPaletteItem {
+  tool: BoardEditorTool
+  label: string
+  piece: Piece | null
+}
+
+const boardEditorTool = ref<BoardEditorTool>('red-king')
+const boardEditorTurn = ref<Side>('red')
+const boardEditorKingTwoStepRed = ref(true)
+const boardEditorKingTwoStepBlack = ref(true)
+
+/** Chặn đặt vua thứ hai — mở modal giải thích. */
+const boardEditorSecondKingModalOpen = ref(false)
+
+/** Xác nhận làm trống bàn (thay window.confirm). */
+const boardEditorClearBoardModalOpen = ref(false)
+
+const boardEditorPalette: BoardEditorPaletteItem[] = [
+  { tool: 'red-king', label: 'Vua Đỏ', piece: { side: 'red', kind: 'king' } },
+  { tool: 'black-king', label: 'Vua Đen', piece: { side: 'black', kind: 'king' } },
+  { tool: 'red-rook', label: 'Xe Đỏ', piece: { side: 'red', kind: 'rook' } },
+  { tool: 'black-rook', label: 'Xe Đen', piece: { side: 'black', kind: 'rook' } },
+  { tool: 'red-knight', label: 'Mã Đỏ', piece: { side: 'red', kind: 'knight' } },
+  { tool: 'black-knight', label: 'Mã Đen', piece: { side: 'black', kind: 'knight' } },
+  { tool: 'red-elephant', label: 'Tượng Đỏ', piece: { side: 'red', kind: 'elephant' } },
+  { tool: 'black-elephant', label: 'Tượng Đen', piece: { side: 'black', kind: 'elephant' } },
+  { tool: 'red-gunner', label: 'Pháo Đỏ', piece: { side: 'red', kind: 'gunner' } },
+  { tool: 'black-gunner', label: 'Pháo Đen', piece: { side: 'black', kind: 'gunner' } },
+  { tool: 'red-pawn', label: 'Tốt Đỏ', piece: { side: 'red', kind: 'pawn' } },
+  { tool: 'black-pawn', label: 'Tốt Đen', piece: { side: 'black', kind: 'pawn' } },
+  { tool: 'red-assassin', label: 'Sát thủ Đỏ', piece: { side: 'red', kind: 'assassin' } },
+  { tool: 'black-assassin', label: 'Sát thủ Đen', piece: { side: 'black', kind: 'assassin' } },
+  {
+    tool: 'red-eagle-ground',
+    label: 'Đại bàng Đỏ (đất)',
+    piece: { side: 'red', kind: 'eagle', eagleMode: 'ground' },
+  },
+  {
+    tool: 'black-eagle-ground',
+    label: 'Đại bàng Đen (đất)',
+    piece: { side: 'black', kind: 'eagle', eagleMode: 'ground' },
+  },
+  {
+    tool: 'red-eagle-flying',
+    label: 'Đại bàng Đỏ (bay)',
+    piece: { side: 'red', kind: 'eagle', eagleMode: 'flying' },
+  },
+  {
+    tool: 'black-eagle-flying',
+    label: 'Đại bàng Đen (bay)',
+    piece: { side: 'black', kind: 'eagle', eagleMode: 'flying' },
+  },
+  { tool: 'erase', label: 'Tẩy quân', piece: null },
+]
 
 function clearFenFeedbackSoon() {
   window.setTimeout(() => {
@@ -175,6 +362,7 @@ function applyFenFromTextarea() {
     return
   }
   aiGamePaused.value = false
+  aiSearchErrorMessage.value = null
   gameState.value = result
   selectedSquare.value = null
   if (gameMode.value === 'vs-ai' && matchClockSettings.value) {
@@ -196,13 +384,160 @@ async function copyFenToClipboard() {
   }
 }
 
+function clonePieceForEditor(piece: Piece): Piece {
+  if (piece.kind !== 'eagle') return { side: piece.side, kind: piece.kind }
+  return {
+    side: piece.side,
+    kind: 'eagle',
+    eagleMode: piece.eagleMode === 'flying' ? 'flying' : 'ground',
+  }
+}
+
+function cloneBoardForEditor() {
+  return gameState.value.board.map((row) =>
+    row.map((piece) => (piece ? clonePieceForEditor(piece) : null)),
+  )
+}
+
+function getEditorPieceFromTool(tool: BoardEditorTool): Piece | null {
+  const item = boardEditorPalette.find((p) => p.tool === tool)
+  if (!item || !item.piece) return null
+  return clonePieceForEditor(item.piece)
+}
+
+function countPieces(kind: PieceKind, side: Side): number {
+  let count = 0
+  for (let row = 0; row < BOARD_ROWS; row++) {
+    for (let col = 0; col < BOARD_COLS; col++) {
+      const piece = gameState.value.board[row]?.[col]
+      if (piece?.kind === kind && piece.side === side) count += 1
+    }
+  }
+  return count
+}
+
+function countKingsOnBoard(board: (Piece | null)[][], side: Side): number {
+  let count = 0
+  for (let row = 0; row < BOARD_ROWS; row++) {
+    for (let col = 0; col < BOARD_COLS; col++) {
+      const piece = board[row]?.[col]
+      if (piece?.kind === 'king' && piece.side === side) count += 1
+    }
+  }
+  return count
+}
+
+const boardEditorSummary = computed(() => {
+  const redKings = countPieces('king', 'red')
+  const blackKings = countPieces('king', 'black')
+  if (redKings > 1 || blackKings > 1) {
+    return 'Nhiều vua cùng phe (thường do FEN): engine chỉ tính theo một ô. Nên sửa bàn hoặc FEN cho đúng 1 vua mỗi bên.'
+  }
+  if (redKings !== 1 || blackKings !== 1) {
+    return 'Nên có đúng 1 vua mỗi bên để thế cờ hợp lệ.'
+  }
+  if (isInCheck(gameState.value, gameState.value.turn)) {
+    const side = gameState.value.turn === 'red' ? 'Đỏ' : 'Đen'
+    return `Phe ${side} đang bị chiếu ở thế cờ hiện tại.`
+  }
+  return 'Thế cờ có thể chơi ngay.'
+})
+
+function syncBoardEditorControlsFromState() {
+  boardEditorTurn.value = gameState.value.turn
+  boardEditorKingTwoStepRed.value = gameState.value.kingTwoStepAvailable.red
+  boardEditorKingTwoStepBlack.value = gameState.value.kingTwoStepAvailable.black
+}
+
+function applyBoardEditorState(nextBoard: (Piece | null)[][]) {
+  gameState.value = createStateFromBoard(nextBoard, boardEditorTurn.value, {
+    red: boardEditorKingTwoStepRed.value,
+    black: boardEditorKingTwoStepBlack.value,
+  })
+  selectedSquare.value = null
+  aiSearchErrorMessage.value = null
+  aiGamePaused.value = false
+  cancelPendingSearches()
+}
+
+function dismissBoardEditorSecondKingModal() {
+  boardEditorSecondKingModalOpen.value = false
+}
+
+function handleBoardEditorSquareClick(row: number, col: number) {
+  const nextBoard = cloneBoardForEditor()
+  const piece = getEditorPieceFromTool(boardEditorTool.value)
+  nextBoard[row]![col] = piece
+  if (piece?.kind === 'king' && countKingsOnBoard(nextBoard, piece.side) > 1) {
+    boardEditorSecondKingModalOpen.value = true
+    return
+  }
+  applyBoardEditorState(nextBoard)
+}
+
+function toggleBoardEditor() {
+  boardEditorEnabled.value = !boardEditorEnabled.value
+  boardEditorFeedback.value = ''
+  boardEditorClearBoardModalOpen.value = false
+  selectedSquare.value = null
+  if (boardEditorEnabled.value) {
+    syncBoardEditorControlsFromState()
+  } else {
+    gameResultDismissed.value = false
+  }
+}
+
+function setBoardEditorTurn(side: Side) {
+  boardEditorTurn.value = side
+  applyBoardEditorState(cloneBoardForEditor())
+}
+
+function setBoardEditorKingTwoStep(side: Side, value: boolean) {
+  if (side === 'red') boardEditorKingTwoStepRed.value = value
+  else boardEditorKingTwoStepBlack.value = value
+  applyBoardEditorState(cloneBoardForEditor())
+}
+
+function openClearBoardModalForEditor() {
+  boardEditorClearBoardModalOpen.value = true
+}
+
+function dismissClearBoardModalForEditor() {
+  boardEditorClearBoardModalOpen.value = false
+}
+
+function confirmClearBoardForEditor() {
+  const nextBoard = Array.from({ length: BOARD_ROWS }, () =>
+    Array.from({ length: BOARD_COLS }, () => null as Piece | null),
+  )
+  applyBoardEditorState(nextBoard)
+  boardEditorFeedback.value = 'Đã làm trống bàn cờ.'
+  boardEditorClearBoardModalOpen.value = false
+}
+
+function restoreInitialPositionForEditor() {
+  const initial = createInitialState()
+  gameState.value = initial
+  selectedSquare.value = null
+  aiSearchErrorMessage.value = null
+  aiGamePaused.value = false
+  cancelPendingSearches()
+  syncBoardEditorControlsFromState()
+  boardEditorFeedback.value = 'Đã khôi phục thế cờ khai cuộc.'
+}
+
 const status = computed(() => getGameStatus(gameState.value))
 
 /** Ô vua đang bị chiếu — hiển thị nhấn mạnh trên bàn (khi ván đang diễn ra hoặc vừa chiếu hết). */
 const kingInCheckSquare = computed((): Position | null => {
   if (status.value !== 'playing' && status.value !== 'checkmate') return null
-  if (!isInCheck(gameState.value, gameState.value.turn)) return null
-  return findKing(gameState.value, gameState.value.turn)
+  const turn = gameState.value.turn
+  if (status.value === 'checkmate' && !isInCheck(gameState.value, turn)) {
+    const other: Side = turn === 'red' ? 'black' : 'red'
+    return findKing(gameState.value, other)
+  }
+  if (!isInCheck(gameState.value, turn)) return null
+  return findKing(gameState.value, turn)
 })
 
 const {
@@ -258,6 +593,7 @@ function beginVsAiFromSetup() {
   }
   gameMode.value = 'vs-ai'
   aiGamePaused.value = false
+  aiSearchErrorMessage.value = null
   gameState.value = createInitialState()
   selectedSquare.value = null
   screen.value = 'game'
@@ -328,16 +664,19 @@ const isAiThinking = computed(
     screen.value === 'game' &&
     gameMode.value === 'vs-ai' &&
     !aiGamePaused.value &&
+    !boardEditorEnabled.value &&
     status.value === 'playing' &&
     !timeoutLoser.value &&
     gameState.value.turn === 'black',
 )
 
+const interactionBlocked = computed(() => isAiThinking.value || aiSingleMoveBusy.value)
+
 /** Lật đại bàng (mặt đất → bay): chỉ khi đã chọn đúng quân và đến lượt — icon / phím L (cạnh bàn: nhấp ô quân khi không có ô phía trước trong bàn). */
 const canFlipSelectedEagle = computed(() => {
   if (status.value !== 'playing' || timeoutLoser.value) return false
   if (gameMode.value === 'vs-ai' && aiGamePaused.value) return false
-  if (isAiThinking.value) return false
+  if (interactionBlocked.value) return false
   const sel = selectedSquare.value
   if (!sel) return false
   const p = gameState.value.board[sel.row]?.[sel.col]
@@ -394,7 +733,7 @@ useEventListener(
 
 const modeLabel = computed(() =>
   gameMode.value === 'solo'
-    ? 'Hai người đi cùng máy (luân phiên lượt)'
+    ? 'Hai người đi cùng máy (luân phiên lượt) — có thể bấm «AI đi thay» cho lượt hiện tại.'
     : `Bạn cầm Đỏ; máy cầm Đen (${Math.round(AI_SEARCH_MS_MIN / 1000)}–${Math.round(AI_MAX_SEARCH_MS / 1000)}s ngẫu nhiên / tối đa ${AI_MAX_PLY} ply mỗi nước)`,
 )
 
@@ -407,26 +746,53 @@ const headline = computed(() => {
   ) {
     return 'Tạm dừng'
   }
+  if (boardEditorEnabled.value) {
+    if (status.value === 'stalemate') {
+      return 'Đang xếp quân — bàn chưa có nước hợp lệ (không tính hòa lúc xếp)'
+    }
+    if (status.value === 'checkmate') {
+      return 'Đang xếp quân — thế tạm chiếu hết (không tính kết quả lúc xếp)'
+    }
+    return 'Đang xếp quân — chọn quân rồi chạm ô để đặt'
+  }
   if (timeoutLoser.value) {
     const winner = timeoutLoser.value === 'red' ? 'Đen' : 'Đỏ'
     return `Hết giờ - ${winner} thắng`
   }
   if (status.value === 'checkmate') {
-    const winner = gameState.value.turn === 'red' ? 'Đen' : 'Đỏ'
-    return `Chiếu hết - ${winner} thắng`
+    const w = getCheckmateWinner(gameState.value)
+    const winnerLabel = w === 'red' ? 'Đỏ' : 'Đen'
+    return `Chiếu hết - ${winnerLabel} thắng`
   }
   if (status.value === 'stalemate') return 'Hòa - hết nước đi'
   if (isInCheck(gameState.value, gameState.value.turn))
     return `Đang bị chiếu - lượt ${turnText.value}`
+  if (
+    gameMode.value === 'vs-ai' &&
+    aiSearchErrorMessage.value &&
+    status.value === 'playing' &&
+    !timeoutLoser.value
+  ) {
+    return 'Máy (Đen) chưa đi — xem thông báo'
+  }
+  if (aiSingleMoveBusy.value) return 'AI đang đi thay…'
   if (isAiThinking.value) return 'Máy (Đen) đang đi…'
   return `Lượt đi: ${turnText.value}`
 })
 
 watch(
   () =>
-    [gameState.value.turn, gameMode.value, screen.value, status.value, aiGamePaused.value] as const,
+    [
+      gameState.value.turn,
+      gameMode.value,
+      screen.value,
+      status.value,
+      aiGamePaused.value,
+      boardEditorEnabled.value,
+    ] as const,
   (_cur, _prev, onCleanup) => {
     if (screen.value !== 'game' || gameMode.value !== 'vs-ai') return
+    if (boardEditorEnabled.value) return
     if (aiGamePaused.value) return
     if (status.value !== 'playing' || timeoutLoser.value) return
     if (gameState.value.turn !== 'black') return
@@ -437,17 +803,17 @@ watch(
         const snapshot = gameState.value
         if (snapshot.turn !== 'black') return
         const historyLen = snapshot.history.length
-        const result = await requestSearch(snapshot)
+        const outcome = await requestSearch(snapshot)
         if (cancelled) return
         if (screen.value !== 'game' || gameMode.value !== 'vs-ai') return
+        if (boardEditorEnabled.value) return
         if (timeoutLoser.value) return
         if (gameState.value !== snapshot) return
         if (gameState.value.history.length !== historyLen) return
         if (gameState.value.turn !== 'black') return
         if (getGameStatus(gameState.value) !== 'playing') return
-        if (!result) return
-        gameState.value = makeMove(snapshot, result.move)
-        selectedSquare.value = null
+
+        handleAiSearchOutcome(outcome, snapshot)
       })()
     }, 380)
 
@@ -465,9 +831,6 @@ watch(
   (len, prevLen) => {
     if (len < 1) return
     if (prevLen !== undefined && len <= prevLen) return
-    const record = gameState.value.history[len - 1]
-    if (!record) return
-    playForMoveType(record.move.type === 'capture' ? 'capture' : 'move')
     if (screen.value === 'game' && gameMode.value === 'vs-ai') {
       applyIncrementAfterMove()
     }
@@ -479,6 +842,7 @@ function goMenu() {
   selectedSquare.value = null
   matchClockSettings.value = null
   aiGamePaused.value = false
+  aiSearchErrorMessage.value = null
   cancelPendingSearches()
 }
 
@@ -507,6 +871,7 @@ function backFromRules() {
 function startSoloGame() {
   matchClockSettings.value = null
   aiGamePaused.value = false
+  aiSearchErrorMessage.value = null
   gameMode.value = 'solo'
   gameState.value = createInitialState()
   selectedSquare.value = null
@@ -515,6 +880,7 @@ function startSoloGame() {
 
 function resetGame() {
   aiGamePaused.value = false
+  aiSearchErrorMessage.value = null
   gameState.value = createInitialState()
   selectedSquare.value = null
   if (gameMode.value === 'vs-ai' && matchClockSettings.value) {
@@ -524,6 +890,7 @@ function resetGame() {
 
 function handleUndo() {
   if (!canUndo.value) return
+  aiSearchErrorMessage.value = null
   cancelPendingSearches()
   const before = gameState.value
   if (before.history.length === 0) return
@@ -551,6 +918,7 @@ function moveTo(row: number, col: number) {
   )
   const move = candidates[0]
   if (!move) return
+  playForMoveType(move.type === 'capture' ? 'capture' : 'move')
   gameState.value = makeMove(gameState.value, move)
   selectedSquare.value = null
 }
@@ -559,14 +927,19 @@ function maybeFlipSelected() {
   if (!selectedSquare.value) return
   const flipMove = legalMovesFromSelected.value.find((move) => move.type === 'flip')
   if (!flipMove) return
+  playForMoveType('move')
   gameState.value = makeMove(gameState.value, flipMove)
   selectedSquare.value = null
 }
 
 function handleSquareClick(row: number, col: number) {
+  if (boardEditorEnabled.value) {
+    handleBoardEditorSquareClick(row, col)
+    return
+  }
   if (status.value !== 'playing' || timeoutLoser.value) return
   if (gameMode.value === 'vs-ai' && aiGamePaused.value) return
-  if (isAiThinking.value) return
+  if (interactionBlocked.value) return
 
   const flipUi = eagleFlipUiPlacement.value
   if (flipUi?.kind === 'eagleEdge' && flipUi.row === row && flipUi.col === col) {
@@ -639,6 +1012,16 @@ const lastMoveRecord = computed((): MoveRecord | null => {
 function isLastMoveFromSquare(row: number, col: number): boolean {
   const rec = lastMoveRecord.value
   if (!rec) return false
+  const { from, type } = rec.move
+  if (type === 'flip') return false
+  return from.row === row && from.col === col
+}
+
+/** Lật đại bàng: from === to — tô gradient ô đi + ô đích trên cùng một ô. */
+function isLastMoveFlipSquare(row: number, col: number): boolean {
+  const rec = lastMoveRecord.value
+  if (!rec) return false
+  if (rec.move.type !== 'flip') return false
   const { from } = rec.move
   return from.row === row && from.col === col
 }
@@ -651,6 +1034,18 @@ function isLastMoveToSquare(row: number, col: number): boolean {
   return to.row === row && to.col === col
 }
 
+/** Sát thủ nhảy bắt: ô quân bị ăn khác ô đích — tô riêng. */
+function isLastMoveAssassinVictimSquare(row: number, col: number): boolean {
+  const rec = lastMoveRecord.value
+  if (!rec) return false
+  const m = rec.move
+  if (m.type !== 'capture' || !m.captureSquare) return false
+  const v = m.captureSquare
+  const t = m.to
+  if (v.row === t.row && v.col === t.col) return false
+  return v.row === row && v.col === col
+}
+
 type GameOverInfo =
   | { outcome: 'checkmate'; winner: Side }
   | { outcome: 'timeout'; winner: Side }
@@ -658,19 +1053,25 @@ type GameOverInfo =
 
 const gameOverInfo = computed((): GameOverInfo | null => {
   if (screen.value !== 'game') return null
+  if (boardEditorEnabled.value) return null
   if (timeoutLoser.value) {
     const winner: Side = timeoutLoser.value === 'red' ? 'black' : 'red'
     return { outcome: 'timeout', winner }
   }
   if (status.value === 'checkmate') {
-    const winner: Side = gameState.value.turn === 'red' ? 'black' : 'red'
-    return { outcome: 'checkmate', winner }
+    const winner = getCheckmateWinner(gameState.value)
+    if (winner) return { outcome: 'checkmate', winner }
   }
   if (status.value === 'stalemate') {
     return { outcome: 'stalemate' }
   }
   return null
 })
+
+/** Chiếu hết do thế “vua đối phương bị chiếu không đúng lượt” (sau xếp quân / FEN), không phải hết nước. */
+const isIllegalOpponentCheckmate = computed(
+  () => status.value === 'checkmate' && !isInCheck(gameState.value, gameState.value.turn),
+)
 
 const gameResultDismissed = ref(false)
 
@@ -699,8 +1100,14 @@ function winnerDescription(winner: Side): string {
 
 <template>
   <div
-    class="min-h-screen bg-bg-deep py-6 text-text-primary sm:py-8"
-    :class="screen === 'game' ? 'overflow-x-hidden px-0 sm:px-4' : 'px-3 sm:px-4'"
+    class="bg-bg-deep text-text-primary"
+    :class="
+      screen === 'game'
+        ? 'min-h-screen overflow-x-hidden px-0 py-6 sm:px-4 sm:py-8'
+        : screen === 'rules'
+          ? 'flex min-h-0 flex-col overflow-hidden px-3 py-4 sm:px-4 sm:py-6 h-[100dvh] max-h-[100dvh]'
+          : 'min-h-screen px-3 py-6 sm:px-4 sm:py-8'
+    "
   >
     <!-- Menu chính -->
     <div
@@ -781,9 +1188,10 @@ function winnerDescription(winner: Side): string {
       <div class="animate-fade-up animate-delay-3 flex flex-wrap justify-center gap-2 text-sm">
         <RouterLink
           to="/"
-          class="border border-border-default bg-bg-elevated px-4 py-2 text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
+          class="inline-flex items-center gap-1.5 border border-border-default bg-bg-elevated px-4 py-2 text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
         >
-          ← Trang chủ vibe.j2team.org
+          <Icon icon="lucide:home" class="size-4 shrink-0" aria-hidden="true" />
+          Trang chủ J2TEAM
         </RouterLink>
       </div>
     </div>
@@ -848,7 +1256,7 @@ function winnerDescription(winner: Side): string {
           class="border border-border-default bg-bg-elevated px-5 py-2.5 text-sm text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
           @click="cancelAiSetup"
         >
-          Quay lại menu
+          Quay lại menu vChess
         </button>
         <button
           type="button"
@@ -862,55 +1270,55 @@ function winnerDescription(winner: Side): string {
       <div class="flex flex-wrap justify-center gap-2 text-sm">
         <RouterLink
           to="/"
-          class="border border-border-default bg-bg-elevated px-4 py-2 text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
+          class="inline-flex items-center gap-1.5 border border-border-default bg-bg-elevated px-4 py-2 text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
         >
-          ← Trang chủ vibe.j2team.org
+          <Icon icon="lucide:home" class="size-4 shrink-0" aria-hidden="true" />
+          Trang chủ J2TEAM
         </RouterLink>
       </div>
     </div>
 
-    <!-- Trang luật -->
-    <div v-else-if="screen === 'rules'" class="mx-auto w-full max-w-3xl animate-fade-up">
-      <div class="mb-6 flex flex-wrap items-center gap-3">
+    <!-- Trang luật: một cột flex fill viewport — chỉ nội dung luật cuộn, nút luôn trong viewport -->
+    <div
+      v-else-if="screen === 'rules'"
+      class="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col gap-3 animate-fade-up"
+    >
+      <div
+        class="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-3 border-b border-border-default/80 bg-bg-deep py-2"
+      >
         <button
           type="button"
           class="inline-flex items-center gap-2 border border-border-default bg-bg-elevated px-3 py-2 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
           @click="backFromRules"
         >
           <Icon icon="lucide:arrow-left" class="size-4 shrink-0" />
-          {{ rulesBackTarget === 'game' ? 'Quay lại bàn cờ' : 'Quay lại menu' }}
+          {{ rulesBackTarget === 'game' ? 'Quay lại bàn cờ' : 'Quay lại menu vChess' }}
         </button>
         <RouterLink
           to="/"
-          class="border border-border-default bg-bg-surface px-3 py-2 text-sm text-text-dim transition hover:border-border-default hover:text-text-secondary"
+          class="inline-flex items-center gap-1.5 border border-border-default bg-bg-surface px-3 py-2 text-sm text-text-dim transition hover:border-border-default hover:text-text-secondary"
         >
-          Trang chủ
+          <Icon icon="lucide:home" class="size-4 shrink-0" aria-hidden="true" />
+          Trang chủ J2TEAM
         </RouterLink>
       </div>
 
-      <div class="border border-border-default bg-bg-surface p-5 sm:p-6">
-        <h2 class="flex items-center gap-2 font-display text-xl font-semibold text-text-primary">
-          <span class="text-accent-amber">//</span>
-          Luật chơi vChess
-        </h2>
-        <p class="mt-2 text-xs text-text-dim">
-          Bản rút gọn trong app; chi tiết đầy đủ có thể xem thêm trong
-          <code class="text-text-secondary">rules.md</code> (repo).
-        </p>
-        <div class="mt-6 max-h-[min(70vh,40rem)] overflow-y-auto overscroll-contain pr-1">
+      <div class="flex min-h-0 flex-1 flex-col border border-border-default bg-bg-surface">
+        <div class="shrink-0 border-b border-border-default/60 p-5 sm:p-6">
+          <h2 class="flex items-center gap-2 font-display text-xl font-semibold text-text-primary">
+            <span class="text-accent-amber">//</span>
+            Luật chơi vChess
+          </h2>
+          <p class="mt-2 text-xs text-text-dim">
+            Bản rút gọn trong app; chi tiết đầy đủ có thể xem thêm trong
+            <code class="text-text-secondary">rules.md</code> (repo).
+          </p>
+        </div>
+        <div
+          class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 pr-4 sm:px-6 sm:py-5 sm:pr-5"
+        >
           <RulesContent />
         </div>
-      </div>
-
-      <div class="mt-6 border border-border-default bg-bg-elevated p-4">
-        <h3 class="font-display text-sm font-semibold text-text-primary">
-          <span class="text-accent-amber">//</span>
-          Bộ ảnh quân cờ
-        </h3>
-        <p class="mt-2 text-xs text-text-secondary">
-          Mỗi loại quân có ảnh đỏ/đen; vua dùng vương miện, đại bàng mặt bay dùng
-          <code class="text-text-dim">eagle_fly_*</code>.
-        </p>
       </div>
     </div>
 
@@ -919,10 +1327,10 @@ function winnerDescription(winner: Side): string {
       v-else
       class="mx-auto flex w-full max-w-[100rem] flex-col gap-5 lg:flex-row lg:items-start lg:gap-6"
     >
-      <!-- Cột trái: điều hướng, PGN, FEN -->
+      <!-- Cột trái: xếp quân trực quan trước, sau đó PGN / FEN (nâng cao) -->
       <aside
         class="animate-fade-up order-3 flex w-full shrink-0 flex-col gap-4 border border-border-default bg-bg-surface p-4 lg:order-none lg:sticky lg:top-6 lg:w-56 xl:w-60"
-        aria-label="PGN, FEN và mô tả chế độ"
+        aria-label="Xếp quân, PGN, FEN và mô tả chế độ"
       >
         <div>
           <p class="font-display text-xs tracking-widest text-accent-coral">// vCHESS</p>
@@ -938,6 +1346,147 @@ function winnerDescription(winner: Side): string {
             >
             — không dùng nhấp lại ô quân đại bàng.
           </p>
+        </div>
+        <div class="border border-border-default bg-bg-deep/40 p-3 text-xs">
+          <p class="font-display tracking-wide text-accent-coral">// Xếp quân trực quan</p>
+          <p class="mt-2 leading-relaxed text-text-dim">
+            Theo flow quen thuộc của Chess.com / Lichess / Xiangqi editor: chọn quân ở palette rồi
+            chạm vào ô để đặt. Không cần biết FEN/PGN.
+          </p>
+          <button
+            type="button"
+            class="mt-3 inline-flex w-full items-center justify-center gap-1.5 border px-3 py-1.5 transition"
+            :class="
+              boardEditorEnabled
+                ? 'border-accent-coral bg-accent-coral/10 text-accent-coral hover:bg-accent-coral/15'
+                : 'border-border-default bg-bg-elevated text-text-secondary hover:border-accent-coral hover:text-text-primary'
+            "
+            @click="toggleBoardEditor"
+          >
+            <Icon
+              :icon="
+                boardEditorEnabled ? 'lucide:square-pen' : 'lucide:square-dashed-mouse-pointer'
+              "
+              class="size-4 shrink-0"
+              aria-hidden="true"
+            />
+            {{ boardEditorEnabled ? 'Đang bật chế độ xếp quân' : 'Bật chế độ xếp quân' }}
+          </button>
+          <div
+            v-if="boardEditorEnabled"
+            class="mt-3 space-y-3 border border-border-default/70 bg-bg-deep p-2"
+          >
+            <div class="flex flex-wrap gap-2">
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 border border-border-default bg-bg-elevated px-2.5 py-1.5 text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
+                @click="openClearBoardModalForEditor"
+              >
+                <Icon icon="lucide:eraser" class="size-4 shrink-0" aria-hidden="true" />
+                Bàn trống
+              </button>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 border border-border-default bg-bg-elevated px-2.5 py-1.5 text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
+                @click="restoreInitialPositionForEditor"
+              >
+                <Icon icon="lucide:rotate-ccw" class="size-4 shrink-0" aria-hidden="true" />
+                Thế chuẩn
+              </button>
+            </div>
+            <div>
+              <p class="mb-1 text-[10px] uppercase tracking-wider text-text-dim">
+                Lượt đi sau khi xếp
+              </p>
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  class="border px-2.5 py-1 transition"
+                  :class="
+                    boardEditorTurn === 'red'
+                      ? 'border-accent-coral bg-accent-coral/10 text-accent-coral'
+                      : 'border-border-default bg-bg-elevated text-text-secondary hover:border-accent-coral hover:text-text-primary'
+                  "
+                  @click="setBoardEditorTurn('red')"
+                >
+                  Đỏ đi
+                </button>
+                <button
+                  type="button"
+                  class="border px-2.5 py-1 transition"
+                  :class="
+                    boardEditorTurn === 'black'
+                      ? 'border-accent-amber bg-accent-amber/10 text-accent-amber'
+                      : 'border-border-default bg-bg-elevated text-text-secondary hover:border-accent-amber hover:text-text-primary'
+                  "
+                  @click="setBoardEditorTurn('black')"
+                >
+                  Đen đi
+                </button>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-[11px] text-text-secondary">
+              <label class="flex items-center gap-1.5">
+                <input
+                  :checked="boardEditorKingTwoStepRed"
+                  type="checkbox"
+                  class="size-3.5 border border-border-default bg-bg-elevated"
+                  @change="setBoardEditorKingTwoStep('red', !boardEditorKingTwoStepRed)"
+                />
+                Vua Đỏ còn đi 2 ô
+              </label>
+              <label class="flex items-center gap-1.5">
+                <input
+                  :checked="boardEditorKingTwoStepBlack"
+                  type="checkbox"
+                  class="size-3.5 border border-border-default bg-bg-elevated"
+                  @change="setBoardEditorKingTwoStep('black', !boardEditorKingTwoStepBlack)"
+                />
+                Vua Đen còn đi 2 ô
+              </label>
+            </div>
+            <div>
+              <p class="mb-1 text-[10px] uppercase tracking-wider text-text-dim">
+                Chọn quân để đặt
+              </p>
+              <div class="grid grid-cols-4 gap-1.5">
+                <button
+                  v-for="item in boardEditorPalette"
+                  :key="item.tool"
+                  type="button"
+                  class="group flex h-10 items-center justify-center border bg-bg-elevated p-1 transition"
+                  :class="
+                    boardEditorTool === item.tool
+                      ? 'border-accent-sky text-accent-sky ring-1 ring-accent-sky/40'
+                      : 'border-border-default text-text-secondary hover:border-accent-sky hover:text-text-primary'
+                  "
+                  :title="item.label"
+                  @click="boardEditorTool = item.tool"
+                >
+                  <template v-if="item.piece">
+                    <img
+                      :src="getPieceImageSrc(item.piece)"
+                      alt=""
+                      class="h-7 w-7 object-contain opacity-95 transition group-hover:opacity-100"
+                      draggable="false"
+                    />
+                  </template>
+                  <Icon v-else icon="lucide:eraser" class="size-4" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+            <p
+              class="text-[11px]"
+              :class="
+                boardEditorSummary.includes('hợp lệ') ? 'text-accent-sky' : 'text-accent-amber'
+              "
+            >
+              {{ boardEditorSummary }}
+            </p>
+            <p v-if="boardEditorFeedback" class="text-[11px] text-accent-sky">
+              {{ boardEditorFeedback }}
+            </p>
+          </div>
         </div>
         <div class="border border-border-default bg-bg-deep/40 p-3 text-xs">
           <p class="font-display tracking-wide text-accent-sky">// Xuất / nhập ván (PGN vChess)</p>
@@ -1009,17 +1558,25 @@ function winnerDescription(winner: Side): string {
         <div class="border border-border-default bg-bg-deep/40 p-3 text-xs">
           <p class="font-display tracking-wide text-accent-amber">// Thế cờ (FEN vChess)</p>
           <p class="mt-2 leading-relaxed text-text-dim">
-            11 hàng <code class="text-text-secondary">/</code> (từ hàng
-            <code class="text-text-secondary">k</code> xuống
-            <code class="text-text-secondary">a</code>), 9 cột/số. Quân:
-            <code class="text-text-secondary">RNEGKPA</code> + đại bàng
+            Một dòng gồm phần bàn rồi phần trạng thái. Phần bàn là 11 đoạn nối bằng
+            <code class="text-text-secondary">/</code>
+            — mỗi đoạn là một hàng cờ (9 ô), đọc từ
+            <code class="text-text-secondary">k</code> (trên, gần Đen) xuống
+            <code class="text-text-secondary">a</code> (dưới, gần Đỏ). Trong mỗi đoạn: chữ số = số ô
+            trống liên tiếp, chữ cái = quân; chữ hoa = Đỏ, chữ thường = Đen. Quân:
+            <code class="text-text-secondary">R N E G K P A</code>; đại bàng
             <code class="text-text-secondary">H</code>/<code class="text-text-secondary">h</code>
-            (đất) / <code class="text-text-secondary">F</code>/<code class="text-text-secondary"
+            (đi đất) hoặc <code class="text-text-secondary">F</code>/<code
+              class="text-text-secondary"
               >f</code
             >
-            (bay). Hoa = Đỏ. Sau bàn: <code class="text-text-secondary">r|b</code> lượt,
-            <code class="text-text-secondary">0|1</code> quyền vua đi 2 ô (Đỏ, Đen),
-            <code class="text-text-secondary">- 0 1</code> giữ chỗ.
+            (bay). Phần sau (cách khoảng): <code class="text-text-secondary">r</code> hoặc
+            <code class="text-text-secondary">b</code> — ai đi; hai số
+            <code class="text-text-secondary">0</code> hoặc
+            <code class="text-text-secondary">1</code>
+            — lần lượt quyền vua đi hai ô lần đầu (Đỏ, rồi Đen); ba ký tự
+            <code class="text-text-secondary">- 0 1</code> — ô dự phòng (giữ cấu trúc giống FEN cờ
+            Tây).
           </p>
           <div class="mt-3 flex flex-wrap gap-2">
             <button
@@ -1180,6 +1737,11 @@ function winnerDescription(winner: Side): string {
                         @click="handleSquareClick(displayRow, col - 1)"
                       >
                         <span
+                          v-if="isLastMoveFlipSquare(displayRow, col - 1)"
+                          class="vchess-last-move-flip pointer-events-none absolute inset-0 z-0"
+                          aria-hidden="true"
+                        />
+                        <span
                           v-if="isLastMoveFromSquare(displayRow, col - 1)"
                           class="vchess-last-move-from pointer-events-none absolute inset-0 z-0"
                           aria-hidden="true"
@@ -1187,6 +1749,11 @@ function winnerDescription(winner: Side): string {
                         <span
                           v-if="isLastMoveToSquare(displayRow, col - 1)"
                           class="vchess-last-move-to pointer-events-none absolute inset-0 z-0"
+                          aria-hidden="true"
+                        />
+                        <span
+                          v-if="isLastMoveAssassinVictimSquare(displayRow, col - 1)"
+                          class="vchess-last-move-assassin-victim pointer-events-none absolute inset-0 z-0"
                           aria-hidden="true"
                         />
                         <span
@@ -1362,17 +1929,18 @@ function winnerDescription(winner: Side): string {
           <div class="mt-3 flex flex-wrap gap-2 text-sm">
             <RouterLink
               to="/"
-              class="border border-border-default bg-bg-deep px-3 py-1.5 text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
+              class="inline-flex items-center gap-1.5 border border-border-default bg-bg-deep px-3 py-1.5 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
             >
-              ← Trang chủ
+              <Icon icon="lucide:home" class="size-4 shrink-0" aria-hidden="true" />
+              Trang chủ J2TEAM
             </RouterLink>
             <button
               type="button"
-              class="inline-flex items-center gap-1.5 border border-border-default bg-bg-deep px-3 py-1.5 text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
+              class="inline-flex items-center gap-1.5 border border-border-default bg-bg-deep px-3 py-1.5 text-sm text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
               @click="goMenu"
             >
               <Icon icon="lucide:menu" class="size-4 shrink-0" aria-hidden="true" />
-              Menu
+              Menu vChess
             </button>
             <button
               type="button"
@@ -1405,12 +1973,53 @@ function winnerDescription(winner: Side): string {
               />
               {{ aiGamePaused ? 'Tiếp tục' : 'Tạm dừng' }}
             </button>
+            <button
+              v-if="showRequestAiMoveButton"
+              type="button"
+              class="inline-flex items-center gap-1.5 border border-border-default bg-bg-deep px-3 py-1.5 text-text-secondary transition hover:border-accent-sky hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
+              :disabled="interactionBlocked"
+              @click="requestAiMoveForCurrentTurn"
+            >
+              <Icon icon="lucide:wand-sparkles" class="size-4 shrink-0" aria-hidden="true" />
+              AI đi thay (lượt này)
+            </button>
           </div>
         </div>
 
         <div class="border border-border-default bg-bg-elevated p-3">
           <p class="font-display text-xs tracking-widest text-accent-amber">// Lượt đi</p>
           <p class="mt-2 text-sm font-medium text-text-primary">{{ headline }}</p>
+          <div
+            v-if="aiSearchErrorMessage && gameMode === 'vs-ai'"
+            class="mt-3 border border-accent-coral/40 bg-bg-deep/50 p-3 text-sm"
+            role="alert"
+            aria-live="assertive"
+          >
+            <p class="font-display text-xs tracking-widest text-accent-coral">
+              // Lỗi tìm nước máy
+            </p>
+            <p class="mt-2 text-text-secondary">{{ aiSearchErrorMessage }}</p>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 border border-border-default bg-bg-elevated px-3 py-1.5 text-text-secondary transition hover:border-accent-coral hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                :disabled="aiRetryBusy"
+                @click="retryAiMove"
+              >
+                <Icon icon="lucide:refresh-cw" class="size-4 shrink-0" aria-hidden="true" />
+                Thử lại
+              </button>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 border border-border-default bg-bg-elevated px-3 py-1.5 text-text-secondary transition hover:border-accent-amber hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                :disabled="!canUndo"
+                @click="handleUndo"
+              >
+                <Icon icon="lucide:undo-2" class="size-4 shrink-0" aria-hidden="true" />
+                Hoàn nước
+              </button>
+            </div>
+          </div>
         </div>
 
         <div
@@ -1426,7 +2035,7 @@ function winnerDescription(winner: Side): string {
             nước.
           </p>
           <p class="mt-3 text-text-dim">
-            Muốn đổi: Menu → Chơi với máy để tạo ván mới với thời gian khác.
+            Muốn đổi: Menu vChess → Chơi với máy để tạo ván mới với thời gian khác.
           </p>
         </div>
         <div
@@ -1512,7 +2121,9 @@ function winnerDescription(winner: Side): string {
                   {{
                     gameOverInfo.outcome === 'timeout'
                       ? 'Một bên hết thời gian trước.'
-                      : 'Vua không thể thoát khỏi chiếu.'
+                      : isIllegalOpponentCheckmate
+                        ? 'Vua đối phương đang bị chiếu khi tới lượt bạn — ván kết thúc (thường do thế sau xếp quân).'
+                        : 'Vua không thể thoát khỏi chiếu.'
                   }}
                 </p>
               </div>
@@ -1533,6 +2144,98 @@ function winnerDescription(winner: Side): string {
               @click="dismissGameResultModal"
             >
               Đóng
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <Teleport to="body">
+      <div
+        v-if="screen === 'game' && boardEditorClearBoardModalOpen"
+        class="fixed inset-0 z-[302] flex items-center justify-center px-4 py-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="vchess-board-editor-clear-title"
+      >
+        <button
+          type="button"
+          class="absolute inset-0 border-0 bg-bg-deep/85 backdrop-blur-[2px]"
+          aria-label="Đóng"
+          @click="dismissClearBoardModalForEditor"
+        />
+        <div
+          class="relative z-[1] w-full max-w-md border border-border-default bg-bg-surface p-6 shadow-2xl"
+          @click.stop
+        >
+          <p class="font-display text-xs tracking-[0.2em] text-accent-coral">// Xếp quân</p>
+          <h2
+            id="vchess-board-editor-clear-title"
+            class="mt-3 font-display text-2xl font-bold text-text-primary"
+          >
+            Xóa toàn bộ quân trên bàn?
+          </h2>
+          <p class="mt-3 text-sm leading-relaxed text-text-secondary">
+            Mọi quân sẽ bị gỡ khỏi bàn. Bạn vẫn có thể dùng «Thế chuẩn» để khôi phục khai cuộc.
+          </p>
+          <div class="mt-6 flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 border border-accent-coral bg-accent-coral/10 px-4 py-2.5 text-sm font-medium text-accent-coral transition hover:bg-accent-coral/20"
+              @click="confirmClearBoardForEditor"
+            >
+              <Icon icon="lucide:eraser" class="size-4 shrink-0" aria-hidden="true" />
+              Xóa bàn
+            </button>
+            <button
+              type="button"
+              class="border border-border-default bg-bg-deep px-4 py-2.5 text-sm text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
+              @click="dismissClearBoardModalForEditor"
+            >
+              Hủy
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <Teleport to="body">
+      <div
+        v-if="screen === 'game' && boardEditorSecondKingModalOpen"
+        class="fixed inset-0 z-[301] flex items-center justify-center px-4 py-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="vchess-board-editor-king-title"
+      >
+        <button
+          type="button"
+          class="absolute inset-0 border-0 bg-bg-deep/85 backdrop-blur-[2px]"
+          aria-label="Đóng"
+          @click="dismissBoardEditorSecondKingModal"
+        />
+        <div
+          class="relative z-[1] w-full max-w-md border border-border-default bg-bg-surface p-6 shadow-2xl"
+          @click.stop
+        >
+          <p class="font-display text-xs tracking-[0.2em] text-accent-amber">// Xếp quân</p>
+          <h2
+            id="vchess-board-editor-king-title"
+            class="mt-3 font-display text-2xl font-bold text-text-primary"
+          >
+            Chỉ được một vua mỗi phe
+          </h2>
+          <p class="mt-3 text-sm leading-relaxed text-text-secondary">
+            Luật chuẩn và engine vChess chỉ hỗ trợ đúng một vua Đỏ và một vua Đen. Để đổi chỗ vua,
+            hãy tẩy ô cũ hoặc đặt vua lên ô đã có vua cùng màu để thay thế — không thể thêm vua thứ
+            hai trên ô khác.
+          </p>
+          <div class="mt-6 flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="border border-border-default bg-bg-deep px-4 py-2.5 text-sm text-text-secondary transition hover:border-accent-amber hover:text-text-primary"
+              @click="dismissBoardEditorSecondKingModal"
+            >
+              Đã hiểu
             </button>
           </div>
         </div>
@@ -1576,13 +2279,29 @@ function winnerDescription(winner: Side): string {
   height: min(2.25rem, calc(var(--vchess-cell) * 0.58));
 }
 
-/* Nước đi cuối: ô đi (amber) / ô đến (sky) — tách biệt màu với ô chiếu (coral). */
+/* Nước đi cuối: ô đi / ô đến — nền phẳng (kiểu highlight cờ truyền thống). */
 .vchess-last-move-from {
-  background: linear-gradient(135deg, rgba(255, 184, 48, 0.38) 0%, rgba(255, 184, 48, 0.14) 100%);
+  background: rgba(52, 211, 153, 0.32);
 }
 
 .vchess-last-move-to {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.32) 0%, rgba(56, 189, 248, 0.12) 100%);
+  background: rgba(56, 189, 248, 0.38);
+}
+
+/* Sát thủ nhảy bắt — ô quân bị ăn (khác ô đích). */
+.vchess-last-move-assassin-victim {
+  background: rgba(255, 184, 48, 0.44);
+}
+
+/* Lật đại bàng: hai nửa màu ô đi / ô đích — cạnh cứng (không pha trộn). */
+.vchess-last-move-flip {
+  background: linear-gradient(
+    135deg,
+    rgba(52, 211, 153, 0.32) 0%,
+    rgba(52, 211, 153, 0.32) 50%,
+    rgba(56, 189, 248, 0.38) 50%,
+    rgba(56, 189, 248, 0.38) 100%
+  );
 }
 
 /* Ô vua bị chiếu — nền + nhấp nháy nhẹ để thu hút chú ý (accent coral). */

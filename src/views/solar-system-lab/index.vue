@@ -194,22 +194,30 @@ function handleQuizAnswer(payload: { questionId: string; choiceId: string }) {
       </header>
 
       <section class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <article class="border border-border-default bg-bg-surface p-4 animate-fade-up animate-delay-1">
+        <article
+          class="border border-border-default bg-bg-surface p-4 animate-fade-up animate-delay-1"
+        >
           <p class="font-display text-xs tracking-widest text-text-dim">SIM DATE</p>
           <p class="mt-2 text-xl font-semibold">{{ formattedSimulationDate }}</p>
         </article>
 
-        <article class="border border-border-default bg-bg-surface p-4 animate-fade-up animate-delay-2">
+        <article
+          class="border border-border-default bg-bg-surface p-4 animate-fade-up animate-delay-2"
+        >
           <p class="font-display text-xs tracking-widest text-text-dim">EARTH YEARS</p>
           <p class="mt-2 text-xl font-semibold">{{ formatNumber(earthYearsElapsed, 2) }}</p>
         </article>
 
-        <article class="border border-border-default bg-bg-surface p-4 animate-fade-up animate-delay-3">
+        <article
+          class="border border-border-default bg-bg-surface p-4 animate-fade-up animate-delay-3"
+        >
           <p class="font-display text-xs tracking-widest text-text-dim">SELECTED PLANET</p>
           <p class="mt-2 text-xl font-semibold text-accent-amber">{{ selectedPlanet.name }}</p>
         </article>
 
-        <article class="border border-border-default bg-bg-surface p-4 animate-fade-up animate-delay-4">
+        <article
+          class="border border-border-default bg-bg-surface p-4 animate-fade-up animate-delay-4"
+        >
           <p class="font-display text-xs tracking-widest text-text-dim">LESSON STATUS</p>
           <p class="mt-2 text-sm text-text-secondary">{{ lessonStatus }}</p>
         </article>
@@ -224,7 +232,10 @@ function handleQuizAnswer(payload: { questionId: string; choiceId: string }) {
             Mô phỏng quỹ đạo
           </h2>
 
-          <div ref="stageRef" class="relative aspect-16/10 overflow-hidden border border-border-default bg-bg-deep">
+          <div
+            ref="stageRef"
+            class="relative aspect-16/10 overflow-hidden border border-border-default bg-bg-deep"
+          >
             <canvas ref="canvasRef" class="h-full w-full cursor-crosshair" />
 
             <div
@@ -299,16 +310,27 @@ function handleQuizAnswer(payload: { questionId: string; choiceId: string }) {
 
           <div class="mt-4 grid gap-3 lg:grid-cols-2">
             <label class="border border-border-default bg-bg-elevated p-3">
-              <span class="font-display text-xs tracking-widest text-text-dim">TỐC ĐỘ THỜI GIAN</span>
+              <span class="font-display text-xs tracking-widest text-text-dim"
+                >TỐC ĐỘ THỜI GIAN</span
+              >
               <div class="mt-2 flex items-center justify-between text-sm">
                 <span>{{ formatNumber(daysPerSecond, 0) }} ngày/giây</span>
                 <span class="text-text-dim">5 → 120</span>
               </div>
-              <input v-model.number="daysPerSecond" type="range" min="5" max="120" step="1" class="mt-3 w-full" />
+              <input
+                v-model.number="daysPerSecond"
+                type="range"
+                min="5"
+                max="120"
+                step="1"
+                class="mt-3 w-full"
+              />
             </label>
 
             <label class="border border-border-default bg-bg-elevated p-3">
-              <span class="font-display text-xs tracking-widest text-text-dim">TỈ LỆ KHOẢNG CÁCH</span>
+              <span class="font-display text-xs tracking-widest text-text-dim"
+                >TỈ LỆ KHOẢNG CÁCH</span
+              >
               <div class="mt-2 flex items-center justify-between text-sm">
                 <span>{{ formatNumber(distanceScale, 2) }}x</span>
                 <span class="text-text-dim">0.75 → 1.40</span>
@@ -324,16 +346,27 @@ function handleQuizAnswer(payload: { questionId: string; choiceId: string }) {
             </label>
 
             <label class="border border-border-default bg-bg-elevated p-3">
-              <span class="font-display text-xs tracking-widest text-text-dim">TỈ LỆ KÍCH THƯỚC</span>
+              <span class="font-display text-xs tracking-widest text-text-dim"
+                >TỈ LỆ KÍCH THƯỚC</span
+              >
               <div class="mt-2 flex items-center justify-between text-sm">
                 <span>{{ formatNumber(sizeScale, 2) }}x</span>
                 <span class="text-text-dim">0.8 → 1.8</span>
               </div>
-              <input v-model.number="sizeScale" type="range" min="0.8" max="1.8" step="0.01" class="mt-3 w-full" />
+              <input
+                v-model.number="sizeScale"
+                type="range"
+                min="0.8"
+                max="1.8"
+                step="0.01"
+                class="mt-3 w-full"
+              />
             </label>
 
             <div class="border border-border-default bg-bg-elevated p-3">
-              <span class="font-display text-xs tracking-widest text-text-dim">LỚP DỮ LIỆU HIỂN THỊ</span>
+              <span class="font-display text-xs tracking-widest text-text-dim"
+                >LỚP DỮ LIỆU HIỂN THỊ</span
+              >
               <div class="mt-3 grid gap-2 sm:grid-cols-2">
                 <button
                   class="flex items-center justify-between border px-3 py-2 text-sm transition"
@@ -429,7 +462,9 @@ function handleQuizAnswer(payload: { questionId: string; choiceId: string }) {
               >
                 <span
                   class="inline-block h-2.5 w-2.5"
-                  :style="{ background: `linear-gradient(135deg, ${planet.primaryColor}, ${planet.secondaryColor})` }"
+                  :style="{
+                    background: `linear-gradient(135deg, ${planet.primaryColor}, ${planet.secondaryColor})`,
+                  }"
                 />
                 {{ planet.name }}
               </button>

@@ -38,7 +38,9 @@ function handlePick(scenarioId: string) {
       @click="handlePick(scenario.id)"
     >
       <div class="mb-3 flex items-center justify-between">
-        <span class="font-display text-xs tracking-[0.2em] text-text-dim">{{ scenario.badge }}</span>
+        <span class="font-display text-xs tracking-[0.2em] text-text-dim">{{
+          scenario.badge
+        }}</span>
         <span class="inline-flex items-center gap-1 text-xs text-accent-sky">
           <Icon :icon="scenario.icon" class="size-3.5" />
           <span>{{ scenario.steps.length }} bước</span>
@@ -52,7 +54,9 @@ function handlePick(scenarioId: string) {
         loading="lazy"
       />
 
-      <h2 class="mt-3 font-display text-2xl font-semibold text-text-primary">{{ scenario.name }}</h2>
+      <h2 class="mt-3 font-display text-2xl font-semibold text-text-primary">
+        {{ scenario.name }}
+      </h2>
       <p class="mt-2 text-sm text-text-secondary">{{ scenario.description }}</p>
       <p class="mt-2 text-xs text-text-dim">{{ scenario.summary }}</p>
     </button>

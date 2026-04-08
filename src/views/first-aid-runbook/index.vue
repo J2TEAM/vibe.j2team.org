@@ -275,7 +275,9 @@ function toggleReplayAuto() {
         >
           HOME
         </RouterLink>
-        <div class="bg-accent-coral px-3 py-1.5 font-display text-xs font-bold tracking-widest text-bg-deep">
+        <div
+          class="bg-accent-coral px-3 py-1.5 font-display text-xs font-bold tracking-widest text-bg-deep"
+        >
           FIRST_AID_RUNBOOK
         </div>
       </div>
@@ -285,14 +287,17 @@ function toggleReplayAuto() {
       <section class="grid gap-5 animate-fade-up lg:grid-cols-[1.2fr_1fr]">
         <article>
           <p class="font-display text-sm tracking-widest text-accent-coral">// EMERGENCY DRILL</p>
-          <h1 class="mt-3 font-display text-4xl font-bold tracking-tight md:text-6xl">First Aid Runbook</h1>
+          <h1 class="mt-3 font-display text-4xl font-bold tracking-tight md:text-6xl">
+            First Aid Runbook
+          </h1>
           <p class="mt-4 max-w-3xl text-sm leading-relaxed text-text-secondary md:text-base">
-            Bạn tập xử lý tình huống cấp cứu bằng quyết định theo bước và giới hạn thời gian.
-            Giao diện đã tách nhỏ component, giảm mật độ chữ và tăng hình minh họa.
+            Bạn tập xử lý tình huống cấp cứu bằng quyết định theo bước và giới hạn thời gian. Giao
+            diện đã tách nhỏ component, giảm mật độ chữ và tăng hình minh họa.
           </p>
           <p class="mt-2 text-xs text-text-dim">
             Tình huống thực tế nguy hiểm: gọi
-            <span class="font-display text-accent-coral">{{ emergencyHotline }}</span>.
+            <span class="font-display text-accent-coral">{{ emergencyHotline }}</span
+            >.
           </p>
         </article>
 
@@ -311,10 +316,14 @@ function toggleReplayAuto() {
         @select="switchScenario"
       />
 
-      <section class="mt-8 border border-border-default bg-bg-surface p-6 animate-fade-up animate-delay-1">
+      <section
+        class="mt-8 border border-border-default bg-bg-surface p-6 animate-fade-up animate-delay-1"
+      >
         <div class="flex flex-wrap items-center gap-3">
           <span class="font-display text-xs tracking-widest text-accent-sky">// OBJECTIVE</span>
-          <span class="text-xs text-text-dim">Tiến trình: {{ progressCurrent }}/{{ progressTotal || 0 }}</span>
+          <span class="text-xs text-text-dim"
+            >Tiến trình: {{ progressCurrent }}/{{ progressTotal || 0 }}</span
+          >
         </div>
 
         <div class="mt-3 grid gap-4 lg:grid-cols-[1.25fr_1fr]">
@@ -375,7 +384,9 @@ function toggleReplayAuto() {
         />
       </template>
 
-      <footer class="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-border-default pt-6">
+      <footer
+        class="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-border-default pt-6"
+      >
         <p class="text-xs text-text-dim">
           Công cụ mô phỏng để tập phản xạ. Không thay thế chẩn đoán hay điều trị y khoa.
         </p>

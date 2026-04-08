@@ -80,7 +80,9 @@ function toneClass(severity: Severity): string {
         <p class="mt-3 text-sm text-text-primary">{{ replayItem.selectedLabel }}</p>
         <p class="mt-3 text-sm leading-relaxed text-text-secondary">{{ replayItem.consequence }}</p>
         <div class="mt-4 grid grid-cols-3 gap-2 text-xs">
-          <p class="text-text-dim">Điểm: <span class="text-text-secondary">{{ replayItem.impact }}</span></p>
+          <p class="text-text-dim">
+            Điểm: <span class="text-text-secondary">{{ replayItem.impact }}</span>
+          </p>
           <p class="text-text-dim">
             Tốn: <span class="text-text-secondary">{{ replayItem.elapsedTime }}s</span>
           </p>

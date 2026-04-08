@@ -1042,10 +1042,26 @@ export function isInCheck(state: VChessState, side: Side): boolean {
 
 export type GameStatus = 'playing' | 'checkmate' | 'stalemate'
 
+/**
+ * Trạng thái ván: chiếu hết cổ điển (hết nước + vua đang đi bị chiếu), hòa stalemate,
+ * hoặc thế không hợp lệ sau xếp quân / FEN: vua đối phương đang bị chiếu dù không phải
+ * lượt họ — coi như ván kết thúc, phe đang tới lượt thắng (giống cách nhiều GUI cờ xử lý).
+ */
 export function getGameStatus(state: VChessState): GameStatus {
+  if (!isInCheck(state, state.turn)) {
+    const other: Side = state.turn === 'red' ? 'black' : 'red'
+    if (isInCheck(state, other)) return 'checkmate'
+  }
   const hasMoves = getAllLegalMoves(state).length > 0
   if (hasMoves) return 'playing'
   return isInCheck(state, state.turn) ? 'checkmate' : 'stalemate'
+}
+
+/** Phe thắng khi `getGameStatus` là `checkmate` (gồm chiếu hết chuẩn và thế “vua đối phương bị chiếu sai lượt”). */
+export function getCheckmateWinner(state: VChessState): Side | null {
+  if (getGameStatus(state) !== 'checkmate') return null
+  if (!isInCheck(state, state.turn)) return state.turn
+  return state.turn === 'red' ? 'black' : 'red'
 }
 
 /**

@@ -1,6 +1,11 @@
 /// <reference lib="webworker" />
 import type { VChessState } from './vchess-engine'
-import { findBestMoveSync, randomAiSearchBudgetMs, type SearchResult } from './vchess-search'
+import {
+  findBestMoveSync,
+  randomAiSearchBudgetMs,
+  type IterativePlyDebugEvent,
+  type SearchResult,
+} from './vchess-search'
 import { computeHash } from './vchess-zobrist'
 
 export type VChessAiWorkerIn = {
@@ -11,6 +16,7 @@ export type VChessAiWorkerIn = {
 
 export type VChessAiWorkerOut =
   | { type: 'result'; id: number; result: SearchResult | null }
+  | { type: 'debug'; id: number; event: IterativePlyDebugEvent }
   | { type: 'error'; id: number; message: string }
 
 self.onmessage = (event: MessageEvent<VChessAiWorkerIn>) => {
@@ -19,7 +25,12 @@ self.onmessage = (event: MessageEvent<VChessAiWorkerIn>) => {
   const { id, state } = msg
   try {
     state.hash = computeHash(state)
-    const result = findBestMoveSync(state, randomAiSearchBudgetMs())
+    const result = findBestMoveSync(state, randomAiSearchBudgetMs(), {
+      onIterativePly: (event) => {
+        const out: VChessAiWorkerOut = { type: 'debug', id, event }
+        self.postMessage(out)
+      },
+    })
     const out: VChessAiWorkerOut = { type: 'result', id, result }
     self.postMessage(out)
   } catch (err) {

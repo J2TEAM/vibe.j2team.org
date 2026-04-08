@@ -9,9 +9,10 @@ import {
 } from '../engine/vchess-engine'
 
 /**
- * FEN vChess — bàn 9×11, hàng trong chuỗi từ **trên xuống** (hàng k → a).
- * Quân: R N E G K P A; đại bàng đất H/h, bay F/f. Hoa = Đỏ, thường = Đen.
- * Phần sau bàn: `r|b` lượt; `0|1` quyền vua đi 2 ô lần đầu (Đỏ rồi Đen); `- 0 1` giữ chỗ (giống FIDE).
+ * FEN vChess — một dòng: [phần bàn] [phần trạng thái].
+ * Phần bàn: 11 rank nối bằng `/`, mỗi rank 9 ô; rank đầu = hàng k (phía Đen), rank cuối = hàng a (phía Đỏ).
+ * Trong mỗi rank: chữ số = ô trống liên tiếp; chữ = quân (hoa Đỏ, thường Đen). Quân: R N E G K P A; đại bàng H/h đất, F/f bay.
+ * Phần sau: `r` hoặc `b` lượt; hai bit 0/1 quyền vua đi 2 ô lần đầu (Đỏ, Đen); `- 0 1` placeholder (FIDE-style).
  *
  * Ví dụ (một dòng): `.../... r 1 1 - 0 1`
  */

@@ -105,10 +105,12 @@ function computeOrbitalState(planet: PlanetDefinition, elapsedDays: number): Orb
   )
 
   const eccentricAnomalyRad = solveEccentricAnomaly(meanAnomalyRad, planet.eccentricity)
-  const trueAnomalyRad = 2 * Math.atan2(
-    Math.sqrt(1 + planet.eccentricity) * Math.sin(eccentricAnomalyRad / 2),
-    Math.sqrt(1 - planet.eccentricity) * Math.cos(eccentricAnomalyRad / 2),
-  )
+  const trueAnomalyRad =
+    2 *
+    Math.atan2(
+      Math.sqrt(1 + planet.eccentricity) * Math.sin(eccentricAnomalyRad / 2),
+      Math.sqrt(1 - planet.eccentricity) * Math.cos(eccentricAnomalyRad / 2),
+    )
 
   const radiusAU = planet.distanceAU * (1 - planet.eccentricity * Math.cos(eccentricAnomalyRad))
 
@@ -214,15 +216,7 @@ function drawPlanet(
     ctx.strokeStyle = 'rgba(223, 196, 144, 0.55)'
     ctx.lineWidth = Math.max(1.1, state.drawRadius * 0.28)
     ctx.beginPath()
-    ctx.ellipse(
-      state.x,
-      state.y,
-      state.drawRadius * 1.95,
-      state.drawRadius * 0.62,
-      -0.22,
-      0,
-      TAU,
-    )
+    ctx.ellipse(state.x, state.y, state.drawRadius * 1.95, state.drawRadius * 0.62, -0.22, 0, TAU)
     ctx.stroke()
   }
 
@@ -353,7 +347,9 @@ export function useSolarSimulation() {
 
   const selectedSizeVsEarth = computed(() => selectedPlanet.value.diameterKm / EARTH_DIAMETER_KM)
 
-  const selectedYearVsEarth = computed(() => selectedPlanet.value.orbitalPeriodDays / EARTH_YEAR_DAYS)
+  const selectedYearVsEarth = computed(
+    () => selectedPlanet.value.orbitalPeriodDays / EARTH_YEAR_DAYS,
+  )
 
   const selectedOrbitProgress = computed(() => {
     const fraction =
@@ -519,7 +515,8 @@ export function useSolarSimulation() {
       const semimajorPx = mapDistanceAUToPixels(planet.distanceAU, maxOrbitRadius)
       const semiminorPx = semimajorPx * Math.sqrt(1 - planet.eccentricity * planet.eccentricity)
 
-      const xFocus = semimajorPx * (Math.cos(orbitalState.eccentricAnomalyRad) - planet.eccentricity)
+      const xFocus =
+        semimajorPx * (Math.cos(orbitalState.eccentricAnomalyRad) - planet.eccentricity)
       const yFocus = semiminorPx * Math.sin(orbitalState.eccentricAnomalyRad)
 
       const projectedPoint = projectFromFocusCoordinates(
@@ -530,7 +527,11 @@ export function useSolarSimulation() {
       )
 
       const diameterRatio = planet.diameterKm / EARTH_DIAMETER_KM
-      const drawRadius = clamp(earthBaseRadius * Math.pow(diameterRatio, 0.5) * sizeScale.value, 2.3, 24)
+      const drawRadius = clamp(
+        earthBaseRadius * Math.pow(diameterRatio, 0.5) * sizeScale.value,
+        2.3,
+        24,
+      )
 
       projected[planet.id] = {
         x: baseCenterX + projectedPoint.x,
@@ -577,9 +578,10 @@ export function useSolarSimulation() {
       for (const planet of PLANETS) {
         const path = buildOrbitPath(planet, projected[planet.id].semimajorPx, sunX, sunY)
 
-        ctx.strokeStyle = planet.id === selectedPlanetId.value
-          ? 'rgba(255, 184, 48, 0.62)'
-          : 'rgba(139, 157, 181, 0.23)'
+        ctx.strokeStyle =
+          planet.id === selectedPlanetId.value
+            ? 'rgba(255, 184, 48, 0.62)'
+            : 'rgba(139, 157, 181, 0.23)'
         ctx.lineWidth = planet.id === selectedPlanetId.value ? 1.3 : 1
         ctx.setLineDash([6, 8])
 
@@ -601,9 +603,17 @@ export function useSolarSimulation() {
 
         ctx.font = "12px 'Be Vietnam Pro', sans-serif"
         ctx.fillStyle = 'rgba(255, 184, 48, 0.94)'
-        ctx.fillText(inclinationText, focusState.x + cameraOffsetX + 10, focusState.y + cameraOffsetY - 14)
+        ctx.fillText(
+          inclinationText,
+          focusState.x + cameraOffsetX + 10,
+          focusState.y + cameraOffsetY - 14,
+        )
         ctx.fillStyle = 'rgba(56, 189, 248, 0.94)'
-        ctx.fillText(eccentricityText, focusState.x + cameraOffsetX + 10, focusState.y + cameraOffsetY + 2)
+        ctx.fillText(
+          eccentricityText,
+          focusState.x + cameraOffsetX + 10,
+          focusState.y + cameraOffsetY + 2,
+        )
       }
     }
 
@@ -626,7 +636,14 @@ export function useSolarSimulation() {
 
     const sunRadius = clamp(Math.min(width, height) * 0.05 * sizeScale.value, 18, 44)
 
-    const sunGlow = ctx.createRadialGradient(sunX, sunY, sunRadius * 0.2, sunX, sunY, sunRadius * 2.8)
+    const sunGlow = ctx.createRadialGradient(
+      sunX,
+      sunY,
+      sunRadius * 0.2,
+      sunX,
+      sunY,
+      sunRadius * 2.8,
+    )
     sunGlow.addColorStop(0, 'rgba(255, 214, 120, 0.9)')
     sunGlow.addColorStop(0.5, 'rgba(255, 167, 64, 0.35)')
     sunGlow.addColorStop(1, 'rgba(255, 167, 64, 0)')
@@ -651,7 +668,9 @@ export function useSolarSimulation() {
     ctx.arc(sunX, sunY, sunRadius, 0, TAU)
     ctx.fill()
 
-    const sortedPlanets = [...PLANETS].sort((left, right) => frameState[left.id].y - frameState[right.id].y)
+    const sortedPlanets = [...PLANETS].sort(
+      (left, right) => frameState[left.id].y - frameState[right.id].y,
+    )
 
     for (const planet of sortedPlanets) {
       const state = frameState[planet.id]
@@ -693,9 +712,10 @@ export function useSolarSimulation() {
         }
 
         const state = frameState[planet.id]
-        ctx.fillStyle = planet.id === selectedPlanetId.value
-          ? 'rgba(255, 184, 48, 0.98)'
-          : 'rgba(240, 237, 230, 0.88)'
+        ctx.fillStyle =
+          planet.id === selectedPlanetId.value
+            ? 'rgba(255, 184, 48, 0.98)'
+            : 'rgba(240, 237, 230, 0.88)'
         ctx.fillText(planet.name, state.x + state.drawRadius + 7, state.y)
       }
 

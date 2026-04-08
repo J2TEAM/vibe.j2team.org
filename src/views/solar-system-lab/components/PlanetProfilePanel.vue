@@ -16,7 +16,9 @@ const props = defineProps<{
   yearComparePercent: number
 }>()
 
-const insolationPercent = computed(() => Math.max(5, Math.round(props.seasonData.insolationIndex * 100)))
+const insolationPercent = computed(() =>
+  Math.max(5, Math.round(props.seasonData.insolationIndex * 100)),
+)
 
 function formatNumber(value: number, digits = 1): string {
   return value.toLocaleString('vi-VN', {
@@ -27,61 +29,85 @@ function formatNumber(value: number, digits = 1): string {
 </script>
 
 <template>
-  <aside class="border border-border-default bg-bg-surface p-4 sm:p-5 animate-fade-up animate-delay-3">
+  <aside
+    class="border border-border-default bg-bg-surface p-4 sm:p-5 animate-fade-up animate-delay-3"
+  >
     <h2 class="flex items-center gap-3 font-display text-2xl font-semibold">
       <span class="font-display text-sm tracking-widest text-accent-amber">//</span>
       Hồ sơ hành tinh
     </h2>
 
     <div class="mt-4 border border-border-default bg-bg-elevated p-4">
-      <p class="font-display text-xs tracking-widest text-text-dim">{{ selectedPlanet.englishName }}</p>
+      <p class="font-display text-xs tracking-widest text-text-dim">
+        {{ selectedPlanet.englishName }}
+      </p>
       <h3 class="mt-2 text-2xl font-semibold text-accent-amber">{{ selectedPlanet.name }}</h3>
-      <p class="mt-3 text-sm leading-relaxed text-text-secondary">{{ selectedPlanet.description }}</p>
+      <p class="mt-3 text-sm leading-relaxed text-text-secondary">
+        {{ selectedPlanet.description }}
+      </p>
       <p class="mt-2 text-sm leading-relaxed text-accent-sky">{{ selectedPlanet.learningHint }}</p>
     </div>
 
     <dl class="mt-4 grid gap-2 text-sm">
-      <div class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2">
+      <div
+        class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2"
+      >
         <dt class="text-text-secondary">Khoảng cách đến Mặt Trời</dt>
         <dd class="font-semibold">{{ formatNumber(selectedDistanceMillionKm, 1) }} triệu km</dd>
       </div>
 
-      <div class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2">
+      <div
+        class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2"
+      >
         <dt class="text-text-secondary">Chu kỳ quỹ đạo</dt>
         <dd class="font-semibold">{{ formatNumber(selectedPlanet.orbitalPeriodDays, 1) }} ngày</dd>
       </div>
 
-      <div class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2">
+      <div
+        class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2"
+      >
         <dt class="text-text-secondary">Vận tốc quỹ đạo</dt>
         <dd class="font-semibold">{{ formatNumber(selectedOrbitSpeedKmS, 1) }} km/s</dd>
       </div>
 
-      <div class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2">
+      <div
+        class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2"
+      >
         <dt class="text-text-secondary">Đường kính</dt>
         <dd class="font-semibold">{{ selectedPlanet.diameterKm.toLocaleString('vi-VN') }} km</dd>
       </div>
 
-      <div class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2">
+      <div
+        class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2"
+      >
         <dt class="text-text-secondary">Độ lệch tâm quỹ đạo (e)</dt>
         <dd class="font-semibold">{{ formatNumber(selectedPlanet.eccentricity, 3) }}</dd>
       </div>
 
-      <div class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2">
+      <div
+        class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2"
+      >
         <dt class="text-text-secondary">Độ nghiêng quỹ đạo (i)</dt>
         <dd class="font-semibold">{{ formatNumber(selectedPlanet.orbitalInclinationDeg, 2) }}°</dd>
       </div>
 
-      <div class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2">
+      <div
+        class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2"
+      >
         <dt class="text-text-secondary">Độ nghiêng trục quay</dt>
         <dd class="font-semibold">{{ formatNumber(selectedPlanet.axialTiltDeg, 2) }}°</dd>
       </div>
 
-      <div class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2">
+      <div
+        class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2"
+      >
         <dt class="text-text-secondary">Số vệ tinh tự nhiên</dt>
         <dd class="font-semibold">{{ selectedPlanet.moons }}</dd>
       </div>
 
-      <div class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2">
+      <div
+        class="flex items-center justify-between border border-border-default bg-bg-elevated px-3 py-2"
+      >
         <dt class="text-text-secondary">Chu kỳ tự quay</dt>
         <dd class="font-semibold">{{ selectedPlanet.rotationLabel }}</dd>
       </div>
@@ -168,8 +194,8 @@ function formatNumber(value: number, digits = 1): string {
         v-if="seasonData.retrogradeRotation"
         class="mt-3 text-xs leading-relaxed text-text-secondary"
       >
-        Hành tinh này quay nghịch chiều (retrograde), nên cảm nhận mùa được đảo hướng so với phần lớn
-        các hành tinh còn lại.
+        Hành tinh này quay nghịch chiều (retrograde), nên cảm nhận mùa được đảo hướng so với phần
+        lớn các hành tinh còn lại.
       </p>
     </div>
   </aside>

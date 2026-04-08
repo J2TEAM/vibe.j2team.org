@@ -42,7 +42,9 @@ function severityIcon(severity: Severity): string {
 </script>
 
 <template>
-  <section class="mt-8 border border-border-default bg-bg-surface p-6 animate-fade-up animate-delay-2">
+  <section
+    class="mt-8 border border-border-default bg-bg-surface p-6 animate-fade-up animate-delay-2"
+  >
     <div class="grid gap-5 lg:grid-cols-[1.1fr_1.5fr]">
       <article class="space-y-4">
         <div class="flex items-center gap-2 text-accent-coral">
@@ -86,7 +88,9 @@ function severityIcon(severity: Severity): string {
           >
             <div class="flex items-center gap-2 text-xs">
               <Icon :icon="severityIcon(choice.severity)" class="size-4" />
-              <span class="font-display tracking-widest">{{ severityLabelMap[choice.severity] }}</span>
+              <span class="font-display tracking-widest">{{
+                severityLabelMap[choice.severity]
+              }}</span>
             </div>
             <p class="mt-2 text-sm leading-relaxed text-text-primary">{{ choice.label }}</p>
           </button>

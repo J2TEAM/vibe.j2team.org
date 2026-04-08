@@ -40,11 +40,15 @@ export function useVchessSounds() {
       window,
       'pointerdown',
       () => {
-        void ensureDecoded().then(() => {
-          void getContext().resume()
-        })
+        // Một số trình duyệt có thể tự suspend AudioContext sau thời gian idle.
+        // Resume lại ở mọi lần tương tác để âm thanh nước đi không bị mất sau khi chờ lâu.
+        const c = getContext()
+        void c.resume()
+        if (!moveBuffer || !captureBuffer) {
+          void ensureDecoded()
+        }
       },
-      { passive: true, once: true },
+      { passive: true },
     )
   }
 

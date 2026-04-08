@@ -64,6 +64,12 @@ export const AI_MAX_PLY = 12
 export const AI_SEARCH_MS_MIN = 8_000
 export const AI_MAX_SEARCH_MS = 15_000
 
+/**
+ * Bật `true` để worker gửi sự kiện từng ply về main (xem `use-vchess-ai-worker.ts`).
+ * Không đổi kết quả tìm kiếm; chỉ thêm chi phí nhỏ (postMessage + clone) giữa các vòng deepening.
+ */
+export const VCHESS_AI_DEBUG_ITERATIVE_PLY = true
+
 export function randomAiSearchBudgetMs(): number {
   const span = AI_MAX_SEARCH_MS - AI_SEARCH_MS_MIN + 1
   return AI_SEARCH_MS_MIN + Math.floor(Math.random() * span)
@@ -450,7 +456,23 @@ export interface SearchResult {
   depthCompleted: number
 }
 
-export function findBestMoveSync(state: VChessState, budgetMs: number): SearchResult | null {
+export type IterativePlyDebugEvent = {
+  ply: number
+  bestMove: Move
+  bestScore: number
+  elapsedMs: number
+  budgetMs: number
+}
+
+export type FindBestMoveOptions = {
+  onIterativePly?: (event: IterativePlyDebugEvent) => void
+}
+
+export function findBestMoveSync(
+  state: VChessState,
+  budgetMs: number,
+  options?: FindBestMoveOptions,
+): SearchResult | null {
   const root = cloneState(state)
   const moves = getAllLegalMoves(root)
   if (moves.length === 0) return null
@@ -501,6 +523,17 @@ export function findBestMoveSync(state: VChessState, budgetMs: number): SearchRe
     if (bestMove !== null) {
       pvMove = bestMove
       bestSoFar = { move: bestMove, score: bestScore, depthCompleted: depth }
+      // Gọi sau khi ply kết thúc; không chạm state bàn cờ / TT — chỉ báo cáo.
+      if (VCHESS_AI_DEBUG_ITERATIVE_PLY) {
+        const elapsedMs = Date.now() - start
+        options?.onIterativePly?.({
+          ply: depth,
+          bestMove,
+          bestScore,
+          elapsedMs,
+          budgetMs,
+        })
+      }
     } else {
       break
     }
