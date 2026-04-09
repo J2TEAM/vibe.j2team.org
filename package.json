@@ -71,7 +71,7 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm lint-staged",
+    "pre-commit": "pnpm exec lint-staged --no-stash",
     "commit-msg": "pnpm commitlint --edit $1"
   },
   "lint-staged": {
