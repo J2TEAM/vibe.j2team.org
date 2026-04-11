@@ -153,48 +153,120 @@ function buildNotePool(
 
 let audioCtx: AudioContext | null = null
 
+// Master volume multiplier (1 = unchanged). Can be adjusted by UI or page code.
+export let MASTER_VOLUME = 1
+export function setMasterVolume(v: number) {
+  MASTER_VOLUME = Math.max(0, v)
+}
+
 function ensureAudioCtx(): AudioContext {
   if (!audioCtx) audioCtx = new AudioContext()
   if (audioCtx.state === 'suspended') audioCtx.resume()
   return audioCtx
 }
 
-export function playNoteSound(frequency: number, duration = 0.4) {
+export function playNoteSound(frequency: number, duration = 0.9) {
   const ctx = ensureAudioCtx()
   const now = ctx.currentTime
 
+  // Master gain controls overall loudness. Increase the peak so phones
+  // sound louder, and extend the tail slightly so the note rings longer.
   const masterGain = ctx.createGain()
   masterGain.gain.setValueAtTime(0, now)
-  masterGain.gain.linearRampToValueAtTime(0.3, now + 0.005)
-  masterGain.gain.exponentialRampToValueAtTime(0.001, now + duration)
-  masterGain.connect(ctx.destination)
+  // quick attack to a higher peak
+  // Detect mobile early — we use this to choose different levels for phones
+  const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  // Boost peak slightly more for low-frequency (bass) notes so small
+  // speakers reproduce them more audibly. If user requested "50% bass",
+  // we set the master peak for mobile bass to 0.5 (50%). Desktop keeps richer levels.
+  const isBass = frequency < 250 // ~D4/E4 cutoff — conservative bass threshold (tuned)
+  const masterPeak = isBass && isMobile ? 0.5 * MASTER_VOLUME : isBass ? 1.0 * MASTER_VOLUME : 0.9 * MASTER_VOLUME
+  masterGain.gain.linearRampToValueAtTime(masterPeak, now + 0.01)
+  // smooth exponential decay to near-silence slightly after `duration`
+  masterGain.gain.exponentialRampToValueAtTime(0.0001, now + duration + 0.06)
 
+  // On mobile, small speakers cannot reproduce deep bass well. Instead of
+  // relying only on sub‑frequencies, add a small peaking filter to lift the
+  // mid-bass band and route harmonics that phones can actually play.
+  let bassFilter: BiquadFilterNode | null = null
+  if (isMobile && isBass) {
+    bassFilter = ctx.createBiquadFilter()
+    bassFilter.type = 'peaking'
+    // boost around 180-250Hz where many phone speakers can still produce energy
+    bassFilter.frequency.setValueAtTime(200, now)
+    bassFilter.Q.setValueAtTime(0.9, now)
+    bassFilter.gain.setValueAtTime(4, now) // +4 dB (tuned down for less boom)
+    masterGain.connect(bassFilter)
+    bassFilter.connect(ctx.destination)
+  } else {
+    masterGain.connect(ctx.destination)
+  }
+
+  // Primary oscillator (body)
   const osc1 = ctx.createOscillator()
   osc1.type = 'triangle'
   osc1.frequency.setValueAtTime(frequency, now)
   const g1 = ctx.createGain()
-  g1.gain.setValueAtTime(0.6, now)
+  // primary gain: for mobile bass we aim for a clear 50% level; on desktop keep the
+  // stronger body so laptops remain full. Values tuned for perceived loudness.
+  if (isBass && isMobile) {
+    g1.gain.setValueAtTime(0.5 * MASTER_VOLUME, now) // 50% primary body on mobile
+  } else {
+    g1.gain.setValueAtTime((isBass ? 1.4 : 1.0) * MASTER_VOLUME, now)
+  }
   osc1.connect(g1).connect(masterGain)
   osc1.start(now)
-  osc1.stop(now + duration)
+  osc1.stop(now + duration + 0.06)
 
+  // Octave harmonic
   const osc2 = ctx.createOscillator()
   osc2.type = 'sine'
   osc2.frequency.setValueAtTime(frequency * 2, now)
   const g2 = ctx.createGain()
-  g2.gain.setValueAtTime(0.15, now)
+  // keep octave harmonic present but slightly reduced for boosted bass
+  g2.gain.setValueAtTime((isBass && isMobile ? 0.25 : isBass ? 0.3 : 0.4) * MASTER_VOLUME, now)
   osc2.connect(g2).connect(masterGain)
   osc2.start(now)
-  osc2.stop(now + duration)
+  osc2.stop(now + duration + 0.06)
 
+  // Higher harmonic (adds brightness)
   const osc3 = ctx.createOscillator()
   osc3.type = 'sine'
   osc3.frequency.setValueAtTime(frequency * 3, now)
   const g3 = ctx.createGain()
-  g3.gain.setValueAtTime(0.05, now)
+  // On mobile, emphasise higher harmonics for bass so it's audible on small
+  // speakers (these harmonics are within the speakers' operating range).
+  g3.gain.setValueAtTime((isBass && isMobile ? 0.25 : isBass ? 0.08 : 0.12) * MASTER_VOLUME, now)
   osc3.connect(g3).connect(masterGain)
   osc3.start(now)
-  osc3.stop(now + duration)
+  osc3.stop(now + duration + 0.06)
+
+  // Sub-octave for low notes: adds weight so bass is audible on small
+  // speakers. Only add for frequencies in the bass range.
+  if (isBass) {
+    const sub = ctx.createOscillator()
+    sub.type = 'sine'
+    sub.frequency.setValueAtTime(Math.max(20, frequency / 2), now)
+    const gsub = ctx.createGain()
+    // Keep sub modest on mobile (often inaudible) and stronger on desktop.
+    // User requested a 50% bump for bass on mobile, so raise sub to 50% there.
+    gsub.gain.setValueAtTime((isBass && isMobile ? 0.5 : isMobile ? 0.25 : 0.6) * MASTER_VOLUME, now)
+    sub.connect(gsub).connect(masterGain)
+    sub.start(now)
+    sub.stop(now + duration + 0.06)
+  }
+
+  // Add an extra higher-odd harmonic for mobile bass enhancement
+  if (isBass && isMobile) {
+    const osc5 = ctx.createOscillator()
+    osc5.type = 'sine'
+    osc5.frequency.setValueAtTime(frequency * 5, now)
+    const g5 = ctx.createGain()
+    g5.gain.setValueAtTime((isMobile ? 0.08 : 0.06) * MASTER_VOLUME, now)
+    osc5.connect(g5).connect(masterGain)
+    osc5.start(now)
+    osc5.stop(now + duration + 0.06)
+  }
 }
 
 export function useLearnNote() {
