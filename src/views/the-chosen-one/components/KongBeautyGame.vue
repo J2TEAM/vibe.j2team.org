@@ -646,40 +646,30 @@ const kongIndexMap = computed(() => {
           <!-- earings -->
           <circle cx="-8.5" cy="-45" r="1.5" fill="#FFB830" />
           <circle cx="8.5" cy="-45" r="1.5" fill="#FFB830" />
-          <!-- left arm waving -->
-          <path
-            d="M -6 -30 C -10 -32 -15 -36 -18 -40"
-            fill="none"
-            stroke="#F0EDE6"
-            stroke-width="3"
-            stroke-linecap="round"
-            :class="phase === 'done' ? 'kb-wave-left' : ''"
-          />
-          <!-- left hand -->
-          <circle
-            cx="-18"
-            cy="-40"
-            r="3"
-            fill="#F0EDE6"
-            :class="phase === 'done' ? 'kb-wave-left' : ''"
-          />
-          <!-- right arm waving -->
-          <path
-            d="M 6 -30 C 10 -32 15 -36 18 -40"
-            fill="none"
-            stroke="#F0EDE6"
-            stroke-width="3"
-            stroke-linecap="round"
-            :class="phase === 'done' ? 'kb-wave-right' : ''"
-          />
-          <!-- right hand -->
-          <circle
-            cx="18"
-            cy="-40"
-            r="3"
-            fill="#F0EDE6"
-            :class="phase === 'done' ? 'kb-wave-right' : ''"
-          />
+          <!-- left arm waving (grouped so arm+hand rotate together at shoulder) -->
+          <g :class="phase === 'done' ? 'kb-wave-left' : ''" style="transform-origin: -6px -30px">
+            <path
+              d="M -6 -30 C -10 -32 -15 -36 -18 -40"
+              fill="none"
+              stroke="#F0EDE6"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+            <!-- left hand -->
+            <circle cx="-18" cy="-40" r="3" fill="#F0EDE6" />
+          </g>
+          <!-- right arm waving (grouped so arm+hand rotate together at shoulder) -->
+          <g :class="phase === 'done' ? 'kb-wave-right' : ''" style="transform-origin: 6px -30px">
+            <path
+              d="M 6 -30 C 10 -32 15 -36 18 -40"
+              fill="none"
+              stroke="#F0EDE6"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+            <!-- right hand -->
+            <circle cx="18" cy="-40" r="3" fill="#F0EDE6" />
+          </g>
           <!-- tiara / crown -->
           <path
             d="M -6 -58 L -4 -63 L 0 -60 L 4 -63 L 6 -58"
@@ -770,148 +760,154 @@ const kongIndexMap = computed(() => {
             filter="url(#kb-glow-strong)"
           />
 
-          <!-- ── KONG BODY ── -->
+          <!-- ── KONG BODY (back view, facing building away from player) ── -->
           <!-- Shadow/ground contact -->
-          <ellipse cx="0" cy="20" rx="12" ry="3" fill="rgba(0,0,0,0.35)" />
+          <ellipse cx="0" cy="22" rx="10" ry="3" fill="rgba(0,0,0,0.35)" />
 
-          <!-- Tail (stubby) -->
-          <path
-            d="M 9 14 Q 16 18 14 24"
-            fill="none"
-            :stroke="kong.color"
-            stroke-width="3"
-            stroke-linecap="round"
-            opacity="0.7"
-          />
+          <!-- ── LEFT ARM (climbing animation phase A) ── -->
+          <g
+            :class="kong.state === 'climbing' ? 'kb-crawl-a' : ''"
+            style="transform-origin: -10px -6px"
+          >
+            <path
+              :d="
+                kong.state === 'fighting'
+                  ? 'M -10 -6 C -16 -12 -22 -18 -24 -22'
+                  : 'M -10 -6 C -14 -14 -16 -22 -14 -28'
+              "
+              fill="none"
+              :stroke="kong.color"
+              stroke-width="7"
+              stroke-linecap="round"
+            />
+            <!-- Left hand/fist -->
+            <ellipse
+              :cx="kong.state === 'fighting' ? -24 : -14"
+              :cy="kong.state === 'fighting' ? -22 : -28"
+              rx="5"
+              ry="3.5"
+              :fill="kong.color"
+              stroke="rgba(0,0,0,0.4)"
+              stroke-width="1"
+            />
+            <circle
+              :cx="kong.state === 'fighting' ? -26 : -16"
+              :cy="kong.state === 'fighting' ? -22 : -28"
+              r="1"
+              fill="rgba(0,0,0,0.3)"
+            />
+            <circle
+              :cx="kong.state === 'fighting' ? -24 : -14"
+              :cy="kong.state === 'fighting' ? -23.5 : -29.5"
+              r="1"
+              fill="rgba(0,0,0,0.3)"
+            />
+            <circle
+              :cx="kong.state === 'fighting' ? -22 : -12"
+              :cy="kong.state === 'fighting' ? -22 : -28"
+              r="1"
+              fill="rgba(0,0,0,0.3)"
+            />
+          </g>
 
-          <!-- Massive torso — barrel chest -->
+          <!-- ── RIGHT ARM (climbing animation phase B) ── -->
+          <g
+            :class="kong.state === 'climbing' ? 'kb-crawl-b' : ''"
+            style="transform-origin: 10px -6px"
+          >
+            <path
+              :d="
+                kong.state === 'fighting'
+                  ? 'M 10 -6 C 16 -12 22 -18 24 -22'
+                  : 'M 10 -6 C 14 -14 16 -22 14 -28'
+              "
+              fill="none"
+              :stroke="kong.color"
+              stroke-width="7"
+              stroke-linecap="round"
+            />
+            <!-- Right hand/fist -->
+            <ellipse
+              :cx="kong.state === 'fighting' ? 24 : 14"
+              :cy="kong.state === 'fighting' ? -22 : -28"
+              rx="5"
+              ry="3.5"
+              :fill="kong.color"
+              stroke="rgba(0,0,0,0.4)"
+              stroke-width="1"
+            />
+            <circle
+              :cx="kong.state === 'fighting' ? 22 : 12"
+              :cy="kong.state === 'fighting' ? -22 : -28"
+              r="1"
+              fill="rgba(0,0,0,0.3)"
+            />
+            <circle
+              :cx="kong.state === 'fighting' ? 24 : 14"
+              :cy="kong.state === 'fighting' ? -23.5 : -29.5"
+              r="1"
+              fill="rgba(0,0,0,0.3)"
+            />
+            <circle
+              :cx="kong.state === 'fighting' ? 26 : 16"
+              :cy="kong.state === 'fighting' ? -22 : -28"
+              r="1"
+              fill="rgba(0,0,0,0.3)"
+            />
+          </g>
+
+          <!-- ── Torso (back view, broad V-shape) ── -->
           <ellipse
             cx="0"
-            cy="4"
-            rx="15"
-            ry="16"
+            cy="2"
+            rx="14"
+            ry="15"
             :fill="kong.color"
             :stroke="
-              kong.state === 'fighting' && kong.fightFlashTimer > 0 ? '#FFB830' : 'rgba(0,0,0,0.5)'
+              kong.state === 'fighting' && kong.fightFlashTimer > 0 ? '#FFB830' : 'rgba(0,0,0,0.4)'
             "
             :stroke-width="kong.state === 'fighting' && kong.fightFlashTimer > 0 ? 2.5 : 1"
             :class="kong.state === 'fighting' ? 'kb-fight-shake' : ''"
           />
-
-          <!-- Chest / belly lighter fur patch -->
-          <ellipse cx="0" cy="6" rx="9" ry="11" fill="rgba(255,255,255,0.18)" />
-          <!-- Chest muscle definition lines -->
-          <path d="M -4 -2 Q 0 1 4 -2" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1" />
-          <path d="M -6 4 Q 0 7 6 4" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1" />
-
-          <!-- ── HEAD ── -->
-          <!-- Sagittal crest (top of skull ridge) -->
-          <ellipse
-            cx="0"
-            cy="-22"
-            rx="10"
-            ry="6"
-            :fill="kong.color"
-            stroke="rgba(0,0,0,0.3)"
-            stroke-width="1"
-          />
-          <!-- Main head -->
-          <ellipse
-            cx="0"
-            cy="-17"
-            rx="12"
-            ry="11"
-            :fill="kong.color"
-            stroke="rgba(0,0,0,0.3)"
-            stroke-width="1"
-          />
-          <!-- Prominent brow ridge (very flat & protruding) -->
+          <!-- Spine line -->
+          <path d="M 0 -10 Q 0 0 0 14" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1.5" />
+          <!-- Shoulder blades -->
           <path
-            d="M -11 -20 Q 0 -25 11 -20"
+            d="M -8 -4 Q -4 -2 -2 -6"
             fill="none"
-            :stroke="kong.color"
-            stroke-width="5"
-            stroke-linecap="round"
-          />
-          <path d="M -11 -20 Q 0 -24 11 -20" fill="rgba(0,0,0,0.4)" />
-          <!-- cheek bones / jowls -->
-          <ellipse cx="-11" cy="-14" rx="4" ry="3.5" :fill="kong.color" opacity="0.85" />
-          <ellipse cx="11" cy="-14" rx="4" ry="3.5" :fill="kong.color" opacity="0.85" />
-
-          <!-- ── FACE ── -->
-          <!-- Deep-set eyes under brow -->
-          <circle cx="-4.5" cy="-20" r="3" fill="rgba(0,0,0,0.5)" />
-          <circle cx="4.5" cy="-20" r="3" fill="rgba(0,0,0,0.5)" />
-          <circle cx="-4.5" cy="-20" r="2.2" fill="#F0EDE6" />
-          <circle cx="4.5" cy="-20" r="2.2" fill="#F0EDE6" />
-          <circle
-            cx="-4.2"
-            cy="-20"
-            r="1.4"
-            fill="#0A0A0A"
-            :class="kong.state === 'fighting' ? 'kb-angry-eyes' : ''"
-          />
-          <circle
-            cx="4.8"
-            cy="-20"
-            r="1.4"
-            fill="#0A0A0A"
-            :class="kong.state === 'fighting' ? 'kb-angry-eyes' : ''"
-          />
-          <!-- Eye shine -->
-          <circle cx="-3.6" cy="-20.6" r="0.5" fill="white" opacity="0.9" />
-          <circle cx="5.4" cy="-20.6" r="0.5" fill="white" opacity="0.9" />
-
-          <!-- Angry brow V when fighting -->
-          <template v-if="kong.state === 'fighting'">
-            <path
-              d="M -8 -24 L -3 -22"
-              stroke="rgba(0,0,0,0.7)"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            />
-            <path
-              d="M 8 -24 L 3 -22"
-              stroke="rgba(0,0,0,0.7)"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            />
-          </template>
-
-          <!-- Flat broad nose -->
-          <ellipse cx="0" cy="-15" rx="4.5" ry="3" fill="rgba(0,0,0,0.35)" />
-          <circle cx="-2.5" cy="-14.5" r="1.4" fill="rgba(0,0,0,0.5)" />
-          <circle cx="2.5" cy="-14.5" r="1.4" fill="rgba(0,0,0,0.5)" />
-
-          <!-- Mouth / muzzle area -->
-          <ellipse cx="0" cy="-11" rx="6" ry="4" fill="rgba(0,0,0,0.2)" />
-          <!-- Roar mouth when fighting -->
-          <path
-            v-if="kong.state === 'fighting'"
-            d="M -5 -12 Q 0 -8 5 -12"
-            fill="none"
-            stroke="#0A0A0A"
-            stroke-width="2"
-            stroke-linecap="round"
-          />
-          <!-- Teeth when fighting -->
-          <template v-if="kong.state === 'fighting'">
-            <rect x="-3" y="-12" width="2.5" height="3" rx="0.5" fill="#F0EDE6" />
-            <rect x="0.5" y="-12" width="2.5" height="3" rx="0.5" fill="#F0EDE6" />
-          </template>
-          <!-- Relaxed smile -->
-          <path
-            v-if="kong.state !== 'fighting'"
-            d="M -4 -11 Q 0 -9 4 -11"
-            fill="none"
-            stroke="rgba(0,0,0,0.4)"
+            stroke="rgba(0,0,0,0.12)"
             stroke-width="1.2"
-            stroke-linecap="round"
           />
+          <path d="M 8 -4 Q 4 -2 2 -6" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="1.2" />
+          <!-- Back fur texture lines -->
+          <path d="M -6 2 Q -3 4 -5 7" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1" />
+          <path d="M 6 2 Q 3 4 5 7" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1" />
+          <!-- Lower back / hip area darker -->
+          <ellipse cx="0" cy="12" rx="10" ry="5" fill="rgba(0,0,0,0.08)" />
 
-          <!-- Big ears -->
+          <!-- Shoulder hump (gorilla silhouette, centered) -->
+          <ellipse cx="0" cy="-8" rx="12" ry="7" :fill="kong.color" opacity="0.85" />
+
+          <!-- ── HEAD (back of head, facing building) ── -->
+          <!-- Main head (back view — round) -->
           <ellipse
-            cx="-13"
+            cx="0"
+            cy="-18"
+            rx="10"
+            ry="10"
+            :fill="kong.color"
+            stroke="rgba(0,0,0,0.3)"
+            stroke-width="1"
+          />
+          <!-- Sagittal crest (skull ridge, centered) -->
+          <ellipse cx="0" cy="-26" rx="6" ry="4" :fill="kong.color" />
+          <!-- Back of skull fur texture -->
+          <path d="M -4 -22 Q 0 -20 4 -22" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1" />
+          <path d="M -6 -16 Q 0 -14 6 -16" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="1" />
+
+          <!-- Ears (visible on both sides from back) -->
+          <ellipse
+            cx="-11"
             cy="-18"
             rx="3.5"
             ry="4"
@@ -919,9 +915,9 @@ const kongIndexMap = computed(() => {
             stroke="rgba(0,0,0,0.3)"
             stroke-width="1"
           />
-          <ellipse cx="-13" cy="-18" rx="2" ry="2.5" fill="rgba(0,0,0,0.2)" />
+          <ellipse cx="-11" cy="-18" rx="2" ry="2.5" fill="rgba(0,0,0,0.2)" />
           <ellipse
-            cx="13"
+            cx="11"
             cy="-18"
             rx="3.5"
             ry="4"
@@ -929,150 +925,56 @@ const kongIndexMap = computed(() => {
             stroke="rgba(0,0,0,0.3)"
             stroke-width="1"
           />
-          <ellipse cx="13" cy="-18" rx="2" ry="2.5" fill="rgba(0,0,0,0.2)" />
+          <ellipse cx="11" cy="-18" rx="2" ry="2.5" fill="rgba(0,0,0,0.2)" />
 
-          <!-- ── ARMS ── thick gorilla arms -->
-          <!-- Upper left arm -->
-          <path
-            :d="
-              kong.state === 'fighting'
-                ? 'M -14 -2 C -20 -6 -24 -12 -22 -18'
-                : 'M -14 0 C -20 4 -24 12 -22 18'
-            "
-            fill="none"
-            :stroke="kong.color"
-            stroke-width="8"
-            stroke-linecap="round"
-          />
-          <!-- Left forearm -->
-          <path
-            :d="
-              kong.state === 'fighting'
-                ? 'M -22 -18 C -26 -22 -28 -20 -27 -16'
-                : 'M -22 18 C -26 20 -27 22 -25 24'
-            "
-            fill="none"
-            :stroke="kong.color"
-            stroke-width="6"
-            stroke-linecap="round"
-          />
-          <!-- Left hand/knuckles -->
-          <ellipse
-            :cx="kong.state === 'fighting' ? -27 : -25"
-            :cy="kong.state === 'fighting' ? -16 : 24"
-            rx="5"
-            ry="3.5"
-            :fill="kong.color"
-            stroke="rgba(0,0,0,0.4)"
-            stroke-width="1"
-          />
-          <!-- knuckle dots left -->
-          <circle
-            :cx="kong.state === 'fighting' ? -29 : -27"
-            :cy="kong.state === 'fighting' ? -16 : 24"
-            r="1"
-            fill="rgba(0,0,0,0.3)"
-          />
-          <circle
-            :cx="kong.state === 'fighting' ? -27 : -25"
-            :cy="kong.state === 'fighting' ? -17.5 : 22.5"
-            r="1"
-            fill="rgba(0,0,0,0.3)"
-          />
-          <circle
-            :cx="kong.state === 'fighting' ? -25 : -23"
-            :cy="kong.state === 'fighting' ? -16 : 24"
-            r="1"
-            fill="rgba(0,0,0,0.3)"
-          />
+          <!-- Neck (back view) -->
+          <rect x="-4" y="-12" width="8" height="5" rx="3" :fill="kong.color" opacity="0.9" />
 
-          <!-- Upper right arm -->
-          <path
-            :d="
-              kong.state === 'fighting'
-                ? 'M 14 -2 C 20 -6 24 -12 22 -18'
-                : 'M 14 0 C 20 4 24 12 22 18'
-            "
-            fill="none"
-            :stroke="kong.color"
-            stroke-width="8"
-            stroke-linecap="round"
-          />
-          <!-- Right forearm -->
-          <path
-            :d="
-              kong.state === 'fighting'
-                ? 'M 22 -18 C 26 -22 28 -20 27 -16'
-                : 'M 22 18 C 26 20 27 22 25 24'
-            "
-            fill="none"
-            :stroke="kong.color"
-            stroke-width="6"
-            stroke-linecap="round"
-          />
-          <!-- Right hand/knuckles -->
-          <ellipse
-            :cx="kong.state === 'fighting' ? 27 : 25"
-            :cy="kong.state === 'fighting' ? -16 : 24"
-            rx="5"
-            ry="3.5"
-            :fill="kong.color"
-            stroke="rgba(0,0,0,0.4)"
-            stroke-width="1"
-          />
-          <!-- knuckle dots right -->
-          <circle
-            :cx="kong.state === 'fighting' ? 25 : 23"
-            :cy="kong.state === 'fighting' ? -16 : 24"
-            r="1"
-            fill="rgba(0,0,0,0.3)"
-          />
-          <circle
-            :cx="kong.state === 'fighting' ? 27 : 25"
-            :cy="kong.state === 'fighting' ? -17.5 : 22.5"
-            r="1"
-            fill="rgba(0,0,0,0.3)"
-          />
-          <circle
-            :cx="kong.state === 'fighting' ? 29 : 27"
-            :cy="kong.state === 'fighting' ? -16 : 24"
-            r="1"
-            fill="rgba(0,0,0,0.3)"
-          />
+          <!-- ── LEFT LEG (climbing animation phase B) ── -->
+          <g
+            :class="kong.state === 'climbing' ? 'kb-crawl-b' : ''"
+            style="transform-origin: -6px 14px"
+          >
+            <path
+              d="M -6 14 C -8 18 -10 22 -8 26"
+              fill="none"
+              :stroke="kong.color"
+              stroke-width="7"
+              stroke-linecap="round"
+            />
+            <ellipse
+              cx="-8"
+              cy="26"
+              rx="5"
+              ry="3"
+              :fill="kong.color"
+              stroke="rgba(0,0,0,0.3)"
+              stroke-width="1"
+            />
+          </g>
 
-          <!-- ── LEGS (stubby gorilla legs gripping building) ── -->
-          <path
-            d="M -8 16 C -10 22 -12 24 -10 28"
-            fill="none"
-            :stroke="kong.color"
-            stroke-width="7"
-            stroke-linecap="round"
-          />
-          <ellipse
-            cx="-10"
-            cy="28"
-            rx="5"
-            ry="3"
-            :fill="kong.color"
-            stroke="rgba(0,0,0,0.3)"
-            stroke-width="1"
-          />
-          <path
-            d="M 8 16 C 10 22 12 24 10 28"
-            fill="none"
-            :stroke="kong.color"
-            stroke-width="7"
-            stroke-linecap="round"
-          />
-          <ellipse
-            cx="10"
-            cy="28"
-            rx="5"
-            ry="3"
-            :fill="kong.color"
-            stroke="rgba(0,0,0,0.3)"
-            stroke-width="1"
-          />
+          <!-- ── RIGHT LEG (climbing animation phase A) ── -->
+          <g
+            :class="kong.state === 'climbing' ? 'kb-crawl-a' : ''"
+            style="transform-origin: 6px 14px"
+          >
+            <path
+              d="M 6 14 C 8 18 10 22 8 26"
+              fill="none"
+              :stroke="kong.color"
+              stroke-width="7"
+              stroke-linecap="round"
+            />
+            <ellipse
+              cx="8"
+              cy="26"
+              rx="5"
+              ry="3"
+              :fill="kong.color"
+              stroke="rgba(0,0,0,0.3)"
+              stroke-width="1"
+            />
+          </g>
 
           <!-- Name label -->
           <text
@@ -1258,16 +1160,14 @@ const kongIndexMap = computed(() => {
   animation: kb-blink 1.4s ease-in-out infinite;
 }
 
-/* Beauty wave arms */
+/* Beauty wave arms — rotate at shoulder attachment point */
 @keyframes kb-wave {
   0%,
   100% {
     transform: rotate(0deg);
-    transform-origin: bottom center;
   }
-  40% {
-    transform: rotate(-20deg);
-    transform-origin: bottom center;
+  50% {
+    transform: rotate(-18deg);
   }
 }
 .kb-wave-left {
@@ -1308,6 +1208,32 @@ const kongIndexMap = computed(() => {
 }
 .kb-fight-shake {
   animation: kb-shake 0.15s linear infinite;
+}
+
+/* Climbing crawl animation — limbs alternate in cross pattern */
+@keyframes kb-crawl-a {
+  0%,
+  100% {
+    transform: rotate(-15deg);
+  }
+  50% {
+    transform: rotate(15deg);
+  }
+}
+@keyframes kb-crawl-b {
+  0%,
+  100% {
+    transform: rotate(15deg);
+  }
+  50% {
+    transform: rotate(-15deg);
+  }
+}
+.kb-crawl-a {
+  animation: kb-crawl-a 0.5s ease-in-out infinite;
+}
+.kb-crawl-b {
+  animation: kb-crawl-b 0.5s ease-in-out infinite;
 }
 
 /* Punch sparks */
