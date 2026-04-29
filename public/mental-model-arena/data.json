@@ -1,0 +1,689 @@
+{
+    "scenarioPool": [
+        {
+            "domain": "career",
+            "layers": {
+                "core": "Bạn đang bị deadline dồn, sếp yêu cầu báo cáo gấp.",
+                "obstacle": "Team thiếu người và data chưa đủ để đưa ra kết luận chắc chắn.",
+                "stake": "Danh tiếng của bạn trong mắt ban lãnh đạo đang bị đặt lên bàn cân.",
+                "wildcard": "Đúng lúc đó, đồng nghiệp key nhất vừa xin nghỉ phép khẩn cấp."
+            }
+        },
+        {
+            "domain": "career",
+            "layers": {
+                "core": "Bạn nhận ra mình đang làm dự án sai hướng sau 3 tuần.",
+                "obstacle": "Đã commit với stakeholder, không thể đơn giản dừng lại.",
+                "stake": "Nếu tiếp tục sai hướng thêm 2 tuần, toàn bộ sprint bị waste.",
+                "wildcard": "Một junior trong team vừa đề xuất hướng đi mới — nghe có lý."
+            }
+        },
+        {
+            "domain": "career",
+            "layers": {
+                "core": "Sếp giao thêm dự án trong khi bạn đang quá tải.",
+                "obstacle": "Từ chối có thể ảnh hưởng đến đánh giá cuối năm.",
+                "stake": "Nhận thêm có thể làm hỏng cả 2 dự án đang chạy.",
+                "wildcard": "Đồng nghiệp thân thiết ngỏ ý muốn cùng phụ trách."
+            }
+        },
+        {
+            "domain": "relationship",
+            "layers": {
+                "core": "Người bạn thân nhất đang dần xa cách mà không rõ lý do.",
+                "obstacle": "Mỗi lần cố gắng nói chuyện đều kết thúc bằng hiểu lầm.",
+                "stake": "Mối quan hệ này đã kéo dài 7 năm — mất đi sẽ không thể bù đắp.",
+                "wildcard": "Bạn nghe từ người khác rằng họ đang gặp vấn đề cá nhân nghiêm trọng."
+            }
+        },
+        {
+            "domain": "relationship",
+            "layers": {
+                "core": "Nhóm bạn bè đang chia rẽ vì một quyết định chung.",
+                "obstacle": "Mỗi bên đều có lý — không ai hoàn toàn sai.",
+                "stake": "Bạn ở giữa và cả hai bên đều mong bạn đứng về phía mình.",
+                "wildcard": "Deadline để đưa ra quyết định nhóm là ngày mai."
+            }
+        },
+        {
+            "domain": "relationship",
+            "layers": {
+                "core": "Bạn nhận ra mình và đối tác đang có kỳ vọng khác nhau về tương lai.",
+                "obstacle": "Cả hai đều tránh nói thẳng vì sợ làm tổn thương nhau.",
+                "stake": "Càng để lâu, khoảng cách càng lớn và khó nói hơn.",
+                "wildcard": "Một quyết định lớn về công việc buộc phải đưa ra trong tuần này."
+            }
+        },
+        {
+            "domain": "finance",
+            "layers": {
+                "core": "Bạn có cơ hội đầu tư hấp dẫn nhưng vượt quá ngân sách an toàn.",
+                "obstacle": "Cơ hội này chỉ còn mở trong 48 giờ — không có thời gian research kỹ.",
+                "stake": "Bỏ qua có thể là sai lầm lớn. Nhảy vào có thể mất khoản tiết kiệm 2 năm.",
+                "wildcard": "Người giới thiệu cơ hội là người bạn tin tưởng nhưng chưa kiểm chứng track record."
+            }
+        },
+        {
+            "domain": "finance",
+            "layers": {
+                "core": "Chi tiêu tháng này vượt ngân sách 40% mà không rõ vì sao.",
+                "obstacle": "Nhìn lại sao kê thấy nhiều khoản nhỏ — không khoản nào đáng cắt.",
+                "stake": "Nếu không điều chỉnh, mục tiêu tài chính cuối năm sẽ trật hoàn toàn.",
+                "wildcard": "Một khoản chi không thể tránh vừa xuất hiện vào tuần tới."
+            }
+        },
+        {
+            "domain": "learning",
+            "layers": {
+                "core": "Bạn đang học một kỹ năng mới nhưng tiến độ chậm hơn kỳ vọng nhiều.",
+                "obstacle": "Phương pháp đang dùng không sai — nhưng không hiệu quả với bạn.",
+                "stake": "Deadline để áp dụng kỹ năng này vào công việc thực tế là 3 tuần.",
+                "wildcard": "Một người mentor xuất hiện — nhưng phương pháp của họ hoàn toàn khác."
+            }
+        },
+        {
+            "domain": "learning",
+            "layers": {
+                "core": "Bạn nhận ra mình đã hiểu sai một concept quan trọng từ đầu.",
+                "obstacle": "Đã xây dựng nhiều thứ khác dựa trên hiểu biết sai đó.",
+                "stake": "Sửa lại từ đầu mất nhiều công — nhưng tiếp tục sẽ tích lũy thêm sai lầm.",
+                "wildcard": "Một bài test quan trọng dựa trên concept này sắp đến."
+            }
+        }
+    ],
+    "resourceExplanations": {
+        "first-principles__active": {
+            "mastery": "Bạn không giải quyết triệu chứng — bạn tháo rời vấn đề tận gốc. Đây là thế mạnh cốt lõi của First Principles.",
+            "energy": "Tư duy từ nền tảng đòi hỏi nỗ lực nhận thức cao — không thể làm điều này khi đã cạn kiệt.",
+            "momentum": "Dừng lại để phân tích làm chậm đà hành động một chút — đánh đổi có chủ ý.",
+            "overall": "Khi áp lực cao, First Principles chọn hiểu đúng thay vì hành động nhanh."
+        },
+        "first-principles__standard": {
+            "mastery": "Kiểm tra giả định là thói quen nền tảng — không đột phá nhưng không bao giờ sai hướng.",
+            "clarity": "Mỗi giả định được xác minh là một lớp sương mù được gỡ bỏ.",
+            "overall": "Ground Truth không hào nhoáng nhưng giữ bạn không xây nhà trên cát."
+        },
+        "first-principles__observe": {
+            "clarity": "Quan sát để liệt kê các giả định đang ngầm hoạt động — bạn cần thấy rõ trước khi tháo gỡ.",
+            "momentum": "First Principles biết khi nào cần dừng lại — nhưng dừng quá lâu là sự xa xỉ đắt giá.",
+            "overall": "Quan sát là bước chuẩn bị cho kỹ năng chủ động — có giá trị thật sự nếu bạn hành động ở lượt tiếp theo."
+        },
+        "first-principles__signature": {
+            "mastery": "Pre-Mortem đòi hỏi đủ hiểu biết để hình dung thất bại — thành thục cao mới làm được.",
+            "momentum": "Cần đà tích lũy để \"nhìn từ tương lai\" — không thể làm khi đang bị cuốn vào hỗn loạn.",
+            "clarity": "Kết quả: bạn nhìn thấy rõ các tình huống thất bại trước khi chúng xảy ra.",
+            "overall": "Tuyệt chiêu của The Dismantler — phá vỡ ảo tưởng thành công trước khi quá muộn."
+        },
+        "inversion__active": {
+            "mastery": "Đảo ngược hoàn toàn vấn đề tiết lộ những gì bạn đang bỏ qua — đây là nước đi táo bạo nhất.",
+            "energy": "Tư duy ngược với bản năng tốn nỗ lực nhận thức nhiều hơn bạn nghĩ.",
+            "momentum": "Inversion làm chậm dòng chảy quyết định — đánh đổi tốc độ lấy chiều sâu.",
+            "overall": "Thay vì hỏi \"làm sao thành công\", bạn hỏi \"làm sao chắc chắn thất bại\" — rồi tránh đi."
+        },
+        "inversion__standard": {
+            "mastery": "Vạch ra kịch bản tệ nhất không phải bi quan — đó là cách Devil's Advocate giữ mình tỉnh táo.",
+            "clarity": "Biết điều tệ nhất có thể xảy ra giúp bạn không bị bất ngờ.",
+            "overall": "Worst Case là lá chắn — không hào nhoáng nhưng giữ bạn không bị bất ngờ chết người."
+        },
+        "inversion__observe": {
+            "clarity": "Quan sát để tìm dấu hiệu thất bại đang ẩn trong tình huống — bạn cần nhìn trước khi kết luận.",
+            "momentum": "Dừng lại kiểm tra các dạng thất bại là điều Inversion luôn muốn làm — nhưng có cái giá của nó.",
+            "overall": "Failure Audit hỏi \"có gì đang sai mà tôi chưa thấy không?\" — câu hỏi đắt giá nhất."
+        },
+        "inversion__signature": {
+            "mastery": "Tuyệt chiêu cần đủ thành thục vì bạn phải hiểu vấn đề đủ sâu để đảo ngược nó hoàn toàn.",
+            "momentum": "Momentum cao đảm bảo bạn không bị cuốn vào lo âu khi nhìn thẳng vào kịch bản tệ nhất.",
+            "overall": "Devil's Advocate ở đỉnh cao: không chỉ chỉ ra rủi ro mà định nghĩa lại toàn bộ vấn đề."
+        },
+        "second-order__active": {
+            "mastery": "Nhìn thấy hậu quả bậc hai, bậc ba khi người khác chỉ thấy bậc một — đây là lợi thế thực sự của The Chessmaster.",
+            "energy": "Mô phỏng nhiều tầng hệ quả trong đầu là một trong những tác vụ tốn kém nhất của tư duy.",
+            "momentum": "The Chessmaster chấp nhận chậm lại để nhìn xa hơn — đánh đổi tốc độ chiến thuật lấy chiều sâu chiến lược.",
+            "overall": "\"Và sau đó thì sao?\" — bạn vừa hỏi câu hỏi mà hầu hết mọi người quên mất."
+        },
+        "second-order__standard": {
+            "mastery": "Next-Turn View không hào nhoáng nhưng ngăn bạn bị bất ngờ bởi hậu quả gần nhất.",
+            "clarity": "Nhìn trước một bước làm rõ đâu là hành động an toàn trong tình huống này.",
+            "overall": "Không phải lúc nào cũng cần nhìn năm bước — đôi khi nhìn đúng một bước tiếp theo là đủ."
+        },
+        "second-order__observe": {
+            "clarity": "The Chessmaster quan sát để vẽ bản đồ các quân cờ đang di chuyển — không bỏ sót bối cảnh nào.",
+            "momentum": "Dừng để nhìn toàn cục có cái giá của nó — nhưng The Chessmaster biết rõ khi nào phải ngừng quan sát và đi nước.",
+            "overall": "Quan sát cho The Chessmaster thấy các \"quân cờ\" đang ở đâu trước khi tính nước đi tiếp theo."
+        },
+        "second-order__signature": {
+            "mastery": "Tuyệt chiêu cần đủ thành thục để hình dung chuỗi nhân quả dài mà không bị lạc giữa chừng.",
+            "momentum": "Momentum cao giữ bạn không bị choáng ngợp khi nhìn thấy toàn bộ chuỗi hệ quả.",
+            "clarity": "Kết quả: bạn thấy rõ nước đi nào bây giờ sẽ tạo lợi thế ba đến bốn bước sau.",
+            "overall": "Tuyệt chiêu của The Chessmaster: vẽ ra chuỗi nhân quả mà đối phương không nhìn thấy."
+        },
+        "occams-razor__active": {
+            "mastery": "Cắt bỏ phần thừa để lộ ra giải pháp đơn giản nhất — đây là sự can đảm, không phải lười biếng.",
+            "energy": "Chống lại bản năng \"thêm vào cho chắc\" tốn nỗ lực nhận thức nhiều hơn bạn nghĩ.",
+            "momentum": "The Surgeon hành động dứt khoát — cắt xong là cắt, không nhìn lại.",
+            "overall": "Giải pháp đúng thường đơn giản hơn bạn muốn tin — The Surgeon biết điều này."
+        },
+        "occams-razor__standard": {
+            "mastery": "Singular Focus giữ bạn không bị phân tán bởi các chi tiết không quan trọng.",
+            "clarity": "Nhìn thấy điều cốt lõi duy nhất làm cho mọi thứ khác trở nên rõ ràng hơn.",
+            "overall": "Occam's Razor ở mức tiêu chuẩn: không phải cắt bỏ mà là biết đâu là điều quan trọng nhất."
+        },
+        "occams-razor__observe": {
+            "clarity": "Quan sát để tìm xem cái gì thực sự cần thiết và cái gì chỉ là tạp âm — câu hỏi đặc trưng của The Surgeon.",
+            "momentum": "Dừng lại kiểm tra có tốn Momentum — nhưng The Surgeon biết cắt nhầm còn tệ hơn cắt chậm.",
+            "overall": "Simplicity Audit hỏi \"cái gì có thể bỏ đi mà vấn đề vẫn được giải quyết?\""
+        },
+        "occams-razor__signature": {
+            "mastery": "Radical Simplification cần đủ thành thục để phân biệt đơn giản thực sự với đơn giản hóa quá mức.",
+            "momentum": "Momentum cao đảm bảo bạn không do dự khi cắt bỏ những gì đã quen thuộc.",
+            "overall": "Tuyệt chiêu của The Surgeon: không chỉ đơn giản hóa giải pháp mà định nghĩa lại cả vấn đề."
+        },
+        "sys__active": {
+            "mastery": "Nhìn thấy hệ thống đang vận hành dưới bề mặt — đây là hiểu biết mà hầu hết mọi người chỉ thấy triệu chứng.",
+            "energy": "Vẽ bản đồ toàn bộ hệ thống trong đầu là tác vụ tốn kém — The Ecologist biết điều này.",
+            "momentum": "Systems Thinking làm chậm hành động tức thì để hiểu sâu hơn về cơ chế vận hành.",
+            "overall": "Butterfly Effect: thay vì xử lý triệu chứng, bạn vừa tìm ra điểm đòn bẩy thực sự."
+        },
+        "sys__standard": {
+            "mastery": "Bản đồ các bên liên quan nhắc nhở bạn rằng không ai tồn tại trong chân không — mọi người đều là một phần của hệ thống.",
+            "clarity": "Thấy các bên liên quan và mối quan hệ giữa họ làm rõ tại sao tình huống này đang xảy ra.",
+            "overall": "The Ecologist không quên rằng con người cũng là một phần của hệ thống."
+        },
+        "sys__observe": {
+            "clarity": "The Ecologist quan sát để tìm các quy luật và vòng lặp ẩn — không thể thấy hệ thống khi chưa nhìn đủ lâu.",
+            "momentum": "Dừng lại quan sát hệ thống có cái giá của nó — nhưng The Ecologist biết quan sát không phải mục tiêu cuối cùng.",
+            "overall": "Network Scan hỏi \"các phần của hệ thống đang kết nối với nhau như thế nào?\""
+        },
+        "sys__signature": {
+            "mastery": "Emergence Protocol cần đủ thành thục để nhận ra khi hệ thống đang tạo ra những hành vi mà không ai thiết kế.",
+            "momentum": "Momentum cao đảm bảo bạn có thể hành động dựa trên hiểu biết về hệ thống thay vì chỉ quan sát.",
+            "clarity": "Kết quả: bạn thấy điểm can thiệp tối thiểu tạo ra thay đổi mang tính hệ thống.",
+            "overall": "Tuyệt chiêu của The Ecologist: không chống lại hệ thống mà dùng chính cơ chế của nó."
+        },
+        "mc__active": {
+            "mastery": "Nhìn thấy cả mục tiêu lẫn chướng ngại cùng lúc là kỹ năng hiếm và mạnh mẽ.",
+            "energy": "Mental Contrasting đòi hỏi giữ hai thực tế trong đầu đồng thời — không phải việc nhẹ nhàng.",
+            "momentum": "The Architect chậm lại để lên kế hoạch kỹ — thực thi sau đó sẽ nhanh hơn và ít sai sót hơn.",
+            "overall": "Không chỉ hình dung thành công, bạn vừa vẽ ra con đường rõ ràng từ đây đến đó."
+        },
+        "mc__standard": {
+            "mastery": "Kế hoạch Nếu-Thì chuyển ý định thành hành động cụ thể — đây là lý do The Architect ít bị bất ngờ.",
+            "clarity": "Biết trước \"nếu X xảy ra thì tôi sẽ làm Y\" giảm gánh nặng nhận thức khi khoảnh khắc đó đến.",
+            "overall": "Kế hoạch thực thi không hào nhoáng nhưng là lý do kế hoạch của The Architect thực sự được thực hiện."
+        },
+        "mc__observe": {
+            "clarity": "Bản đồ chướng ngại nhìn vào những gì đang cản trở — không phải để nản lòng mà để chuẩn bị.",
+            "momentum": "Dừng lại để vẽ bản đồ chướng ngại tốn Momentum nhưng ngăn bạn bị bất ngờ khi gặp chúng.",
+            "overall": "The Architect quan sát để xây bản thiết kế — không ai xây nhà mà không đo đạc trước."
+        },
+        "mc__signature": {
+            "mastery": "WOOP Frame đầy đủ cần đủ thành thục để thực tế về cả mong muốn lẫn chướng ngại — không lạc quan mù quáng.",
+            "momentum": "Momentum cao đảm bảo sau khi đối chiếu, bạn có năng lượng để thực hiện kế hoạch.",
+            "clarity": "Kết quả: một kế hoạch có cả hình dung thành công lẫn phương án dự phòng cho từng chướng ngại.",
+            "overall": "Tuyệt chiêu của The Architect: biến ước mơ thành bản thiết kế và bản thiết kế thành hành động."
+        },
+        "bay__active": {
+            "mastery": "Bayesian Update đòi hỏi bạn thay đổi niềm tin dựa trên bằng chứng — không phải ai cũng làm được điều này.",
+            "energy": "Tính toán xác suất và cập nhật niềm tin tốn nỗ lực nhận thức cao nhất trong tất cả các mô hình.",
+            "momentum": "The Probabilist chậm lại để tính toán — nhưng quyết định sau đó có độ tin cậy cao hơn.",
+            "overall": "Bạn vừa không chỉ thay đổi hành động mà thay đổi cả cách nhìn nhận tình huống dựa trên bằng chứng."
+        },
+        "bay__standard": {
+            "mastery": "Quét bằng chứng giữ bạn không bị dẫn dắt bởi giai thoại hay cảm giác đơn lẻ.",
+            "clarity": "Thu thập bằng chứng có hệ thống làm rõ đâu là tín hiệu và đâu là nhiễu.",
+            "overall": "The Probabilist không tin vào bất cứ điều gì mà không có bằng chứng — kể cả khi bằng chứng đó nhỏ."
+        },
+        "bay__observe": {
+            "clarity": "Kiểm tra prior — xem lại những gì bạn đã biết và các giả định bạn đang mang vào tình huống này.",
+            "momentum": "Dừng lại kiểm tra niềm tin nền tốn Momentum — nhưng prior sai có thể làm hỏng toàn bộ quá trình phân tích.",
+            "overall": "The Probabilist quan sát để hiệu chỉnh prior — bước đầu tiên và quan trọng nhất của quy trình Bayesian."
+        },
+        "bay__signature": {
+            "mastery": "Cập nhật Bayesian đầy đủ cần thành thục cao nhất — phải hiểu cả prior, khả năng xảy ra lẫn posterior.",
+            "momentum": "Momentum cao đảm bảo bạn có thể hành động dựa trên niềm tin đã cập nhật thay vì chỉ tính toán rồi đứng yên.",
+            "clarity": "Kết quả: không chỉ biết xác suất mà biết chính xác bằng chứng nào đã thay đổi niềm tin và thay đổi bao nhiêu.",
+            "overall": "Tuyệt chiêu của The Probabilist: không chỉ cập nhật niềm tin mà truyền đạt mức độ không chắc chắn một cách trung thực."
+        }
+    },
+    "comparativeHints": {
+        "first-principles__active": {
+            "vs_standard": "Tiêu chuẩn an sau hơn nhưng bỏ qua cơ hội đặt câu hỏi gốc rễ — điểm mạnh nhất của mô hình này.",
+            "vs_observe": "Quan sát cho thêm Clarity nhưng trong tình huống này, dừng lại thêm là sự xa xỉ chưa đủ khả năng.",
+            "vs_sig": "Tuyệt chiêu mạnh hơn nhưng cần Mastery và Momentum đủ cao — kỹ năng chủ động là bước tích lũy để đến đó.",
+            "lesson": "First Principles không ngại tốn Energy khi vấn đề đủ phức tạp để đáng được tháo rời."
+        },
+        "first-principles__standard": {
+            "vs_active": "Kỹ năng chủ động mạnh hơn nhưng tốn nhiều — tiêu chuẩn là lựa chọn khôn ngoan khi chỉ số thấp.",
+            "vs_observe": "Quan sát thêm Clarity nhưng tiêu chuẩn cũng cải thiện nhẹ — mà không mất Momentum.",
+            "lesson": "Không phải lúc nào cũng cần đột phá — đôi khi kiểm tra giả định đơn giản là đủ."
+        },
+        "first-principles__observe": {
+            "vs_active": "Kỹ năng chủ động cho Mastery cao hơn ngay lập tức — quan sát chỉ xứng đáng khi bạn thực sự dùng Clarity đó ở lượt sau.",
+            "vs_standard": "Tiêu chuẩn không mất Momentum — chọn quan sát khi thực sự cần thêm thông tin, không phải vì ngại hành động.",
+            "lesson": "Quan sát là đầu tư, không phải né tránh — chỉ có giá trị nếu lượt tiếp theo bạn hành động mạnh hơn."
+        },
+        "first-principles__signature": {
+            "vs_active": "Kỹ năng chủ động tốt trong hầu hết tình huống — tuyệt chiêu dành cho khi bạn đã đủ hiểu để nhìn thấy toàn bộ bức tranh.",
+            "vs_observe": "Quan sát là chuẩn bị, tuyệt chiêu là kết luận — không thể đảo ngược thứ tự này.",
+            "lesson": "Pre-Mortem là vũ khí của người đã hiểu đủ sâu, không phải người đang cố hiểu cho nhanh."
+        },
+        "inversion__active": {
+            "vs_standard": "Tiêu chuẩn an toàn — nhưng Inversion sinh ra để làm điều không ai muốn làm: nhìn thẳng vào thất bại.",
+            "vs_observe": "Quan sát thêm Clarity — nhưng nếu bạn đã thấy đủ, thêm thông tin không bằng đảo ngược góc nhìn.",
+            "lesson": "Full Inversion mạnh nhất khi mọi người đang suy nghĩ cùng một chiều."
+        },
+        "inversion__standard": {
+            "vs_active": "Kỹ năng chủ động mạnh hơn nhưng tốn nhiều — Worst Case là cách Inversion hoạt động khi chỉ số hạn chế.",
+            "vs_observe": "Quan sát nhìn ra ngoài, Worst Case nhìn vào rủi ro nội tại — hai góc nhìn bổ sung cho nhau.",
+            "lesson": "Không phải lúc nào cũng cần đảo ngược toàn bộ — đôi khi chỉ cần hỏi \"điều gì có thể sai?\""
+        },
+        "inversion__observe": {
+            "vs_active": "Kỹ năng chủ động cho kết quả ngay — quan sát xứng đáng chỉ khi bạn nghi ngờ có dạng thất bại ẩn chưa thấy.",
+            "vs_standard": "Tiêu chuẩn không mất Momentum — chọn quan sát khi cần thêm bằng chứng, không phải vì ngại quyết định.",
+            "lesson": "Failure Audit là công cụ của người cẩn thận — nhưng cẩn thận quá cũng là một dạng thất bại."
+        },
+        "inversion__signature": {
+            "vs_active": "Kỹ năng chủ động đảo ngược một khía cạnh — tuyệt chiêu đảo ngược toàn bộ cách nhìn vấn đề.",
+            "vs_observe": "Quan sát thu thập dữ liệu, tuyệt chiêu dùng dữ liệu đó để định nghĩa lại hoàn toàn — thứ tự này không thể đảo.",
+            "lesson": "Tuyệt chiêu của Devil's Advocate: khi người khác thấy vấn đề, bạn thấy cơ hội ẩn trong thất bại."
+        },
+        "second-order__active": {
+            "vs_standard": "Tiêu chuẩn nhìn một bước — kỹ năng chủ động nhìn ba đến bốn bước. Chênh lệch đó là lý do The Chessmaster thắng dài hạn.",
+            "vs_observe": "Quan sát thu thập thông tin, kỹ năng chủ động dùng thông tin đó để tính hậu quả — không thể bỏ qua bước sau.",
+            "lesson": "Second-Order Thinking có giá trị nhất trong các tình huống mà mọi người đang hành động theo bản năng."
+        },
+        "second-order__standard": {
+            "vs_active": "Kỹ năng chủ động nhìn xa hơn nhưng tốn nhiều hơn — khi chỉ số hạn chế, nhìn đúng bước tiếp theo là đủ thực dụng.",
+            "vs_observe": "Quan sát mất Momentum — tiêu chuẩn giữ được Momentum trong khi vẫn nhìn về phía trước.",
+            "lesson": "The Chessmaster thực dụng: không phải lúc nào cũng cần tính năm nước — đúng nước tiếp theo là chiến thắng."
+        },
+        "second-order__observe": {
+            "vs_active": "Kỹ năng chủ động tính hậu quả ngay — quan sát xứng đáng khi bạn chưa chắc đã thấy đủ các quân cờ.",
+            "vs_standard": "Tiêu chuẩn an toàn hơn — quan sát xứng đáng khi bối cảnh chưa rõ và Clarity thực sự cần thiết.",
+            "lesson": "The Chessmaster không bao giờ đi nước khi chưa nhìn rõ bàn cờ — quan sát là điều kiện tiên quyết."
+        },
+        "second-order__signature": {
+            "vs_active": "Kỹ năng chủ động tính vài bước — tuyệt chiêu tính toàn bộ chuỗi. Dùng tuyệt chiêu khi mức độ rủi ro đủ cao để xứng đáng.",
+            "vs_observe": "Quan sát là bước chuẩn bị, tuyệt chiêu là bước kết thúc — không thể dùng tuyệt chiêu khi còn mù thông tin.",
+            "lesson": "Chuỗi nhân quả là vũ khí của người kiên nhẫn — nhìn xa nhất thường thắng ở cuối cùng."
+        },
+        "occams-razor__active": {
+            "vs_standard": "Tiêu chuẩn tìm điều quan trọng nhất — kỹ năng chủ động cắt bỏ tất cả những gì không phải điều đó.",
+            "vs_observe": "Quan sát thu thập thêm — nhưng Occam's Razor biết thêm thông tin không phải lúc nào cũng giúp ích.",
+            "lesson": "The Surgeon không cần thêm công cụ — cần biết dùng đúng công cụ duy nhất phù hợp."
+        },
+        "occams-razor__standard": {
+            "vs_active": "Kỹ năng chủ động cắt mạnh hơn nhưng tốn nhiều — tiêu chuẩn là cách Occam's Razor hoạt động hàng ngày.",
+            "vs_observe": "Quan sát tìm thêm sự rõ ràng — tiêu chuẩn giữ tập trung vào điều đã biết là quan trọng.",
+            "lesson": "Không phải mọi tình huống đều cần dao mổ — đôi khi chỉ cần biết đâu là ưu tiên duy nhất."
+        },
+        "occams-razor__observe": {
+            "vs_active": "Kỹ năng chủ động hành động ngay — quan sát xứng đáng khi bạn chưa chắc mình đang cắt đúng chỗ.",
+            "vs_standard": "Tiêu chuẩn tập trung vào điều đã biết — quan sát khi bạn nghi ngờ mình đang bỏ qua thứ gì đó đơn giản hơn.",
+            "lesson": "The Surgeon không bao giờ cắt khi chưa biết mình đang cắt gì — quan sát là bước thẩm định bắt buộc."
+        },
+        "occams-razor__signature": {
+            "vs_active": "Kỹ năng chủ động đơn giản hóa giải pháp — tuyệt chiêu đơn giản hóa cả cách nhìn nhận vấn đề.",
+            "vs_standard": "Tiêu chuẩn là thói quen — tuyệt chiêu là khoảnh khắc rõ ràng tuyệt đối, dùng khi mức độ rủi ro cao nhất.",
+            "lesson": "Radical Simplification: khi mọi người đang phức tạp hóa, The Surgeon nhìn thấy điều hiển nhiên mà ai cũng bỏ qua."
+        },
+        "sys__active": {
+            "vs_standard": "Tiêu chuẩn nhìn các bên liên quan — kỹ năng chủ động nhìn toàn bộ hệ thống bao gồm cả các vòng phản hồi vô hình.",
+            "vs_observe": "Quan sát thu thập dữ liệu về hệ thống — kỹ năng chủ động dùng dữ liệu đó để tìm điểm đòn bẩy.",
+            "lesson": "The Ecologist không xử lý lỗi — họ thiết kế lại hệ thống. Tốn kém hơn nhưng bền vững hơn."
+        },
+        "sys__standard": {
+            "vs_active": "Kỹ năng chủ động nhìn toàn bộ hệ thống — tiêu chuẩn tập trung vào yếu tố con người, đủ dùng trong hầu hết tình huống.",
+            "vs_observe": "Quan sát nhìn cấu trúc — tiêu chuẩn nhìn con người trong cấu trúc đó, hai góc nhìn bổ sung chứ không thay thế.",
+            "lesson": "Hiểu ai đang có quyền lợi trong tình huống này thường giải thích được tại sao mọi thứ đang diễn ra như vậy."
+        },
+        "sys__observe": {
+            "vs_active": "Kỹ năng chủ động hành động dựa trên mô hình hiện tại — quan sát khi bạn nghi ngờ mô hình của mình chưa đủ chính xác.",
+            "vs_standard": "Tiêu chuẩn nhìn các bên liên quan — quan sát nhìn cả cấu trúc và mối quan hệ, cần nhiều thời gian hơn.",
+            "lesson": "Systems Thinking cần đủ thời gian quan sát — can thiệp vội vào hệ thống chưa hiểu thường gây hại hơn lợi."
+        },
+        "sys__signature": {
+            "vs_active": "Kỹ năng chủ động tìm điểm đòn bẩy — tuyệt chiêu tìm điểm can thiệp tối thiểu tạo ra thay đổi mang tính hệ thống.",
+            "vs_observe": "Quan sát hiểu hệ thống, tuyệt chiêu hành động dựa trên hiểu biết đó — hai bước không thể đảo.",
+            "lesson": "Emergence Protocol: giải pháp tốt nhất đôi khi là tạo điều kiện để hệ thống tự điều chỉnh chính nó."
+        },
+        "mc__active": {
+            "vs_standard": "Tiêu chuẩn tạo kế hoạch Nếu-Thì — kỹ năng chủ động tạo toàn bộ khung từ mong muốn đến chướng ngại đến kế hoạch.",
+            "vs_observe": "Quan sát vẽ bản đồ chướng ngại — kỹ năng chủ động dùng chướng ngại đó để tạo kế hoạch thực thi hoàn chỉnh.",
+            "lesson": "Mental Contrasting mạnh nhất khi bạn có đủ thông tin để thực tế về cả mục tiêu lẫn rào cản."
+        },
+        "mc__standard": {
+            "vs_active": "Kỹ năng chủ động làm WOOP đầy đủ — tiêu chuẩn làm phần Nếu-Thì, đủ hiệu quả khi mục tiêu và chướng ngại đã rõ.",
+            "vs_observe": "Quan sát tìm chướng ngại — tiêu chuẩn giả định bạn đã biết chướng ngại và tập trung vào cách phản ứng.",
+            "lesson": "Kế hoạch Nếu-Thì đơn giản nhưng hiệu quả: biết trước mình sẽ làm gì khi X xảy ra là lợi thế đáng kể."
+        },
+        "mc__observe": {
+            "vs_active": "Kỹ năng chủ động hành động khi đã có kế hoạch — quan sát khi bạn chưa chắc chướng ngại nào đang chờ phía trước.",
+            "vs_standard": "Tiêu chuẩn giả định bạn biết chướng ngại — quan sát khi tình huống còn nhiều ẩn số.",
+            "lesson": "The Architect không bao giờ lên kế hoạch mà không khảo sát địa hình trước — quan sát là bước đó."
+        },
+        "mc__signature": {
+            "vs_active": "Kỹ năng chủ động tạo kế hoạch — tuyệt chiêu tạo kế hoạch có tính đến mọi chướng ngại và có Nếu-Thì cho từng cái.",
+            "vs_observe": "Quan sát tìm chướng ngại, tuyệt chiêu tích hợp chúng vào kế hoạch hoàn chỉnh — hai bước liên tiếp.",
+            "lesson": "WOOP Frame là lý do The Architect ít thất bại hơn: không phải vì không gặp chướng ngại, mà vì đã lên kế hoạch cho chúng."
+        },
+        "bay__active": {
+            "vs_standard": "Tiêu chuẩn thu thập bằng chứng — kỹ năng chủ động dùng bằng chứng đó để cập nhật toàn bộ mô hình về tình huống.",
+            "vs_observe": "Quan sát kiểm tra prior — kỹ năng chủ động cập nhật prior đó với bằng chứng mới. Hai bước của cùng một quy trình.",
+            "lesson": "Bayesian Thinking mạnh nhất khi bạn sẵn sàng thay đổi niềm tin — kể cả khi điều đó không thoải mái."
+        },
+        "bay__standard": {
+            "vs_active": "Kỹ năng chủ động cập nhật toàn bộ mô hình — tiêu chuẩn thu thập bằng chứng, đủ dùng khi chưa có đủ dữ liệu để cập nhật lớn.",
+            "vs_observe": "Quan sát kiểm tra những gì bạn đã biết — tiêu chuẩn tìm thêm những gì bạn chưa biết.",
+            "lesson": "Bằng chứng không tự tìm đến bạn — The Probabilist chủ động đi tìm, kể cả bằng chứng mâu thuẫn với niềm tin hiện tại."
+        },
+        "bay__observe": {
+            "vs_active": "Kỹ năng chủ động cập nhật niềm tin ngay — quan sát khi bạn chưa chắc prior của mình đang được hiệu chỉnh đúng.",
+            "vs_standard": "Tiêu chuẩn tìm bằng chứng mới — quan sát kiểm tra bằng chứng cũ bạn đang mang theo.",
+            "lesson": "Đầu vào sai thì đầu ra sai — prior không chính xác sẽ cho kết quả sai dù bằng chứng tốt đến đâu."
+        },
+        "bay__signature": {
+            "vs_active": "Kỹ năng chủ động cập nhật niềm tin — tuyệt chiêu cập nhật và nêu rõ mức độ không chắc chắn còn lại.",
+            "vs_observe": "Quan sát hiệu chỉnh prior, tuyệt chiêu tổng hợp toàn bộ thành quyết định với khoảng tin cậy rõ ràng.",
+            "lesson": "The Probabilist không bao giờ nói \"chắc chắn\" — nhưng biết chính xác mình không chắc về điều gì và ở mức độ nào."
+        }
+    },
+    "mentorVoice": {
+        "first-principles": {
+            "normal": "Bỏ qua noise. Câu hỏi đúng đang dẫn bạn đến nơi cần đến.",
+            "pressure": "Ngay cả khi kiệ sức — tháo rời vấn đề vẫn là con đường duy nhất.",
+            "blindspot": "Bạn đang phân tích mà quên mất phải hành động. First Principles đòi hỏi cả hai.",
+            "villain_avoided": "Tốt. Bẫy tư duy không qua được người biết đặt câu hỏi đúng."
+        },
+        "inversion": {
+            "normal": "Người khác không dám nhìn vào đây. Bạn thì có — đó là lợi thế.",
+            "pressure": "Áp lực là lúc Inversion cần thiết nhất. Hỏi điều ngược lại.",
+            "blindspot": "Devil's Advocate đang tự làm mình chùn bước. Phản biện không có nghĩa là bi quan.",
+            "villain_avoided": "Bạn nhận ra bẫy. Devil's Advocate biết khi nào là bẫy thật sự."
+        },
+        "second-order": {
+            "normal": "Một nước đi. Nhiều hệ quả. Bạn đang nhìn thấy điều người khác bỏ qua.",
+            "pressure": "Chessmaster không hoảng loạn dưới áp lực. Tính tiếp đi.",
+            "blindspot": "Bạn đang tính mà không đi nước. Bàn cờ không chờ người phân tích mãi.",
+            "villain_avoided": "Chessmaster nhận ra bẫy trước khi bước vào. Đúng như bạn vừa làm."
+        },
+        "occams-razor": {
+            "normal": "Đơn giản hơn. Luôn luôn đơn giản hơn — cho đến khi không thể đơn giản hơn nữa.",
+            "pressure": "Khi mọi thứ hỗn loạn — The Surgeon cắt bỏ noise và nhìn thấy điều cốt lõi.",
+            "blindspot": "Bạn đang cắt quá nhiều. Occam's Razor cắt phần thừa — không phải phần cần thiết.",
+            "villain_avoided": "The Surgeon biết khi nào không nên cắt. Đó là kỹ năng khó hơn cắt."
+        },
+        "sys": {
+            "normal": "Mọi thứ đều kết nối. Bạn vừa nhìn thấy một mối liên hệ quan trọng.",
+            "pressure": "Hệ thống không sụp đổ vì một điểm — The Ecologist biết điều này.",
+            "blindspot": "Quan sát vòng tròn mà không tìm điểm can thiệp. Hệ thống cần người hành động.",
+            "villain_avoided": "The Ecologist nhận ra vòng lặp nguy hiểm trước khi bị cuốn vào."
+        },
+        "mc": {
+            "normal": "Kế hoạch tốt nhất là kế hoạch có tính đến cả thất bại.",
+            "pressure": "Ngay cả khi mọi thứ sụp đổ — The Architect vẫn có bản thiết kế dự phòng.",
+            "blindspot": "Lên kế hoạch mãi mà không xây gì. Bản thiết kế đẹp nhất cũng vô nghĩa nếu không xây.",
+            "villain_avoided": "The Architect biết khi nào kế hoạch là cái bẫy của chính mình."
+        },
+        "bay": {
+            "normal": "Niềm tin của bạn vừa được cập nhật. Đó là dấu hiệu của tư duy tốt.",
+            "pressure": "Dưới áp lực, The Probabilist càng cần prior rõ ràng hơn bao giờ hết.",
+            "blindspot": "Thu thập data mãi mà không update belief. Bayesian không phải chỉ là quan sát.",
+            "villain_avoided": "The Probabilist biết khi nào evidence là nhiễu — không phải tín hiệu."
+        }
+    },
+    "blindspotPatterns": {
+        "first-principles": {
+            "trigger": [
+                "observe",
+                "observe"
+            ],
+            "penalty": {
+                "mastery": -8
+            },
+            "message": "Bạn đang rơi vào bẫy phân tích tê liệt — điểm mù của chính mình."
+        },
+        "inversion": {
+            "trigger": [
+                "standard",
+                "standard",
+                "standard"
+            ],
+            "penalty": {
+                "momentum": -5
+            },
+            "message": "Devil's Advocate đang kéo năng lượng xuống thay vì build momentum."
+        },
+        "second-order": {
+            "trigger": [
+                "observe",
+                "observe",
+                "observe"
+            ],
+            "penalty": {
+                "mastery": -8,
+                "momentum": -3
+            },
+            "message": "The Chessmaster đang tính toán mãi mà không đi nước."
+        },
+        "occams-razor": {
+            "trigger": [
+                "active",
+                "active",
+                "active"
+            ],
+            "penalty": {
+                "clarity": -4
+            },
+            "message": "Bạn đang cắt quá nhiều — đơn giản hóa quá mức là blindspot của The Surgeon."
+        },
+        "sys": {
+            "trigger": [
+                "observe",
+                "standard",
+                "observe"
+            ],
+            "penalty": {
+                "momentum": -5,
+                "mastery": -5
+            },
+            "message": "The Ecologist đang quan sát vòng tròn mà không tìm được điểm can thiệp."
+        },
+        "mc": {
+            "trigger": [
+                "standard",
+                "observe",
+                "standard"
+            ],
+            "penalty": {
+                "mastery": -6
+            },
+            "message": "The Architect lên kế hoạch mãi mà không xây gì — paralysis by planning."
+        },
+        "bay": {
+            "trigger": [
+                "observe",
+                "standard",
+                "standard"
+            ],
+            "penalty": {
+                "mastery": -8
+            },
+            "message": "The Probabilist thu thập data mãi mà không update belief."
+        }
+    },
+    "villainActions": [
+        {
+            "id": "sunk-cost",
+            "label": "Duy trì hướng đi hiện tại",
+            "description": "Đã có nền tảng — tiếp tục hợp lý hơn thay đổi lúc này.",
+            "bias": "Sunk Cost Fallacy",
+            "delta": {
+                "mastery": -15,
+                "momentum": 2
+            },
+            "consequence": "Bạn vừa rơi vào Sunk Cost Fallacy — tiếp tục vì đã đầu tư, không phải vì đúng.",
+            "avoidBonus": {
+                "mastery": 5
+            }
+        },
+        {
+            "id": "availability",
+            "label": "Áp dụng giải pháp đã từng hiệu quả",
+            "description": "Kinh nghiệm là tài sản — dùng những gì đã chứng minh được.",
+            "bias": "Availability Heuristic",
+            "delta": {
+                "mastery": -12,
+                "clarity": -2
+            },
+            "consequence": "Availability Heuristic: bạn chọn giải pháp quen thuộc thay vì giải pháp đúng.",
+            "avoidBonus": {
+                "mastery": 5
+            }
+        },
+        {
+            "id": "confirmation",
+            "label": "Thu thập thêm bằng chứng ủng hộ",
+            "description": "Quyết định tốt cần đủ data — tìm thêm để chắc chắn hơn.",
+            "bias": "Confirmation Bias",
+            "delta": {
+                "mastery": -10,
+                "clarity": 3
+            },
+            "consequence": "Confirmation Bias: bạn chỉ tìm bằng chứng ủng hộ điều đã tin sẵn.",
+            "avoidBonus": {
+                "mastery": 5
+            }
+        }
+    ],
+    "actionInsights": {
+        "first-principles": {
+            "active": [
+                "⚗ Dismantler: Phá một giả định không phải là nghi ngờ — là tìm sự thật vững chắc hơn để xây dựng lên.",
+                "⚗ Dismantler: Câu hỏi \"tại sao?\" hỏi đủ lần sẽ dẫn đến nền tảng thật sự."
+            ],
+            "standard": [
+                "⚗ Dismantler: Một sự thật rõ ràng đáng giá hơn mười giả định mơ hồ.",
+                "⚗ Dismantler: Nền tảng vững chắc quan trọng hơn tốc độ xây."
+            ],
+            "observe": [
+                "⚗ Dismantler: Nhận ra giả định là bước đầu tiên để thoát khỏi nó.",
+                "⚗ Dismantler: Những gì hiển nhiên nhất thường là giả định nguy hiểm nhất."
+            ],
+            "signature": [
+                "⚗ Dismantler: Khi xây lại từ đầu, bạn không mất thứ gì thật sự quan trọng."
+            ]
+        },
+        "inversion": {
+            "active": [
+                "↩ Devil's Advocate: Nhìn vào kịch bản thất bại rõ hơn nhìn vào thành công — thất bại cụ thể hơn hy vọng.",
+                "↩ Devil's Advocate: Phân tích Pre-Mortem không phải là sự bi quan — đó là kỹ thuật."
+            ],
+            "standard": [
+                "↩ Devil's Advocate: Biết mình chịu được tệ nhất bao nhiêu — đó là nền tảng của sự dũng cảm thật sự.",
+                "↩ Devil's Advocate: Kịch bản xấu nhất sau khi đối mặt thường nhỏ hơn tưởng tượng."
+            ],
+            "observe": [
+                "↩ Devil's Advocate: Quan sát thất bại của người khác là cách học rẻ nhất.",
+                "↩ Devil's Advocate: Các điểm chung trong thất bại thường lặp lại — người nhận ra được có lợi thế lớn."
+            ],
+            "signature": [
+                "↩ Devil's Advocate: Khi bạn biết tất cả cách để thất bại, con đường đúng đơn giản hơn nhiều."
+            ]
+        },
+        "second-order": {
+            "active": [
+                "♟ Chessmaster: Người nghĩ hai bước trước không nhất thiết thông minh hơn — họ chỉ kiên nhẫn hơn.",
+                "♟ Chessmaster: Hệ quả bậc hai thường quan trọng hơn hệ quả bậc một."
+            ],
+            "standard": [
+                "♟ Chessmaster: Một bước nhìn xa đúng lúc còn hơn mười bước phân tích muộn.",
+                "♟ Chessmaster: Hỏi \"rồi thì sao?\" sau mỗi kết luận là thói quen đơn giản nhất của người tư duy chiến lược."
+            ],
+            "observe": [
+                "♟ Chessmaster: Bản đồ người liên quan hôm nay ngăn được bất ngờ ngày mai.",
+                "♟ Chessmaster: Ai bị ảnh hưởng mà không được hỏi — đó thường là nơi rủi ro ẩn náu."
+            ],
+            "signature": [
+                "♟ Chessmaster: Butterfly Effect không phải là sự hỗn loạn — đó là cơ hội cho người nhìn đủ xa."
+            ]
+        },
+        "occams-razor": {
+            "active": [
+                "✂ Surgeon: Thứ bạn cắt đi thường không bao giờ cần thiết ngay từ đầu.",
+                "✂ Surgeon: Đơn giản hóa không phải bỏ bớt — là tìm ra điều thực sự cần."
+            ],
+            "standard": [
+                "✂ Surgeon: Một việc làm tốt đáng hơn mười việc làm dở.",
+                "✂ Surgeon: Sự tập trung không phải là thiếu tầm nhìn — là biết được điều gì thực sự quan trọng."
+            ],
+            "observe": [
+                "✂ Surgeon: Sự phức tạp tự nó không bao giờ là dấu hiệu của sự thông minh.",
+                "✂ Surgeon: Tìm ra nơi đang bị phức tạp hóa là bước đầu tiên để đơn giản hóa."
+            ],
+            "signature": [
+                "✂ Surgeon: Giải pháp đơn giản nhất vẫn giải quyết được vấn đề — đó là giải pháp đúng."
+            ]
+        },
+        "sys": {
+            "active": [
+                "◈ Ecologist: Mỗi hành động tạo ra sóng lan rộng — bản đồ hệ thống cho thấy sóng đó sẽ đi đến đâu.",
+                "◈ Ecologist: Điểm then chốt không phải chỗ ồn ào nhất mà là nơi nhỏ nhất có thể thay đổi nhiều nhất."
+            ],
+            "standard": [
+                "◈ Ecologist: Vòng phản hồi không nói dối — nó chỉ đơn giản khuếch đại những gì đã có sẵn.",
+                "◈ Ecologist: Hiểu cơ chế trước khi can thiệp."
+            ],
+            "observe": [
+                "◈ Ecologist: Ai không được nhắc đến trong cuộc họp thường là người bị ảnh hưởng nhiều nhất.",
+                "◈ Ecologist: Hệ thống luôn rộng hơn phòng họp."
+            ],
+            "signature": [
+                "◈ Ecologist: Khi hệ thống được cân chỉnh đúng, kết quả tốt đẹp sẽ tự động xuất hiện."
+            ]
+        },
+        "bay": {
+            "active": [
+                "◎ Probabilist: Câu hỏi không phải \"tôi có đúng không\" mà là \"bằng chứng nào có thể chứng minh tôi sai?\"",
+                "◎ Probabilist: Chắc chắn 100% là dấu hiệu của việc chưa đặt đủ câu hỏi."
+            ],
+            "standard": [
+                "◎ Probabilist: Dữ liệu không thay đổi thực tế — nó chỉ giúp ta thấy rõ hơn những gì đã có.",
+                "◎ Probabilist: Bằng chứng yếu không có nghĩa là không có bằng chứng."
+            ],
+            "observe": [
+                "◎ Probabilist: Tỷ lệ nền thường nhàm chán hơn câu chuyện — và thường đúng hơn nhiều.",
+                "◎ Probabilist: Trước khi gọi đây là ngoại lệ, hãy kiểm tra xem đây có phải là trường hợp điển hình không."
+            ],
+            "signature": [
+                "◎ Probabilist: Thay đổi quyết định khi có dữ liệu mới không phải là yếu đuối — đó là sức mạnh."
+            ]
+        },
+        "mc": {
+            "active": [
+                "◐ Architect: Trở ngại được nhìn thấy trước mất đi phần lớn sức mạnh của nó.",
+                "◐ Architect: Kế hoạch không cần hoàn hảo — chỉ cần đủ tốt để bắt đầu."
+            ],
+            "standard": [
+                "◐ Architect: If-then không phải dự phòng — là cam kết với chính mình.",
+                "◐ Architect: Cụ thể hơn một chút là tiến bộ rồi."
+            ],
+            "observe": [
+                "◐ Architect: Khoảng cách giữa kỳ vọng và thực tế là nơi kế hoạch thực sự bắt đầu.",
+                "◐ Architect: Nhìn rõ vị trí hiện tại quan trọng hơn nhìn rõ đích đến."
+            ],
+            "signature": [
+                "◐ Architect: Nguyện vọng thiếu kế hoạch chỉ là ảo mộng."
+            ]
+        }
+    },
+    "modelQuotes": {
+        "first-principles": "Không có giả định nào là hiển nhiên.",
+        "inversion": "Muốn thành công? Hãy nghĩ cách để thất bại trước.",
+        "second-order": "Mọi quyết định hôm nay đều là hệ quả của ngày mai.",
+        "occams-razor": "Phức tạp là dấu hiệu của sự thiếu hiểu biết.",
+        "sys": "Không có vấn đề nào tồn tại độc lập.",
+        "bay": "Niềm tin là xác suất, không phải sự thật tuyệt đối.",
+        "mc": "Nhìn rõ đích đến lẫn chướng ngại vật."
+    }
+}

@@ -38,6 +38,11 @@ const staticRoutes = [
     title: 'Chính sách nội dung - vibe.j2team.org',
     description: 'Chính sách nội dung cho các trang con trên vibe.j2team.org.',
   },
+  {
+    path: '/contributors',
+    title: 'Cộng đồng đóng góp - vibe.j2team.org',
+    description: 'Khám phá cộng đồng những người đóng góp trên vibe.j2team.org qua không gian 3D.',
+  },
 ]
 
 /**

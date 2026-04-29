@@ -1,0 +1,34 @@
+/* Carousel slide animations */
+.slide-from-right-enter-from {
+  transform: translateX(24px);
+  opacity: 0;
+}
+.slide-from-right-enter-active {
+  transition: transform 300ms ease-out, opacity 300ms ease-out;
+}
+.slide-from-right-leave-active {
+  transition: transform 200ms ease-in, opacity 200ms ease-in;
+  position: absolute;
+  width: 100%;
+}
+.slide-from-right-leave-to {
+  transform: translateX(-24px);
+  opacity: 0;
+}
+
+.slide-from-left-enter-from {
+  transform: translateX(-24px);
+  opacity: 0;
+}
+.slide-from-left-enter-active {
+  transition: transform 300ms ease-out, opacity 300ms ease-out;
+}
+.slide-from-left-leave-active {
+  transition: transform 200ms ease-in, opacity 200ms ease-in;
+  position: absolute;
+  width: 100%;
+}
+.slide-from-left-leave-to {
+  transform: translateX(24px);
+  opacity: 0;
+}

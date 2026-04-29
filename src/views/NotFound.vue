@@ -3,7 +3,7 @@ import { RouterLink } from 'vue-router'
 </script>
 
 <template>
-  <div class="min-h-screen bg-bg-deep flex items-center justify-center px-6">
+  <div class="min-h-screen bg-bg-deep flex items-center justify-center px-6 pt-14">
     <div class="text-center max-w-md">
       <p class="text-6xl" aria-hidden="true">🫠</p>
       <p

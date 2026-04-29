@@ -1,14 +1,22 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import { Icon } from '@iconify/vue'
+import { useHead } from '@unhead/vue'
 import { REPO_URL } from '@/data/constants'
+
+const BADGE_URL =
+  'https://img.shields.io/github/stars/J2TEAM/vibe.j2team.org?style=for-the-badge&logo=github&label=Stars'
+
+useHead({
+  link: [{ rel: 'preload', href: BADGE_URL, as: 'image', fetchpriority: 'high' }],
+})
 </script>
 
 <template>
-  <header class="relative max-w-5xl mx-auto px-4 sm:px-6 pt-20 pb-16">
+  <header class="relative max-w-5xl mx-auto px-4 sm:px-6 pt-28 pb-16">
     <!-- Issue badge -->
     <div
-      class="absolute top-8 right-4 sm:right-6 bg-accent-coral text-bg-deep font-display font-bold text-xs tracking-widest px-3 py-1.5 rotate-3 animate-fade-up animate-delay-2"
+      class="absolute top-20 right-4 sm:right-6 bg-accent-coral text-bg-deep font-display font-bold text-xs tracking-widest px-3 py-1.5 rotate-3 animate-fade-up animate-delay-2"
     >
       VOL.01 / 2026
     </div>
@@ -44,17 +52,17 @@ import { REPO_URL } from '@/data/constants'
     <div class="mt-8 flex flex-wrap items-center gap-4 animate-fade-up animate-delay-4">
       <a
         href="#cach-tham-gia"
-        class="inline-block border border-accent-coral bg-accent-coral/10 px-6 py-3 font-display font-semibold text-accent-coral tracking-wide transition-all duration-300 hover:bg-accent-coral hover:text-bg-deep"
+        class="inline-flex items-center justify-center gap-2 w-full sm:w-auto border border-accent-coral bg-accent-coral/10 px-6 py-3 font-display font-semibold text-accent-coral tracking-wide transition-all duration-300 hover:bg-accent-coral hover:text-bg-deep"
       >
-        <Icon icon="lucide:rocket" class="inline w-4 h-4 -mt-0.5" />
-        Tham gia ngay
+        <Icon icon="lucide:rocket" class="w-4 h-4 shrink-0" />
+        <span class="translate-y-px">Tham gia ngay</span>
       </a>
       <RouterLink
         to="/leaderboard"
-        class="inline-flex items-center gap-2 border border-accent-sky bg-accent-sky/10 px-6 py-3 font-display font-semibold text-accent-sky tracking-wide transition-all duration-300 hover:bg-accent-sky hover:text-bg-deep"
+        class="inline-flex items-center justify-center gap-2 w-full sm:w-auto border border-accent-sky bg-accent-sky/10 px-6 py-3 font-display font-semibold text-accent-sky tracking-wide transition-all duration-300 hover:bg-accent-sky hover:text-bg-deep"
       >
-        <Icon icon="lucide:trophy" class="w-4 h-4" />
-        Top đóng góp
+        <Icon icon="lucide:trophy" class="w-4 h-4 shrink-0" />
+        <span class="translate-y-px">Top đóng góp</span>
       </RouterLink>
       <a
         :href="REPO_URL"
@@ -65,7 +73,7 @@ import { REPO_URL } from '@/data/constants'
         <span class="star-shimmer" aria-hidden="true"></span>
         <img
           alt="GitHub Repo stars"
-          src="https://img.shields.io/github/stars/J2TEAM/vibe.j2team.org?style=for-the-badge&logo=github&label=Stars"
+          :src="BADGE_URL"
           fetchpriority="high"
           class="relative h-[46px]"
         />

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" fill="none">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#122531" />
+      <stop offset="1" stop-color="#244556" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#g)" />
+  <rect x="24" y="24" width="592" height="312" stroke="#38BDF8" stroke-opacity="0.45" />
+  <circle cx="244" cy="136" r="38" fill="#F0EDE6" fill-opacity="0.2" stroke="#38BDF8" stroke-width="6" stroke-opacity="0.5" />
+  <rect x="218" y="176" width="208" height="30" fill="#8B9DB5" fill-opacity="0.24" />
+  <rect x="228" y="206" width="220" height="22" fill="#8B9DB5" fill-opacity="0.16" />
+  <path d="M464 106c11 10 17 22 17 37M476 92c19 16 30 36 30 60" stroke="#FFB830" stroke-width="8" stroke-linecap="round" />
+  <text x="36" y="64" fill="#F0EDE6" font-family="Be Vietnam Pro, sans-serif" font-size="30" font-weight="700">FAINTING RESPONSE</text>
+  <text x="36" y="98" fill="#F0EDE6" fill-opacity="0.8" font-family="Be Vietnam Pro, sans-serif" font-size="18">Lay flat, raise legs, check breathing before giving drinks.</text>
+</svg>

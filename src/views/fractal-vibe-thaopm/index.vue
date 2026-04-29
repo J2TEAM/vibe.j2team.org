@@ -139,6 +139,7 @@ let invincible = 0
 let loopSlow = 0
 const mouse = { x: 400, y: 210 }
 let gameRunning = true
+let animFrameId = 0
 let startTime = Date.now()
 
 // 12 TRICK BẤT NGỜ
@@ -501,7 +502,7 @@ function gameLoop() {
 
   ctx.restore()
 
-  requestAnimationFrame(gameLoop)
+  animFrameId = requestAnimationFrame(gameLoop)
 }
 
 function gameOver() {
@@ -546,7 +547,7 @@ function startGame() {
   actionButtons[2]!.vy = -1.2
   actionButtons[2]!.life = 2250
 
-  requestAnimationFrame(gameLoop)
+  animFrameId = requestAnimationFrame(gameLoop)
 }
 
 function restartGame() {
@@ -567,6 +568,25 @@ function handleCanvasClick(e: MouseEvent) {
   checkButtonHit(mx, my)
 }
 
+function handleTouchMove(e: TouchEvent) {
+  e.preventDefault()
+  const touch = e.touches[0]
+  if (!touch) return
+  const rect = canvas.getBoundingClientRect()
+  mouse.x = touch.clientX - rect.left
+  mouse.y = touch.clientY - rect.top
+}
+
+function handleTouchEnd(e: TouchEvent) {
+  if (gameState.value !== 'playing') return
+  const rect = canvas.getBoundingClientRect()
+  const touch = e.changedTouches[0]
+  if (!touch) return
+  const mx = touch.clientX - rect.left
+  const my = touch.clientY - rect.top
+  checkButtonHit(mx, my)
+}
+
 onMounted(() => {
   const canvasEl = document.getElementById('gameCanvas')
   if (!canvasEl) return
@@ -577,29 +597,19 @@ onMounted(() => {
 
   canvas.addEventListener('mousemove', handleMouse)
   canvas.addEventListener('click', handleCanvasClick)
-  canvas.addEventListener('touchmove', (e: TouchEvent) => {
-    e.preventDefault()
-    const touch = e.touches[0]
-    if (!touch) return
-    const rect = canvas.getBoundingClientRect()
-    mouse.x = touch.clientX - rect.left
-    mouse.y = touch.clientY - rect.top
-  })
-  canvas.addEventListener('touchend', (e: TouchEvent) => {
-    if (gameState.value !== 'playing') return
-    const rect = canvas.getBoundingClientRect()
-    const touch = e.changedTouches[0]
-    if (!touch) return
-    const mx = touch.clientX - rect.left
-    const my = touch.clientY - rect.top
-    checkButtonHit(mx, my)
-  })
+  canvas.addEventListener('touchmove', handleTouchMove)
+  canvas.addEventListener('touchend', handleTouchEnd)
 
   startGame()
 })
 
 onUnmounted(() => {
   gameRunning = false
+  cancelAnimationFrame(animFrameId)
+  canvas.removeEventListener('mousemove', handleMouse)
+  canvas.removeEventListener('click', handleCanvasClick)
+  canvas.removeEventListener('touchmove', handleTouchMove)
+  canvas.removeEventListener('touchend', handleTouchEnd)
 })
 </script>
 

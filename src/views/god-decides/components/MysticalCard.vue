@@ -1,19 +1,23 @@
 <template>
   <div class="mystical-container">
     <div class="h-[90px] text-center">
-      <p class="mt-0 text-xl">
-        {{ shuffling ? 'Đang xào bài...' : 'Những lá bài chứa đựng câu trả lời dành cho bạn.' }}
-      </p>
       <transition name="fade">
-        <div v-if="(!shuffling && !cardsDealt) || selectedCard" class="intro-message !mt-4 !m-auto">
+        <div v-if="(!shuffling && !cardsDealt) || selectedCard" class="intro-message">
           <button v-if="!selectedCard" @click="shuffleAndDeal" class="mystical-button">
-            <span class="button-text">Xào bài</span>
+            <span class="button-text">Xào Bài</span>
           </button>
           <button v-else @click="resetAndSuffle" class="mystical-button mt-4">
-            <span class="button-text">Xào lại</span>
+            <span class="button-text">Xào Lại</span>
           </button>
         </div>
       </transition>
+    </div>
+    <div v-if="isIntro" class="text-xs sm:text-md text-center leading-6 pt-4">
+      <p>
+        Trước khi chọn bài, hãy tập trung vào câu hỏi của bạn và tin tưởng vào sự hướng dẫn của vũ
+        trụ.
+      </p>
+      <p>Mỗi lá bài sẽ mang đến một thông điệp đặc biệt, giúp bạn tìm ra con đường đúng đắn.</p>
     </div>
     <div class="cards-container" :class="{ dealt: cardsDealt }">
       <transition-group name="card" tag="div" class="cards-layout">
@@ -91,7 +95,7 @@ type DecisionCard = {
 type MysticalCard = DecisionCard & {
   revealed: boolean
 }
-
+const isIntro = ref(true)
 const cardsData: DecisionCard[] = decisions
 
 const cards = ref<MysticalCard[]>([])
@@ -114,6 +118,7 @@ const MAX_HISTORY = 3
 
 function shuffleAndDeal() {
   selectedCardIndex.value = null
+  isIntro.value = false
 
   let newDeal: MysticalCard[]
   let attempts = 0
@@ -268,11 +273,13 @@ function getCardStyle(index: number) {
     transform: translateY(15px) scale(0.2);
     filter: blur(10px);
   }
+
   60% {
     opacity: 1;
     transform: translateY(0) scale(1.05);
     filter: blur(0);
   }
+
   100% {
     opacity: 1;
     transform: scale(1);
@@ -317,6 +324,7 @@ function getCardStyle(index: number) {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(180deg);
   }
@@ -391,30 +399,39 @@ function getCardStyle(index: number) {
   100% {
     transform: translateX(0) translateY(0) rotate(0deg);
   }
+
   10% {
     transform: translateX(-100px) translateY(-50px) rotate(-10deg);
   }
+
   20% {
     transform: translateX(150px) translateY(30px) rotate(5deg);
   }
+
   30% {
     transform: translateX(-80px) translateY(80px) rotate(15deg);
   }
+
   40% {
     transform: translateX(120px) translateY(-100px) rotate(-20deg);
   }
+
   50% {
     transform: translateX(-150px) translateY(-30px) rotate(10deg);
   }
+
   60% {
     transform: translateX(100px) translateY(90px) rotate(-15deg);
   }
+
   70% {
     transform: translateX(-120px) translateY(-70px) rotate(20deg);
   }
+
   80% {
     transform: translateX(80px) translateY(50px) rotate(-5deg);
   }
+
   90% {
     transform: translateX(-50px) translateY(-120px) rotate(15deg);
   }
@@ -423,90 +440,119 @@ function getCardStyle(index: number) {
 .shuffle-card:nth-child(1) {
   animation-delay: 0s;
 }
+
 .shuffle-card:nth-child(2) {
   animation-delay: 0.05s;
 }
+
 .shuffle-card:nth-child(3) {
   animation-delay: 0.1s;
 }
+
 .shuffle-card:nth-child(4) {
   animation-delay: 0.15s;
 }
+
 .shuffle-card:nth-child(5) {
   animation-delay: 0.2s;
 }
+
 .shuffle-card:nth-child(6) {
   animation-delay: 0.25s;
 }
+
 .shuffle-card:nth-child(7) {
   animation-delay: 0.3s;
 }
+
 .shuffle-card:nth-child(8) {
   animation-delay: 0.35s;
 }
+
 .shuffle-card:nth-child(9) {
   animation-delay: 0.4s;
 }
+
 .shuffle-card:nth-child(10) {
   animation-delay: 0.45s;
 }
+
 .shuffle-card:nth-child(11) {
   animation-delay: 0.5s;
 }
+
 .shuffle-card:nth-child(12) {
   animation-delay: 0.55s;
 }
+
 .shuffle-card:nth-child(13) {
   animation-delay: 0.6s;
 }
+
 .shuffle-card:nth-child(14) {
   animation-delay: 0.65s;
 }
+
 .shuffle-card:nth-child(15) {
   animation-delay: 0.7s;
 }
+
 .shuffle-card:nth-child(16) {
   animation-delay: 0.75s;
 }
+
 .shuffle-card:nth-child(17) {
   animation-delay: 0.8s;
 }
+
 .shuffle-card:nth-child(18) {
   animation-delay: 0.85s;
 }
+
 .shuffle-card:nth-child(19) {
   animation-delay: 0.9s;
 }
+
 .shuffle-card:nth-child(20) {
   animation-delay: 0.95s;
 }
+
 .shuffle-card:nth-child(21) {
   animation-delay: 1s;
 }
+
 .shuffle-card:nth-child(22) {
   animation-delay: 1.05s;
 }
+
 .shuffle-card:nth-child(23) {
   animation-delay: 1.1s;
 }
+
 .shuffle-card:nth-child(24) {
   animation-delay: 1.15s;
 }
+
 .shuffle-card:nth-child(25) {
   animation-delay: 1.2s;
 }
+
 .shuffle-card:nth-child(26) {
   animation-delay: 1.25s;
 }
+
 .shuffle-card:nth-child(27) {
   animation-delay: 1.3s;
 }
+
 .shuffle-card:nth-child(28) {
   animation-delay: 1.35s;
 }
+
 .shuffle-card:nth-child(29) {
   animation-delay: 1.4s;
 }
+
 .shuffle-card:nth-child(30) {
   animation-delay: 1.45s;
 }
@@ -559,7 +605,7 @@ function getCardStyle(index: number) {
   border-radius: 15px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: start;
   align-items: center;
   padding: 1.5rem;
   text-align: center;
@@ -612,6 +658,7 @@ function getCardStyle(index: number) {
   0% {
     transform: translate(-50%, -50%) rotate(0deg);
   }
+
   100% {
     transform: translate(-50%, -50%) rotate(360deg);
   }
@@ -695,6 +742,7 @@ function getCardStyle(index: number) {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -710,7 +758,8 @@ function getCardStyle(index: number) {
 }
 
 .card-front-face {
-  background: linear-gradient(135deg, #353535 0%, #040405 100%);
+  /* background: linear-gradient(135deg, #353535 0%, #040405 40%); */
+  backdrop-filter: blur(15px);
   border: 3px solid #ffd700;
   transform: rotateY(180deg);
   position: absolute;
@@ -719,15 +768,16 @@ function getCardStyle(index: number) {
 }
 
 .card-front-face h3 {
+  flex: 1;
+  max-height: 50%;
   color: #ffd700;
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-size: 1rem;
   text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
 }
 
 .card-front-face p {
   color: #f0e6ff;
-  font-size: 1rem;
+  font-size: 0.8rem;
   line-height: 1.5;
 }
 
@@ -792,11 +842,11 @@ function getCardStyle(index: number) {
   }
 
   .card-front-face h3 {
-    font-size: 1rem;
+    font-size: 0.75rem;
   }
 
   .card-front-face p {
-    font-size: 0.8rem;
+    font-size: 0.5rem;
   }
 }
 </style>

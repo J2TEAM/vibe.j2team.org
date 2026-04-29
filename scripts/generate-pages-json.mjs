@@ -5,8 +5,8 @@
  * The output is consumed by src/data/pages-loader.ts via fetch.
  */
 
-import { writeFileSync, readdirSync, statSync } from 'node:fs'
-import { resolve, join } from 'node:path'
+import { writeFileSync, readdirSync, statSync, mkdirSync } from 'node:fs'
+import { resolve, join, dirname } from 'node:path'
 import jiti from 'jiti'
 
 const ROOT = resolve(import.meta.dirname, '..')
@@ -70,6 +70,7 @@ export async function generatePagesJson() {
     return a.name.localeCompare(b.name)
   })
 
+  mkdirSync(dirname(OUT), { recursive: true })
   writeFileSync(OUT, JSON.stringify(pages))
   console.log(`[generate-pages-json] Written ${pages.length} pages to public/data/pages.json`)
 }

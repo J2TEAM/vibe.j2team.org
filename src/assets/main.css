@@ -35,7 +35,7 @@ body::after {
   opacity: 0.025;
   pointer-events: none;
   z-index: 50;
-  background-image: url('/images/noise.webp');
+  background-image: url('/shared/noise.webp');
   background-repeat: repeat;
   background-size: 256px 256px;
 }

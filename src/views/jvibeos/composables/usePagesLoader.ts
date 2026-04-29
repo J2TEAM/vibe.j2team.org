@@ -1,21 +1,15 @@
 import { ref, onMounted } from 'vue'
-import type { PageInfo, AppItem } from './useApps'
+import type { AppItem } from './useApps'
 import { processPages } from './useApps'
+import { fetchRawPages } from '@/stores/usePagesStore'
 
 let cachedPages: AppItem[] | null = null
-let fetchPromise: Promise<AppItem[]> | null = null
 
 async function loadPages(): Promise<AppItem[]> {
   if (cachedPages) return cachedPages
-  if (!fetchPromise) {
-    fetchPromise = fetch('/data/pages.json')
-      .then((res) => res.json() as Promise<PageInfo[]>)
-      .then((raw) => {
-        cachedPages = processPages(raw)
-        return cachedPages
-      })
-  }
-  return fetchPromise
+  const raw = await fetchRawPages()
+  cachedPages = processPages(raw)
+  return cachedPages
 }
 
 export function usePagesLoader() {

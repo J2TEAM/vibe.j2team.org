@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { multiAppAuthors, toAuthorSlug } from '@/data/authors'
+import { getMultiAppAuthors, toAuthorSlug } from '@/data/authors'
+import AppBreadcrumb from '@/components/AppBreadcrumb.vue'
 import { getCategoryLabel } from '@/data/categories'
+import AuthorAvatar from '@/components/AuthorAvatar.vue'
+
+const MAX_VISIBLE_APPS = 5
 
 interface RankStyle {
   card: string
@@ -38,7 +42,7 @@ const defaultStyle: RankStyle = {
   hover: 'hover:text-accent-coral',
 }
 
-const styledAuthors = multiAppAuthors.map((stat) => ({
+const styledAuthors = getMultiAppAuthors().map((stat) => ({
   stat,
   style: rankStyles[stat.rank] ?? defaultStyle,
 }))
@@ -46,13 +50,8 @@ const styledAuthors = multiAppAuthors.map((stat) => ({
 
 <template>
   <div class="min-h-screen bg-bg-deep text-text-primary font-body">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
-      <RouterLink
-        to="/"
-        class="inline-flex items-center gap-2 text-sm text-text-secondary transition hover:text-accent-coral"
-      >
-        &larr; Về trang chủ
-      </RouterLink>
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-20 sm:pt-28 pb-16 sm:pb-24">
+      <AppBreadcrumb :items="[{ label: 'Bảng xếp hạng tác giả' }]" />
 
       <!-- Header -->
       <h1
@@ -80,15 +79,14 @@ const styledAuthors = multiAppAuthors.map((stat) => ({
           </div>
 
           <!-- Author -->
-          <h2 class="mt-2 font-display text-xl font-bold">
-            <RouterLink
-              :to="`/author/${toAuthorSlug(stat.author)}`"
-              class="transition-colors"
-              :class="style.hover"
-            >
-              {{ stat.author }}
-            </RouterLink>
-          </h2>
+          <RouterLink
+            :to="`/author/${toAuthorSlug(stat.author)}`"
+            class="mt-2 flex items-center gap-3 transition-colors"
+            :class="style.hover"
+          >
+            <AuthorAvatar :author="stat.author" size="md" />
+            <h2 class="font-display text-xl font-bold">{{ stat.author }}</h2>
+          </RouterLink>
 
           <p class="mt-1 text-sm text-text-secondary">
             <span class="font-display font-bold text-lg" :class="style.text">
@@ -100,7 +98,7 @@ const styledAuthors = multiAppAuthors.map((stat) => ({
           <!-- Apps -->
           <div class="mt-4 space-y-2">
             <RouterLink
-              v-for="app in stat.apps"
+              v-for="app in stat.apps.slice(0, MAX_VISIBLE_APPS)"
               :key="app.path"
               :to="app.path"
               class="flex items-center gap-2 text-sm text-text-secondary transition-colors"
@@ -108,6 +106,15 @@ const styledAuthors = multiAppAuthors.map((stat) => ({
             >
               <span class="text-text-dim">&rarr;</span>
               {{ app.name }}
+            </RouterLink>
+            <RouterLink
+              v-if="stat.apps.length > MAX_VISIBLE_APPS"
+              :to="`/author/${toAuthorSlug(stat.author)}`"
+              class="flex items-center gap-2 text-sm transition-colors"
+              :class="style.text"
+            >
+              <span class="text-text-dim">&rarr;</span>
+              Xem thêm {{ stat.apps.length - MAX_VISIBLE_APPS }} ứng dụng...
             </RouterLink>
           </div>
 
@@ -123,14 +130,6 @@ const styledAuthors = multiAppAuthors.map((stat) => ({
           </div>
         </div>
       </div>
-
-      <!-- Back to home -->
-      <RouterLink
-        to="/"
-        class="mt-16 inline-flex items-center gap-2 border border-border-default bg-bg-surface px-5 py-2.5 text-sm text-text-secondary transition hover:border-accent-coral hover:text-text-primary"
-      >
-        &larr; Về trang chủ
-      </RouterLink>
     </div>
   </div>
 </template>

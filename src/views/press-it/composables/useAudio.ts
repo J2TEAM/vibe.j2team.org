@@ -9,7 +9,7 @@ export function useAudio() {
   let musicEl: HTMLAudioElement | null = null
   const isMuted = ref(false)
 
-  const musicUrl = new URL('../assets/fun2rhyme.mp3', import.meta.url).href
+  const musicUrl = '/press-it/fun2rhyme.mp3'
 
   function init() {
     if (!ctx) {

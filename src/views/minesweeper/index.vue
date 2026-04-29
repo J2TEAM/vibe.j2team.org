@@ -206,15 +206,15 @@ const getLevelImageId = (lv: number): number => {
 const updateBackground = () => {
   const imageId = getLevelImageId(level.value)
 
-  const imgPathWebp = `/images/minesweeper/${imageId}.webp?v=${Date.now()}`
-  const imgPathJpg = `/images/minesweeper/${imageId}.jpg?v=${Date.now()}`
-  const imgPathPng = `/images/minesweeper/${imageId}.png?v=${Date.now()}`
-  const imgPathJpeg = `/images/minesweeper/${imageId}.jpeg?v=${Date.now()}`
+  const imgPathWebp = `/minesweeper/${imageId}.webp?v=${Date.now()}`
+  const imgPathJpg = `/minesweeper/${imageId}.jpg?v=${Date.now()}`
+  const imgPathPng = `/minesweeper/${imageId}.png?v=${Date.now()}`
+  const imgPathJpeg = `/minesweeper/${imageId}.jpeg?v=${Date.now()}`
 
   const formats = [imgPathWebp, imgPathJpg, imgPathPng, imgPathJpeg]
   const tryLoad = (index: number) => {
     if (index >= formats.length) {
-      currentBackground.value = `/images/minesweeper/1.webp`
+      currentBackground.value = `/minesweeper/1.webp`
       return
     }
     const img = new Image()

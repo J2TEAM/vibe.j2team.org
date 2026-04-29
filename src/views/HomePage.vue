@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, defineAsyncComponent } from 'vue'
-import BackToTop from '@/components/BackToTop.vue'
 import FixedCTA from '@/components/home/FixedCTA.vue'
 import HeroSection from '@/components/home/HeroSection.vue'
 import PagesGrid from '@/components/home/PagesGrid.vue'
@@ -37,6 +36,5 @@ const SiteFooter = defineAsyncComponent(() => import('@/components/home/SiteFoot
       <SiteFooter />
     </div>
     <FixedCTA :observe-target="heroRef" :hide-target="hideCtaRef" />
-    <BackToTop />
   </div>
 </template>

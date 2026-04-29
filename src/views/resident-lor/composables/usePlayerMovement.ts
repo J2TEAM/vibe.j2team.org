@@ -1,6 +1,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
-const MOVE_SPEED = 0.000002
+/** Đơn vị: độ/ms — độc lập FPS */
+const MOVE_SPEED_PER_MS = 0.00000013
 const UNSTUCK_CHECK_INTERVAL_MS = 200
 
 export type UsePlayerMovementOptions = {
@@ -53,7 +54,12 @@ export function usePlayerMovement(
   })
 
   let rafId: number
-  const tick = () => {
+  let lastTime = 0
+  const tick = (timestamp: number) => {
+    const delta = lastTime ? Math.min(timestamp - lastTime, 50) : 16
+    lastTime = timestamp
+    const step = MOVE_SPEED_PER_MS * delta
+
     const now = Date.now()
     const { lat, lng } = position.value
 
@@ -68,10 +74,10 @@ export function usePlayerMovement(
       if (k.w || k.a || k.s || k.d) {
         let newLat = lat
         let newLng = lng
-        if (k.w) newLat += MOVE_SPEED
-        if (k.s) newLat -= MOVE_SPEED
-        if (k.a) newLng -= MOVE_SPEED
-        if (k.d) newLng += MOVE_SPEED
+        if (k.w) newLat += step
+        if (k.s) newLat -= step
+        if (k.a) newLng -= step
+        if (k.d) newLng += step
         if (!isWalkable || isWalkable(newLat, newLng)) {
           position.value = { lat: newLat, lng: newLng }
         }

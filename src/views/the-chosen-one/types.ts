@@ -28,4 +28,16 @@ export const AVAILABLE_GAMES: readonly GameInfo[] = [
     description:
       'King Kongs race up a skyscraper — climbing, fighting, and falling — to claim the beauty at the top',
   },
+  {
+    id: 'dice-roll',
+    name: 'Dice Roll',
+    description:
+      'A single N-sided die — one face per name — tumbles and lands to reveal the chosen one',
+  },
+  {
+    id: 'lucky-jackpot',
+    name: 'Lucky Jackpot',
+    description:
+      'A slot machine with 3 spinning reels — pull the lever and pray all three land on the same lucky name',
+  },
 ] as const

@@ -35,6 +35,7 @@ const showHelp = ref(false)
 // Settings popup state
 const showSettings = ref(false)
 const productCount = ref(30) // default 30 products
+const maxProducts = ref(30) // max products from pages.json
 const showControls = ref(true) // toggle visibility of controls
 
 // Filter state
@@ -79,8 +80,8 @@ function toggleControls() {
 }
 
 function applySettings() {
-  // Clamp value between 0-141
-  productCount.value = Math.max(0, Math.min(141, productCount.value))
+  // Clamp value between 0-maxProducts
+  productCount.value = Math.max(0, Math.min(maxProducts.value, productCount.value))
   showSettings.value = false
   // Reload and apply filters
   loadPages().then((pages) => {
@@ -310,6 +311,7 @@ const animFrameRef = ref(0)
 const startTimeRef = ref(0)
 const loading = ref(true)
 const loadingError = ref<string | null>(null)
+const lastDpr = ref(1) // Track last DPR for proper scaling
 
 const productTiles = ref<ProductItem[]>([])
 const stars = ref<Star[]>([])
@@ -333,6 +335,9 @@ async function loadPages(): Promise<PageInfo[]> {
     const res = await fetch('/data/pages.json')
     const pages: PageInfo[] = await res.json()
     console.log('[EasterEgg] Loaded pages:', pages.length)
+
+    // Set max products based on pages count
+    maxProducts.value = pages.length
 
     // Extract unique categories and authors
     const categories = new Set<string>()
@@ -367,28 +372,40 @@ function animate() {
   const ctx = canvas.getContext('2d')
   if (!ctx) return
 
-  const w = window.innerWidth
-  const h = window.innerHeight
+  const dpr = window.devicePixelRatio || 1
+  // Use clientWidth/clientHeight for accurate viewport dimensions (excludes scrollbars)
+  const w = document.documentElement.clientWidth || window.innerWidth
+  const h = document.documentElement.clientHeight || window.innerHeight
 
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width = w || 800
-    canvas.height = h || 600
+  // Set canvas size with devicePixelRatio for sharp rendering on high-DPI screens
+  // Also set CSS style dimensions to match viewport
+  if (canvas.width !== w * dpr || canvas.height !== h * dpr || lastDpr.value !== dpr) {
+    canvas.width = w * dpr
+    canvas.height = h * dpr
+    canvas.style.width = `${w}px`
+    canvas.style.height = `${h}px`
+    lastDpr.value = dpr
   }
 
+  // Scale context for DPR
+  ctx.setTransform(1, 0, 0, 1, 0, 0)
+  ctx.scale(dpr, dpr)
+
   ctx.fillStyle = COLORS.bgDeep
-  ctx.fillRect(0, 0, w || 800, h || 600)
+  ctx.fillRect(0, 0, w, h)
 
   const elapsed = (performance.now() - startTimeRef.value) / 1000
 
-  drawStars(ctx, w || 800, h || 600, elapsed, stars.value)
+  // Pass dpr=1 since we're scaling via context
+  drawStars(ctx, w, h, elapsed, stars.value, 1)
 
   updateProductPositions(productTiles.value, isMobile.value)
 
   drawConstellationLines(ctx, productTiles.value)
 
-  drawProducts(ctx, productTiles.value, isMobile.value)
+  drawProducts(ctx, productTiles.value, isMobile.value, 1)
 
-  drawCenterText(ctx, w || 800, h || 600, isMobile.value)
+  drawCenterText(ctx, w, h, isMobile.value, 1)
 
   animFrameRef.value = requestAnimationFrame(animate)
 }
@@ -475,7 +492,7 @@ onBeforeUnmount(() => {
       <canvas
         v-show="!loading && !loadingError"
         ref="canvasRef"
-        class="block w-full h-full cursor-grab active:cursor-grabbing"
+        class="block cursor-grab active:cursor-grabbing"
         @mousedown="handleMouseDown"
         @mousemove="handleMouseMove"
         @mouseup="handleMouseUp"
@@ -621,12 +638,12 @@ onBeforeUnmount(() => {
         <input
           type="range"
           :min="0"
-          :max="141"
+          :max="maxProducts"
           :value="productCount"
           @input="updateProductCount"
           class="w-32 h-1.5 rounded-lg appearance-none cursor-pointer"
           :style="{
-            background: `linear-gradient(to right, #FF6B4A 0%, #FF6B4A ${(productCount / 141) * 100}%, #253549 ${(productCount / 141) * 100}%, #253549 100%)`,
+            background: `linear-gradient(to right, #FF6B4A 0%, #FF6B4A ${(productCount / maxProducts) * 100}%, #253549 ${(productCount / maxProducts) * 100}%, #253549 100%)`,
           }"
         />
         <span class="text-xs w-6 text-center" style="color: #f0ede6">{{ productCount }}</span>

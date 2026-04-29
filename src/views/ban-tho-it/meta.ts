@@ -5,6 +5,7 @@ const meta: PageMeta = {
   description: 'Tâm linh không đùa được đâu. Xin bề trên độ cho code chạy mượt mà.',
   author: 'KennKuaa',
   category: 'spiritual',
+  facebook: 'https://www.facebook.com/V0LEURS',
 }
 
 export default meta

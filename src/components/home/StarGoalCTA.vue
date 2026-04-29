@@ -98,11 +98,13 @@ onMounted(async () => {
 
 <template>
   <section
-    v-if="loaded && !failed"
+    v-if="!failed"
     ref="sectionRef"
     class="max-w-5xl mx-auto px-4 sm:px-6 -mt-4 mb-8 animate-fade-up"
   >
+    <!-- Loaded state -->
     <a
+      v-if="loaded"
       :href="REPO_URL"
       target="_blank"
       rel="noopener noreferrer nofollow"
@@ -198,6 +200,39 @@ onMounted(async () => {
         <span>{{ goal.toLocaleString() }}</span>
       </div>
     </a>
+
+    <!-- Skeleton loading state -->
+    <div
+      v-else
+      class="block border border-border-default bg-bg-surface p-5 sm:p-6 animate-pulse"
+      aria-hidden="true"
+    >
+      <!-- Header row skeleton -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-5 h-5 rounded bg-bg-deep" />
+          <div class="h-4 w-28 rounded bg-bg-deep" />
+        </div>
+        <div class="h-8 w-48 rounded bg-bg-deep" />
+      </div>
+
+      <!-- Star count skeleton -->
+      <div class="flex items-baseline gap-2 mb-3">
+        <div class="h-9 sm:h-10 w-24 rounded bg-bg-deep" />
+        <div class="h-4 w-2 rounded bg-bg-deep" />
+        <div class="h-5 w-16 rounded bg-bg-deep" />
+        <div class="h-4 w-10 rounded bg-bg-deep" />
+      </div>
+
+      <!-- Progress bar skeleton -->
+      <div class="h-3 rounded-full bg-bg-deep" />
+
+      <!-- Milestones skeleton -->
+      <div class="flex justify-between mt-2">
+        <div class="h-3 w-10 rounded bg-bg-deep" />
+        <div class="h-3 w-10 rounded bg-bg-deep" />
+      </div>
+    </div>
   </section>
 </template>
 

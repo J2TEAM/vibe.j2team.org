@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://vibe.j2team.org/sitemap.xml

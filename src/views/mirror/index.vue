@@ -349,6 +349,10 @@ onMounted(() => {
     modifyLinks()
   })
   observer.observe(document.body, { childList: true, subtree: true })
+
+  onUnmounted(() => {
+    observer.disconnect()
+  })
 })
 
 onUnmounted(() => {

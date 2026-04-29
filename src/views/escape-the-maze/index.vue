@@ -35,6 +35,7 @@ const exitPosition = ref<Position>({ x: 0, y: 0 })
 const gameStats = ref<GameStats | null>(null)
 const isNewRecord = ref(false)
 const showTrollMessage = ref(false)
+let trollTimeoutId: ReturnType<typeof setTimeout> | null = null
 
 const bestRecord = computed<BestRecord | null>(() => {
   const key = `${STORAGE_KEY.BEST_NOOB}`.replace('noob', selectedDifficulty.value)
@@ -58,8 +59,9 @@ function startGame(difficulty: Difficulty) {
   startTimer()
 
   // Show troll message after threshold
+  if (trollTimeoutId) clearTimeout(trollTimeoutId)
   const threshold = trollThreshold[difficulty]
-  setTimeout(() => {
+  trollTimeoutId = setTimeout(() => {
     if (gameState.value === 'playing') {
       showTrollMessage.value = true
     }
@@ -144,6 +146,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown)
+  if (trollTimeoutId) clearTimeout(trollTimeoutId)
 })
 </script>
 

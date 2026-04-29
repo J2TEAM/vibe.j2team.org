@@ -6,6 +6,8 @@ import SpinWheelGame from './components/SpinWheelGame.vue'
 import DuckRaceGame from './components/DuckRaceGame.vue'
 import CardShuffleGame from './components/CardShuffleGame.vue'
 import KongBeautyGame from './components/KongBeautyGame.vue'
+import DiceRollGame from './components/DiceRollGame.vue'
+import JackpotGame from './components/JackpotGame.vue'
 import { MAX_NAMES, AVAILABLE_GAMES } from './types'
 
 // ── Name input state ───────────────────────────────────
@@ -38,6 +40,8 @@ const spinWheelRef = ref<InstanceType<typeof SpinWheelGame> | null>(null)
 const duckRaceRef = ref<InstanceType<typeof DuckRaceGame> | null>(null)
 const cardShuffleRef = ref<InstanceType<typeof CardShuffleGame> | null>(null)
 const kongBeautyRef = ref<InstanceType<typeof KongBeautyGame> | null>(null)
+const diceRollRef = ref<InstanceType<typeof DiceRollGame> | null>(null)
+const jackpotRef = ref<InstanceType<typeof JackpotGame> | null>(null)
 const winner = ref<string | null>(null)
 const showWinner = ref(false)
 
@@ -62,6 +66,10 @@ function spinAgain(): void {
       cardShuffleRef.value?.spin()
     } else if (activeGameId.value === 'kong-beauty') {
       kongBeautyRef.value?.spin()
+    } else if (activeGameId.value === 'dice-roll') {
+      diceRollRef.value?.spin()
+    } else if (activeGameId.value === 'lucky-jackpot') {
+      jackpotRef.value?.spin()
     }
   })
 }
@@ -323,7 +331,11 @@ onUnmounted(() => {
                       ? '🦆'
                       : g.id === 'card-shuffle'
                         ? '🃏'
-                        : '🦍'
+                        : g.id === 'kong-beauty'
+                          ? '🦍'
+                          : g.id === 'lucky-jackpot'
+                            ? '🎰'
+                            : '🎲'
                 }}
               </button>
             </div>
@@ -351,6 +363,18 @@ onUnmounted(() => {
           <KongBeautyGame
             v-else-if="activeGameId === 'kong-beauty'"
             ref="kongBeautyRef"
+            :names="names"
+            @winner="handleWinner"
+          />
+          <DiceRollGame
+            v-else-if="activeGameId === 'dice-roll'"
+            ref="diceRollRef"
+            :names="names"
+            @winner="handleWinner"
+          />
+          <JackpotGame
+            v-else-if="activeGameId === 'lucky-jackpot'"
+            ref="jackpotRef"
             :names="names"
             @winner="handleWinner"
           />
@@ -400,7 +424,11 @@ onUnmounted(() => {
                       ? 'Shuffle Again'
                       : activeGameId === 'kong-beauty'
                         ? 'Climb Again'
-                        : 'Spin Again'
+                        : activeGameId === 'dice-roll'
+                          ? 'Roll Again'
+                          : activeGameId === 'lucky-jackpot'
+                            ? 'Pull Again'
+                            : 'Spin Again'
                 }}
               </button>
             </div>

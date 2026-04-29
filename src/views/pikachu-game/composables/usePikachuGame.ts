@@ -1,5 +1,5 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import bgmTrack from '../res/BGM/BGM.mp3'
+const bgmTrack = '/pikachu-game/BGM.mp3'
 import {
   AUTO_RECOVER_RESHUFFLE_LIMIT,
   DEFAULT_RECORDS,

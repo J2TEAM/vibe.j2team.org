@@ -279,11 +279,14 @@ function fanOut(): void {
 const cardEls = ref<Record<number, HTMLElement>>({})
 const centerCard = ref<CardState | null>(null)
 
-function pickWinner(): void {
+function pickWinner(pickedId?: number): void {
   if (phase.value !== 'selecting') return
   phase.value = 'revealing'
 
-  const winnerIdx = Math.floor(Math.random() * cards.value.length)
+  const winnerIdx =
+    pickedId != null
+      ? cards.value.findIndex((c) => c.id === pickedId)
+      : Math.floor(Math.random() * cards.value.length)
   const winner = cards.value[winnerIdx]!
   winner.isWinner = true
   centerCard.value = winner
@@ -501,7 +504,7 @@ watch(deckEl, (el) => {
         }"
         @mouseenter="isInteractive ? (hoveredCard = card.id) : undefined"
         @mouseleave="hoveredCard = null"
-        @click="isInteractive ? pickWinner() : undefined"
+        @click="isInteractive ? pickWinner(card.id) : undefined"
       >
         <!-- 3-D flip wrapper -->
         <div class="card-flipper" :style="{ transform: `rotateY(${card.rotY}deg)` }">
@@ -659,21 +662,6 @@ watch(deckEl, (el) => {
             </div>
           </div>
         </div>
-
-        <!-- External name tooltip during selection (shows on hover) -->
-        <Transition name="tooltip">
-          <div
-            v-if="isInteractive && hoveredCard === card.id"
-            class="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-none border px-2 py-1 font-display text-[10px] tracking-wide"
-            :style="{
-              borderColor: card.glowColor,
-              color: card.glowColor,
-              backgroundColor: '#0F1923',
-            }"
-          >
-            {{ card.name }}
-          </div>
-        </Transition>
       </div>
     </div>
 

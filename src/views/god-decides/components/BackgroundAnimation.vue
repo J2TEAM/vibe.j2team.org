@@ -57,7 +57,7 @@ onUnmounted(() => {
     <div
       class="planet"
       style="
-        right: 25%;
+        right: 40%;
         top: 60%;
         background: radial-gradient(circle at 30% 30%, #1f4f8f, #1f5e94);
         animation-duration: 75s;
@@ -77,7 +77,8 @@ onUnmounted(() => {
     <div class="shooting-star" style="top: 20%; animation-delay: 1s"></div>
     <div class="shooting-star" style="top: 50%; animation-delay: 3s"></div>
     <div class="shooting-star" style="top: 70%; animation-delay: 5s"></div>
-    <div class="shooting-star" style="top: 30%; animation-delay: 7s"></div>
+    <div class="shooting-star" style="top: 90%; animation-delay: 7s"></div>
+    <div class="shooting-star" style="top: 150%; animation-delay: 4s"></div>
 
     <!-- Constellations -->
     <svg
@@ -115,34 +116,6 @@ onUnmounted(() => {
       <line x1="60" y1="75" x2="30" y2="70" stroke="rgba(255,255,255,0.3)" stroke-width="0.5" />
       <line x1="30" y1="70" x2="10" y2="50" stroke="rgba(255,255,255,0.3)" stroke-width="0.5" />
     </svg>
-
-    <!-- Circles -->
-    <div
-      class="circle"
-      style="width: 200px; height: 200px; left: 50%; top: 50%; transform: translate(-50%, -50%)"
-    ></div>
-    <div
-      class="circle"
-      style="
-        width: 400px;
-        height: 400px;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        animation-delay: 1s;
-      "
-    ></div>
-    <div
-      class="circle"
-      style="
-        width: 600px;
-        height: 600px;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        animation-delay: 2s;
-      "
-    ></div>
   </div>
 </template>
 
@@ -201,13 +174,6 @@ onUnmounted(() => {
   transform: rotate(45deg);
   animation: shoot 4s linear infinite;
   opacity: 0;
-}
-
-.circle {
-  position: absolute;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  animation: expand 15s infinite ease-in-out;
 }
 
 @keyframes twinkle {

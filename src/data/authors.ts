@@ -1,6 +1,6 @@
 import type { CategoryId } from '@/data/categories'
 import type { PageInfo } from '@/types/page'
-import { pages } from '@/data/pages-loader'
+import { getPagesCacheSync } from '@/stores/usePagesStore'
 
 export interface AuthorStats {
   author: string
@@ -23,11 +23,17 @@ export function toAuthorSlug(author: string): string {
   return author.toLowerCase().replace(/\s+/g, '-')
 }
 
-// Single aggregation loop — builds all authors
-export const allAuthors: Map<string, AuthorPageData> = (() => {
+// Lazy initialization — computed on first access, not at boot
+let _allAuthors: Map<string, AuthorPageData> | null = null
+let _multiAppAuthors: AuthorStats[] | null = null
+let _slugIndex: Map<string, AuthorPageData> | null = null
+
+function buildAllAuthors(): Map<string, AuthorPageData> {
+  if (_allAuthors) return _allAuthors
+
   const map = new Map<string, AuthorPageData>()
 
-  for (const page of pages) {
+  for (const page of getPagesCacheSync()) {
     const existing = map.get(page.author)
     if (existing) {
       existing.apps.push(page)
@@ -49,11 +55,14 @@ export const allAuthors: Map<string, AuthorPageData> = (() => {
     }
   }
 
+  _allAuthors = map
   return map
-})()
+}
 
-// Derived from allAuthors — filter, sort, rank
-export const multiAppAuthors: AuthorStats[] = (() => {
+function buildMultiAppAuthors(): AuthorStats[] {
+  if (_multiAppAuthors) return _multiAppAuthors
+
+  const allAuthors = buildAllAuthors()
   const filtered = Array.from(allAuthors.values()).filter((a) => a.apps.length >= 2)
 
   const sorted = filtered.sort((a, b) => {
@@ -62,7 +71,7 @@ export const multiAppAuthors: AuthorStats[] = (() => {
   })
 
   let currentRank = 1
-  return sorted.map((entry, i) => {
+  _multiAppAuthors = sorted.map((entry, i) => {
     if (i > 0 && entry.apps.length < sorted[i - 1]!.apps.length) {
       currentRank++
     }
@@ -76,13 +85,33 @@ export const multiAppAuthors: AuthorStats[] = (() => {
       rank: currentRank,
     }
   })
-})()
 
-const slugIndex = new Map<string, AuthorPageData>()
-for (const data of allAuthors.values()) {
-  slugIndex.set(data.slug, data)
+  return _multiAppAuthors
+}
+
+function buildSlugIndex(): Map<string, AuthorPageData> {
+  if (_slugIndex) return _slugIndex
+
+  const allAuthors = buildAllAuthors()
+  _slugIndex = new Map<string, AuthorPageData>()
+  for (const data of allAuthors.values()) {
+    _slugIndex.set(data.slug, data)
+  }
+
+  return _slugIndex
+}
+
+// Public API — same signatures, now lazy
+export function getAllAuthors(): Map<string, AuthorPageData> {
+  return buildAllAuthors()
+}
+
+export function getMultiAppAuthors(): AuthorStats[] {
+  return buildMultiAppAuthors()
 }
 
 export function getAuthorBySlug(slug: string): AuthorPageData | undefined {
-  return slugIndex.get(slug)
+  // Ensure ranks are computed before slug lookup
+  buildMultiAppAuthors()
+  return buildSlugIndex().get(slug)
 }

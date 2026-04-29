@@ -393,7 +393,7 @@ watch(
             </button>
           </div>
           <div v-else-if="phase === 'failed'">
-            <img src="/images/count-sheep/cat-haha.jpg" alt="Cat Shocked" class="mx-auto w-32" />
+            <img src="/count-sheep/cat-haha.jpg" alt="Cat Shocked" class="mx-auto w-32" />
             <div
               class="mt-4 border border-border-default bg-bg-deep px-4 py-3 text-sm text-text-secondary"
             >
@@ -415,7 +415,7 @@ watch(
             </button>
           </div>
           <div v-else-if="phase === 'cleared'">
-            <img src="/images/count-sheep/cat-shock.jpg" alt="Cat Shocked" class="mx-auto w-32" />
+            <img src="/count-sheep/cat-shock.jpg" alt="Cat Shocked" class="mx-auto w-32" />
             <div
               class="mt-4 border border-border-default bg-bg-deep px-4 py-3 text-sm text-text-secondary"
             >

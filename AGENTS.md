@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-vibe.j2team.org — A collaborative vibe coding project by J2TEAM Community with 160+ sub-apps. The homepage acts as a launcher linking to sub-apps, where each community member creates their own page.
+vibe.j2team.org — A collaborative vibe coding project by J2TEAM Community with 210+ sub-apps. The homepage acts as a launcher linking to sub-apps, where each community member creates their own page. Deployed to Cloudflare Workers (static assets via `wrangler.json`).
 
 ## Tech Stack
 
@@ -12,21 +12,23 @@ vibe.j2team.org — A collaborative vibe coding project by J2TEAM Community with
 - Tailwind CSS v4 (via `@tailwindcss/vite`)
 - Vue Router 5
 - Pinia 3
-- @unhead/vue (document head/meta management)
+- @unhead/vue 2 (document head/meta management)
 - @vueuse/core 14 — 200+ Vue composables (useMouse, useClipboard, useDark, useStorage, useIntersectionObserver, useLocalStorage, useMediaQuery, useWindowSize, etc.)
-- @iconify/vue — 200,000+ icons from 150+ icon sets via `<Icon icon="icon-set:icon-name" />` component
+- @iconify/vue 5 — 200,000+ icons from 150+ icon sets via `<Icon icon="icon-set:icon-name" />` component
 - html-to-image — capture DOM nodes as PNG/JPEG/SVG
+- shiki 4 — syntax highlighting
 
 ## Setup & Build
 
 ```sh
 pnpm install
 pnpm dev          # Dev server
-pnpm build        # Type-check + production build
+pnpm build        # Type-check + production build (+ OG pages + sitemap generation)
 pnpm test:unit    # Unit tests with Vitest
 pnpm lint         # Lint with oxlint + ESLint (with --fix)
 pnpm lint:ci      # Lint without --fix (for CI)
 pnpm format       # Format with oxfmt
+pnpm create:page <slug>  # Scaffold a new page (interactive or with flags)
 ```
 
 ## Project Structure
@@ -41,15 +43,28 @@ src/
   data/
     pages-loader.ts          # Fetches pre-generated pages.json (built by Vite plugin)
     categories.ts            # Category definitions (game, tool, creative, fun, learn, health, finance, spiritual, connect, other)
+    authors.ts               # Author aggregation from pages (leaderboard, author pages)
     homepage.ts              # Homepage content data (tech stack, rules, products)
     constants.ts             # Shared constants
   components/
-    home/                    # Homepage section components (HeroSection, PagesGrid, etc.)
+    home/                    # Homepage section components (HeroSection, PagesGrid, RecentlyViewed, etc.)
+    AppBreadcrumb.vue        # Standardized breadcrumb navigation for core pages
+    AuthorAvatar.vue         # Author avatar (GitHub avatar via useGithubAvatar)
     BackToTop.vue
-    EdgeToolbar.vue          # Slide-out toolbar on sub-pages (source link, bookmark, home)
+    CategoryFilter.vue       # Category filter UI for homepage
+    EdgeToolbar.vue          # Slide-out toolbar on sub-pages (source link, bookmark, home, comments)
     ErrorBoundary.vue        # Error boundary wrapper
     FavoriteButton.vue       # Bookmark/favorite toggle button
-  stores/                    # Pinia stores (currently unused — pages manage state locally)
+    GiscusModal.vue          # Giscus comments modal (per-page discussions)
+    PageCard.vue             # Page card component used in grids
+  composables/
+    useDraggable.ts          # Drag behavior composable
+    useGithubAvatar.ts       # Resolves GitHub avatar URL from author name
+    useSearchShortcut.ts     # Keyboard shortcut for search (Ctrl+K / Cmd+K)
+  stores/
+    useFavoritesStore.ts     # Bookmark/favorite state (localStorage via VueUse)
+    usePagesStore.ts         # Pages registry (fetches pages.json, provides page list)
+    useRecentlyViewedStore.ts # Tracks recently visited pages
   views/
     HomePage.vue             # Landing page / launcher
     ContentPolicy.vue        # Content policy page
@@ -66,6 +81,7 @@ src/
 
 Routes are auto-generated from a pre-built `public/data/pages.json` file:
 - A Vite plugin (`scripts/generate-pages-json.mjs`) scans all `src/views/*/meta.ts` files and writes `public/data/pages.json` at build start and whenever a `meta.ts` file changes during dev
+- Post-build scripts generate OG image pages (`scripts/generate-og-pages.mjs`) and sitemap with sub-sitemaps + robots.txt (`scripts/generate-sitemap.mjs`)
 - `src/data/pages-loader.ts` fetches this JSON at runtime (bypasses Rollup bundling)
 - Path is derived from folder name (e.g., `src/views/my-app/` → `/my-app`)
 - Featured pages are hand-picked in `scripts/generate-pages-json.mjs` and pinned to top of homepage
@@ -160,10 +176,10 @@ Before implementing any new feature or sub-page, agents MUST:
    - `@vueuse/core` — Vue composables
    - `@iconify/vue` — Icon component
    - `html-to-image` — DOM-to-image capture (PNG/JPEG/SVG)
+   - `shiki` — Syntax highlighter
 
    The following are **pre-approved** and can be added without additional approval:
    - `vue-konva` — 2D canvas library for drawing, games, and interactive graphics
-   - `shiki` — Syntax highlighter
 8. **Folder names must be kebab-case** — sub-page directories under `src/views/` must use lowercase kebab-case (e.g., `my-app`, `dev-rpg`). PascalCase or mixed-case folder names are not allowed
 9. **Author attribution required** — every page must have an `author` field in its `meta.ts` file
 10. **External libraries & APIs are welcome** — Sub-apps can load third-party JS libraries at runtime via `useScriptTag()` from `@vueuse/core` (e.g., YouTube IFrame API, Tone.js, Matter.js, p5.js). Authors can also call free/public external APIs (e.g., weather, dictionary, trivia, exchange rates) to power their features — just don't hard-code API keys in source code (see rule 8 in PR Checklist)
@@ -193,7 +209,11 @@ Simple apps (just a single page) only need `index.vue` + `meta.ts`.
 ### Static Assets Convention
 
 - `src/views/<app-name>/assets/` — small images, sounds, CSS that Vite will hash and optimize. **Use this for small assets (< 50 kB total).**
-- `public/<app-name>/` — large or numerous assets (sprite sheets, image sets, audio files, videos) served as-is without Vite processing. Accessible at `/<app-name>/filename.ext`. **You are allowed and encouraged to create `public/<app-name>/` directories** — this is NOT limited to your `src/views/` folder.
+- `public/<app-name>/` — large or numerous assets (sprite sheets, image sets, audio files, videos, JSON data) served as-is without Vite processing. Accessible at `/<app-name>/filename.ext`. **You are allowed and encouraged to create `public/<app-name>/` directories** — this is NOT limited to your `src/views/` folder.
+- `public/shared/` — assets used by multiple apps (e.g. `noise.webp`, `web-logo.svg`). Accessible at `/shared/filename.ext`.
+- `public/data/pages.json` — auto-generated app registry (globally shared). **Do NOT place app-specific data here** — use `public/<app-name>/` instead.
+
+**Important:** All app-specific public assets (images, sounds, data files) go in `public/<app-name>/`. Do NOT use `public/images/`, `public/sounds/`, or `public/data/` for app-specific assets.
 
 **Why use `public/`?** Assets imported via `import` or `import.meta.glob` in `src/` get bundled into JS chunks, increasing initial page load. Files in `public/` are served as static files and loaded on demand by the browser.
 
@@ -208,10 +228,10 @@ export const wordList = { ... } // 500 kB
 const mod = await import('./data') // still a JS chunk
 ```
 
-**DO — Replace with JSON in `public/data/` + lazy fetch:**
+**DO — Replace with JSON in `public/<app-name>/` + lazy fetch:**
 ```ts
 // Bypasses Rollup entirely, browser caches it independently
-const response = await fetch('/data/my-app-data.json')
+const response = await fetch('/my-app/my-app-data.json')
 const data = await response.json()
 ```
 
@@ -229,8 +249,8 @@ const engineUrl = '/my-app/engine.js' // Rollup never touches it
 
 | Data type | Threshold | Recommendation |
 |-----------|-----------|----------------|
-| Dictionary / word list | > 50 kB | `public/data/*.json` + fetch |
-| Geo / SVG path data | > 50 kB | `public/data/*.json` + fetch |
+| Dictionary / word list | > 50 kB | `public/<app>/data.json` + fetch |
+| Geo / SVG path data | > 50 kB | `public/<app>/data.json` + fetch |
 | Sprite frames / image sets | > 10 files or > 50 kB total | `public/<app>/` + URL strings |
 | Compiled engine (Emscripten, asm.js) | any size | `public/<app>/` + hardcoded URL |
 | Config / small data | < 20 kB | Direct import is fine |
@@ -328,7 +348,9 @@ Default is `true` — the toolbar is shown unless explicitly disabled.
 6. **UTF-8 encoding** — Ensure all Vietnamese text is properly encoded in UTF-8 (no garbled characters)
 7. **Follow `meta.ts` structure** — Copy the pattern from `src/views/hello-world/meta.ts` exactly. Import `PageMeta` type, export default with required fields
 8. **No exposed API endpoints/secrets** — Since this is open source, never hard-code API keys, endpoints, or secrets in the source code
-9. **No large data files in `src/`** — If your app needs a large data file (> 50 kB), place it in `public/data/` as JSON and fetch it lazily. Do NOT export it as a TypeScript/JS module. See "Bundle Size — Avoid bloating JS chunks" section above
+9. **No large data files in `src/`** — If your app needs a large data file (> 50 kB), place it in `public/<app-name>/` as JSON and fetch it lazily. Do NOT export it as a TypeScript/JS module. See "Bundle Size — Avoid bloating JS chunks" section above
+10. **Dynamic import for user-triggered libraries** — Libraries that are only used when the user performs a specific action (e.g., export image, syntax highlight, share) must be dynamically imported inside the function that needs them, not at the top level. A static top-level `import` bundles the entire library into the page's JS chunk even when the user never triggers the action. Example: `const { toPng } = await import('html-to-image')` inside the export handler, not `import { toPng } from 'html-to-image'` at the top of the file. This applies to `html-to-image`, `shiki`, and any similar on-demand library
+11. **Clean up side effects on unmount** — Every `addEventListener`, `setInterval`, `setTimeout`, `requestAnimationFrame`, or any other global side effect registered in `onMounted` MUST be cleaned up in `onUnmounted`. Prefer VueUse composables (`useEventListener`, `useIntervalFn`, `useTimeoutFn`, `useRafFn`) which handle cleanup automatically. Forgetting cleanup causes memory leaks and ghost listeners that persist across route navigations in an SPA
 
 ## Linting & Formatting
 

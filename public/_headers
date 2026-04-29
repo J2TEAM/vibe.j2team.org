@@ -22,9 +22,15 @@
 /data/pages.json
   Cache-Control: public, max-age=300, stale-while-revalidate=60
 
-# Other JSON data files — moderate cache
-/data/*
+# JSON data files in app folders — moderate cache
+/*.json
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# Sitemaps — refresh hourly
+/sitemap.xml
+  Cache-Control: public, max-age=3600, stale-while-revalidate=600
+/sitemaps/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=600
 
 # HTML (SPA entry) — always revalidate
 /index.html

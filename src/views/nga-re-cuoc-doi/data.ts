@@ -176,7 +176,9 @@ let _cached: GameDataJson | null = null
 
 export async function loadGameData(): Promise<GameDataJson> {
   if (_cached) return _cached
-  const raw = (await fetch('/data/nga-re-cuoc-doi.json').then((r) => r.json())) as GameDataJson
+  const raw = (await fetch('/nga-re-cuoc-doi/nga-re-cuoc-doi.json').then((r) =>
+    r.json(),
+  )) as GameDataJson
   // Patch events with condition functions that cannot be stored in JSON
   for (const evt of raw.dangerousEvents) {
     const cond = EVENT_CONDITIONS[evt.id]
