@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 import { RouterLink } from 'vue-router'
 
@@ -1033,6 +1033,25 @@ function getBandOption(options: ColorBandOption[], key: string): ColorBandOption
   return options.find((option) => option.key === key)
 }
 
+function normalizeBandForMode(mode: BandMode) {
+  if (!getBandOption(resistorDigitColors, selectedBand1.value)) selectedBand1.value = 'brown'
+  if (!getBandOption(resistorDigitColors, selectedBand2.value)) selectedBand2.value = 'black'
+
+  if (mode === '4') {
+    if (!getBandOption(resistorMultiplierColors, selectedBand3.value)) selectedBand3.value = 'black'
+    if (!getBandOption(resistorToleranceColors, selectedBand4.value)) selectedBand4.value = 'gold'
+    return
+  }
+
+  if (!getBandOption(resistorDigitColors, selectedBand3.value)) selectedBand3.value = 'black'
+  if (!getBandOption(resistorMultiplierColors, selectedBand4.value)) selectedBand4.value = 'black'
+  if (!getBandOption(resistorToleranceColors, selectedBand5.value)) selectedBand5.value = 'brown'
+
+  if (mode === '6' && !getBandOption(resistorTempcoColors, selectedBand6.value)) {
+    selectedBand6.value = 'brown'
+  }
+}
+
 function stripZero(value: number): string {
   return Number(value.toFixed(6)).toString()
 }
@@ -1146,7 +1165,7 @@ function decodeResistorSmd(code: string) {
       note: tr.value.common.enterResistorSmd,
     }
   }
-  if (/^(0R0|\dR\d|R\d+|\d+R\d+|\dR)$/i.test(normalized)) {
+  if (/^(?:\d+R\d*|R\d+)$/.test(normalized)) {
     const ohmValue = Number(normalized.replace('R', '.'))
     return {
       normalized,
@@ -1247,6 +1266,8 @@ function decodeCapacitorSmd(code: string) {
 
 const resistorSmdResult = computed(() => decodeResistorSmd(resistorSmdCode.value))
 const capacitorSmdResult = computed(() => decodeCapacitorSmd(capacitorSmdCode.value))
+
+watch(resistorBandMode, (mode) => normalizeBandForMode(mode))
 
 function getSwatchClass(colorKey: string): string {
   const option =
