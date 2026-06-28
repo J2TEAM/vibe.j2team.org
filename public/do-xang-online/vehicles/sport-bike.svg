@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 120" fill="none" aria-hidden="true">
+  <!-- Xe côn / sport: phuộc nghiêng, bình xăng gồ lên — khác hẳn silhouette ô tô -->
+  <path stroke="#253549" stroke-width="3" stroke-linecap="round" d="M20 102h260"/>
+  <g stroke="#253549" stroke-width="2" fill="#1E2F42">
+    <circle cx="72" cy="102" r="22"/>
+    <circle cx="238" cy="102" r="22"/>
+  </g>
+  <circle cx="72" cy="102" r="10" fill="#162232" stroke="#253549" stroke-width="1.5"/>
+  <circle cx="238" cy="102" r="10" fill="#162232" stroke="#253549" stroke-width="1.5"/>
+  <!-- Phuộc trước nghiêng -->
+  <path stroke="#253549" stroke-width="3" stroke-linecap="round" fill="none"
+        d="M198 42l26 58"/>
+  <!-- Bình xăng + yên tách tầng -->
+  <path fill="#162232" stroke="#253549" stroke-width="1.5" stroke-linejoin="round"
+        d="M118 88l24-42c8-4 20-4 28 0l20 42H118z"/>
+  <path fill="#253549" opacity=".5" d="M128 78h52v8h-52z"/>
+  <path fill="#1E2F42" d="M140 52h28c6 0 10 6 10 14v10h-48V66c0-8 4-14 10-14z"/>
+  <!-- Đuôi gió + đèn -->
+  <path stroke="#253549" stroke-width="1.5" fill="none" d="M96 88H72"/>
+  <circle cx="210" cy="48" r="5" fill="#FF6B4A" opacity=".85"/>
+  <!-- Khung dưới -->
+  <path stroke="#253549" stroke-width="2" fill="none" stroke-linejoin="round"
+        d="M94 102c12-28 52-40 92-36 40-4 80 8 92 36"/>
+</svg>

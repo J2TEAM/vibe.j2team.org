@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 160" fill="none" aria-hidden="true">
+  <!-- Silhouette ô tô 5 chỗ — dễ nhận khi thu nhỏ -->
+  <path fill="#253549" d="M8 118h344v12H8z"/>
+  <ellipse cx="62" cy="126" rx="28" ry="28" fill="#1E2F42" stroke="#253549" stroke-width="2"/>
+  <ellipse cx="298" cy="126" rx="28" ry="28" fill="#1E2F42" stroke="#253549" stroke-width="2"/>
+  <path fill="#162232" stroke="#253549" stroke-width="1.5" stroke-linejoin="bevel"
+        d="M32 104c4-22 36-36 96-38h104c60 2 92 16 96 38v26H32v-26z"/>
+  <path fill="#1E2F42" opacity=".9" d="M48 78h264c-8-18-40-28-88-28h-88c-48 0-80 10-88 28z"/>
+  <path fill="#253549" d="M118 52h124v22H118z" opacity=".6"/>
+  <rect x="130" y="58" width="100" height="12" rx="1" fill="#162232" opacity=".5"/>
+  <rect x="200" y="96" width="14" height="10" rx="1" fill="#FF6B4A" opacity=".35"/>
+  <path fill="none" stroke="#FF6B4A" stroke-width="1" opacity=".4" d="M78 96h18"/>
+</svg>
